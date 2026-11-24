@@ -41,7 +41,7 @@ S_t = f(ω_0..ω_{t-1}, ω_t). Формализуем мартингальную
 **Честные границы**: полы должны проверяться при КАЖДОМ
 префиксе (это runtime-измерение, не следствие iid);
 суб-Гауссовость приращений — следствие ограниченности [0,1],
-Freedman-усиление (дисперсионная адаптация) — открыто.
+Freedman-усиление — `adaptive_success_freedman` (`Hagi.Probability.Freedman`).
 -/
 
 open Finset Real
@@ -63,8 +63,8 @@ theorem hoeffding_lemma_prefix (q : V → ℝ)
     (hmean : ∑ v, q v * X v = 0) (lam : ℝ) :
     ∑ v, q v * Real.exp (lam * X v)
       ≤ Real.exp (lam ^ 2 * c ^ 2 / 2) := by
-  -- ДЕДУПЛИКАЦИЯ (аудит v6, L1): вывод из канона
-  -- mgf_hoeffding_ab (Foundations.Hoeffding) — лемма Хёффдинга
+  -- вывод из канона
+  -- mgf_hoeffding_ab (Hagi.Math.Foundations.Hoeffding) — лемма Хёффдинга
   -- одна; λ·X ∈ [−|λ|c, |λ|c], среднее 0 ⟹
   -- log-mgf ≤ (2|λ|c)²/8 = λ²c²/2, экспоненцируем.
   have hbounds : ∀ v, -(abs lam) * c ≤ lam * X v

@@ -6,8 +6,8 @@ import Mathlib.Tactic
 # BranchScale: the variance recursion over residual branches
 
 The constructive initialization of the residual branch scales
-(the round-34 P4): the current formula
-residual_scale = 1/√(2L·loop) is an EMPIRICALLY LUCKY
+The constructive initialization of the residual branch scales
+(the P4 item): the current formula
 self-tuning (residual_gain ≈ 1.8 in the NCE arms) — this
 module derives it.
 
@@ -42,15 +42,11 @@ test.
 
 **Prescription for the code.**
 
-1. The constructive init: s_l = 1/√(2L·loop) confirmed for
-   the homogeneous regime — the current formula is now
-   DERIVED, not lucky.
+1. The constructive init: s_l = 1/√(2L·loop) for the homogeneous
+   regime.
 2. The per-layer variant: if the measured branch variances
    differ (the zero_init_round8 telemetry), set
-   s_l = 1/√(loop · Σ_k v_k / v_l)·... — the closed form
-   s_l² · v_l = 1/(L·loop) for every l (the equalized
-   contribution); the per-layer s from the measured v_l.
-3. The falsifiable test: the per-layer s against the uniform
+   s_l² · v_l = 1/(L·loop) for every l (the equalized contribution).
    s on the next training run — the theory predicts the
    equalized-contribution variant wins when the branch
    spectra are unequal.
@@ -87,7 +83,7 @@ contributions sum to 1. With the stationary branch moment
 (v matching the stream's own second moment) and the loop
 factor (the L-block iterated), the closed form reduces to
 the MEASURED residual_scale = 1/√(2L·loop): the existing code
-formula DERIVED, not lucky (the round-34 confirmation).
+formula DERIVED, not lucky.
 The per-layer variant (unequal v_l) prescribes
 s_l = √(1/(L·loop·v_l)) — the falsifiable test. -/
 theorem constructive_scale (L : ℕ) (v : ℝ)

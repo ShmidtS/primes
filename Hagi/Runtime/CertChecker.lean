@@ -10,7 +10,7 @@ set_option relaxedAutoImplicit false
 /-!
 # Executable certificate step checker (A18.8, beat)
 
-Audit W7: the certified loop lives on `noncomputable ℝ`, so the
+The certified loop lives on `noncomputable ℝ`, so the
 certified layer has no executable counterpart — a trainer cannot
 hand a certificate to any decidable validator. This module is the
 executable checker: step data as RATIONAL readouts (`ℚ` — decidable

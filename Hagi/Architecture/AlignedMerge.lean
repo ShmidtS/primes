@@ -20,8 +20,7 @@ set_option linter.style.header false
   `(r ⬝ᵥ r) + (s ⬝ᵥ s)` by at most
   `2 * (frobSq (Vᵀ * W)).sqrt * (r ⬝ᵥ r).sqrt * (s ⬝ᵥ s).sqrt`.
 
-The principal-angle (spectral) version remains open — Mathlib
-lacks Eckart-Young.
+The principal-angle (spectral) version is not formalized.
 -/
 
 namespace Hagi.Architecture

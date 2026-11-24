@@ -45,9 +45,9 @@ Honest scope:
   top-k singular subspace" — premise-form `hE` in
   `sparse_inference_error` (the mask ACHIEVES the tail bound; exact
   equality holds for the truncated spectral mask in the square
-  case, `frobenius_error_truncatedSVD` in Flywheel; the
-  rectangular exact-equality bridge is deferred
-  root-sorting gap).
+  case, `frobenius_error_truncatedSVD` in Flywheel; rectangular:
+  `Hagi.Contracts.TruncatedSVDTail.truncated_svd_error_eq_tail`,
+  Frobenius form under the SVD premise).
 * UNSTRUCTURED (entrywise) sparsity is NOT claimed: the optimal
   entrywise mask under an error budget is NP-hard (Natarajan 1995,
   sparse-approximation hardness lineage) — acknowledged here, not
@@ -82,7 +82,7 @@ true with equality for the truncated spectral mask — square case
 (pattern: the head-input perturbation through the backbone
 sensitivity) changes by at most `sens` times the tail root:
 `|phi B − phi A| ≤ sens · (∑ tail²)^{1/2}`. The mask structure is
-the premise; the tail theorem is C281's, cited — the composition is
+the premise; the tail theorem is cited — the composition is
 the only new content. -/
 theorem sparse_inference_error
     (A B : Matrix m n ℂ) (k : ℕ)

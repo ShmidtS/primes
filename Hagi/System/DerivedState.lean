@@ -31,7 +31,7 @@ finite dataset (`FixedDataset`, a `Fintype` carrier):
 
 The coherence invariant (`coherentGrowth`, weights = projection of
 params) holds for `derivedGrowthState` by construction (`weights := θ`,
-`params := θ`); the genuine C386-symbol tie lives in the layer-5 bridge
+`params := θ`); the genuine tie lives in the layer-5 bridge
 `Hagi/Semantics/DerivedStateCoherence.lean` (System layer 3 may not
 import Semantics — LayerLint).
 

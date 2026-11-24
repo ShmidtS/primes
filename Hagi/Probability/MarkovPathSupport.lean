@@ -9,7 +9,7 @@ import Hagi.Probability.Freedman
 # Positive support for finite Markov paths
 
 This isolated candidate uses the existing `historyInitial`, `historyKernel`,
-and `historyLaw` from `Hagi.Probability.FreedmanTwoSided`.  The induction is on
+and `historyLaw` from `Hagi.Probability.Freedman`.  The induction is on
 `k ≤ T` inside one ambient `History α T`; it introduces no new path law or
 transition-weight product.  The support constructions use Mathlib's exact
 `PMF.mem_support_map_iff` and `PMF.mem_support_bind_iff` characterizations.

@@ -20,7 +20,7 @@ additive-damage мажорантой:
   CE(t, lm m') ≤ CE(t, lm m) − 2A²/R² + 2·HL·d,
 
 где − 2A²/R² — certified head-спад на СТАРЫХ features
-(`ceOneHot_safeStep_le_residual`, C387-семейство), а 2·HL·d —
+(`ceOneHot_safeStep_le_residual`), а 2·HL·d —
 trunk-канал: CE-lip 2‖·‖sup (`ce_head_lipschitz_in_logits`,
 ) + логит-смещение от смены ствола, доминируемое
 headLip-нормой НОВОЙ головы HL и MEASURED trunk-смещением d.

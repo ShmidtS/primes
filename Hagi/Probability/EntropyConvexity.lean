@@ -19,17 +19,10 @@ namespace Hagi.Probability
 open Finset Real
 
 open Finset in
-/-- **Log-sum неравенство (R451)**:
-A·ln(A/B) ≤ Σ a·ln(a/b) для
-положительных a, b
-(A = Σa, B = Σb).
-Вывод: нормализация
-a/A, b/B в распределения +
-R447 (KL ≥ 0); без Коши-Энгеля.
-Классический кирпич
-Энтропийной неравенств
-цепи и основа
-Пинскера/Гиббса-Дюгема. -/
+/-- **Log-sum неравенство (R451)**: A·ln(A/B) ≤ Σ a·ln(a/b) для
+   положительных a, b (A = Σa, B = Σb). Вывод: нормализация a/A, b/B в
+   распределения + R447 (KL ≥ 0); без Коши-Энгеля. Классический кирпич
+   Энтропийной неравенств цепи и основа Пинскера/Гиббса-Дюгема. -/
 theorem log_sum_ineq {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (a b : V → ℝ)
     (ha : ∀ v, 0 < a v) (hb : ∀ v, 0 < b v) :
@@ -89,19 +82,11 @@ theorem log_sum_ineq {V : Type*} [Fintype V] [DecidableEq V]
   linarith
 
 open Finset in
-/-- **Log-sum неравенство на
-подмножестве (R452)**:
-для s ⊆ V и положительных на s:
-(Σ_{v∈s} a)·ln(Σa/Σb) ≤ Σ_{v∈s} a·ln(a/b).
-Доказательство:
-применение R451 к
-подтипу {v // v ∈ s}
-(Finset.sum_coe_sort).
-Кирпич для
-неравенства
-обработки данных (KL не
-растёт при сжатии по
-слоям). -/
+/-- **Log-sum неравенство на подмножестве (R452)**: для s ⊆ V и
+   положительных на s: (Σ_{v∈s} a)·ln(Σa/Σb) ≤ Σ_{v∈s} a·ln(a/b).
+   Доказательство: применение R451 к подтипу {v // v ∈ s}
+   (Finset.sum_coe_sort). Кирпич для неравенства обработки данных (KL не
+   растёт при сжатии по слоям). -/
 theorem log_sum_ineq_on {V : Type*} [Fintype V] [DecidableEq V]
     (s : Finset V) (hs : s.Nonempty)
     (a b : V → ℝ)
@@ -122,19 +107,10 @@ theorem log_sum_ineq_on {V : Type*} [Fintype V] [DecidableEq V]
   exact hsub
 
 open Finset in
-/-- **Неравенство
-обработки данных (R453)**:
-KL(Tρḟ‖Tγ) ≤ KL(ρḟ‖γ) для
-любого отображения T:
-информация только
-теряется при
-обработке.
-Механика:
-fiber-разложение
-(Finset.sum_fiberwise) + log-sum
-почленно по слоям
-(R452); пустые слои — нулевой
-вклад (log 0 = 0). -/
+/-- **Неравенство обработки данных (R453)**: KL(Tρḟ‖Tγ) ≤ KL(ρḟ‖γ) для
+   любого отображения T: информация только теряется при обработке.
+   Механика: fiber-разложение (Finset.sum_fiberwise) + log-sum почленно по
+   слоям (R452); пустые слои — нулевой вклад (log 0 = 0). -/
 theorem kl_data_processing {V W : Type*} [Fintype V] [Fintype W]
     [DecidableEq V] [DecidableEq W] [Nonempty V]
     (T : V → W)
@@ -171,16 +147,10 @@ theorem kl_data_processing {V W : Type*} [Fintype V] [Fintype W]
   exact Finset.sum_le_sum (fun w _ => hper w)
 
 open Real in
-/-- **Двухточечная
-вогнутость ln (R454)**:
-λ·ln x + (1−λ)·ln y ≤
-ln(λx+(1−λ)y).
-Без calculus:
-взвешенное AM-GM
-(Реал.geom_mean_le_arith_mean2_weighted)
-+ монотонность ln.
-Кирпич выпуклости KL-
-дивергенции. -/
+/-- **Двухточечная вогнутость ln (R454)**: λ·ln x + (1−λ)·ln y ≤
+   ln(λx+(1−λ)y). Без calculus: взвешенное AM-GM
+   (Реал.geom_mean_le_arith_mean2_weighted) + монотонность ln. Кирпич
+   выпуклости KL- дивергенции. -/
 theorem log_concave_two {lam x y : ℝ} (hlam : 0 < lam) (hlam2 : lam < 1)
     (hx : 0 < x) (hy : 0 < y) :
     lam * Real.log x + (1 - lam) * Real.log y
@@ -200,17 +170,10 @@ theorem log_concave_two {lam x y : ℝ} (hlam : 0 < lam) (hlam2 : lam < 1)
     (Real.rpow_pos_of_pos hy (1 - lam))) h1
 
 open Finset Real in
-/-- **Выпуклость x·ln x (R455)**:
-(λa+(1−λ)b)·ln(λa+(1−λ)b) ≤
-λa·ln a + (1−λ)b·ln b.
-Доказательство: log-sum (R451)
-на Bool-носителе с
-α = (λa, (1−λ)b),
-β = (λ, 1−λ) (Σβ = 1).
-Энтропийная
-функция выпукла —
-кирпич выпуклости KL-
-дивергенции. -/
+/-- **Выпуклость x·ln x (R455)**: (λa+(1−λ)b)·ln(λa+(1−λ)b) ≤ λa·ln a +
+   (1−λ)b·ln b. Доказательство: log-sum (R451) на Bool-носителе с α = (λa,
+   (1−λ)b), β = (λ, 1−λ) (Σβ = 1). Энтропийная функция выпукла — кирпич
+   выпуклости KL- дивергенции. -/
 theorem xlogx_convex {a b lam : ℝ} (ha : 0 < a) (hb : 0 < b)
     (hlam : 0 < lam) (hlam2 : lam < 1) :
     (lam * a + (1 - lam) * b) * Real.log (lam * a + (1 - lam) * b)
@@ -239,15 +202,10 @@ theorem xlogx_convex {a b lam : ℝ} (ha : 0 < a) (hb : 0 < b)
   exact hsum
 
 open Real in
-/-- **Скалярная выпуклость
-x·ln(x/y) по x (R456)**:
-(λa+(1−λ)b)·ln((λa+(1−λ)b)/y) ≤
-λa·ln(a/y) + (1−λ)b·ln(b/y).
-Вывод: R455 (z·ln z выпукла)
-+ линейность
-z·ln y. Кирпич
-выпуклости KL по
-первому аргументу. -/
+/-- **Скалярная выпуклость x·ln(x/y) по x (R456)**:
+   (λa+(1−λ)b)·ln((λa+(1−λ)b)/y) ≤ λa·ln(a/y) + (1−λ)b·ln(b/y). Вывод: R455
+   (z·ln z выпукла) + линейность z·ln y. Кирпич выпуклости KL по первому
+   аргументу. -/
 theorem xlog_div_convex {a b y lam : ℝ} (ha : 0 < a) (hb : 0 < b)
     (hy : 0 < y) (hlam : 0 < lam) (hlam2 : lam < 1) :
     (lam * a + (1 - lam) * b)
@@ -267,15 +225,9 @@ theorem xlog_div_convex {a b y lam : ℝ} (ha : 0 < a) (hb : 0 < b)
   linarith
 
 open Finset Real in
-/-- **Выпуклость KL по
-первому аргументу (R457)**:
-KL(λρ₁+(1−λ)ρ₂ ḟ‖ γ) ≤
-λ·KL(ρ₁ḟ‖γ)+(1−λ)·KL(ρ₂ḟ‖γ).
-Вывод: почленное R456 +
-разделение сумм.
-Дуга выпуклости
-завершена:
-R454→R455→R456→R457. -/
+/-- **Выпуклость KL по первому аргументу (R457)**: KL(λρ₁+(1−λ)ρ₂ ḟ‖ γ)
+   ≤ λ·KL(ρ₁ḟ‖γ)+(1−λ)·KL(ρ₂ḟ‖γ). Вывод: почленное R456 + разделение сумм.
+   Дуга выпуклости завершена: R454→R455→R456→R457. -/
 theorem kl_convex_first {V : Type*} [Fintype V] [Nonempty V]
     (ρ₁ ρ₂ γ : V → ℝ) (lam : ℝ)
     (hρ₁ : ∀ v, 0 < ρ₁ v) (hρ₂ : ∀ v, 0 < ρ₂ v)
@@ -302,18 +254,10 @@ theorem kl_convex_first {V : Type*} [Fintype V] [Nonempty V]
         rw [Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum]
 
 open Finset Real in
-/-- **Аддитивность KL на
-произведении (R458)**:
-KL(ρ₁×ρ₂ ḟ‖ γ₁×γ₂) =
-KL(ρ₁ḟ‖γ₁) + KL(ρ₂ḟ‖γ₂)
-(цепное правило для
-независимых).
-Механика: log-
-разложение + Fubini
-(Fintype.sum_prod_type +
-sum_congr/свёртка
-строк через
-Σρ = 1). -/
+/-- **Аддитивность KL на произведении (R458)**: KL(ρ₁×ρ₂ ḟ‖ γ₁×γ₂) =
+   KL(ρ₁ḟ‖γ₁) + KL(ρ₂ḟ‖γ₂) (цепное правило для независимых). Механика: log-
+   разложение + Fubini (Fintype.sum_prod_type + sum_congr/свёртка строк
+   через Σρ = 1). -/
 theorem kl_product_additive {V W : Type*} [Fintype V] [Fintype W]
     [Nonempty V] [Nonempty W]
     (ρ₁ γ₁ : V → ℝ) (ρ₂ γ₂ : W → ℝ)
@@ -400,18 +344,10 @@ theorem kl_product_additive {V W : Type*} [Fintype V] [Fintype W]
   linarith
 
 open Finset Real in
-/-- **Субаддитивность
-энтропии (R459)**:
-S(совместное) ≤
-S(маргинальное по V)
-+ S(маргинальное по W).
-Вывод через взаимную
-информацию: KL(ρ ḟ‖ μ₁×μ₂)
-= S₁+S₂−S ≥ 0 (R447);
-механика в стиле R458
-(Fubini-свёртки).
-Классика теории
-информации. -/
+/-- **Субаддитивность энтропии (R459)**: S(совместное) ≤ S(маргинальное
+   по V) + S(маргинальное по W). Вывод через взаимную информацию: KL(ρ ḟ‖
+   μ₁×μ₂) = S₁+S₂−S ≥ 0 (R447); механика в стиле R458 (Fubini-свёртки).
+   Классика теории информации. -/
 theorem entropy_subadditive {V W : Type*} [Fintype V] [Fintype W]
     [Nonempty V] [Nonempty W] [DecidableEq V] [DecidableEq W]
     (ρ : V × W → ℝ)
@@ -493,20 +429,11 @@ theorem entropy_subadditive {V W : Type*} [Fintype V] [Fintype W]
   linarith
 
 open Finset Real in
-/-- **Цепное правило
-энтропии Шеннона (R460)**:
-S(V,W) = S(V) + Σᵥ μ₁(v)·S(условная)
-— совместная энтропия =
-маргинальная + средняя
-условная по условному
-ядру ρ(v,w)/μ₁(v).
-Механика: per-term log-
-разделение + Fubini-
-свёртки строк/ядер в
-стиле R458/R459.
-Вместе с R459 — полная
-энтропийная арифметика
-совместных распределений. -/
+/-- **Цепное правило энтропии Шеннона (R460)**: S(V,W) = S(V) + Σᵥ
+   μ₁(v)·S(условная) — совместная энтропия = маргинальная + средняя
+   условная по условному ядру ρ(v,w)/μ₁(v). Механика: per-term log-
+   разделение + Fubini- свёртки строк/ядер в стиле R458/R459. Вместе с R459
+   — полная энтропийная арифметика совместных распределений. -/
 theorem entropy_chain {V W : Type*} [Fintype V] [Fintype W]
     [Nonempty V] [Nonempty W] [DecidableEq V] [DecidableEq W]
     (ρ : V × W → ℝ)
@@ -560,12 +487,8 @@ theorem entropy_chain {V W : Type*} [Fintype V] [Fintype W]
   rw [hA, hB]
 
 open Finset Real in
-/-- **Лог-сумма
-распределения
-неположительна (R461a)**:
-Σ ρ·ln ρ ≤ 0 при ρ ≤ 1
-почленно
-(single_le_sum + log-монотонность). -/
+/-- **Лог-сумма распределения неположительна (R461a)**: Σ ρ·ln ρ ≤ 0 при
+   ρ ≤ 1 почленно (single_le_sum + log-монотонность). -/
 theorem dist_log_nonpos {V : Type*} [Fintype V] [Nonempty V]
     (ρ : V → ℝ) (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v : V, ρ v = 1) :
     (∑ v : V, ρ v * Real.log (ρ v)) ≤ 0 := by
@@ -583,15 +506,9 @@ theorem dist_log_nonpos {V : Type*} [Fintype V] [Nonempty V]
     nlinarith [hρ v, hl]
   exact Finset.sum_nonpos (fun v _ => hpt v)
 
-/-- **Условие не
-увеличивает
-энтропию (R461)**:
-S(V,W) ≥ S(V) — условная
-энтропия неотрицательна.
-Вывод: цепное правило R460 +
-неположительность
-лог-сумм условных
-строк. -/
+/-- **Условие не увеличивает энтропию (R461)**: S(V,W) ≥ S(V) — условная
+   энтропия неотрицательна. Вывод: цепное правило R460 + неположительность
+   лог-сумм условных строк. -/
 theorem joint_entropy_ge_marginal {V W : Type*} [Fintype V]
     [Fintype W] [Nonempty V] [Nonempty W] [DecidableEq V] [DecidableEq W]
     (ρ : V × W → ℝ)
@@ -625,16 +542,10 @@ theorem joint_entropy_ge_marginal {V W : Type*} [Fintype V]
   linarith
 
 open Finset Real in
-/-- **Тождество свободной
-энергии на равновесии (R462)**:
-−T·ln Z = ⟨E⟩_γ + T·Σγ ln γ —
-F = ⟨E⟩ − T·S в лог-форме
-(эквивалент R446 совместно с
-PAC-Bayes-выводом).
-Механика: per-v
-T·γ ln γ = −γE − γ(T ln Z) +
-свёртки сумм через
-Σγ = 1. -/
+/-- **Тождество свободной энергии на равновесии (R462)**: −T·ln Z =
+   ⟨E⟩_γ + T·Σγ ln γ — F = ⟨E⟩ − T·S в лог-форме (эквивалент R446 совместно
+   с PAC-Bayes-выводом). Механика: per-v T·γ ln γ = −γE − γ(T ln Z) +
+   свёртки сумм через Σγ = 1. -/
 theorem gibbs_free_energy_identity {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ) (hT : 0 < T) :
     -T * Real.log (∑ v : V, Real.exp (-(E v)/T))

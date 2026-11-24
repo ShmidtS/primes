@@ -296,7 +296,7 @@ theorem disp_recurrence_general {D : ℕ → ℝ} {a s : ℝ}
             rw [hsum]; ring
 
 /-!
-## Grokking timescale (R366)
+## Grokking timescale
 
 Formal core of the spectral theory of grokking
 (arXiv:2609.26679): for homogeneous networks with squared
@@ -349,7 +349,7 @@ theorem one_sub_pow_le_exp (x : ℝ) (T : ℕ) (hx : 0 ≤ x) (hx1 : x ≤ 1) :
       _ ≤ Real.exp (-x * (T:ℝ)) := Real.exp_le_exp.mpr hfinal
       _ = Real.exp (-(x * T)) := by congr 1; push_cast; ring
 
-/-- **Grokking threshold time** (R366): under the exact
+/-- **Grokking threshold time**: under the exact
 residual dynamics `r(t+1) = r(t) − η·λ·r(t)` with `η·λ ∈
 (0,1]`, the residual at time `T ≥ ln(r₀/ε)/(η·λ)` is at most
 `ε` — the inverse-product scaling of the generalization
@@ -401,7 +401,7 @@ theorem grokking_threshold_time (eta lam r0 eps : ℝ)
         mul_le_mul_of_nonneg_left hexp hr0.le
     _ ≤ eps := hbound
 
-/-- **Grokking-хвост поверх certified-спуска** (R368):
+/-- **Grokking-хвост поверх certified-спуска**:
 композиция certified-телескопа и grokking-остатка. Если
 потенциал раскладывается как `Φ t = Φ_core t + r t`, где
 core-часть убывает certified-шагами (decrease_t ≥ 0 на каждом
@@ -412,7 +412,7 @@ grokking-динамике `r(t+1) = r(t) − ηλ·r(t)`, то к моменту
   Φ T ≤ Φ 0 − ∑ decrease_t + ε:
 
 certified-спуск PLUS погашенный grokking-хвост. Планировщик
-(η = 1/L кап, λ из целевого времени, R346/R347/R366)
+(η = 1/L кап, λ из целевого времени)
 управляет моментом, когда хвост перестаёт доминировать. -/
 theorem certified_descent_with_grokking_tail
     (eta lam r0 eps : ℝ)
@@ -431,7 +431,7 @@ theorem certified_descent_with_grokking_tail
   linarith
 
 /-!
-## Growing-batch stabilization (R371)
+## Growing-batch stabilization
 
 Formal core of the growing-batch convergence results
 (Improved Convergence Rates for Stochastic Multi-Gradient
@@ -446,10 +446,10 @@ the accumulated noise term CONSTANT in T:
   E(T) ≤ ρ^T·E(0) + η²σ² / (b₀·(1 − ρδ⁻¹))     (ρ·δ⁻¹ < 1)
 
 — the noise floor does not accumulate: the tail is
-extinguished exactly as the grokking residual (R366/R368),
+extinguished exactly as the grokking residual,
 and the horizon bound is the contraction floor
 c/(1−ρ) from `recurrence_upper`. The learning-rate cap
-η = 1/L (R347) plus batch scaling (R346) plus this
+η = 1/L plus batch scaling plus this
 stabilization complete the schedule algebra.
 -/
 

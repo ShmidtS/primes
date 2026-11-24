@@ -17,13 +17,11 @@ state with nonnegative objective.  `descentCertStep` assembles a
 positive certified drop, a real descent inequality and preserved
 budget/risk levels into a canonical `CertStep` with zero budget/risk
 spend.  `holdTransition` is the identity `TransitionStep` at a
-floor-keeping state.  `protectedRisk_le_of_riskRem` is the R1
-risk-polarity slice: when the kernel risk level is the remaining-risk
-`riskTotalLimit - protectedRisk`, the kernel's nonnegative risk
-remainder converts into the protected-risk-under-limit bound.  The
-GrowthState carrier for `protectedRisk` lives in quarantined
-`Hagi/Research/Legacy`, so the polarity adapter is stated against the canonical
-kernel with explicit premises only.
+`protectedRisk_le_of_riskRem` is the risk-polarity
+slice: when the kernel risk level is the remaining-risk
+`riskTotalLimit - protectedRisk`, the kernel's nonnegative risk remainder
+converts into the protected-risk-under-limit bound, stated against the
+canonical kernel with explicit premises only.
 -/
 
 set_option relaxedAutoImplicit false

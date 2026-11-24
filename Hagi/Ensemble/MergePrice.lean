@@ -9,20 +9,17 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# MergePrice Σ — содержательная версия (T2, P0)
+# MergePrice Σ — the loss-denominated merge price
 
-Ревизия FORMALIZATION_PLAN (§7, T2): зафиксировал ТОЧНУЮ
-алгебру разложения W_k = M + dev_k, но «потеря merge» —
-утверждение о ЛОССЕ. Квадратичная модель (Stärk 2607.09202
-Th.1: ΔL = ½ΔᵀΣ_AΔ — забывание = энергия интерференции в
-метрике активаций):
+The exact algebra W_k = M + dev_k says nothing about the LOSS. The
+quadratic model (Stärk 2607.09202 Th.1: ΔL = ½ΔᵀΣ_AΔ — forgetting is the
+interference energy in the activation metric):
 
   price_i = ½·Σ_x ⟨xs_i x, dev_i⟩²,
 
-где xs_i — активации домена i, dev_i — отклонение эксперта от
-merge. Цена измеряется в
-ЛОССЕ НА ДАННЫХ домена — фикс безразмерности ревизии §7
-(не энергия весов, а метрика активаций).
+где xs_i — активации домена i, dev_i — отклонение эксперта от merge.
+Цена измеряется в ЛОССЕ НА ДАННЫХ домена (не энергия весов, а метрика
+активаций).
 
 **Теоремы:**
 
@@ -77,10 +74,8 @@ theorem sigmaPrice_neg (xs : Fin K → (Fin n → ℝ))
 
 /-- **Цена слияния — квадратичная форма отклонения**: в
 квадратичной модели QuadModel цена merge θ̄ = M для домена i
-(θ̄ − W_i = −dev_i, ср. merge_is_mean) равна σ-цене
 отклонения dev_i: прирост лосса домена при слиянии измеряется
-проекциями отклонения на активации домена (фикс
-безразмерности ревизии). -/
+проекциями отклонения на активации домена. -/
 theorem merge_price_quad (M Wi dev : Fin n → ℝ)
     (hdev : M - Wi = -dev)
     (xs : Fin K → (Fin n → ℝ)) :
@@ -140,8 +135,8 @@ def MergeApproved (twoGap : ℝ) (xs : Fin N → (Fin K → (Fin n → ℝ)))
 доменов (σ-метрики Stärk) плюс тернарная цена сжатия
 κ√n·s/2, то слияние сертифицировано: суммарный ожидаемый
 лосс-прирост по доменам и сжатию меньше ансамблевого прироста.
-Честно: twoGap/цены — измеряемые величины; κ√n·s/2 —
-terнарная цена из Runtime (satTail-корректная). -/
+лосс-прирост по доменам и сжатию меньше ансамблевого прироста.
+κ√n·s/2 — тернарная цена из Runtime (satTail-корректная). -/
 theorem merge_gate_certified {twoGap : ℝ}
     {xs : Fin N → (Fin K → (Fin n → ℝ))}
     {devs : Fin N → (Fin n → ℝ)} {w : Fin N → ℝ}
@@ -233,9 +228,8 @@ set_option linter.style.header false
 /-!
 # MergeIdentity: the geometric pool ≡ logit-mean identity
 
-The round-34 measured +0.0000 difference between the
-geometric and arithmetic pool merges EXPLAINED: it is not a
-coincidence but an identity.
+The measured +0.0000 difference between the geometric and
+arithmetic pool merges is an identity, not a coincidence.
 
 **What the module proves:**
 
@@ -260,17 +254,11 @@ form is the shift-invariant class.
 
 **Prescription for the code.**
 
-1. The +0.0000 is EXPLAINED: geometric-vs-arithmetic on the
-   same leaf logits is a no-op THROUGH the softmax — the
-   comparison of round 34 was measuring the identity, not a
-   hypothesis. The interesting comparison is the WEIGHTED
-   geometric pool (w from DFieldKKT) against the uniform —
-   the weights move the mixture off the identity class.
-2. `geometric_pool_identity` (Hagi.FreeEnergy) still governs
-   the RKL side: the two pools differ in the KL currency
-   they optimize (forward vs reverse), the merge operator's
-   output is the same distribution class — the mode choice
-   is the objective's choice, not the output's.
+1. Geometric-vs-arithmetic on the same leaf logits is a no-op THROUGH
+   the softmax; the interesting comparison is the WEIGHTED geometric
+   pool (w from DFieldKKT) against the uniform.
+2. `geometric_pool_identity` (`Hagi.Energy.FreeEnergy`) still governs
+   the RKL side: the two pools differ in the KL currency they optimize.
 -/
 
 open Finset
@@ -306,7 +294,7 @@ value scaled by a v-INDEPENDENT constant — the per-leaf
 normalizers Z_i = Σ_u e^{z_i(u)} collect into a single
 constant factor that CANCELS in the pool's normalization.
 Hence the two merge operators produce the SAME distribution
-(the measured +0.0000 of round 34 is this identity). The
+(the measured +0.0000 is this identity). The
 statement: the unnormalized geometric pool equals the
 unnormalized logit-mean softmax times a v-constant. -/
 theorem geometric_mean_logit_mean (V K : Type)
@@ -355,8 +343,8 @@ is a TWO-CHANNEL sum,
 
 `Δ(N) = Δ_ensemble(N) + Δ_joint(N)`,
 
-the ensemble channel saturates (the `Hagi.Step/Decompose`
-accounting), but the JOINT channel grows with N — more
+the ensemble channel saturates (the accounting of
+`Hagi.Ensemble.GapLaw`), but the JOINT channel grows with N — more
 blocks mean more cross-expert edges to train, and the joint
 budget per edge is constant: the joint channel's gain is
 LINEAR in the number of trained cross-block interactions.
@@ -386,34 +374,21 @@ capacity at the SAME parameter count — the linear channel
 is the mixer capacity itself).
 
 **The parameter-parity identity.** At fixed H_total =
-N·H_leaf, the block-diagonal merge's parameter count is
-N·(H_leaf²·k) = H_total²·k/N — WAIT: the per-block weight is
-H_leaf², summed over N blocks: N·H_leaf² = N·(H_total/N)² =
-H_total²/N — the block-diagonal body has 1/N of the dense
-body's attention weight; the freed parameters go to the
-MIXERS (the cross-block capacity): at fixed total params,
-more blocks = more mixer parameters per block-pair. The
-joint channel's growth IS the growing mixer share of the
-budget.
-
+N·H_leaf, the per-block weight is H_leaf², summed over N blocks:
+N·H_leaf² = H_total²/N — the block-diagonal body has 1/N of the dense
+body's attention weight; the freed parameters go to the MIXERS (the
+cross-block capacity): at fixed total params, more blocks = more mixer
+parameters per block-pair. The joint channel's growth IS the growing
+mixer share of the budget.
 **Prescription for the code.**
 
-1. The N-sweep's next point (N = 48, H = 48 — the
-architectural limit at H_total = 2304) is the
-falsifiable test: the two-channel law predicts the step at
-N = 48 from the two fitted channels (the rising limb
-continues iff the mixer-share channel still dominates);
-if the step at 48 SHRINKS, the turnover was passed and the
-ensemble channel has taken over — both outcomes are
-verdicts, not noise.
-2. The mixer_init_scale screen (`--merge-k` best-of-K,
-   STATUS §10 — coded but never run) should be run BEFORE
-   the N = 48 point: the mixer share of the budget is the
-   growing channel; its init scale is the channel's knob.
-3. The N* turnover formula (from the two-channel fit on
-   the three measured points) is the ComputeBudget input:
-   the next-generation N choice maximizes the predicted
-   Δ(N)/cost — not the largest N.
+1. The N-sweep's next point (N = 48) is the falsifiable test: the
+two-channel law predicts the step from the two fitted channels; a
+shrinking step means the turnover was passed.
+2. The mixer_init_scale screen (`--merge-k` best-of-K, STATUS §10)
+should be run BEFORE the N = 48 point.
+3. The N* turnover formula is the ComputeBudget input: choose the next
+N by the predicted Δ(N)/cost.
 -/
 
 open Finset
@@ -422,10 +397,9 @@ namespace Hagi.Ensemble
 
 section MergeScaling
 
--- not A theorem (round-41 audit): `N ≤ N*1` is trivial.
--- The honest content of the edge-count law is the LINEAR
--- mixer-cost O(N) (documented in the module header); the
--- count is a measured quantity, not a theorem.
+-- The honest content of the edge-count law is the LINEAR mixer-cost
+-- O(N) (documented in the module header); the count is a measured
+-- quantity, not a theorem.
 
 /-- **The two-channel step law**: with the ensemble step
 decaying (the Gap_N curvature) and the joint step growing

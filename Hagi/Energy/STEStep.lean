@@ -112,7 +112,7 @@ theorem tern_scale_invariance (w c s : ℝ) (hc : 0 < c) (hs : 0 < s) :
     field_simp
   rw [hdiv]
 
--- DEMOTED round-61 (external audit): was `A = A:= rfl`.
+-- Not a theorem (`A = A` by `rfl`):
 -- The storage rate log2(3) = 1.5849625007211565 bits/trit
 -- («измерено» via #eval) is an evaluable constant, not a
 -- theorem; the 16/log2(3) ≈ 10.09x compression factor is
@@ -121,7 +121,9 @@ theorem tern_scale_invariance (w c s : ℝ) (hc : 0 < c) (hs : 0 < s) :
 end Ternary
 
 /-!
-# the STE step model (the optimizer that actually runs)
+# The STE step model (the optimizer that actually runs)
+
+The descent theorems describe
 
 Round-62 program item 4: the descent theorems describe
 gradient steps, while training runs Muon / LazyAdam /
@@ -130,7 +132,7 @@ This module models the STE step honestly: the effective
 weight change is the gradient step plus the ternary
 rounding residue (bounded by s/2 per coordinate via
 `tern_distortion_round` scaled to the grid step). The
-consequence, stated explicitly as the audit demanded: STE
+consequence: STE
 descent guarantees hold OUTSIDE the O(s) quantization
 neighborhood — STE converges to the s-ball, never to the
 point.
@@ -140,7 +142,7 @@ point.
 set_option linter.style.header false
 open Real
 
-/-- **STE descent residual** (round-62 program: model the
+/-- **STE descent residual** (model the
 optimizer that runs): the straight-through update's
 effective weight change is the gradient step plus the
 ternary rounding residue (≤ s/2 per coordinate by
@@ -180,8 +182,7 @@ theorem ste_residual_of_tern (gradStep s : ℝ)
   rw [hscale, abs_neg, abs_mul, abs_of_pos hs]
   nlinarith [h, hs]
 
--- (ste_terminal_ball REMOVED round-65: the linter caught it as
--- a conclusion-equals-hypothesis restatement; the terminal-ball
+
 -- content lives in ste_step_residual's docstring and bound.)
 
 end Hagi.Energy

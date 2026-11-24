@@ -119,7 +119,7 @@ structure GenState (X : Type*) [NormedAddCommGroup X]
 /-- The Lyapunov potential `energy + lam * protectedRisk +
 nu * max(0, Qtarget - Qgen S.gen w)`. -/
 noncomputable def hagiPotential (S : GenState X) (lam nu Qtarget : ℝ) (w : Fin 5 → ℝ) : ℝ :=
-  -- R263 dedup: the canonical scalar potential (Foundations.Potential)
+  -- the canonical scalar potential (Foundations.Potential)
   -- applied to the projected state fields.
   Hagi.Foundations.hagiPotential S.toGrowthState.energy
     S.toGrowthState.protectedRisk nu Qtarget (Qgen S.gen w) lam
@@ -448,11 +448,11 @@ theorem qgen_frontier_bridge (C D ξ ΔQ : ℕ → ℝ) (α γ ρ β ηQ : ℝ)
   have hdiv : (ξ t - ηQ * max 0 (ΔQ t)) / C t
       = ξ t / C t - ηQ * max 0 (ΔQ t) / C t :=
     sub_div _ _ _
-  -- R107 dynamics with β_eff
+  -- dynamics with β_eff
   have h_dyn_eff : ρ * D t + (β + ηQ * max 0 (ΔQ t) / C t) * C t - ξ t
       ≤ D (t + 1) := by
     rw [hmul]; linarith
-  -- the R107 threshold holds for β_eff
+  -- the threshold holds for β_eff
   have hβ_eff : α / γ * ((1 + α) - ρ) + ξ t / C t
       ≤ β + ηQ * max 0 (ΔQ t) / C t := by
     rw [hdiv] at hβ_eased

@@ -6,7 +6,7 @@ import Hagi.Runtime.TernaryExact
 set_option linter.style.header false
 
 /-!
-# ElementQuant: factorization × quantization commutation (round 49, block 2)
+# ElementQuant: factorization × quantization commutation
 
 For the TableLoRA + ternary pipeline: the reconstruction
 error of "factorize to rank r, then quantize" splits by the
@@ -16,15 +16,15 @@ grid rounding of the factors) — and the GO/NO-GO: the
 factor-then-quantize route beats direct quantization IFF
 tail + qerr(r) < qdirect.
 
-The per-entry nearest-3-level rounding bound is now
-ASSEMBLED (ternary_factor_qerr_bound, ternary_pair_qerr_sum):
+The per-entry nearest-3-level rounding bound is
+assembled (`ternary_factor_qerr_bound`, `ternary_pair_qerr_sum`):
 for in-range factors the Frobenius-square quantization error
 of each factor obeys the grid bound (card·(s/2)²), and the
 per-factor sum feeds the GO/NO-GO certificate. The step from
+per-factor sum feeds the GO/NO-GO certificate. The step from
 per-factor errors to the PRODUCT error AB − Q(A)·Q(B) needs
-rectangular Frobenius submultiplicativity — absent in
-Mathlib v4.34.1 (only square frobeniusNormedRing); recorded
-as an open hbridge candidate.
+rectangular Frobenius submultiplicativity (`ResidualVQ.frobSq_mul_le`); the
+product bound is not assembled here.
 
 **Prescription**: measure tail(r) from the σ-spectrum of ΔE
 and qdirect from one ternary pass; the comparison is a
@@ -50,11 +50,7 @@ theorem factor_quant_error {X : Type*} [NormedAddCommGroup X] (dE AB QAB : X)
 factor-route error bound `tail + qerr` is strictly below the
 measured direct-quantization error `qdirect`, then the true
 factor-route error is strictly below `qdirect` — via the
-commutation triangle above. This is a real decision rule, not
-a vacuous implication: the earlier revision carried the
-contradictory pair (tail+qerr < qdirect) ∧ (qdirect ≤
-tail+qerr), which made the theorem about an empty hypothesis
-set. Found in external review, 2025-round-51. -/
+commutation triangle above. -/
 theorem factor_quant_go {X : Type*} [NormedAddCommGroup X]
     (dE AB QAB : X) (tail qerr qdirect : ℝ)
     (htail : ‖dE - AB‖ = tail) (hqerr : ‖AB - QAB‖ = qerr)
@@ -65,9 +61,7 @@ theorem factor_quant_go {X : Type*} [NormedAddCommGroup X]
     _ < qdirect := hgain
 
 
-/-- Собранный per-factor rounding bound (закрытие ядра
-пробела «nearest-3-level rounding bound per entry —
-elementary but not assembled»): Frobenius-квадрат ошибки
+/-- Per-factor rounding bound: Frobenius-квадрат ошибки
 квантования каждого in-диапазонного фактора на тернарной
 сетке шага s не превосходит (число элементов)·(s/2)² —
 делегирование quantMat_sq_bound. -/
@@ -81,12 +75,11 @@ theorem ternary_factor_qerr_bound {m r : Type} [Fintype m]
 /-- Пара факторов: сумма per-factor Frobenius-квадратов
 ошибок квантования на тернарной сетке — готовый вход для
 GO/NO-GO-сертификата factor_quant_go (tail + qerr <
-qdirect), теперь с доказанным qerr-компонентом. Честная
+qdirect), с доказанным qerr-компонентом. Честная
 граница: переход от per-factor ошибок к ошибке ПРОИЗВЕДЕНИЯ
 AB − Q(A)·Q(B) требует субмультипликативности Фробениуса
-для прямоугольных матриц — в Mathlib v4.34.1 есть только
-квадратный frobeniusNormedRing; открытый hbridge-кандидат
-(upstream-порт). -/
+для прямоугольных матриц (`ResidualVQ.frobSq_mul_le`) — составная
+граница произведения здесь не собрана. -/
 theorem ternary_pair_qerr_sum {m r n : Type} [Fintype m]
     [Fintype r] [Fintype n] (s : ℝ) (hs : 0 < s)
     (A : Matrix m r ℝ) (B : Matrix r n ℝ)

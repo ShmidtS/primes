@@ -40,9 +40,9 @@ insufficient"):
 2. **E-process validity binder (premise-form)**: the supermartingale
    premises `hL`/`hLnn`/`hL0` of `commit_sound` — the consumer's to
    discharge .
-3. **Adaptive-data route**: pointer only — future instantiation via
-   the `EProcMonitor` stitched masters (
-   `stitching_eprocess_anytime` `stitching_countable_ville`).
+3. **Adaptive-data route**: instantiated in `Hagi.Training.AdaptiveAnytime`
+   through the `EProcMonitor` stitched masters (`stitching_eprocess_anytime`,
+   `stitching_countable_ville`), under per-round conditional validity.
 -/
 
 set_option relaxedAutoImplicit false

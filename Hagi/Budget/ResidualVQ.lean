@@ -7,7 +7,7 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# ResidualVQ: product-of-quantized-factors error (round 53, A8 F2)
+# ResidualVQ: product-of-quantized-factors error
 
 The empirical A8 verdict: one-stage quantization of a factorized
 adapter q(A)·q(B) at ~3.2-bit per factor collapses nonlinear
@@ -17,8 +17,8 @@ restores them. The Lean slice of that verdict:
 * `quantProd_decompose`: the EXACT identity
   (A+EA)·(B+EB) − A·B = EA·B + A·EB + EA·EB.
 * `frobSq_mul_le`: rectangular Frobenius submultiplicativity
-  `frobSq (A*B) ≤ frobSq A * frobSq B` — closing the open hbridge
-  candidate recorded in `Hagi.Budget.ElementQuant`
+  `frobSq (A*B) ≤ frobSq A * frobSq B` — the rectangular bridge needed by
+  `Hagi.Budget.ElementQuant` (`ternary_pair_qerr_sum`): per-entry
   (`ternary_pair_qerr_sum` note): per-entry Cauchy–Schwarz
   (`Finset.sum_mul_sq_le_sq_mul_sq`) over `Hagi.Core.frobSq`.
 * `quantProd_frob_bound` / `quantProd_relError(_sq)`: the product
@@ -30,15 +30,14 @@ restores them. The Lean slice of that verdict:
   two-stage residual quantization composes ADDITIVELY —
   error ≤ ε1 + ε2, in fact ≤ ε2 alone (the sharp form);
   `residualHeadBudget`: the BF16-head bridge at the 2⁻⁸ grid
-  scale (premise-form composition with C249's Q→R bridge).
+  scale (premise-form composition with the Q→R bridge).
 
 Empirical bit-widths and accuracy numbers are motivation only
 (ALGORITHMS.md); no probability, no new quantizer.
 
-**Prescription**: allocate bits per factor via the (e+f+ef)² law;
-never quantize a product in one stage at low bit-width — spend a
-second residual stage on W − R1 (additive, not multiplicative,
-error composition).
+**Prescription**: never quantize a product in one stage at low
+bit-width — spend a second residual stage on W − R1 (additive, not
+multiplicative, error composition).
 -/
 open Finset Hagi.Core
 
@@ -98,8 +97,7 @@ theorem frobSq_add_sqrt_le (X Y : Matrix m n ℝ) :
   refine le_trans (Real.sqrt_le_sqrt hkey) ?_
   exact (Real.sqrt_sq (add_nonneg (Real.sqrt_nonneg _) (Real.sqrt_nonneg _))).le
 
-/-- Rectangular Frobenius submultiplicativity — the open
-hbridge candidate of `Hagi.Budget.ElementQuant`. -/
+/-- Rectangular Frobenius submultiplicativity. -/
 theorem frobSq_mul_le (A : Matrix m r ℝ) (B : Matrix r n ℝ) :
     frobSq (A * B) ≤ frobSq A * frobSq B := by
   have key : ∀ i j, (∑ k, A i k * B k j) ^ 2

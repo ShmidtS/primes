@@ -9,8 +9,7 @@ set_option linter.style.header false
 /-!
 # NoiseTemperature: the gradient noise is a reservoir at temperature 1/B
 
-The second module of the thermodynamic layer (§8.8 of
-FORMALIZATION_PLAN.md, round). Port of the two pure-math
+The second module of the thermodynamic layer. Port of the two pure-math
 cores behind the "SGD noise = reservoir temperature" reading:
 
 * **Unbiasedness + temperature (arXiv:2606.30789 Lemma 6,

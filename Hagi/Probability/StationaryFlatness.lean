@@ -10,8 +10,7 @@ set_option linter.style.header false
 /-!
 # StationaryFlatness: subquadratic tails bound the flatness moment
 
-The last module of the thermodynamic layer (§8.8 of
-FORMALIZATION_PLAN.md, round). Source arXiv:2607.16384:
+The last module of the thermodynamic layer. Source arXiv:2607.16384:
 for constant-stepsize SGD the STATIONARY MEASURE has
 subquadratic tails near flat minima — the measurable
 replacement of the folklore "flat minima generalize".

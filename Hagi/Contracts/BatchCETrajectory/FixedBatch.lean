@@ -13,7 +13,7 @@ import Hagi.Contracts.BatchCETrajectory.Direction
 /-!
 # BatchCETrajectoryEvaluated
 
-Evaluated finite MGDA trajectories: floor-kept two-step witness through the actual computed minimum-norm step. Split from `BatchCETrajectory`.
+Evaluated finite MGDA trajectories: floor-kept two-step witness through the actual computed minimum-norm step.
 -/
 
 set_option relaxedAutoImplicit false

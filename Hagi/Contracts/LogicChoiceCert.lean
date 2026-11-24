@@ -8,7 +8,7 @@ import Hagi.Model.BatchCEDescentLogitRange
 /-!
 # CE-trained mask choice over the exact Venn head
 
-Track B7 (master plan v3 addendum A4), — the first hybrid
+The first hybrid
 neuro-symbolic certificate. The 16 Boolean masks of the Venn lattice
 (`Fin 4 → Bool`, a `Fintype` of size 16) are the CLASSES of a choice
 problem: a log-linear head over the four Venn atom features scores
@@ -41,7 +41,7 @@ Wiring, end-to-end:
   (`batchLogitRangeSquare = 1/4`, computed exactly) AND every executed
   candidate head is exact (the 64-case bridge).
 
-HONEST BOUNDARY (qwenbend: 'exact ≠ true'): the CE-choice certificate
+HONEST BOUNDARY ('exact ≠ true'): the CE-choice certificate
 covers DESCENT OF THE CHOICE-CE — training progress toward the labeled
 mask — and EXACT EXECUTION of whatever mask the head settles on. It
 does NOT certify that the chosen function is the right one: a head can
@@ -208,8 +208,8 @@ theorem wit_rangeSquare_pos : 0 < batchLogitRangeSquare witX witθ witY := by
 /-- Concrete system metrics for the choice-CE setting: the objective
 is the true arithmetic-mean choice-CE (batch CE over the mask
 classes); risk and budget are the concrete remaining levels supplied
-by the caller (R1 polarity slice, as in
-`Hagi.Contracts.BatchRangeBF16Cert.batchCEMetrics`); task tag `Unit`. -/
+by the caller (as in `Hagi.Contracts.BatchRangeBF16Cert.batchCEMetrics`);
+task tag `Unit`. -/
 noncomputable def choiceCEMetrics {V : Type} [Fintype V] {B d : ℕ}
     (X : Fin B → Matrix V (Fin d) ℝ) (y : Fin B → V)
     (riskRem budgetRem : ℝ) :

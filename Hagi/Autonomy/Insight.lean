@@ -32,9 +32,7 @@ section Insight
 variable {V : Type*} [Fintype V]
 
 /-- If `kl ≤ ⟪dW, F dW⟫_ℝ / 2` (h_emp_ curvature) and
-`⟪dW, F dW⟫_ℝ ≤ 2 * eps`, then `kl ≤ eps`.
-(R329: перенесено из Unified/GlobalDynamics — единственный
-потребитель здесь.) -/
+`⟪dW, F dW⟫_ℝ ≤ 2 * eps`, then `kl ≤ eps`. -/
 theorem forgetting_kl_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     (F : X →L[ℝ] X) (dW : X) (kl eps : ℝ)
     (h_emp_second : kl ≤ ⟪dW, F dW⟫_ℝ / 2)

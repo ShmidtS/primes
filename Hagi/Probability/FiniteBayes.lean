@@ -248,7 +248,7 @@ theorem hammingRisk_coordinateDecoder_le {I : Type*} [Fintype I]
   intro i _
   exact coordinateMode_zeroOneLoss_le q i (d i)
 
-/-- The same exact risk optimum applies to any Cycle143 finite posterior. -/
+/-- The same exact risk optimum applies to any finite posterior. -/
 theorem posterior_coordinateDecoder_le {I Y : Type} [Fintype I]
     [DecidableEq I] (p₀ : PMF (Plane I)) (K : Plane I → PMF Y) (y : Y)
     (hobs : 0 < observationEvidence p₀ K y) (d : Plane I) :

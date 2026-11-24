@@ -239,7 +239,7 @@ theorem no_saturation_recover {n : ℕ} (w : Fin n → ℝ) (s kappa dE : ℝ)
   rw [heq]
   exact hmain
 
-/-- instantiation (audit 5.3): coordinatewise ternary rounding
+/-- Coordinatewise ternary rounding
 (qTern, in-range) + an L-Lipschitz objective (in the sum of
 coordinate deviations) bounds the objective error by
 `L·(m·s/2)` — the concrete rounding feed for the State-layer
@@ -381,7 +381,7 @@ end Hagi.Runtime
 # Byte-aligned packed ternary blocks with a finite dyadic scale
 
 A block carries one of 255 finite scale codes and the existing five-trit
-word from `Hagi.Runtime.TernaryCodec`.  The common level of code `k` is
+and the existing five-trit
 exactly `(k.val + 1) / 128`; in particular, code zero denotes `1 / 128`,
 not zero.  Nonpositive levels and arbitrary real-valued scales are outside
 this finite family.

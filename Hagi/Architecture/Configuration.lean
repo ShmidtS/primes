@@ -5,21 +5,16 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Architecture.CortexFiber
 
 /-!
-# Конфигурация (объединённая)
+# Configuration: storage and selector bills
 
-ConfigurationCost и ConfigurationRouting. Имена сохранены.
--/
-
-/-!
-# ConfigurationCost — the parameter bill of storing configurations
-
-Parameter accounting for N experts stored as rank-r fibers
-over a shared d-dim cortex:
-
-  coordinates (reassociation of `N * (r * d)`).
+Parameter bills for `N` experts stored as rank-`r` fibers over a
+shared `d`-dim cortex.
 * `config_storage_beats_dense` — if `N * r < d` and `0 < d`,
-  the whole family `(N * r) * d` is cheaper than one dense
-  `d * d` expert.
+  the family `(N * r) * d` is cheaper than one dense `d * d` expert.
+* `selector_never_flips_verdict` — the bill is unchanged by a
+  selector with capacity `N ≤ 2 ^ B`.
+* `switchable_beats_naive_dense` — if `r ≤ d`, the fiber family
+  `N * r * d` costs at most the naive dense family `N * d * d`.
 -/
 
 namespace Hagi.Architecture
@@ -37,18 +32,6 @@ end Hagi.Architecture
 namespace Hagi
 
 end Hagi
-
-/-!
-# ConfigurationRouting — the selector bill
-
-* `selector_never_flips_verdict` — if `N ≤ 2 ^ B` and
-  `N * r < d`, the family `(N * r) * d` is still strictly
-  cheaper than one dense `d * d` expert (and `N ≤ 2 ^ B`
-  holds).
-* `switchable_beats_naive_dense` — if `r ≤ d`, the fiber
-  family `N * r * d` costs at most the naive dense family
-  `N * d * d`.
--/
 
 namespace Hagi.Architecture
 

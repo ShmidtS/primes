@@ -6,7 +6,8 @@ import Hagi.Budget.ThermoCondensation
 set_option linter.style.header false
 
 /-!
-# Anytime-мониторинг ⟹ конденсационный бюджет (R528)
+# Anytime-мониторинг ⟹ конденсационный бюджет
+
 
 Мост anytime-лестницы (CertifiedEstimator) с термодинамической
 конденсацией (ThermoCondensation): если статистика g остаётся
@@ -30,7 +31,7 @@ theorem pointwise_upper_band {V : Type*} [Fintype V]
   push Not at hc
   exact hempty v ⟨0, hT, hc⟩
 
-/-- **Anytime ⟹ конденсация (R528)**: при CGF-ограниченной статистике
+/-- **Anytime ⟹ конденсация**: при CGF-ограниченной статистике
 g (subGauss σ²), если anytime-bad-set пуст (событие, чья вероятность
 ≤ α по `anytime_safe_threshold`), то перестройка softmax-каркаса
 девиацией d = g − μ стоит не больше u² = 2σ²·ln(T/α) CE, где
@@ -80,7 +81,7 @@ theorem anytime_condensation {k : Type} [Fintype k] [Nonempty k]
     h2u).trans (le_of_eq hval)
 
 
-/-- **Конденсационный конвейер (R545, REFACTOR_PLAN D1)**: одна
+/-- **Конденсационный конвейер**: одна
 составная теорема — от CGF-статистики g (subGauss σ²) и пустого
 anytime-bad-set (вероятность ≤ α) до ПОЛНОГО термосертификата:
 (1) слои за L мертвы; (2) перестройка каркаса стоит не больше

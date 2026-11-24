@@ -99,9 +99,9 @@ theorem safe_feasible_selection_productive
   exact List.mem_filter.mpr ⟨hc, by
     simp [StepFeasible, hrisk, hbud]⟩
 
-/-! ### C279-адаптер: StepCertificate → общее ядро CertStepGen
+/-! ### Адаптер: StepCertificate → общее ядро CertStepGen
 
-A10 item 2 (adapter batch 2): полный сертификат шага — view над
+полный сертификат шага — view над
 общим ядром `Hagi.Cert.CertStepGen`. Носитель содержит ЧИСЛА
 (`base.decrease` / `base.riskSpend` / `base.budgetSpend`) без
 законов: спуск, точные бюджетный и риск-законы — посылки

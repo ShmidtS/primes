@@ -13,17 +13,14 @@ set_option linter.style.header false
 /-!
 # Function-preserving batch CE growth with exact capacity counters
 
-Canon (v5 W2): also hosts the merged sections (namespaces and
-FQNs preserved, module files removed):
-`Hagi.Contracts.BatchCEGrowthSelection` (growth candidate selection,
-admission-yield, finite open-loop) and `Hagi.Contracts.NaturalLean`
-(interop check of the pinned Natural tactics with growth proofs).
+Also hosts growth candidate selection, admission-yield, finite open-loop,
+and an interop check of the pinned Natural tactics with growth proofs.
 -/
 /-
 Function-preserving growth with explicit capacity and exact narrow rejection.
 The dependent batch carrier retains data at its actual current width. Its
 logical scalar-cell counters include the retained new feature block, while the
-operation counter is the exact Nat-cast Cycle138 guard cost. These counters do
+operation counter is the exact Nat-cast guard cost. These counters do
 not claim physical bytes, CUDA memory, latency or a globally optimal architecture.
 -/
 

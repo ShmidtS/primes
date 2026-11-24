@@ -573,7 +573,7 @@ theorem meanField_coordinate_gibbs_nonincreasing [Nonempty α] (β : ℝ)
 omit [DecidableEq α] in
 /-- (B1 corollary 2) STRICT drop: if the updated coordinate is not
 already at its Gibbs minimizer (`p i ≠ q_i`), the FULL mean-field free
-energy strictly decreases — by the bridge identity and C261's
+energy strictly decreases — by the bridge identity and
 `coordinate_kl_identity`, the drop is exactly `(1/β)·KL(p i ‖ q_i)`,
 strictly positive by `kl_pos_of_ne`. -/
 theorem meanField_coordinate_strict_drop_of_ne [Nonempty α] (β : ℝ)

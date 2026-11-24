@@ -40,7 +40,7 @@ Modeling (honest, no new probability — composition only):
 Main statements:
 
 * `adaptive_anytime_valid` — MAIN: under the stitched-master
-  per-round premise and the C264-style embedding premise (a false
+  per-round premise and the embedding premise (a false
   commit at round `k` embeds in round `k`'s e-process crossing
   `α⁻¹` by the horizon), the false-commit probability over ANY
   adaptively chosen sequence of ≤ K evaluations is ≤ `K·α` (the
@@ -195,7 +195,7 @@ nonnegative `𝒢`-supermartingale with unit initial budget — the
  binder; per-round CONDITIONAL validity given the common
 filtration, i.e. a fresh conditional draw per round — full reuse
 without fresh draws is NOT covered, see the module pins) and the
-C264-style embedding premise (a FALSE commit at round `k` embeds in
+embedding premise (a FALSE commit at round `k` embeds in
 round `k`'s e-process crossing `α⁻¹` within the horizon), the
 probability of a false commit over ANY adaptively chosen sequence of
 ≤ K evaluations is at most `K·α` — the exact uniform-weight stitched
@@ -297,7 +297,7 @@ theorem adaptive_anytime_budget_split {Ω : Type*}
 macro-cycle certificates `certs : Fin K → MacroStatCert S objective`,
 each under its own premise bundle — its monitor trajectory
 `L k` is a nonnegative supermartingale with unit initial budget, the
-C264-style embedding (a false commit at k embeds in `L k` crossing
+embedding (a false commit at k embeds in `L k` crossing
 the k-th monitor's threshold) and the guard (a fired monitor never
 commits) — has total false-commit probability at most the level sum
 `∑ k, (certs k).mon.α`. Per round this is EXACTLY the frozen

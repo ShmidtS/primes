@@ -11,7 +11,7 @@ import Hagi.Probability.Concentration
 set_option linter.style.header false
 
 /-!
-# Ville monitor bridge (addendum A13 priority P-2)
+# Ville monitor bridge
 
 The reusable MONITOR interface connecting the existing Ville /
 e-process machinery into the runtime harm/gain watcher that the
@@ -46,7 +46,7 @@ carrier theorem.
   `thresh = α⁻¹` the premise-form canary contract
   `Hagi.Deployment.canaryVilleMonitorHold` IS the monitor-firing ⇒
   certified-HOLD implication (definitional unfolding). The hold
-  witness supply stays premise-form .
+  witness supply stays premise-form.
 * `audit_monitor_fires` — the adapter: if every harm
   event `F t` embeds in the monitor crossing (`F t ω → α⁻¹ ≤ L t ω`,
   the exact `Hagi.Contracts.GatePipeline.gate_anytime_valid`
@@ -62,8 +62,7 @@ carriers (stitching, the Ville engine beneath them, the
  embedding form) — no new concentration, no new supermartingale
 closure, no construction of per-expert e-processes. The increment
 being a VALID e-process factor is premise-form, carried by the
-supermartingale premise of the validity theorems (
-premise-form convention). The runtime interface is deterministic
+supermartingale premise of the validity theorems. The runtime interface is deterministic
 bookkeeping; the probability statements live on the Ω-indexed
 trajectory the monitor is fed.
 -/
@@ -168,8 +167,7 @@ premise-form canary monitor contract
 `Hagi.Deployment.canaryVilleMonitorHold` is EXACTLY the
 monitor-firing ⇒ certified-HOLD implication — a definitional
 unfolding, nothing new. What the bridge discharges is the threshold
-IDENTIFICATION; the hold-witness supply `steps` stays premise-form,
- . -/
+IDENTIFICATION; the hold-witness supply `steps` stays premise-form. -/
 theorem canary_monitor_fires {S TaskId : Type*}
     (M : Hagi.Cert.SystemMetrics S TaskId)
     (obl : Hagi.Cert.StepObligations TaskId)
@@ -182,7 +180,7 @@ theorem canary_monitor_fires {S TaskId : Type*}
   Iff.rfl
 
 /-- **The audit adapter**: if every harm event `F t` (the
-runtime harm watcher's alarm, C274's Bad-event side) embeds in the
+runtime harm watcher's alarm) embeds in the
 monitor crossing at `t` — the exact `hF` embedding premise shape of
 `Hagi.Contracts.GatePipeline.gate_anytime_valid` — then the
 probability that ANY harm event fires by horizon `n` is ≤ α.
@@ -243,7 +241,7 @@ theorem monitor_anchor_traj :
   rw [show monitorAnchor.α = 1 / 4 from rfl]
   exact ⟨2, by norm_num, by norm_num⟩
 
-/-! ## The unified Ville channel (A17 stage 4) -/
+/-! ## The unified Ville channel -/
 
 /-- **The anytime-valid master on the unified premise record**
 for a `ConcVilleChannel` — level α, filtration, e-process

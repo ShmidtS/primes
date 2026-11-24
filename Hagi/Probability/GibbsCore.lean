@@ -455,18 +455,12 @@ theorem gibbs_kl_uniform_split {V : Type*} [Fintype V]
   rw [hsecond]
 
 open Finset in
-/-- **Элементарный зазор Гиббса (R432)** —
-первый кирпич моста к multiplicative
-weights (RAG-опора: arXiv 2608.09389,
-EW-regret ≤ M√(2 ln A·T)):
-⟨E⟩_T ≤ E_min + T·n для ЛЮБЫх E
-(без гэп-предположений!).
-Доказательство:
-x + T ≤ T·e^{x/T} почленно +
-свёртка w·e^{(E−Emin)/T} = e^{−Emin/T}
-тожденственно. При температуре
-η = T/шаг это без-regret зона
-экспоненциальных весов. -/
+/-- **Элементарный зазор Гиббса (R432)** — первый кирпич моста к
+   multiplicative weights (RAG-опора: arXiv 2608.09389, EW-regret ≤ M√(2 ln
+   A·T)): ⟨E⟩_T ≤ E_min + T·n для ЛЮБЫх E (без гэп-предположений!).
+   Доказательство: x + T ≤ T·e^{x/T} почленно + свёртка w·e^{(E−Emin)/T} =
+   e^{−Emin/T} тожденственно. При температуре η = T/шаг это без-regret зона
+   экспоненциальных весов. -/
 theorem gibbs_energy_gap_crude {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ)
     (hT : 0 < T) :
@@ -640,17 +634,10 @@ theorem gibbs_katoni_kl {V : Type*} [Fintype V]
   ring
 
 open Finset in
-/-- **Общий второй закон (R447)**:
-KL(ρḟ‖γ) ≥ 0 для любых
-двух распределений
-на конечном носителе:
-ln u ≤ u−1 почленно с
-u := γ/ρ даёт ρ·ln(ρ/γ) ≥ ρ−γ;
-телескоп даёт 0.
-Обобщение R418 (Гибс-случай)
-на произвольные пары;
-основа для вариационного
-принципа Гиббса. -/
+/-- **Общий второй закон (R447)**: KL(ρḟ‖γ) ≥ 0 для любых двух
+   распределений на конечном носителе: ln u ≤ u−1 почленно с u := γ/ρ даёт
+   ρ·ln(ρ/γ) ≥ ρ−γ; телескоп даёт 0. Обобщение R418 (Гибс-случай) на
+   произвольные пары; основа для вариационного принципа Гиббса. -/
 theorem finite_kl_nonneg {V : Type*} [Fintype V] [Nonempty V]
     (ρ γ : V → ℝ)
     (hρ : ∀ v, 0 < ρ v) (hρ1 : ∑ v : V, ρ v = 1)
@@ -807,7 +794,7 @@ open Set
 /-!
 # Cooling — термодинамическая ось HAGI
 
-Консолидация (итерация 59, перенос из Variational): Нернст-
+Консолидация: Нернст-
 оценки Гиббс-значения, расписание → качество, тождество
 E = F + T·S, максимум энтропии, качество исполняемой смеси,
 геометрическое охлаждение, термическое размытие и коридор
@@ -947,14 +934,10 @@ theorem gibbs_free_energy_identity {ι : Type*} [Fintype ι] [Nonempty ι]
   rw [h2] at h1
   linarith
 
-/-- **Равномерный максимум энтропии**: для любого строго
-положительного распределения w на конечном ι энтропия
-Шеннона не превосходит логарифма мощности:
-
-  `−∑ wᵢ·log wᵢ ≤ log |ι|`
-
-(Jensen: логарифм вогнут; максимум достигается на
-равномерном распределении). -/
+/-- **Равномерный максимум энтропии**: для любого строго положительного
+   распределения w на конечном ι энтропия Шеннона не превосходит логарифма
+   мощности: `−∑ wᵢ·log wᵢ ≤ log |ι|` (Jensen: логарифм вогнут; максимум
+   достигается на равномерном распределении). -/
 theorem shannon_entropy_le_log_card {ι : Type*} [Fintype ι] [Nonempty ι]
     (w : ι → ℝ) (hw0 : ∀ i, 0 < w i) (hw1 : ∑ i, w i = 1) :
     -∑ i, w i * Real.log (w i) ≤ Real.log ((Fintype.card ι : ℕ):ℝ) := by
@@ -1381,14 +1364,12 @@ end C236_cool
 
 section C236_var
 /-!
-# Variational: the linglib upgrade — free energy as a VARIATIONAL inequality
+# Variational: free energy as a VARIATIONAL inequality
 
-The GitHub scout (round 37) found hawkrobe/linglib's
-`GibbsVariational.lean` strictly stronger than our round-33
-equational identity: the free-energy bound holds for every q
-(the variational inequality), and the optimizer (the tilted
-measure) is UNIQUE. This module transports the technique to
-our finite-support setting:
+The free-energy bound holds for every q (variational inequality),
+stronger than an equational identity at the optimizer. Technique
+adapted from hawkrobe/linglib `GibbsVariational.lean` to our
+finite-support setting:
 
 `E_q[U] − KL(q‖p) ≤ log Σ p·e^U`  for every q,
 
@@ -1406,10 +1387,8 @@ fixed point.
   tilted measure decomposes exactly; the variational
   inequality reads off KL ≥ 0.
 * `free_energy_variational` — THE VARIATIONAL INEQUALITY:
-  E_q[U] − KL(q‖p) ≤ log Z for every q — strictly stronger
-  than the round-33 `free_energy_gap` (the equality at
-  q = p̃ only): now the whole free-energy landscape is
-  bounded, and the descent's target unique.
+   log Z for every q — the whole free-energy landscape is
+   bounded, with equality at q = p̃ (`kl_tilted_decompose` + KL ≥ 0).
 
 **Prescription for the code.**
 
@@ -1511,11 +1490,8 @@ free-energy identity)**: for every q,
 honest boundary: only the INEQUALITY is formalized;
 the equality-condition characterization (iff q is the tilted
 distribution) is stated at the docstring level and remains
-an open formalization. This is strictly stronger
-than our round-33 `free_energy_gap` (the equational identity
-at q = p̃): the inequality holds for every q, and the
-optimizer's uniqueness (the tilted measure) comes for free —
-the free-energy descent's target is unique. -/
+an open formalization. This is strictly stronger than an equational identity at
+q = p̃ alone: the inequality holds for every q. -/
 theorem free_energy_variational (q p U : V → ℝ)
     (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v)
     (hq1 : ∑ v, q v = 1) (hp1 : ∑ v, p v = 1) :

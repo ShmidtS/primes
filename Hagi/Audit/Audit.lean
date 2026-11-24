@@ -8,55 +8,41 @@ import Mathlib.Tactic
 import Mathlib.Tactic
 
 /-!
-# Аудит-слой (объединённый)
+# Audit: exact budget and exactness certificates
 
-EqualBudget: равенство бюджетов на шагах.
-Exactness: точность анкеров, батчей, water-filling, сдвигов.
-Слит из EqualBudget.lean и Exactness.lean (namespace сохранён).
+Geometric-decay (Aitken, break-even) and water-filling/optimal-batch
+identities behind the merge-vs-scratch comparison; all empirical
+constants stay explicit hypotheses.
 -/
 
 set_option linter.style.header false
 
 /-!
-# EqualBudget: the honest merge-vs-scratch comparison (round 47, T3)
+# EqualBudget: the merge-vs-scratch comparison under geometric decay
 
 **Motivation (measured)**: the scratch control (H=384) used a
 different optimizer (AdamW lr 1e-3 vs the leaves' Muon lr
 1e-2), a different size than the record model (H=1152), and
 ~1.9× the FLOPs of three leaves + joint — the "equal budget"
-comparison was not clean. The decisive stand experiment:
-scratch H=384 with the SAME Muon at ~1.9× steps vs gen-1
-joint.
+comparison was not clean.
 
-- **T3a `aitken_exact`**: for the geometric trajectory
-  L_i = L* + d·c^i, the Aitken estimates
+- **T3a `aitken_exact`**: for L_i = L* + d·c^i the Aitken estimates
   L* = (L₀L₂ − L₁²)/(L₀ + L₂ − 2L₁) and c = (L₂−L₁)/(L₁−L₀)
-  are exact — L* and c recoverable from three equidistant
-  points without knowing L*.
-- **T3b `aitken_consistency`**: on a true geometric sequence
-  the window estimates agree at every shift — a measured
-  disagreement FALSIFIES the PL/geometric model (mandatory:
-  the WSD schedule makes curves non-geometric).
+  are exact.
+- **T3b `aitken_consistency`**: on a geometric sequence the window
+  estimates agree at every shift — a measured disagreement
+  falsifies the geometric model.
 - **T3c `budget_gap_sign_const`**: under the two-curve model
-  L_m(C) − L* = d_m·exp(u_m·(C−C₀)) and L_s(C) − L* =
-  d_s·exp(u_s·C) (u's the log-decay rates), the sign of
-  L_m − L_s equals the sign of the explicit affine function
-  (u_m − u_s)·C + (log(d_m/d_s) − u_m·C₀) — single crossover
-  when the slopes differ, constant sign when equal.
-- **T3d `headstart_pays_iff`**: at equal rates (the
-  `head_start_timeshift` regime), the merge pays ⟺ C₀ <
-  k·κ with k = log(d_s/d_m)/log(c) the step-equivalent head
-  start — the FLOP cost of the leaves must be under k
-  scratch-step-equivalents. With the reviewer's estimate
-  C₀ ≈ 0.88 of one scratch run, the head start must exceed
-  ~0.88·1600 step-equivalents just to break even — a
-  measurable, falsifiable bar.
+  L_m(C) − L* = d_m·exp(u_m·(C−C₀)), L_s(C) − L* = d_s·exp(u_s·C)
+  with equal rates, the sign of L_m − L_s is constant in C.
+- **T3d `headstart_pays_iff`**: with head start d_M < d_S, rate
+  c ∈ (0,1) and per-step rate κ, the merge pays ⟺ C₀ <
+  κ·ln(d_S/d_M)/ln(1/c) — the step-equivalent head start k must
+  exceed the leaf cost C₀/κ.
 
-**Honest boundary**: the whole module assumes the geometric
-(PL) decay model; the WSD schedule violates it by design, so
-T3b is the mandatory pre-test. Two cost axes (FLOPs and
-wall-clock on the bandwidth-bound iGPU) do not coincide;
-both belong in the report.
+**Honest boundary**: the module assumes geometric (PL) decay; the
+WSD schedule violates it by design, so T3b is the mandatory
+pre-test.
 -/
 
 open Real
@@ -145,25 +131,14 @@ theorem budget_gap_sign_const (dM dS u C C0 : ℝ)
   rw [hsplit]
   exact mul_lt_mul_iff_of_pos_right hpos
 
--- T3d (the head-start break-even iff) is not proved this
--- round: the two-sided sign case analysis (k = log(dS/dM)/
--- log c with log c < 0, the dM-vs-dS case split) exceeded
--- the attempt budget. Documented form (see the module
--- docstring): merge pays ⟺ C₀ vs k·κ with k the
--- step-equivalent head start; the reviewer's estimate C₀ ≈
--- 0.88 scratch-runs sets the measurable bar. The PROVED
--- pieces are T3a (exactness), T3b (consistency test),
--- T3c (equal-rate sign constancy) — the sign machinery for
--- the unequal-rate crossover remains open.
 
-/-- **T3d (two-sided break-even, closed)**: with merged-pool
-head start d_M < d_S, contraction rate c ∈ (0,1), per-step
-rate κ, and leaf-compute cost C₀, the merged trajectory
-beats scratch net of leaf cost **iff** C₀ < κ·ln(d_S/d_M)/ln(1/c).
-Sign fix vs the round-47 note: the exponent is −C₀/κ (leaf
-compute *consumed* from the budget), so the break-even budget
-is positive, k = ln(dS/dM)/ln(1/c) > 0. The one-sided
-`budget_gap_sign_const` plus this iff fully closes T3d. -/
+
+/-- **T3d (two-sided break-even)**: with merged-pool head start
+d_M < d_S, contraction rate c ∈ (0,1), per-step rate κ, and
+leaf-compute cost C₀, the merged trajectory beats scratch net of
+leaf cost **iff** C₀ < κ·ln(d_S/d_M)/ln(1/c). The exponent is
+−C₀/κ (leaf compute *consumed* from the budget), so the
+break-even budget is positive. -/
 theorem headstart_pays_iff (dM dS c kappa C0 : ℝ)
     (hdM : 0 < dM) (hdS : 0 < dS) (hdSdM : dM < dS) (hc : 0 < c) (hc1 : c < 1)
     (hk : 0 < kappa) :
@@ -245,40 +220,29 @@ end EqualBudget
 end Hagi.Audit
 
 /-!
-# Plan41: the audit-driven theorems — the nontrivial replacements
+# Audit-driven decision theorems
 
-The round-41 plan (audited tautology registry + the three
-decision theorems + the two training-speed theorems):
+**`proj_descent_inner` + `proj_no_farther`**: the SafeQP descent —
+the projection of g onto a closed convex conflict set C ∋ 0
+satisfies ⟪g,d*⟫ ≥ ‖d*‖² and ‖g−d*‖ ≤ ‖g‖
+(`norm_eq_iInf_iff_real_inner_le_zero`).
 
-**Phase 1.1 — `proj_descent_inner` + `proj_no_farther`**: the
-SafeQP descent: the projection of g onto the closed convex
-conflict set C ∋ 0 satisfies (variational inequality at c=0):
-⟪g,d*⟫ ≥ ‖d*‖², and ‖g−d*‖ ≤ ‖g‖. From
-norm_eq_iInf_iff_real_inner_le_zero (the Mathlib projection
-VI, as prescribed).
+**`exp_jensen` + `gap_N_nonneg`**: for centered experts
+z_a = z̄+δ_a with Σ_a δ_a = 0, Gap_N = (1/N)Σ_a log Σ_v p_v e^{δ_av}
+≥ 0 — Jensen for exp + the centering swap. The general-N backbone
+behind `Hagi.twoGap`.
 
-**Phase 1.2 — `exp_jensen` + `gap_N_nonneg`**: the ensemble
-gap for centered experts: z_a = z̄+δ_a with Σ_a δ_a = 0 gives
-Gap_N = (1/N)Σ_a log Σ_v p_v e^{δ_av} ≥ 0 — Jensen for exp
-(`ConvexOn.map_sum_le`) + log monotonicity + the centering
-swap. The general-N backbone behind `Hagi.GapLaw.twoGap`.
+**`anchor_recurrence`**: D_{t+1} ≤ (1−γ)D_t + ρs with 0 < γ ≤ 1
+implies D_t ≤ (1−γ)^t·D₀ + ρs/γ — the finite-t form behind the
+anchor cadence criterion.
 
-**Phase 1.3 — `anchor_recurrence`**: D_{t+1} ≤ (1−γ)D_t + ρs
-with 0 < γ ≤ 1 implies D_t ≤ (1−γ)^t·D₀ + ρs/γ — the honest
-replacement of the `rfl`-line in `Hagi.NCEExact.anchor_drift_bound`.
+**`ns_poly_bound`**: p(σ) = aσ+bσ³+cσ⁵ ≤ aσ on [0,1] whenever
+b ≤ 0 and b+c ≤ 0. Since a = 3.4445 > 1 this is a growth-factor
+bound, not a contraction; the NS convergence theorem is not
+claimed.
 
-**Phase 3.1 — `ns_poly_bound`**: the NS
-polynomial p(σ) = aσ+bσ³+cσ⁵ with a = 3.4445 satisfies
-p(σ) ≤ aσ on [0,1] whenever b ≤ 0 and b+c ≤ 0. NOTE: since
-a > 1 this is not a contraction in σ; the true NS
-contraction is nonlinear (the higher-order terms), and the
-actual convergence theorem remains open — this lemma is
-only the polynomial dominance step of that future proof.
-
-**Phase 3.2 — `amgm_batch_bound`**: cB + B_n·t₀/B ≥
-2√(c·B_n·t₀) — the AM-GM core of the optimal-batch law
-T(B) = S_min(1+B_n/B)(t₀+cB); the minimum is at
-B* = √(B_n·t₀/c) (equality case), the unique critical point.
+**`amgm_batch_bound`**: cB + B_n·t₀/B ≥ 2√(c·B_n·t₀) — the core
+of the optimal-batch law T(B) = S_min(1+B_n/B)(t₀+cB).
 
 All empirical constants stay explicit hypotheses.
 -/
@@ -287,9 +251,8 @@ open Finset Real InnerProductSpace
 
 namespace Hagi.Audit
 
-/-- **The Jensen inequality for exp over a finitely-supported
-probability** (Phase 1.2, the brick): exp(Σ p δ) ≤ Σ p·exp(δ)
-for p ≥ 0 with Σ p = 1 — `ConvexOn.map_sum_le` specialized. -/
+/-- Jensen for exp over a finitely-supported probability:
+exp(Σ p δ) ≤ Σ p·exp(δ) for p ≥ 0 with Σ p = 1. -/
 theorem exp_jensen {V : Type} [Fintype V] (p : V → ℝ) (hp : ∀ v, 0 ≤ p v)
     (hsum : ∑ v, p v = 1) (δ : V → ℝ) :
     Real.exp (∑ v, p v * δ v) ≤ ∑ v, p v * Real.exp (δ v) := by
@@ -298,15 +261,12 @@ theorem exp_jensen {V : Type} [Fintype V] (p : V → ℝ) (hp : ∀ v, 0 ≤ p v
     (fun v _ => hp v) (by simpa using hsum) (fun v _ => Set.mem_univ _)
   simpa [smul_eq_mul, Finset.mul_sum, ← Finset.sum_mul] using h
 
-/-- **The N-expert ensemble gap is nonnegative** (Phase 1.2):
-with logits z_a = z̄ + δ_a and CENTERED deviations
-(Σ_a δ_a v = 0 for every v), the mean log-partition function
-Gap_N = (1/N)Σ_a log Σ_v p_v e^{δ_av} is ≥ 0. The proof:
-per-expert Jensen (log Σ p e^δ ≥ Σ p δ), then the centering
-makes Σ_a Σ_v p_v δ_av = Σ_v p_v·0 = 0. This is the general-N
-backbone of `Hagi.Ensemble/GapLaw` (the N=2 case is `twoGap_nonneg`);
-the empirical input is only the centering (the recentering
-z̄ = mean logits). -/
+/-- **The N-expert ensemble gap is nonnegative**: with logits
+z_a = z̄ + δ_a and centered deviations (Σ_a δ_a v = 0),
+Gap_N = (1/N)Σ_a log Σ_v p_v e^{δ_av} ≥ 0: per-expert Jensen, then
+the centering makes Σ_a Σ_v p_v δ_av = 0. The general-N backbone of
+`Hagi.Ensemble.GapLaw` (the N=2 case is `twoGap_nonneg`); the
+empirical input is only the centering. -/
 theorem gap_N_nonneg {A V : Type} [Fintype A] [Fintype V] [Nonempty A] [Nonempty V]
     (p : V → ℝ) (hp : ∀ v, 0 ≤ p v) (hsum : ∑ v, p v = 1)
     (δ : A → V → ℝ) (hcenter : ∀ v, ∑ a, δ a v = 0) :
@@ -354,14 +314,9 @@ theorem gap_N_nonneg {A V : Type} [Fintype A] [Fintype V] [Nonempty A] [Nonempty
 
 section AnchorRecurrence
 
-/-- **The anchor drift recurrence** (Phase 1.3 — the honest
-replacement of the `rfl` stationary-point line): the
-contraction-with-source recursion D_{t+1} ≤ (1−γ)D_t + ρs
-with 0 < γ ≤ 1 implies
-D_t ≤ (1−γ)^t·D₀ + ρs/γ
-for every t. The stationary bound ρs/γ (the old `rfl` line)
-is the t → ∞ limit; the finite-t form is the actual bound —
-the anchor cadence criterion s ≤ γε/ρ applies once
+/-- **The anchor drift recurrence**: D_{t+1} ≤ (1−γ)D_t + ρs with
+0 < γ ≤ 1 implies D_t ≤ (1−γ)^t·D₀ + ρs/γ. The stationary bound ρs/γ
+is the t → ∞ limit; the anchor cadence criterion s ≤ γε/ρ applies once
 (1−γ)^t·D₀ has decayed under the slack. -/
 theorem anchor_recurrence {D : ℕ → ℝ} (gamma rho s : ℝ)
     (hg : 0 < gamma) (hgle : gamma ≤ 1) (hrho : 0 ≤ rho) (hs : 0 ≤ s)
@@ -396,11 +351,10 @@ end AnchorRecurrence
 
 section NSSteps
 
-/-- **The NS polynomial bound** (Phase 3.1): the Newton–Schulz
-iteration polynomial p(σ) = aσ + bσ³ + cσ⁵ with the actual
-coefficient signs (b ≤ 0, b + c ≤ 0) satisfies p(σ) ≤ aσ on
-[0,1]. With a = 3.4445 > 1 this is a growth-factor bound,
-not a contraction. The Newton–Schulz contraction on an
+/-- **The NS polynomial bound**: p(σ) = aσ + bσ³ + cσ⁵ with the
+coefficient signs (b ≤ 0, b + c ≤ 0) satisfies p(σ) ≤ aσ on [0,1].
+With a = 3.4445 > 1 this is a growth-factor bound, not a
+contraction; the Newton–Schulz contraction on an
 invariant interval is not proven here. -/
 theorem ns_poly_bound (a b c x : ℝ) (hb : b ≤ 0) (hbc : b + c ≤ 0)
     (hx : 0 ≤ x) (hx1 : x ≤ 1) :
@@ -466,39 +420,22 @@ end BatchOpt
 
 end Hagi.Audit
 /-!
-# Plan42: the weak-formulation fixes (phase 2 of the round-41 plan)
+# Audit: weak-formulation identities
 
-**2.2 — `nce_estimator_unbiased`**: the importance-weighted
-NCE estimator: Σ_v q(v)·(f(v)/q(v)) = Σ_v f(v) for q > 0 —
-E_{v~q}[f(v)/q(v)] = Σ f: the per-sample correction is exact,
-not merely delta-bounded (the `Upgrades.nce_per_sample_
-correction` target, stated as the unbiased identity).
+**`nce_estimator_unbiased`**: Σ_v q(v)·(f(v)/q(v)) = Σ_v f(v) for
+q > 0 — the importance-weighted per-sample correction is exact.
 
-**2.3 — `log_jensen_uniform`**: the ceGap Jensen direction:
-(1/K)Σ log Z_j ≤ log((1/K)Σ Z_j) — log is concave (via
-AM-GM weighted + log monotonicity); the estimator's mean log
-never exceeds the log of the mean. The DELTA estimate in the
-other direction requires the explicit χ²(p‖q) ≤ cK condition
-(not claimed here).
+**`log_jensen_uniform`**: (1/K)Σ log Z_j ≤ log((1/K)Σ Z_j); the
+reverse delta estimate needs χ²(p‖q) ≤ cK and is not claimed.
 
-**2.4 — `exp_tangent` + `waterfilling_optimal`**: the KKT
-from optimality: with equalized marginals
-c_i·κ_i·e^{−κ_i·b_i*} = λ and Σ b* = Σ b', ANY feasible b'
-satisfies Σ c_i e^{−κ_i b'_i} ≥ Σ c_i e^{−κ_i b_i*} — the
-waterfilling is optimal, DERIVED (convexity tangent + the
-budget identity), turning hinterior from a hypothesis into
-a conclusion and closing the `shadow_price_sum_identity` family
-honestly.
+**`exp_tangent` + `waterfilling_optimal`**: with equalized
+marginals and an equal budget, any feasible allocation costs at least
+the water-filling one — optimality is derived from the convexity
+tangent plus the budget identity.
 
-**2.5 — `head_start_timeshift`**: the PL-contraction form of
-the merge head start: under geometric decay
-L−L* = Δ·c^t (the PL-inequality regime), the merged
-initialization's advantage is a TIME SHIFT:
-Lm(t+k) = Ls(t) whenever dm·c^k = ds — the measurable
-prediction (k = ln(Δs/Δm)/ln(c) is the merge's
-step-equivalent advantage; "growth beats scratch by k steps"
-is the falsifiable statement, replacing the trivial
-equal-rate gap identity).
+**`head_start_timeshift`**: under geometric decay L−L* = Δ·c^t,
+Lm(t+k) = Ls(t) whenever dm·c^k = ds: the merge head start is a time
+shift of k = ln(Δs/Δm)/ln(c) steps.
 -/
 
 open Finset Real
@@ -507,12 +444,9 @@ namespace Hagi.Audit
 
 section NCEUnbiased
 
-/-- **The importance-weighted NCE estimator is unbiased**
-(phase 2.2): Σ_v q(v)·(f(v)/q(v)) = Σ_v f(v) for q > 0 —
-the expectation of the per-sample estimator f(v)/q(v) under
-v ~ q is exactly Σ f: no bias, no delta-ceiling needed. The
-controller's per-sample correction is exact; the earlier
-global delta form was the aggregate shadow. -/
+/-- **The importance-weighted NCE estimator is unbiased**:
+Σ_v q(v)·(f(v)/q(v)) = Σ_v f(v) for q > 0 — the expectation of the
+per-sample estimator f(v)/q(v) under v ~ q is exactly Σ f. -/
 theorem nce_estimator_unbiased {V : Type} [Fintype V]
     (q f : V → ℝ) (hq : ∀ v, q v ≠ 0) :
     ∑ v, q v * (f v / q v) = ∑ v, f v := by
@@ -523,14 +457,10 @@ end NCEUnbiased
 
 section LogJensen
 
-/-- **The ceGap Jensen direction** (phase 2.3): the mean of
-the logs never exceeds the log of the mean —
-(1/K)Σ log Z_j ≤ log((1/K)Σ Z_j) — log's concavity via
-weighted AM-GM (geometric mean ≤ arithmetic mean) and log
-monotonicity. For the NCE estimator Ẑ: E[log Ẑ] ≤ log E[Ẑ]
-in the finite-sample form; the REVERSE delta estimate
-requires the explicit small-χ² condition (documented, not
-claimed). -/
+/-- **The ceGap Jensen direction**: the mean of the logs never exceeds
+the log of the mean — (1/K)Σ log Z_j ≤ log((1/K)Σ Z_j) — via weighted
+AM-GM and log monotonicity. The reverse delta estimate requires an
+explicit small-χ² condition (not claimed). -/
 theorem log_jensen_uniform {K : Type} [Fintype K] [Nonempty K] (Z : K → ℝ)
     (hpos : ∀ j, 0 < Z j) :
     (∑ j, Real.log (Z j)) / (Fintype.card K)
@@ -577,8 +507,7 @@ end LogJensen
 
 section Waterfilling
 
-/-- **The tangent line of exp** (phase 2.4, the brick):
-e^a + e^a·(y−a) ≤ e^y — convexity's first-order bound. -/
+/-- The tangent line of exp: e^a + e^a·(y−a) ≤ e^y. -/
 theorem exp_tangent (a y : ℝ) : Real.exp a + Real.exp a * (y - a) ≤ Real.exp y := by
   have hd : y - a + 1 ≤ Real.exp (y - a) := Real.add_one_le_exp (y - a)
   have hmul : Real.exp a * (y - a + 1) ≤ Real.exp a * Real.exp (y - a) :=
@@ -592,16 +521,11 @@ theorem exp_tangent (a y : ℝ) : Real.exp a + Real.exp a * (y - a) ≤ Real.exp
   rw [hexp] at hmul
   exact hmul
 
-/-- **The waterfilling optimality DERIVED from the tangent
-bound** (phase 2.4 — the KKT from optimality): for the
-program min Σ_i c_i·e^{−κ_i·b_i} s.t. Σ b_i = B, if the
-marginals equalize at b* (c_i·κ_i·e^{−κ_i·b_i*} = λ for all
-i) and b* is feasible, then every feasible b' (Σ b' = Σ b*)
-satisfies Σ c_i e^{−κ_i b'_i} ≥ Σ c_i e^{−κ_i b_i*}:
-the waterfilling allocation is optimal. The equalized-
-marginal condition `hmarg` and feasibility `hfeas` are
-hypotheses; the existence of such a `b*` is not
-constructed. -/
+/-- **Water-filling optimality** (KKT): for min Σ_i c_i·e^{−κ_i·b_i}
+subject to Σ b_i = B, if the marginals equalize at a feasible b*
+(c_i·κ_i·e^{−κ_i·b_i*} = λ), then every feasible b' satisfies
+Σ c_i e^{−κ_i b'_i} ≥ Σ c_i e^{−κ_i·b_i*}. `hmarg` and `hfeas` are
+hypotheses; such a `b*` is not constructed. -/
 theorem waterfilling_optimal {I : Type} [Fintype I]
     (c k : I → ℝ) (bstar b' : I → ℝ) (lam : ℝ)
     (hc : ∀ i, 0 ≤ c i)
@@ -655,17 +579,10 @@ end Waterfilling
 
 section TimeShift
 
-/-- **The merge head start as a TIME SHIFT** (phase 2.5 — the
-PL-contraction replacement of the trivial equal-rate gap):
-under geometric decay of the suboptimality
-(L−L* = Δ·c^t, the PL-inequality regime with contraction c),
-the merged initialization's advantage is exactly a shift of
-the time axis: Lm(t+k) = Ls(t) whenever dm·c^k = ds —
-i.e. k = ln(Δs/Δm)/ln(c) (Δs > Δm > 0, 0 < c < 1): the merge
-buys k SCRATCH-EQUIVALENT STEPS at every point of the
-trajectory. This is the falsifiable prediction: measure both
-geometric decays, take the log-ratio — that number of steps
-is what the merge-init is worth. -/
+/-- **The merge head start as a time shift**: under geometric decay
+L−L* = Δ·c^t (Δs > Δm > 0, 0 < c < 1), Lm(t+k) = Ls(t) whenever
+dm·c^k = ds, i.e. k = ln(Δs/Δm)/ln(c): the merge buys k
+scratch-equivalent steps at every point of the trajectory. -/
 theorem head_start_timeshift (Lm Ls Lstar : ℝ → ℝ) (dm ds c : ℝ) (k t : ℝ)
     (hcm : ∀ s, Lm s - Lstar s = dm * c^s)
     (hcs : ∀ s, Ls s - Lstar s = ds * c^s)
@@ -681,41 +598,18 @@ end Hagi.Audit
 set_option linter.style.header false
 
 /-!
-# Plan43: the reviewer-driven completions (round 43)
+# Audit: controller binding, NS iteration, batch optimum
 
-The four review items, closed:
+**`min_dist_to_vi` + `safeQP_descent`**: the minimizer of dist(·, g0)
+over a convex C yields the variational inequality, hence both
+descent guarantees ‖ds‖² ≤ ⟪g0, ds⟫ and ‖g0−ds‖ ≤ ‖g0‖.
 
-**1. `min_dist_to_vi` + `safeQP_descent`**: the SafeQP
-controller binding — the minimizer of dist(·, g0) over ANY
-convex C yields the variational inequality (via
-norm_eq_iInf_iff_real_inner_le_zero + dist↔norm), and
-instantiated on the abstract statement this gives BOTH
-descent guarantees: ‖ds‖² ≤ ⟪g0, ds⟫ AND ‖g0−ds‖ ≤ ‖g0‖.
-The "guarantee instead of threshold" now rests on Lean: the
-safeQP step is a certified descent, not a measured one.
+**`ns_iter_bound`**: σ_{k+1} ≤ a·σ_k implies σ_k ≤ a^k·σ₀.
 
-**2. `ns_iter_bound`**: the NS iteration induction —
-σ_{k+1} ≤ a·σ_k (the per-step contraction, i.e.
-`ns_poly_bound` composed with the invariant) implies
-σ_k ≤ a^k·σ₀ for every k. Together with the reviewer's
-numerical verification (the rule k = ⌈ln(σ_target/σ₀)/ln a⌉
-matches the actual step counts 2..7 for σ₀ = 10⁻¹..10⁻⁴), the
-k(σ_min) rule is exact. Correction adopted: the earlier
-docstring's "890/74 ≈ 3.4445³" was WRONG (3.4445³ = 40.9);
-the correct reading is a³·σ-rescaling on the invariant range,
-not the raw ratio.
-
-**3. `amgm_equality` + `amgm_uniqueness` + `batch_T_min`**:
-the AM-GM batch law completed — equality holds exactly at
-B*² = B_n·t₀/c; equality FORCES B = B* (uniqueness — the
-minimizer of the AM-GM step is unique); and the full
-throughput T(B) = (1+B_n/B)(t₀+cB) ≥ t₀ + c·B_n +
-2√(c·B_n·t₀) uniformly, with equality iff B = B*. The optimal
-batch is DERIVED and UNIQUE.
-
-**4. Phase-2 registry residue** (from the reviewer's list):
-the counter fixes — supportSet_bound min V and the
-growth-verdict function are handled in their modules.
+**`amgm_equality` + `amgm_uniqueness` + `batch_T_min`**: the AM-GM
+batch law — equality holds exactly at B*² = B_n·t₀/c, equality
+forces B = B*, and T(B) = (1+B_n/B)(t₀+cB) ≥ t₀ + c·B_n +
+2√(c·B_n·t₀) uniformly with equality iff B = B*.
 -/
 
 open Finset Real InnerProductSpace
@@ -724,21 +618,11 @@ namespace Hagi.Audit
 
 section NSIter
 
-/-- **The NS iteration bound** (review item 2): the per-step
-contraction σ_{k+1} ≤ a·σ_k (the composition of
-`Plan41.ns_poly_bound` with the [0,1]-invariant on the
-iterate) implies σ_k ≤ a^k·σ₀ for every k — the geometric
-decay of the whole trajectory. With a = 3.4445 (the measured
-polynomial coefficient) and the reviewer's numerical
-verification (k = ⌈ln(σ_target/σ₀)/ln a⌉ matches the actual
-counts 2..7 for σ₀ = 10⁻¹..10⁻⁴), the k(σ_min) rule for
-`newton_schulz_` is exact. NOTE (the correction): the earlier
-"spread 74 → 890 in 3 steps ≈ 3.4445³" reading was WRONG
-(3.4445³ = 40.9 ≠ 12); the correct mechanism is the a-fold
-per-iteration contraction on the INVARIANT range, and at
-ns_steps = 5 the directions with σ_i/‖X‖_F ≲ 10⁻³ do not
-reach 0.5 (σ₀ = 10⁻³ gives 0.47) — the per-matrix ρ audit
-prescription stands. -/
+/-- **The NS iteration bound**: σ_{k+1} ≤ a·σ_k implies
+σ_k ≤ a^k·σ₀ for every k — the per-step factor a (3.4445 for the NS
+polynomial) compounds over the trajectory; a > 1 means growth, so
+the bound is useful only on an invariant range where `ns_poly_bound`
+gives the effective factor. -/
 theorem ns_iter_bound (a : ℝ) (sigma : ℕ → ℝ) (ha : 0 < a)
     (hstep : ∀ k, sigma (k+1) ≤ a * sigma k) :
     ∀ k, sigma k ≤ a^k * sigma 0 := by
@@ -763,9 +647,8 @@ end NSIter
 
 section BatchExact
 
-/-- **The AM-GM equality case** (review item 3a): at
-B*² = B_n·t₀/c the AM-GM bound is TIGHT:
-c·B* + B_n·t₀/B* = 2√(c·B_n·t₀). -/
+/-- **The AM-GM equality case**: at B*² = B_n·t₀/c the AM-GM bound is
+tight. -/
 theorem amgm_equality (Bn t0 c B : ℝ) (hBn : 0 < Bn) (ht0 : 0 < t0)
     (hc : 0 < c) (hB : 0 < B) (hBstar : B^2 = Bn * t0 / c) :
     c * B + Bn * t0 / B = 2 * Real.sqrt (c * Bn * t0) := by
@@ -784,9 +667,8 @@ theorem amgm_equality (Bn t0 c B : ℝ) (hBn : 0 < Bn) (ht0 : 0 < t0)
   rw [hdiv]
   ring
 
-/-- **The AM-GM uniqueness** (review item 3b): equality in
-the AM-GM batch bound FORCES B² = B_n·t₀/c — the minimizer of
-the per-step cost cB + B_n·t₀/B is unique: B* = √(B_n·t₀/c). -/
+/-- **The AM-GM uniqueness**: equality in the AM-GM batch bound forces
+B² = B_n·t₀/c. -/
 theorem amgm_uniqueness (Bn t0 c B : ℝ) (hc : 0 < c) (hB : 0 < B)
     (hBn : 0 ≤ Bn) (ht0 : 0 ≤ t0)
     (heq : c * B + Bn * t0 / B = 2 * Real.sqrt (c * Bn * t0)) :
@@ -826,13 +708,9 @@ theorem amgm_uniqueness (Bn t0 c B : ℝ) (hc : 0 < c) (hB : 0 < B)
   field_simp
   linarith
 
-/-- **The batch throughput minimum** (review item 3c): the
-full throughput law
-T(B) = (1 + B_n/B)(t₀ + cB) ≥ t₀ + c·B_n + 2√(c·B_n·t₀)
-UNIFORMLY over B > 0, with equality exactly at B = B* (the
-`amgm_equality`/`amgm_uniqueness` pair). The optimal batch is
-derived AND unique: B* = √(B_n·t₀/c) from the measured
-critical batch B_n and the throughput constants (t₀, c). -/
+/-- **The batch throughput minimum**: T(B) = (1 + B_n/B)(t₀ + cB) ≥
+t₀ + c·B_n + 2√(c·B_n·t₀) uniformly over B > 0, with equality exactly at
+B = B* = √(B_n·t₀/c). -/
 theorem batch_T_min (S Bn t0 c B : ℝ) (_hS : 0 < S) (hBn : 0 ≤ Bn)
     (ht0 : 0 ≤ t0) (hc : 0 ≤ c) (hB : 0 < B) :
     (1 + Bn / B) * (t0 + c * B)

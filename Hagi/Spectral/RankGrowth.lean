@@ -6,7 +6,7 @@ import Mathlib.Tactic
 
 
 /-!
-# Rank increment under orthogonal growth (R360)
+# Rank increment under orthogonal growth
 
 Formal core of "What Does Model Growth Really Add?
 Functional Capacity Beyond Parameters" (arXiv:2607.14571):
@@ -50,7 +50,7 @@ def OrthRows {k : Type*} [Fintype k]
     (M : Matrix m n ℝ) (R : Matrix k n ℝ) : Prop :=
   ∀ i j, ∑ c, M i c * R j c = 0
 
-/-- **Rank increment under orthogonal growth** (R360): with
+/-- **Rank increment under orthogonal growth**: with
 `k` linearly independent new rows orthogonal to all old
 rows, the stacked Jacobian has rank EXACTLY
 `M.rank + k` — the capacity grows by the full number of
@@ -142,11 +142,11 @@ theorem rank_orthogonal_growth {k : Type*} [Fintype k] [DecidableEq k]
   linarith
 
 /-!
-## Growth directions are automatically safe (R367)
+## Growth directions are automatically safe
 
-Bridge between `rank_orthogonal_growth` (R360: new dormant
+Bridge between `rank_orthogonal_growth` (new dormant
 rows grow the functional capacity) and the SafeQP old-domain
-constraints (R348): ANY update direction lying in the span of
+constraints: ANY update direction lying in the span of
 the new (old-gradient-orthogonal) directions interferes with
 EVERY protected old gradient by exactly zero — new capacity
 and old-function preservation are compatible by construction.

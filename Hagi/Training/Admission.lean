@@ -48,7 +48,7 @@ Honest pins (A17 §5.4 acceptance bar):
    in full.
 2. **E-process validity binder (premise-form)**: the
    supermartingale premises of `admit_sound` are the consumer's to
-   discharge, exactly . NO bound is claimed on
+   discharge, exactly. NO bound is claimed on
    adaptively reused data — the honest instantiation is the
    pre-split fresh-sample route (`freshBatchMonitor`).
 3. **λ_M, λ_R are explicit parameters**, not hidden constants: the
@@ -150,7 +150,7 @@ theorem noAdmitWithoutPositiveMargin (p : AdmissionProposal)
 /-- The admission certificate: a proposal `p`, the base state
 `sBase` the candidate would be installed into, the candidate state
 `sCand`, the anytime-validity premise carrier `mon` (`EProcMonitor`,
-), and the `decision` — pinned by `admit_ok` to be exactly the
+`EProcMonitor`), and the `decision` — pinned by `admit_ok` to be exactly the
 output of `admitRule p` (no free-floating decision). -/
 structure AdmissionCert (S : Type*) (objective : S → ℝ) where
   /-- The candidate proposal. -/
@@ -201,9 +201,9 @@ admission;
 admission —
 then the probability of a FALSE ADMISSION is at most `α`, i.e.
 `μ.real {ω | admitted ∧ ¬goodGain ω} ≤ mon.α`. Proof: direct descent
-from `Hagi.Contracts.VilleMonitor.monitor_ville_valid` (
-Ville engine) by measure monotonicity `commit_sound` proof
-shape; no new concentration. -/
+from `Hagi.Contracts.VilleMonitor.monitor_ville_valid` (the
+Ville engine) by measure monotonicity (`commit_sound` proof
+shape); no new concentration. -/
 theorem admit_sound {S : Type*} {objective : S → ℝ}
     {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
     [IsProbabilityMeasure μ] {𝒢 : Filtration ℕ m0}
@@ -228,9 +228,9 @@ variable {n a e q r c k : ℕ}
 
 /-- **GrowthCert tie**: an ADMITTED proposal whose executed decision
 installs the candidate state `s'` (through `applyAdmission` and the
- step semantics) together with the growth telemetry premises of
- (the `qual_tie` channel deltas and the `protected_ok`
-interlock — premise-form, as itself) yields the
+step semantics) together with the growth telemetry premises of
+`Hagi.Training.TransitionCert` (the `qual_tie` channel deltas and the
+`protected_ok` interlock — premise-form) yields the
 `GrowthCert s s'` of the transition — so the four-cert composition
 `fourCert_of_parts` (given the micro certificate and the macro
 certificate on the same pair) is completable. Division of labor:

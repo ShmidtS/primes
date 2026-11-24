@@ -88,7 +88,7 @@ theorem telescope
     simp only [Finset.sum_range_succ]
     linarith
 
-/-! ### Инстанс 1: через StepContract (новый C280-адаптер)
+/-! ### Инстанс 1: через StepContract 
 
 Квадратичная машина w ↦ w/2 на ℝ: цель w², спуск 3/4·w² при w > 0
 (равенство, не оценка). Сертификат строится ЧЕРЕЗ

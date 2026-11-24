@@ -103,20 +103,11 @@ predict Ĝ_eq(w₂) = c•D_data(w₂)/(1−ρ₂) BEFORE the run and
 compare. If the prediction fails, the bridge is REFUTED —
 no re-fitting on the second point.
 
-**Prescription for the code.**
-
-1. CPU-only preprocessing: KL-matrix → candidate w →
-   D_data(w) (the entropy identity makes it a table lookup)
-   → Ĝ_eq(w) → predicted generation gain αĜ_eq + J — the
-   mixture choice becomes a computable program (the KKT of
-   `Hagi.Data/DFieldKKT` picks w*; this module prices it).
-2. The interval equilibrium: the generation gates read
-   (lo, hi) = ((D−δ)/(1−ρ), (D+δ)/(1−ρ)) — the UNDECIDED band
-   of `Hagi.Compound.compound_budget_interval` is now fed by
-   the bracket, not by a point.
-3. The calibration log: record (D_data, ρ, G_eq) per
-   generation; one point calibrates c, every further point is
-   a blind test — REFUTED is a valid verdict.
+**Prescription**: the mixture choice is a computable program — from the
+KL-matrix to `D_data(w)` and `Ĝ_eq(w)` (the KKT of `Hagi.Data/DField` picks
+w*); the generation gates read the UNDECIDED band of
+`Hagi.Step.compound_budget_interval` from the bracket, not a point; one
+point calibrates c, every further point is a blind test.
 -/
 
 open Finset
@@ -134,10 +125,8 @@ data-divergence identity of `dfield_entropy_identity` reads
 D_data = Σ w_i · negEntropy(p_i) − negEntropy(p_w)
      = H(p_w) − Σ w_i H(p_i) ≥ 0
 (the mixture entropy minus the weighted corpus entropies).
- honesty fix: renamed from `entropy` — the body defines
-the NEGATIVE of the standard entropy, and that is now stated
-explicitly instead of being papered over by the H-semantics
-docstrings. -/
+The body defines the NEGATIVE of the standard entropy, stated
+explicitly. -/
 noncomputable def negEntropy (p : V → ℝ) : ℝ :=
   --: = -Prelude.entDef (historical name kept)
   -Hagi.Prelude.entDef p
@@ -229,12 +218,9 @@ theorem dfield_entropy_identity (p : K → Corpus V) (w : K → ℝ)
   rw [hL, hR]
 
 
-/-- **The equilibrium upper bracket ( honesty fix: the
-REAL recurrence theorem, was a carrier lower≤upper).** Under
-the noise model G_{t+1} = ρG_t + D + ξ_t with ξ_t ≤ δ:
-
+/-- **The equilibrium upper bracket**: under
+the noise model G_{t+1} = ρG_t + D + ξ_t with ξ_t ≤ δ,
 `G_t ≤ ρ^t G_0 + (D+δ)/(1−ρ)` for every t
-
 — the closed-form upper bracket via contraction_limit. The
 liminf/limsup two-sided bracket and the noisy-sign lower
 bound (ξ_t ≥ −δ ⟹ G_t ≥ ρ^t G_0 + (D−δ)(1−ρ^t)/(1−ρ) for the

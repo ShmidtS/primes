@@ -8,8 +8,8 @@ set_option linter.style.header false
 /-!
 # DesignOpt: the compute-optimal construction — one objective, every knob derived
 
-The round-36 synthesis: the loop's knobs — N, r, W, S, K,
-p, loop, s_NS — are no longer hand constants but DERIVED
+The loop's knobs — N, r, W, S, K,
+are not hand constants but DERIVED
 quantities of ONE constrained program:
 
 `min C(a, u)  subject to  Q(a, u) ≤ Q*,  M ≤ M_max,
@@ -31,10 +31,8 @@ shrinks as the rank grows), so for every precision budget
 `r* = min{r: ρ(r) ≤ ε_r}`
 
 EXISTS — the rank is read directly off the measured
-spectrum, no tail-shape assumption (the flat measured
-spectra of round 25 — the κ-unmeasurable regime — are
-handled: r* is whatever the spectrum says, possibly large,
-possibly 0).
+spectrum, no tail-shape assumption (flat spectra are
+handled: r* is whatever the spectrum says).
 
 * `adaptive_ns_exists` — THE ADAPTIVE NEWTON–SCHULZ BUDGET:
 the orthogonality residual e(s) = ‖U_sᵀU_s − I‖_F/‖I‖_F is
@@ -61,10 +59,9 @@ be wall-clock-slower than a small GEMM (the measured
 Hadamard-vs-matmul anomaly) — the optimizer must optimize
 the wall-clock surrogate, not the FLOP count.
 
-* `shadow_price_sum_identity` — the shadow-price sum law (
-rename: not a KKT-optimality theorem — the optimization
-problem itself is not formalized; this is the arithmetic
-identity the interior KKT program builds on) (the
+* `shadow_price_sum_identity` — the shadow-price sum law (an
+arithmetic identity, not a KKT-optimality theorem: the
+optimization problem itself is not formalized): at the
 interior optimality): at the compute-optimal design, every
 interior mechanism's marginal quality-gain-per-compute
 EQUALIZES at the shadow price λ (the KKT interior condition
@@ -75,24 +72,11 @@ when NO mechanism's marginal exceeds λ (the unified
 stopping criterion — the CE-plateau replaced by
 −ΔG_F/ΔC < ε_stop).
 
-**Prescription for the code.**
 
-1. The architecture compiler loop: checkpoint → measure
-   (spectrum per residual, δ-mass per attention, E_g per
-   head, ρ_root, G_F, R_repr) → estimate the marginals
-   (Δquality/Δcompute per mechanism) → pick argmax → train
-   → verify. Every knob derived, none tuned.
-2. The spectral rank replaces the κ-form everywhere
-   (RankBudget's exponential law was already flagged
-   ASSUMPTION; the spectral criterion needs no assumption —
-   the measured spectra decide).
-3. The adaptive NS: instrument the optimizer with the
-   per-matrix orthogonality residual; the iteration count
-   is per-matrix derived (the 3–5 grid becomes 3/4/5 by
-   measured residual, not by habit).
-4. The wall-clock telemetry: log (F, B, launches) per step
-   — the design objective's surrogate is calibrated on the
-   actual hardware, not on FLOPs alone.
+**Prescription for the code**: measure the marginals
+(Δquality/Δcompute per mechanism) from the spectrum, the
+orthogonality residual and the wall-clock telemetry
+(F, B, launches) — every knob derived, none tuned.
 -/
 
 open Finset
@@ -118,8 +102,8 @@ theorem spectral_tail_mono (sigma : ℕ → ℝ) (m m' : ℕ)
   exact sum_le_sum_of_subset_of_nonneg hsub
     fun i _ _ => sq_nonneg (sigma i)
 
-/-- **The spectral rank exists** ( honesty fix: an
-existence theorem, not minimality): for every precision
+/-- **The spectral rank exists** (an existence theorem, not
+minimality): for every precision
 budget ε_r > 0 a rank r with tail ratio ≤ ε_r exists — the
 proof takes r = max(support)+1 where the tail is EMPTY
 (= 0 ≤ ε_r). The tail-ratio monotonicity suggests the
@@ -159,8 +143,9 @@ bridge (e_{t+1} ≤ f(e_t) < e_t with f a contraction on an
 interval ⟹ ∃ t, e_t ≤ ε_NS, giving a per-matrix count s*)
 remains open and is the honest version of this theorem. -/
 
--- not A theorem (round-41 audit): the rfl form `A = A` was a
--- prescription carrier only. Demoted to the DEFINITION of the
+-- The wall-clock model (two-cost structure), not a theorem: the
+-- constrained program behind it is not formalized.
+-- 
 -- wall-clock model; the two-cost structure is the object.
 noncomputable def wallClock (F B Rc Rb Tl : ℝ) : ℝ :=
     max (F / Rc) (B / Rb) + Tl

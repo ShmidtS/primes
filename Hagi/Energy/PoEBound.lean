@@ -36,9 +36,9 @@ from the pooled mean `μ = Σ_l w_l·z_l`: `∀ u v, (z i u − μ u) − (z i v
    the two-point Bernoulli MGF `1 − θ + θ·e^s ≤ e^{θs + s²/8}`
    (`bern_mgf_bound`), proven by calculus: F(s) = θs + s²/8 −
    log(1−θ+θeˢ) has F(0) = F'(0) = 0 and slope monotone by the
-   Bernoulli-variance bound ρ(1−ρ) ≤ ¼. This closes the round-68
-   open item ("the transcendental (b−a)²/8 step, absent from
-   Mathlib") in the direction needed here.
+    Bernoulli-variance bound ρ(1−ρ) ≤ ¼. This is the
+    transcendental (b−a)²/8 step absent from Mathlib, in the direction
+    needed here.
 2. **Log-sum-exp deviation bounds** (`lse_shift_lower`,
    `lse_shift_upper`): the deviation of lse from `x` to y is
    `log E_{σ(x)}[e^{y−x}]`; pillar 1 gives the upper second-order
@@ -51,7 +51,7 @@ from the pooled mean `μ = Σ_l w_l·z_l`: `∀ u v, (z i u − μ u) − (z i v
    sign is `lse_shift_lower` (Jensen at the center via
    `weighted_center_le`).
 
-**honest CORRECTION of the audit's form.** The audit claimed the
+**Why the PER-EXPERT range form, not a pairwise law.** A claimed
 pairwise law `|·| ≤ (1/8)·Σ_{i,j} w_i w_j D_{ij}²` with D the
 pairwise logit diameter. That form is FALSE — counterexample
 z₁ = (1,−1), z₂ = (0,0), w = (½,½): the true gap is
@@ -74,11 +74,7 @@ long-exponent products; the full-sequence product composes by
 summing per-token gaps: total error ≤ (1/8)·Σ_t M_t² (no
 cross-token cancellation claimed).
 
-**Process note**: an earlier draft chased an elaborate
-exchangeable-MIDPOINT assembly claiming the audit's pairwise 1/8;
-it was mathematically wrong (per the counterexample above) and
-was deleted. The correct proof is the simple per-expert route —
-this is a caution against proving a false target.
+
 -/
 
 open Finset Real

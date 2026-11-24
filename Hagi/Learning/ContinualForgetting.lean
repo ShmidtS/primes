@@ -7,7 +7,7 @@ import Hagi.Contracts.AuditLedger
 import Hagi.Cert.StepGen
 
 /-!
-# Continual-learning forgetting control bound (rank item c)
+# Continual-learning forgetting control bound
 
 Continual-learning contract: NEW tasks arrive, the router/system
 adapts (sleeping experts compete on awake rounds — the GAIN
@@ -43,8 +43,9 @@ continual-learning contract. Honest scope (pinned):
   (how a floor was measured stays with CertifiedEstimator —
   `audit_alpha_spends_radius` is the radius bridge, cited not
   re-proved); NO new concentration math — the contribution is the
+  re-proved); NO new concentration math — the contribution is the
   continual packaging, the δ-split bookkeeping lemma, and the
-  construction channel (challenge-pin resolution, plan-review A1).
+  construction channel.
 
 Canary-ramp exposure bounding (`canary_ramp_harm_bound`,
 `canary_step_certified` — a ramp step IS a CertStepGen) is the
@@ -134,7 +135,7 @@ probability that SOME old task's floor is falsely harmed is at most
 the total spent budget ∑ spent₀ + ∑ₖ δₖ, which stays inside
 δtotal. "New task adaptation" is an audited proposal like any
 other: the master (`gate_pipeline_false_commit`) applies at
-δ := the SPENT total — sharper than C274's δtotal form — plus
+δ := the SPENT total — the sharper honest form — plus
 complement algebra (`prodPq_compl`, `prodPq_iff`). The premise
 `htail` (P(Bad t) ≤ spent t) is the e-process tail premise of the
  master; the radius that justifies a spend is

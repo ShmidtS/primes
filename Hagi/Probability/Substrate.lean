@@ -9,27 +9,25 @@ import Hagi.Probability.PMFBridge
 set_option linter.style.header false
 
 /-!
-# Substrate — единая PMF-подложка вероятностных словарей (A19.3)
+# Substrate — единая PMF-подложка вероятностных словарей
 
-Аудит A19 (N-структура, вероятность/информация): библиотека говорит
-на трёх параллельных словарях вероятности. Этот модуль — точка сборки:
-манифест каноничности + мосты-тождества. НИ ОДНО доказательство
-Freedman-семейства не переписано (KISS-транш).
+Библиотека говорит на трёх параллельных словарях вероятности. Этот модуль —
+точка сборки: манифест каноничности + мосты-тождества.
 
 ## Манифест SSOT
 
-* `Hagi.Probability.pmfMean` (FreedmanTwoSided) — канонический
+* `Hagi.Probability.pmfMean` (Freedman) — канонический
   словарь ожиданий на Mathlib-типе `PMF`; наибольшая потребительская
   база; мосты в меры уже есть (`Hagi.Probability.toPMF`,
   `Hagi.Unified.pmfMean_eq_integral`).
-* `prodDens`/`prodE`/`prodPq` (CertifiedEstimator, Freedman-семейство) —
+* `prodDens`/`prodE`/`prodPq` (CertifiedEstimator, Freedman) —
   density-словарь независимого произведения; сохраняется как есть,
   мостится в PMF-подложку теоремой `prodE_eq_pmfMean` ниже.
-* `densD`/`expD`/`probD` (FreedmanAdaptive) — зависимое
+* `densD`/`expD`/`probD` (adapted-секция Freedman) — зависимое
   обобщение; сохраняется как есть; вкладывается в density-словарь
   теоремами `densD_const`/`expD_const` (постоянные условные веса).
 
-## Каноничность инфо-дублей (A19.3, дубль-таблица)
+## Каноничность инфо-дублей (дубль-таблица)
 
 * `tvHalf_eq_tvDef`: канонический — `Hagi.Information.tvHalf_eq_tvDef`;
   копия `Hagi.Unified.InfoCanonical.tvHalf_eq_tvDef` — deprecated-alias.
@@ -37,7 +35,7 @@ Freedman-семейства не переписано (KISS-транш).
   (более общий: не требует `Nonempty`); `Hagi.Information.GAD`
   -версия — внутреннее менее общее следствие, оставлена на месте.
 * `hoeffding_tail` (Hagi.Ensemble против Hagi.Probability),
-  `contraction_limit` (канонический `Hagi.Foundations`, Dynamics-копия
+  `contraction_limit` (канонический `Hagi.Math.Foundations`, Dynamics-копия
   делегирует), `gibbs_variational` (Hagi.Data и Hagi.Probability),
   `gibbs_free_energy_identity` (Hagi.Probability и Hagi.Energy) —
   РАЗНЫЕ statements в разных namespace, identity-слияние невозможно
@@ -78,7 +76,7 @@ theorem prodDens_sum {n : ℕ} (p : Fin n → V → ℝ) (hp : IsProbSys p) :
 theorem prodE_eq_sum {n : ℕ} (p : Fin n → V → ℝ)
     (f : (Fin n → V) → ℝ) : prodE p f = ∑ ω, prodDens p ω * f ω := rfl
 
-/-- Ключевой мост A19.3: `prodE`-словарь — частный случай PMF-подложки
+/-- Ключевой мост: `prodE`-словарь — частный случай PMF-подложки
 `pmfMean`: то же число, что ожидание PMF с плотностью произведения. -/
 theorem prodE_eq_pmfMean {n : ℕ} (p : Fin n → V → ℝ) (hp : IsProbSys p)
     (f : (Fin n → V) → ℝ) :

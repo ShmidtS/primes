@@ -9,18 +9,8 @@ import Hagi.Contracts.ObjectiveTrajectory
 /-!
 # EM trajectory contracts
 
-Canonical Contracts-side EM trajectory family (v5 W2 consolidation).
-Carrier stays `Hagi.Probability.FiniteMultiEM` (untouched). Sections
-merged here (namespaces and FQNs preserved, module files removed):
-
-- `Hagi.Contracts.FiniteEMTrajectory` — finite closed-family EM,
-  additive NLL monotone/eventually-constant;
-- `Hagi.Contracts.ChangingEMTrajectory` — retained changing-family
-  EM trajectories;
-- `Hagi.Contracts.MixtureEMTrajectory` — categorical mixtures with
-  changing-family EM evidence;
-- `Hagi.Contracts.FactorizedMixtureEM` — factorized finite
-  complete-CE selection over retained mixtures.
+Canonical Contracts-side EM trajectory family in one file: finite closed-family EM,
+changing-family EM, categorical mixtures, factorized complete-CE selection.
 -/
 
 

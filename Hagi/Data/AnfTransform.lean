@@ -9,7 +9,7 @@ set_option linter.style.header false
 /-!
 # ANF/Möbius (Zhegalkin) transform: the compiler-correctness core
 
-Track E5 (C292–C297 analysis rank #3) . The Python V3 compiler
+Track E5. The Python V3 compiler
 side synthesizes Boolean functions into ANF (algebraic normal form)
 via the Möbius/Zhegalkin butterfly and evaluates back; this module
 lands the ANF CORE bridge on the Lean side, over the exact Boolean
@@ -346,7 +346,7 @@ set_option linter.style.header false
 /-!
 # ANF composition (compose3 seed) with guarded support
 
-Track E5 ladder rung 2 (TD E5-C301 rung 1: `compose3`) . The
+Track E5 ladder rung 2 (rung 1: `compose3`). The
 Python V3 compiler composes Boolean stencil functions via
 `compose3(f, g, h) = f(g(x), h(x))` nests over ANF-compiled truth
 tables. This module lands the SEED case honestly on the
@@ -383,9 +383,9 @@ GF(2) ANF, `deg (f ∘ (g, h)) ≤ deg f · max (deg g, deg h)`; the
 truth-table carrier here has no monomial/degree API yet — proving
 it needs a polynomial representation first (a later rung).
 
-Honest scope (E5 ladder, follow-up beats): collision abstention
-and argument-range dispatch are NOT claimed here — only the
-composition seed, its synthesis instances, and support soundness.
+Honest scope: collision abstention and argument-range dispatch are
+NOT claimed here — only the composition seed, its synthesis instances, and
+support soundness.
 -/
 
 namespace Hagi.Data.AnfCompose
@@ -477,8 +477,8 @@ set_option linter.style.header false
 /-!
 # ANF dispatch with collision abstention
 
-Track E5 ladder rung 3 (TD E5-C302 remaining rungs 3+4: argument
-ranges + collision abstention) . The Python V3 compiler
+Track E5 ladder rung 3 (rungs 3+4: argument ranges + collision
+abstention). The Python V3 compiler
 dispatches among candidate stencils by their argument ranges; when
 two candidates' ranges overlap AMBIGUOUSLY and the candidates
 disagree, the compiler ABSTAINS rather than guessing. This module
@@ -511,8 +511,8 @@ carriers:
   range is exactly the default.
 - `abstain_sound`: no false coverage — when two candidates
   collide at `x`, dispatch returns `none` (never a value).
-- `guard_disjoint_no_collision`: the composition with C302's
-  `stencil_guard_sound` story — candidates with DISJOINT
+- `guard_disjoint_no_collision`: the composition with the guarded-support
+  story — candidates with DISJOINT
   (nonempty) `argRanges` NEVER collide (both in range at `x`
   would force the ranges equal, contradicting disjointness), so
   the abstention never fires spuriously for support-disjoint
@@ -527,9 +527,8 @@ carriers:
 
 ## Priority dispatch (final E5 rung)
 
-The module ALSO carries the second dispatch policy, formalized in
- — the Python V3 arg-range PRIORITY ordering over > 2 stencil
-candidates:
+The module ALSO carries the second dispatch policy — the Python V3
+arg-range PRIORITY ordering over > 2 stencil candidates:
 
 - `dispatchPriority`: iterate candidates in list order (priority);
   the FIRST in-range candidate's value wins; later in-range
@@ -665,7 +664,7 @@ theorem abstain_sound {n : ℕ} (dflt : Bool) (a b : AnfCand n)
   rw [dispatchOrAbstain]
   simp [ha, hb, hne]
 
-/-- The disjointness composition with C302's guarded-support
+/-- The disjointness composition with the guarded-support
 story: candidates with DISJOINT nonempty `argRanges` never
 collide — both being in range at a context `x` would force the
 ranges to be equal (the context's position set determines the
@@ -729,7 +728,7 @@ theorem anfFin2_dispatch_ok :
 /-- The Python V3 arg-range PRIORITY dispatch, certified form:
 iterate candidates in list order (priority); return the FIRST
 in-range candidate's value; `none` if no candidate applies.
-Unlike C306's `dispatchOrAbstain` (which abstains when two
+Unlike `dispatchOrAbstain` (which abstains when two
 candidates collide disagreeing), priority dispatch RESOLVES
 overlap by order: an earlier candidate wins, later in-range
 candidates are shadowed (see `dispatchPriority_shadow` for the

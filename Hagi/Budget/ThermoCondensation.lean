@@ -6,7 +6,7 @@ import Mathlib.Tactic
 /-!
 # Wave3: GitHub-scout finds, transported
 
-Four upgrades from the scouts (round 39):
+Four transported upgrades:
 
 **1. `jl_inner_approx` (from amirzandieh/QJL — 1-bit JL transform
 with a formal attention error bound)**: if the KV projection
@@ -39,28 +39,10 @@ below the (asymptotic) rate-divergence point. Combined with
 `Hagi.Wave2.merge_init_head_start`: the head start measured at
 step 0 persists to every step t (equal-slope regime).
 
-**Prescription for the code.**
-
-1. The QJL route to KV compression: if the projection is a
-   certified approximate isometry (norm preservation on the
-   span of {q, k, q+k} for the measured attention pairs), the
-   logit error is bounded by (3/2)ε(‖q‖²+‖k‖²) — log ε with
-   the per-pair norms to calibrate against the δ-mass
-   waterfilling (SinkCost): ε_i ∝ 1/(‖q_i‖²+‖k_i‖²).
-2. The schedule program: the corpus mixture w_t is a SCHEDULE,
-   not a vector — each step's mixture must satisfy the
-   conflict-constraint (the κ×cos scan of the step's gradients);
-   a conflict-free step is certified descent for every corpus;
-   dominated steps get the ConFIG construction (Wave2) or the
-   mixture re-weighted until conflict-free.
-3. The mergeability telemetry is orthogonalization-invariant:
-   compute D_grad on the RAW gradients — no need to
-   orthogonalize before measuring mergeability.
-4. The merge-vs-scratch benchmark: the head start measured at
-   step 0 (the Jensen init advantage) is the prediction for
-   every equal-slope step — a flat gap in time is the
-   confirmation signature; a shrinking gap means the scratch
-   rate is faster (the critical-ratio regime).
+**Prescription**: treat the mixture `w_t` as a SCHEDULE (a conflict-free
+step is descent for every corpus); measure mergeability on RAW
+gradients (orthogonalization-invariant); a flat merge-vs-scratch gap
+confirms the equal-slope regime.
 -/
 
 open Finset InnerProductSpace
@@ -163,12 +145,9 @@ end Orthogonal
 
 section HeadStart
 
--- not A theorem (round-41 audit): the ring-trivial equal-rate
--- gap identity. REPLACED by the honest PL-contraction form
--- `Hagi.Plan42.head_start_timeshift`: under geometric decay
--- L−L* = Δ·c^t, the merge head start is a TIME SHIFT
--- Lm(t+k) = Ls(t) with dm·c^k = ds — the measurable
--- prediction (k is the merge's step-equivalent advantage).
+-- The equal-rate head start is constant in time (`head_start_persists`);
+-- under geometric decay it is a time shift
+-- (`Hagi.Audit.head_start_timeshift`).
 
 end HeadStart
 
@@ -179,7 +158,7 @@ end Hagi.External
 /-!
 # Wave4: GitHub-scout finds, transported
 
-Four upgrades from the scouts (round 40):
+Four transported upgrades:
 
 **1. `mup_scale_invariance`** (from microsoft/mup +
 vankadara-lab/mssp-moe — the μP width/depth/expert-count
@@ -215,25 +194,10 @@ the norms — the formal explanation of our generations'
 stability: no slingshot dynamics because the slingshot
 observable has no dynamics.
 
-**Prescription for the code.**
-
-1. The μP bridge at merges: when the width grows (the block
-   diagonal widens), scale the incoming updates by 1/√(H_new)
-   per the invariance — the LR does not need re-tuning across
-   generations; the BranchScale depth-term composes.
-2. The vocab experiment: a 3-point |V| sweep (e.g. 16k/32k/64k)
-   fits c in L(V) = log V + c/V; V* = c is the predicted
-   optimum — check against the compute-optimal-tokenization
-   data before committing a tokenizer change.
-3. The LLC phase tracking: log the phase metric per generation;
-   a monotone sequence certifies developmental progress (no
-   phase revisits); an oscillation is the diagnostic of an
-   unstable growth loop.
-4. The stability attribution: the frozen-norm theorem explains
-   why our generations show no slingshot — the grokking lever
-   (weight-norm decay) is unavailable to the ternary body by
-   construction; emergence must come through the mixers/gates,
-   not through norm dynamics.
+**Prescription**: at merges scale incoming updates by 1/√(H_new); the
+critical vocab size V* = c is fitted from a small-|V| sweep; a monotone
+phase metric certifies progress; frozen norms leave no slingshot
+dynamics.
 -/
 
 open Finset Real
@@ -338,7 +302,7 @@ end Hagi.External
 
 
 /-!
-# Wave5: the DepthBench synthesis + the wave-5 scout imports (round 44)
+# Wave5: the DepthBench synthesis + the scout imports
 
 The unification (arXiv:2609.32534 DepthBench + our formalization):
 **architecture scaling is useful only if it increases ACCESSIBLE
@@ -347,17 +311,15 @@ GapLaw/Jensen) and for layers (intra-model: DepthBench's finding
 that Pre-LN deep-narrow adds near-dead layers while HC/AttnRes
 keep layer-state diversity).
 
-**1. `admission_var_criterion`** (the wave-5 diversity scout
-confirmed the niche ΔVar/ΔC UNOCCUPIED): under the quadratic gap
-law (ΔGap = ½·ΔVar, the empirical hypothesis behind pairVarEq /
+**1. `admission_var_criterion`**: under the quadratic gap
 twoGap's cosh form), the argmax of the variance-per-cost index
 IS the argmax of the gap-per-cost index — the next-expert
 admission rule: maximize new logit-space variance per compute,
 not minimize standalone loss (selection_hurts already proved
 the latter fails).
 
-**2. `branchscale_minmax`** (the reviewer's S_l²·v_l ≈ const,
-now a theorem): for any scale allocation with Σ s_l² = B, the
+**2. `branchscale_minmax`** (the S_l²·v_l ≈ const principle): for any scale
+allocation with Σ s_l² = B, the
 worst per-layer variance contribution satisfies
 max_l s_l²·v_l ≥ B / Σ(1/v_l) — the min-max floor, achieved when
 s_l²·v_l is uniform across layers: per-layer residual scales
@@ -370,7 +332,7 @@ V_l = ΔQ_remove(l)/T_l, if layer L's value drops under ε then
 every later layer's value does — the stop rule for adaptive
 depth L* = max{L: V_L > λ}; layer pruning = marginal-value
 optimization (the DesignOpt principle at intra-model scale).
-Composed from `Wave4.phase_metric_monotone`.
+Composed from `phase_metric_monotone`.
 
 **4. The state-diversity unification (documented)**: the
 DepthBench layer-state diversity D_layer = Var_p(h_i − h_j) is
@@ -384,22 +346,9 @@ collapsing toward rank 1 destroys exactly the diversity being
 purchased — kept as the prescription; the honest rank statement
 lives in Matrix.rank and is not re-proved here.
 
-**Prescription for the code.**
-
-1. The admission scan: for each candidate expert, one forward
-   per leaf gives the pooled-softmax Var_p(z_new − z_pool);
-   admit argmax ΔVar/ΔC — not min-CE (selection_hurts).
-2. The per-layer scale audit: log v_l (branch variance) per
-   layer; set s_l² ∝ 1/v_l (the min-max floor) instead of a
-   uniform residual scale.
-3. The layer-value table: per layer, the removal delta
-   ΔQ_remove(l)/T_l — monotone by construction in the healthy
-   regime; a non-monotone table is the DepthBench dead-layer
-   signature (Pre-LN's late layers collapse); stop L* where
-   V crosses λ.
-4. The unified index: rank all growth options (expert, layer,
-   memory-bridge, width) by ΔI_eff/ΔT_wall — one queue, not
-   four research directions.
+**Prescription**: admit argmax ΔVar/ΔC (not min-CE); audit per-layer
+scales s_l² ∝ 1/v_l; stop depth where the layer value crosses λ; rank
+growth options by ΔI_eff/ΔT_wall.
 -/
 
 open Finset Real
@@ -410,8 +359,7 @@ section Admission
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **The variance-admission criterion** (round 44; the niche
-confirmed unoccupied by the wave-5 scout): under the quadratic
+/-- **The variance-admission criterion**: under the quadratic
 gap law (the empirical h_quad: every candidate's merge-gain
 increment equals half its new logit-variance — the small-delta
 regime of `twoGap`/`pairVarEq`), the candidate maximizing the
@@ -438,8 +386,7 @@ end Admission
 
 section BranchUniformity
 
-/-- **The BranchScale min-max floor** (the reviewer's
-S_l²·v_l ≈ const as a theorem; honesty fix): for ANY
+/-- **The BranchScale min-max floor**: for ANY
 allocation of residual scales with total budget Σ s_l² = B
 over branches with variances v_l > 0, the worst per-layer
 variance contribution is at least B / Σ_l (1/v_l). honest
@@ -588,7 +535,7 @@ theorem bpw_lt_one_bound (d r : ℕ) (hd : 0 < d) (hlog : 0 < log2_3) :
 
 end Hagi.Budget
 /-!
-# Термодинамический prune-сертификат (R522)
+# Термодинамический prune-сертификат
 
 Формализация тезиса «98,5% сети — фоновая тепловая среда,
 знание конденсировано в 1,5% каркаса»:
@@ -614,7 +561,7 @@ open Real Finset
 alias condensation_budget := _root_.Hagi.Ensemble.ce_gap_bounded
 
 /-- Обратная постановка: CE-бюджет ε ⟹ допустимая конденсационная
-девиация δ = 2√ε ( Loved «1,5%»: жёсткий каркас ⟹ малое δ). -/
+девиация δ = 2√ε (жёсткий каркас ⟹ малое δ). -/
 theorem condensation_epsilon_budget (ε : ℝ) (hε : 0 < ε) :
     0 < 2 * Real.sqrt ε := by
   positivity
@@ -642,7 +589,7 @@ theorem thermo_prune_certificate {k : Type} [Fintype k] [Nonempty k]
 
 end Hagi.Ensemble
 /-!
-# Доля каркаса vs эффективная размерность (R526)
+# Доля каркаса vs эффективная размерность
 
 Количественный мост «1,5% каркаса ⟺ d_eff ~ 5-6»:
 факториальная таблица 4!..8!, доля фазового объёма
@@ -671,7 +618,7 @@ theorem inv_fact5_lt_15pct : (1:ℝ) / ((5:ℕ).factorial : ℝ) < 3/200 := by
 theorem inv_fact6_lt_15pct : (1:ℝ) / ((6:ℕ).factorial : ℝ) < 3/200 := by
   norm_num
 
-/-- **Главный мост R526**: уже при d_eff = 5 доля фонового
+/-- **Главный мост**: уже при d_eff = 5 доля фонового
 объёма 1/5! = 1/120 ≈ 0.83% меньше 1,5% — каркас «1,5%»
 достижим пятью эффективными направлениями. -/
 theorem scaffold_15pct_at_deff5 : (1:ℝ) / ((5:ℕ).factorial : ℝ) ≤ 0.015 := by
@@ -691,7 +638,7 @@ end Hagi.Budget
 set_option linter.style.header false
 
 /-!
-# Полный термодинамический сертификат конденсации (R527)
+# Полный термодинамический сертификат конденсации
 
 Мост CE-бюджет → девиация и композиция трёх вертикалей:
 * `condensation_epsilon_to_gap` — бюджет ε ⟹ допустимая девиация
@@ -709,7 +656,7 @@ open Hagi.Ensemble
 
 open Real Finset
 
-/-- **Мост CE-бюджет → девиация (R527)**: при CE-бюджете ε любая
+/-- **Мост CE-бюджет → девиация**: при CE-бюджете ε любая
 конденсационная девиация каркаса масштаба δ = 2√ε допустима:
 перестройка живой пары стоит ровно δ²/4 = ε. Это обращение
 `condensation_budget`: бюджет задаёт радиус конденсации. -/
@@ -729,7 +676,7 @@ theorem condensation_epsilon_to_gap {k : Type} [Fintype k] [Nonempty k]
   exact (condensation_budget m d t (2 * Real.sqrt ε) hp hsum (by positivity) hcond).trans
     (le_of_eq key)
 
-/-- **Полный термодинамический сертификат конденсации (R527)**:
+/-- **Полный термодинамический сертификат конденсации**:
 объединение трёх вертикалей —
 (1) слои за L мертвы (`dead_layer_stop`);
 (2) живой каркас конденсируется внутри CE-бюджета ε при девиации

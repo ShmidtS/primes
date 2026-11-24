@@ -180,7 +180,7 @@ theorem klDef_eq_ceDef_sub (q p : V → ℝ) (hp : ∀ v, p v ≠ 0) :
     ring
 
 /-- **KL ≥ 0 (Gibbs)**: для строго положительных вероятностных
-векторов KL-расхождение неотрицательно. Канон R334:
+векторов KL-расхождение неотрицательно. Канон:
 потребители (`Data/DField.KLdiv`, `Energy/Variational.kldiv'`,
 все rfl-мосты к `klDef`) делегируют сюда. -/
 theorem kl_nonneg (q p : V → ℝ)
@@ -1249,13 +1249,10 @@ half-distance, the refined continuity bound transports
 through the diagonal embedding:
 Shannon(p) − Shannon(q) ≤ t log d + (1+t) h₂(t/(1+t)).
 The diagonal-entropy bridge (spectral entropy of diagonal =
-Shannon) is an explicit hypothesis — the single deferred
-link, everything else proven outright. Derivation status
-(R268 audit trail): entropy_eq_sum (SpectralEntropy) reduces
-the bridge to ∑ negMulLog (eigenvalues (diagonal r))
-= ∑ negMulLog (r i), which needs eigenvalues-of-diagonal as a
-SORTED-roots multiset identity — absent from Mathlib v4.34.1;
-open. -/
+explicit hypothesis — the single deferred
+link, everything else proven outright: `entropy_eq_sum` reduces the
+bridge to ∑ negMulLog (eigenvalues (diagonal r)) = ∑ negMulLog (r i), a
+sorted-roots multiset identity absent from Mathlib; open here. -/
 theorem discrete_fannes_coupling [Nonempty ι] (p q : ι → ℝ)
     (hp : ∀ i, 0 ≤ p i) (hq : ∀ i, 0 ≤ q i)
     (hps : ∑ i, p i = 1) (hqs : ∑ i, q i = 1)
@@ -1356,9 +1353,8 @@ end Hagi.Information
 /-!
 # FannesSmooth: entropy continuity in the non-singular regime
 
-The full Fannes bound `|H(p) − H(q)| ≤ τ·log(V−1) + h₂(τ)`
-remains open (the singular h₂ term needs the zero-mass
-rearrangement machinery absent from Mathlib). This module
+The full Fannes bound `|H(p) − H(q)| ≤ τ·log(V−1) + h₂(τ)` is
+`Hagi.Unified.fanes_unconditional` (a higher layer); this module
 closes the smooth part of the remainder: on the interior of
 the simplex (both distributions δ-separated from the
 boundary), entropy is Lipschitz in total variation with an
@@ -1423,8 +1419,8 @@ theorem abs_log_sub_le (a b : ℝ) (ha : 0 < a) (hb : 0 < b) :
 /-- **Smooth Fannes**: on the δ-interior of the simplex the
 entropy is Lipschitz in total variation with the explicit
 constant `2/δ + 2·log(1/δ)` — the non-singular half of the
-Fannes program. The singular h₂ term (zero-mass boundary)
-remains open, as documented. -/
+Fannes program. The singular h₂ term (zero-mass boundary) is
+`Hagi.Unified.fanes_unconditional`. -/
 theorem entropy_lipschitz_smooth (p q : V → ℝ) (delta : ℝ) (hdelta : 0 < delta)
     (hdelta1 : delta ≤ 1)
     (hp : ∀ v, delta ≤ p v) (hq : ∀ v, delta ≤ q v)
@@ -1526,8 +1522,8 @@ end Hagi.Data
 /-!
 ## The log-sum-exp convexity and the ensemble theorem
 
-A19.1: moved from `Hagi.Core.Concat` to the canonical Info
-module (layer 0, C348/A14 QW8). FQNs frozen: `Hagi.Core.lse`,
+The `lse` / `ceOneHot` / `softmaxP` family lives here (moved from
+`Hagi.Core.Concat`). FQNs frozen: `Hagi.Core.lse`,
 `Hagi.Core.ceOneHot`, `Hagi.Core.softmaxP`, the `Hagi.*` exports, and
 all bridge theorems — consumers unchanged (Lean imports are transitive;
 `Hagi.Core.Concat` imports this module).
@@ -1548,11 +1544,9 @@ theorem exp_sum_pos (z : k → ℝ) : 0 < ∑ v, Real.exp (z v) :=
   Finset.sum_pos (fun _ _ => Real.exp_pos _) Finset.univ_nonempty
 
 /-- Prelude bridge: the canonical softmax IS the exponentiated
-gap to `lse` — `softDef z a = exp (z a − lse z)`. This closes
-the last unbridged primitive pair of the info layer (audit-3
-stage 3): every softmax/lse definition in the project is now
-reducible to the single `Prelude.softDef` / `Concat.lse` spine
-by `rfl`-strength identities. -/
+gap to `lse` — `softDef z a = exp (z a − lse z)`: every
+softmax/lse definition in the project is reducible to the single
+`Prelude.softDef` / `Concat.lse` spine by `rfl`-strength identities. -/
 theorem softDef_eq_exp_sub_lse (z : k → ℝ) (a : k) :
     Hagi.Prelude.softDef z a = Real.exp (z a - lse z) := by
   have hpos := exp_sum_pos z

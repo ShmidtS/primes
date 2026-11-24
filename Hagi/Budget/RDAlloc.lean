@@ -17,19 +17,18 @@ assembled into ONE step certificate. Every ingredient is cited
 from its own carrier; only the COMPOSITION is new:
 
 * the allocation premise-form is BUDGET-SATISFYING (`RDAlloc`);
-  the water-filling OPTIMALITY is C237's
+  the water-filling OPTIMALITY is cited
   (`Hagi.Budget.rankResidual_equalized`,
   `rankResidual_allocation`, and the iso-Frobenius-weighted
   `weightedExpAllocation_isoFrob_optimal` of
-  `Hagi.Budget.IsoFrobAlloc`) — cited, NOT re-proven;
-* the staged error law is C253's
+  `Hagi.Budget.IsoFrobAlloc`), NOT re-proven;
+* the staged error law is cited
   (`Hagi.Budget.residualTwoStage_error_le_add`: two-stage
   residual quantization composes additively, ε₁ + ε₂) and the
   per-stage product law
   (`quantProd_relError_sq`: (e + f + e·f)² cross-term law) — the
   εᵢ recipe for factorized (LoRA-style) stages is that same law
-  cited verbatim (same namespace, dedup removed the former
-  statement-identical wrapper);
+  εᵢ recipe for factorized (LoRA-style) stages;
 * the sensitivity scaling is the iso-Frobenius cascade
   calibration (`Hagi.Budget.isoFrobSensitivity`:
   c_j = isoFrobEnergy(J_{>j})·hScale_j) — the Lipschitz premise
@@ -47,7 +46,7 @@ from its own carrier; only the COMPOSITION is new:
   of CramContracts: lower objective is better; docstring wiring,
   no import — layer discipline).
 
-Re-audit note (the εᵢ recipe for Hadamard-wrapped blocks): the
+Hadamard-wrapped blocks: the
  spread bound `Hagi.Contracts.hadamard_ternary_error_bound_of_spread`
 (ε = n·(s/2)² + ρ·‖x‖², ρ the deterministic energy-spread
 premise) is the per-stage constant for blocks quantized through
@@ -55,7 +54,7 @@ an orthonormal Hadamard rotation — instantiate `RDAlloc.eps`
 there when the stage wraps a Hadamard block; no new theorem is
 needed for that wiring.
 
-Honest scope: two-stage composition (matching C253's residual
+Honest scope: two-stage composition; no n-stage
 law); no n-stage induction; no probability; no empirical
 constants in theorem statements.
 -/
@@ -71,8 +70,8 @@ variable {ι : Type*} [Fintype ι]
 
 /-- **RDAlloc**: a per-stage bit allocation with per-stage error
 constants. PREMISE-FORM: the allocation only SATISFIES the bit
-budget (`hbudget`); water-filling optimality is C237's
-(`rankResidual_equalized` / `rankResidual_allocation`), cited —
+budget (`hbudget`); water-filling optimality is cited
+(`rankResidual_equalized` / `rankResidual_allocation`), not re-proven here.
 not re-proven here. The per-stage `eps i` is the error constant
 εᵢ(bᵢ) of stage i at the allocated width (
   hadamard_ternary_error_bound_of_spread` bound is the recipe for

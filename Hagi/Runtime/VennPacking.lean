@@ -30,8 +30,7 @@ matrix:
 * shared scale — one scale byte for the whole matrix (`scaleCode_byte`)
   plus the flat payload: `14` bytes (`sharedScaleVennBytes`).
 
-Honesty boundary, as in `Hagi.Runtime.TernaryCodec` and
-`Hagi.Runtime.DyadicTernary`: these are fixed-width byte counts for
+Honesty boundary: these are fixed-width byte counts for
 the named codec variants only.  The flat and dyadic counts are the
 abstract block-count formula at the concrete matrix size — the full
 sixty-four-symbol stream encoder is not instantiated here — while the

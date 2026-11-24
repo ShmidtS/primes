@@ -438,7 +438,7 @@ theorem fixedBatch_meanDirection_tendsto_zero
   rw [hEq]
   simpa using h.neg
 
-/-! ## Sharp-range wiring (R2, resolves the deferral) -/
+/-! ## Sharp-range wiring -/
 
 /-- The sharp mean logit-range square is controlled by the same explicit
 feature-curvature constant as the engine range square: transitivity of

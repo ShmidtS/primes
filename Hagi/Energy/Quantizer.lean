@@ -6,11 +6,10 @@ import Mathlib.Tactic
 import Mathlib.Algebra.Order.Round
 
 /-!
-# Квантователь (объединённый)
+# Квантователь
 
 Решётчатый квантователь gridQ с покоординатной оценкой и
-векторный контракт gridQVec. Слит из двух модулей; имена
-деклараций сохранены.
+векторный контракт gridQVec.
 -/
 
 set_option linter.style.header false

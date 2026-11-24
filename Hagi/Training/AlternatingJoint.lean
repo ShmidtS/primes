@@ -12,7 +12,7 @@ import Hagi.State.TrainTrajectory
 research beat of the queue (ranked item 5, "joint
 update — research goal"): LOOSEN `crmsm_joint_separation`
 pin through an ALTERNATING schedule. The extractor updates RARELY
-(at phase boundaries, every `K` steps, C380-style period) and is
+(at phase boundaries, every `K` steps, period) and is
 admitted only through a re-certification gate; between boundaries
 the extractor is FROZEN, so the head-descent theorems (via
 the wiring, master steps) apply VERBATIM — the
@@ -92,7 +92,7 @@ namespace Hagi.Training.AlternatingJoint
 /-! ## The alternating schedule -/
 
 /-- The alternating schedule: the extractor may update only every
-`K` steps (C380-style rare-update period). The period discipline
+`K` steps (rare-update period). The period discipline
 itself is carried by `AlternatingTrajectory.periodic`; this record
 pins the period and its positivity. -/
 structure AlternatingSchedule where
@@ -260,7 +260,7 @@ deriving DecidableEq
 /-- The alternating trajectory: `T` canonical-state steps, each a
 certified head step (`CRMSMStep` — hence
 `MasterStepCert`), an admission-gated extractor boundary, or a
-hold. The C380-style rare-update discipline is explicit: extractor
+hold. The rare-update discipline is explicit: extractor
 boundaries occur ONLY at indices `j` with `(j + 1) % K = 0`. -/
 structure AlternatingTrajectory (T : ℕ) where
   /-- The alternating schedule (the rarity period K). -/

@@ -4,7 +4,7 @@ import Hagi.Contracts.BatchCEAlignmentBudget
 # Best-prefix common residual bounds
 
 The minimum squared common batch residual over a nonempty prefix is at most
-at most its arithmetic average.  The finite feature-curvature budget therefore
+its arithmetic average.  The finite feature-curvature budget therefore
 supplies an explicit best-prefix `O(1/T)` bound, with the exact constants of
 `BatchCEAlignmentBudget`.  This is not a last-iterate convergence theorem.
 -/

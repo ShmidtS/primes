@@ -9,11 +9,9 @@ set_option linter.style.header false
 /-!
 # Distill: the exact CE/KL identities of the distillation axis
 
- honesty fix: `crossEntropy` now carries the standard
-minus sign (CE_q(p) = −Σ q log p), `klDiv` is defined as
-Σ q log(q/p), and the two identities are proved against
-these REAL definitions (the pre- versions were trivial
-algebra on a signless pseudo-CE).
+`crossEntropy` carries the standard minus sign
+(CE_q(p) = −Σ q log p), `klDiv` is Σ q log(q/p); both
+identities are proved against these definitions.
 
 **The exact identities (THEOREMS):**
 
@@ -43,7 +41,7 @@ algebra on a signless pseudo-CE).
 
 **The expressivity hypothesis (not a theorem).** Whether an
 H=384 student can drive E[KL(p_E‖p_θ)] ≤ δ is the open
-expressivity question (round 22 P4): recorded as the
+expressivity question, recorded as the
 explicit hypothesis DistillExpressivity(H, δ) with the
 practical go/no-go — the distill run's plateau behavior
 (KL plateau vs continued descent).
@@ -51,11 +49,8 @@ practical go/no-go — the distill run's plateau behavior
 **Prescription for the code.**
 
 1. The distillation objective is the soft-target CE
-   (q = p_E): minimize KL(p_E‖p_θ) — the identity certifies
-   this is EXACTLY the distillable gap.
-2. The stopping rule: both plateaus (KL and held-out CE)
-   checked separately.
-3. The verdict telemetry: E[KL(p_E‖p_θ)] per checkpoint +
+   (q = p_E): minimize KL(p_E‖p_θ) — exactly the distillable gap.
+2. The verdict telemetry: E[KL(p_E‖p_θ)] per checkpoint +
    exact held-out CE; a high KL plateau is the expressivity
    wall — record REFUTED honestly.
 -/
@@ -86,7 +81,7 @@ theorem kl_eq_ce_gap (q p : V → ℝ) (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p 
     Hagi.Prelude.klDef q p = crossEntropy q p - crossEntropy q q :=
   Hagi.Prelude.klDef_eq_ceDef_sub q p (fun v => (hp v).ne')
 
-/-- **The master identity (theorem, real version).**
+/-- **The master identity.**
 For any data distribution q and models p_E, p_θ (all
 positive):
 
@@ -103,8 +98,7 @@ theorem ce_gap_kl_identity (q pE pTheta : V → ℝ)
   rw [kl_eq_ce_gap q pTheta hq hpT, kl_eq_ce_gap q pE hq hpE]
   ring
 
-/-- **The teacher-generated distillation identity
-(theorem, real version).** When the targets are the
+/-- **The teacher-generated distillation identity.** When the
 teacher's own distribution (the soft-target protocol,
 q = p_E):
 
@@ -448,7 +442,7 @@ et al.: model → model → model with no anchor).
   likelihood ratios where m has mass, but the student can still
   sharpen the tail and lose far more entropy than δ — entropy
   is not Lipschitz in KL at linear rate (the true modulus is
-  Pinsker/sub-linear, and the audit's Wasserstein-contraction
+  Pinsker/sub-linear, and the Wasserstein-contraction
   form is strictly stronger). What IS true (proved here as
   `entropy_kl_ce_identity`, the `Hagi.Data/Distill` master
   identity in H-form): `CE_m(q) = H(m) + KL(m‖q)` — the KL
@@ -479,7 +473,7 @@ et al.: model → model → model with no anchor).
   δ/ν diverges and the theorem is vacuous — collapse is exactly
   the ν = 0 protocol.
 
-**Open (flagged, not proved):** the audit's full ask —
+**Open (flagged, not proved):** Wasserstein contraction of the
 Wasserstein contraction of the generation map with fixed point
 p* satisfying H(p*) ≥ H(data) − ε — stays open; the
 KL-certification-only entropy floor (replacing hcert by a
@@ -818,7 +812,7 @@ theorem fresh_data_prevents_collapse_uniform (p : ℕ → V → ℝ) (d : V → 
   linarith
 
 
-/-- ** (T5, §7.3 ревизии): entropy floor с TV-сертификатом**
+/-- **Entropy floor с TV-сертификатом**
 — замена посылки hcert (KL-формы, опровергнутой ревизией:
 KL ≤ δ НЕ спасает энтропию — sharpening tail) на
 Pinsker/Fannes-форму: если полная вариация fresh-смеси и

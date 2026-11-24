@@ -6,7 +6,7 @@ import Hagi.State.CanonicalTrainState
 (user audit 5.3, A15 Step 5.3 = rank #2)
 
 Финальная траекторная теорема, учитывающая численную погрешность
-(BF16/ternary) реального бэкенда, делающая C363-carrier
+(BF16/ternary) реального бэкенда, делающая носитель
 `CanonicalTrainState` load-bearing:
 
 * `obj_telescope_err` — общий телескоп с аддитивной ошибкой на шаг:
@@ -71,7 +71,7 @@ theorem obj_telescope_err (T : ℕ) (g d e : ℕ → ℝ)
 
 /-! ## Progress-only траектория и телескоп -/
 
-/-- Карта траектории (audit 5.3): T сертифицированных Progress-шагов
+/-- Карта траектории : T сертифицированных Progress-шагов
 на каноническом состоянии — каждый шаг несёт `FullStepCert` на
 ПОЛНОМ состоянии (веса + Adam-буферы). -/
 structure Trajectory (T : ℕ) where
@@ -171,7 +171,7 @@ theorem RoundedTrajectory.stepExecErr_eq (T : ℕ)
     tr.stepExecErr T j = (tr.certs j hj).execErr :=
   by simp [stepExecErr, hj]
 
-/-- ТРАЕКТОРНАЯ ТЕОРЕМА (audit 5.3): после T исполненных
+/-- ТРАЕКТОРНАЯ ТЕОРЕМА : после T исполненных
 сертифицированных шагов ИСТИННАЯ цель ограничена начальной минус
 сумма drop'ов ПЛЮС ЛИНЕЙНАЯ сумма ошибок исполнения ПЛЮС удвоенная
 ошибка считывания (треугольник на обоих концах). Явная константа:

@@ -115,9 +115,9 @@ noncomputable def ExecutedCert.toCertStep {obj : S → ℝ}
     Hagi.Unified.HonestTransition.CertStep obj s (step s) :=
     C.toRecord
 
-/-! ### C279-адаптер: ExecutedCert → общее ядро CertStepGen
+/-! ### Адаптер: ExecutedCert → общее ядро CertStepGen
 
-A10 item 2 (adapter batch 2): исполнительный сертификат — view
+исполнительный сертификат — view
 над общим ядром `Hagi.Cert.CertStepGen` (переориентация моста
 с минимального ядра). Носитель НЕ содержит риск-понятия
 вообще (канал `delta` — ошибка ИЗМЕРЕНИЯ, не риск-остаток) —

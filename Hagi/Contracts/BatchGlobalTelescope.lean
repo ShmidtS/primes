@@ -19,8 +19,9 @@ import Hagi.Probability.Azuma
   от среднего по распределению не более чем на зазор; посылки —
   диапазон `b` и дисперсия `sig` per-sample приращений.
   Композиция с certified drop — `certified_batch_drop_global`.
-- (C) случайный batch на каждом шаге: без модели батчей не
-  формализуется; сводится к (B) + union bound по шагам (здесь НЕ делается).
+- (C) независимые раунды: (B) + union bound по раундам
+  (`rounds_union`, `certified_rounds_union`); зависимость раундов от
+  параметров не моделируется.
 
 Код-факт (HAGI_v2 @ca52eb4, hagi/lm.py `train_guarded`, refine-фаза,
 lm.py:978-1005): `rng.choice(..., size=min(64, N), replace=False)` — до 64

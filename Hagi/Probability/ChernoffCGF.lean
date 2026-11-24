@@ -20,18 +20,10 @@ namespace Hagi.Probability
 open Finset Real
 
 open Finset Real in
-/-- **ТочностьДВ
-(R479)**: sup Донскера
-достигается: существует f
-(f := ln(p/q)), для
-которой KL(p‖q) ≤
-E_p f − ln(Σq·e^f)
-(с R477 — эквивалентность:
-KL = sup_f
-(E_p f − ln E_q e^f));
-Z = Σq·(p/q) =
-Σp = 1 через
-exp_log и field_simp. -/
+/-- **ТочностьДВ (R479)**: sup Донскера достигается: существует f (f :=
+   ln(p/q)), для которой KL(p‖q) ≤ E_p f − ln(Σq·e^f) (с R477 —
+   эквивалентность: KL = sup_f (E_p f − ln E_q e^f)); Z = Σq·(p/q) = Σp = 1
+   через exp_log и field_simp. -/
 theorem kl_dv_attained {V : Type*} [Fintype V] [Nonempty V]
     (p q : V → ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -54,15 +46,9 @@ theorem kl_dv_attained {V : Type*} [Fintype V] [Nonempty V]
   rw [hbe, sub_zero]
 
 open Finset Real in
-/-- **Hellinger-кирпичи
-(R480)**: H²(p,q) :=
-(1/2)·Σ(√p−√q)²
-= 1 − BC — точное
-тождество (квадрат
-разности корней
-разворачивается
-в p+q−2√(pq)); с R471
-— мост H² ≤ KL/2. -/
+/-- **Hellinger-кирпичи (R480)**: H²(p,q) := (1/2)·Σ(√p−√q)² = 1 − BC —
+   точное тождество (квадрат разности корней разворачивается в p+q−2√(pq));
+   с R471 — мост H² ≤ KL/2. -/
 theorem hellinger_sq_eq_one_minus_bc {V : Type*} [Fintype V]
     (p q : V → ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -93,14 +79,9 @@ theorem hellinger_le_half_kl {V : Type*} [Fintype V] [Nonempty V]
   exact one_minus_bc_le_half_kl p q hp hp1 hq hq1
 
 open Finset Real in
-/-- **Чернофф-наклон
-(R481)**: для любого c:
-c·E_p g − ln E_q e^{c·g}
-≤ KL(p‖q)
-(инстанс R477 с
-f := c·g — Cramér-
-параметризация
-функции моментов). -/
+/-- **Чернофф-наклон (R481)**: для любого c: c·E_p g − ln E_q e^{c·g} ≤
+   KL(p‖q) (инстанс R477 с f := c·g — Cramér- параметризация функции
+   моментов). -/
 theorem kl_chernoff_tilt {V : Type*} [Fintype V] [Nonempty V]
     (p q g : V → ℝ) (c : ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -117,15 +98,9 @@ theorem kl_chernoff_tilt {V : Type*} [Fintype V] [Nonempty V]
   exact hR
 
 open Finset Real in
-/-- **Конечный
-Марков (R482)**:
-для g ≥ 0 и t > 0:
-t·p({g ≥ t}) ≤ E_p g
-(фильтр {t ≤ g},
-per-v p·t ≤ p·g,
-подсумма → полная
-сумма через
-nonneg-расширение). -/
+/-- **Конечный Марков (R482)**: для g ≥ 0 и t > 0: t·p({g ≥ t}) ≤ E_p g
+   (фильтр {t ≤ g}, per-v p·t ≤ p·g, подсумма → полная сумма через
+   nonneg-расширение). -/
 theorem markov_finite {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (p g : V → ℝ) (t : ℝ)
     (hp : ∀ v, 0 < p v) (hg : ∀ v, 0 ≤ g v) (ht : 0 < t) :
@@ -146,16 +121,9 @@ theorem markov_finite {V : Type*} [Fintype V] [DecidableEq V]
   linarith
 
 open Finset Real in
-/-- **Чернофф
-на событии
-(R483)**: для λ > 0:
-p({g ≥ t}) ≤
-e^{−λt}·E_p e^{λg}
-(марковский
-R482 на
-H := e^{λg}; эквивим
-фильтров через
-exp-монотонность). -/
+/-- **Чернофф на событии (R483)**: для λ > 0: p({g ≥ t}) ≤ e^{−λt}·E_p
+   e^{λg} (марковский R482 на H := e^{λg}; эквивим фильтров через
+   exp-монотонность). -/
 theorem chernoff_event {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (p g : V → ℝ) (hl t : ℝ)
     (hp : ∀ v, 0 < p v) (hltp : 0 < hl) :
@@ -183,23 +151,11 @@ theorem chernoff_event {V : Type*} [Fintype V] [DecidableEq V]
   exact le_div_iff₀' (Real.exp_pos (hl * t)) |>.mpr hm
 
 open Finset Real in
-/-- **Экспоненциальная
-интерполяция
-(R484)**: для a ≤ g ≤ b:
-Σp·e^{c·g} ≤
-e^{ca}·Σp·w₁
-+ e^{cb}·Σp·w₂,
-w₁ = (b−g)/(b−a),
-w₂ = (g−a)/(b−a)
-— выпуклость e^
-через двухточечный
-АМ-ГМ (R454):
-три случая (краи
-аналітика +середина),
-p·множение
-самсого-сумы-суммой
-через
-mul_le_mul_of_nonneg_left. -/
+/-- **Экспоненциальная интерполяция (R484)**: для a ≤ g ≤ b: Σp·e^{c·g}
+   ≤ e^{ca}·Σp·w₁ + e^{cb}·Σp·w₂, w₁ = (b−g)/(b−a), w₂ = (g−a)/(b−a) —
+   выпуклость e^ через двухточечный АМ-ГМ (R454): три случая (краи
+   аналітика +середина), p·множение самсого-сумы-суммой через
+   mul_le_mul_of_nonneg_left. -/
 theorem exp_tilt_interpol {V : Type*} [Fintype V] [Nonempty V]
     (p g : V → ℝ) (c a b : ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -295,16 +251,9 @@ theorem exp_tilt_interpol {V : Type*} [Fintype V] [Nonempty V]
   exact le_of_eq (by ring)
 
 open Finset Real in
-/-- **Cramér-наклон
-(R485)**: если E_p g ≥ t,
-то для любого
-c > 0: c·t −
-ln Σq·e^{c·g} ≤
-KL(p‖q).
-Опора arXiv 2401.01148
-(PAC-Bayes-Chernoff,
-NeurIPS 2024) — первый
-кирпич вертикали. -/
+/-- **Cramér-наклон (R485)**: если E_p g ≥ t, то для любого c > 0: c·t −
+   ln Σq·e^{c·g} ≤ KL(p‖q). Опора arXiv 2401.01148 (PAC-Bayes-Chernoff,
+   NeurIPS 2024) — первый кирпич вертикали. -/
 theorem cramer_tilt_kl {V : Type*} [Fintype V] [Nonempty V]
     (p q g : V → ℝ) (t c : ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -318,14 +267,9 @@ theorem cramer_tilt_kl {V : Type*} [Fintype V] [Nonempty V]
   linarith [hR, hmono]
 
 open Finset Real in
-/-- **Cramér-sup (R486)**: при E_p g ≥ t:
-sSup по c > 0
-функционала c·t −
-ln Σq·e^{c·g}
-≤ KL(p‖q)
-(вертикаль arXiv
-2401.01148, кирпич 2;
-САВ (sup + bound) = Cramér-оболочка). -/
+/-- **Cramér-sup (R486)**: при E_p g ≥ t: sSup по c > 0 функционала c·t
+   − ln Σq·e^{c·g} ≤ KL(p‖q) (вертикаль arXiv 2401.01148, кирпич 2; САВ
+   (sup + bound) = Cramér-оболочка). -/
 theorem cramer_sup_le_kl {V : Type*} [Fintype V] [Nonempty V]
     (p q g : V → ℝ) (t : ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -343,16 +287,9 @@ theorem cramer_sup_le_kl {V : Type*} [Fintype V] [Nonempty V]
     exact hge
 
 open Finset Real in
-/-- **CGF-форма
-Cramér (R487)**: если
-ln Σq·e^{c(g−μ)} ≤ ψ(c)
-и E_p g ≥ t, то
-c·(t−μ) − ψ(c) ≤
-KL(p‖q) для любого
-c > 0 — кирпич CGF-вертикали
-(2401.01148 /
-JMLR 23-1360: параметр-свободная
-CGF-оболочка). -/
+/-- **CGF-форма Cramér (R487)**: если ln Σq·e^{c(g−μ)} ≤ ψ(c) и E_p g ≥
+   t, то c·(t−μ) − ψ(c) ≤ KL(p‖q) для любого c > 0 — кирпич CGF-вертикали
+   (2401.01148 / JMLR 23-1360: параметр-свободная CGF-оболочка). -/
 theorem cramer_cgf {V : Type*} [Fintype V] [Nonempty V]
     (p q g : V → ℝ) (t μ : ℝ) (ψ : ℝ → ℝ) (c : ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -380,17 +317,10 @@ theorem cramer_cgf {V : Type*} [Fintype V] [Nonempty V]
   linarith [hR, hcgf]
 
 open Finset Real in
-/-- **Sub-Gaussian
-измерение
-(R488)**: при CGF-границе
-ln Σq·e^{c(g−μ)} ≤
-c²σ²/2 и μ ≤ E_p g:
-(E_p g − μ)²/(2σ²) ≤
-KL(p‖q) — λ*подстановка
-λ = (E_p g − μ)/σ² в R487
-без дифференциального
-исчисления (оптимум
-Cramér-функционала). -/
+/-- **Sub-Gaussian измерение (R488)**: при CGF-границе ln Σq·e^{c(g−μ)}
+   ≤ c²σ²/2 и μ ≤ E_p g: (E_p g − μ)²/(2σ²) ≤ KL(p‖q) — λ*подстановка λ =
+   (E_p g − μ)/σ² в R487 без дифференциального исчисления (оптимум
+   Cramér-функционала). -/
 theorem subgauss_dev_kl {V : Type*} [Fintype V] [Nonempty V]
     (p q g : V → ℝ) (μ σ2 : ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -419,19 +349,10 @@ theorem subgauss_dev_kl {V : Type*} [Fintype V] [Nonempty V]
     exact hR
 
 open Finset Real in
-/-- **Сдвиг-среднего
-~ TV (R489)**: при
-a ≤ g ≤ b:
-|E_p g − E_q g| ≤
-(b−a)·TV(p,q).
-Механика: нормировка
-f = (g−a)/(b−a) —
-дуальность R473 +
-центрировка μ-сдвига
-(=с линейным
-мостом Δ = d·F
-через
-partition sum_div). -/
+/-- **Сдвиг-среднего ~ TV (R489)**: при a ≤ g ≤ b: |E_p g − E_q g| ≤
+   (b−a)·TV(p,q). Механика: нормировка f = (g−a)/(b−a) — дуальность R473 +
+   центрировка μ-сдвига (=с линейным мостом Δ = d·F через partition
+   sum_div). -/
 theorem mean_shift_tv {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (p q g : V → ℝ) (a b : ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -496,14 +417,9 @@ theorem mean_shift_tv {V : Type*} [Fintype V] [DecidableEq V]
   exact mul_le_mul_of_nonneg_left hdual hD.le
 
 open Finset Real in
-/-- **Центрирование
-CGF (R490)**: ln Σq·e^{c·g}
-= c·μ +
-ln Σq·e^{c(g−μ)} —
-standalone-лемма
-(выделена из R487 по
-Rule-of-Three: центр-мост
-дублировался). -/
+/-- **Центрирование CGF (R490)**: ln Σq·e^{c·g} = c·μ + ln Σq·e^{c(g−μ)}
+   — standalone-лемма (выделена из R487 по Rule-of-Three: центр-мост
+   дублировался). -/
 theorem cgf_centering {V : Type*} [Fintype V] [Nonempty V]
     (q g : V → ℝ) (μ c : ℝ)
     (hq : ∀ v, 0 < q v) :
@@ -523,14 +439,9 @@ theorem cgf_centering {V : Type*} [Fintype V] [Nonempty V]
     Real.log_mul (Real.exp_pos _).ne' hpos.ne', Real.log_exp (c * μ)]
 
 open Finset Real in
-/-- **Чернов-subG-хвост
-(R491)**: при CGF-границе
-ln Σq·e^{c(g−μ)} ≤ c²σ²/2:
-q({g ≥ μ+u}) ≤
-e^{−u²/(2σ²)} (λ = u/σ²;
-R483 + R490-центринг
-+ exp_sub-RHS-переупаковка;
-h2.le-связка). -/
+/-- **Чернов-subG-хвост (R491)**: при CGF-границе ln Σq·e^{c(g−μ)} ≤
+   c²σ²/2: q({g ≥ μ+u}) ≤ e^{−u²/(2σ²)} (λ = u/σ²; R483 + R490-центринг +
+   exp_sub-RHS-переупаковка; h2.le-связка). -/
 theorem chernoff_subgauss_tail {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (q g : V → ℝ) (μ σ2 u : ℝ)
     (hq : ∀ v, 0 < q v) (hs2 : 0 < σ2) (hu : 0 < u)

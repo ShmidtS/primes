@@ -8,7 +8,7 @@ import Hagi.Architecture.Configuration
 set_option linter.style.header false
 
 /-!
-# JointCost: the cost law of dense vs block+lowrank joint (round 47, T2)
+# JointCost: the cost law of dense vs block+lowrank joint
 
 **Motivation (measured)**: after the merge the parent is
 DENSE; joint trains it whole, so the body cost grows ~N².
@@ -36,17 +36,12 @@ What the trained off-diagonal blocks buy is not measured.
   (rank-r replacement is lossless iff rank ≤ r per
   `Hagi.Core/Element`).
 
-**Honest boundary**: only the COST is proved. The
-"equal-quality" condition is the stand's job: measure ρ_off
-and the CE with zeroed off-diagonals / rank-r truncation.
-The current parent is dense (no off-diagonal mask in the
+**Honest boundary**: only the COST is proved; equal quality is to be
+measured (ρ_off and the CE with zeroed off-diagonals / rank-r
+truncation). The parent is dense (no off-diagonal mask in the
 code), so this law describes the ALTERNATIVE structured
-parametrization. T2e (launch-overhead threshold via
-`DesignOpt.wallClock`) left documented, not formalized.
-
-**Prescription**: measure ρ_off per matrix for gen-1/gen-2
-joint; CE at zeroed off-diagonals and rank-r truncation; NS
-share of the step at H=384/1152.
+parametrization. The launch-overhead threshold via
+`DesignOpt.wallClock` is not formalized.
 -/
 
 open Finset

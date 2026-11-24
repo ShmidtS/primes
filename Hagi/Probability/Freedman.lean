@@ -10,25 +10,18 @@ set_option linter.style.header false
 /-!
 # Freedman-канон
 
-Canonical Freedman concentration family (v5 W3 consolidation).
-Sections merged here (namespaces and FQNs preserved, module files
-removed):
-
-- `Hagi.Probability.Freedman` — variance-adapted Freedman inequality;
-- `Hagi.Probability.FreedmanTwoSided` — two-sided confidence forms;
-- `Hagi.Probability.FreedmanStep` — step/history-additive analysis;
-- `Hagi.Probability.FreedmanAdaptive` — adaptive martingale forms;
-- `Hagi.Probability.FreedmanFamilyConfidence` — finite-family
-  simultaneous confidence.
+Canonical Freedman concentration family in one file: variance-adapted
+Freedman inequality, two-sided confidence forms, step/history-additive
+analysis, adaptive martingale forms, finite-family simultaneous confidence.
 -/
 
 /-!
-# Freedman вместо Azuma — дисперсионная адаптация (§AF/§AX)
+# Freedman вместо Azuma — дисперсионная адаптация
 
 Азума мажорирует приращения диапазоном [−c, c]: хвост
 exp(−Δ²/(2nc²)). Если типичный шаг МАЛ (дисперсия σ² ≪ c²),
-Азума расточительна. Freedman (слот 4/T4 аудита-волны-3:
-2609.37787 скалярная L∞-форма; 2607.18899 совместная форма)
+Азума расточительна. Freedman (arXiv 2609.37787 скалярная L∞-форма;
+2607.18899 совместная форма)
 заменяет nc² на nσ² + bΔ — накопленную условную дисперсию с
 поправкой на диапазон b:
 
@@ -50,14 +43,13 @@ exp(−Δ²/(2nc²)). Если типичный шаг МАЛ (дисперси�
 * `adaptive_success_freedman` — дисперсионное усиление
   `adaptive_success_azuma`: полы p₀ при каждом префиксе +
   измеренная условная дисперсия σ²_success ⇒ ΣS ≥ n·p₀ − Δ
-  с вероятностью ≥ 1 − exp(−Δ²/(2(nσ² + Δ))). При σ² = 1
-  в точности воспроизводит; при σ² < 1 хвост СИЛЬНЕЕ.
+  с вероятностью ≥ 1 − exp(−Δ²/(2(nσ² + Δ))); при σ² = 1 хвост
+  совпадает с Azuma, при σ² < 1 СИЛЬНЕЕ.
 
 **Честные границы**: σ² — измеряемая посылка (условная
 дисперсия при каждом префиксе — runtime-измерение, не следствие
-iid); b — конструкторский диапазон приращений. Совместная форма
-(M ≥ x И V ≤ v с предсказуемой V, 2607.18899) и anytime-форма
-(∃t, 2606.31449) — открыто.
+iid); b — конструкторский диапазон приращений. Совместная и anytime-формы —
+на Markov-машине ниже (`history_additive_freedman_maximal`).
 -/
 
 open Finset Real
@@ -605,8 +597,8 @@ theorem cond_var_le_second (q : V → ℝ)
 
 /-- **История-зависимые успехи, Freedman-усиление**: успехи
 S_{t+1} ∈ [0,1] с условными полами p₀ и измеренной условной
-дисперсией σ² (Σ q·S² ≤ σ² при каждом префиксе — runtime-посылка,
-сильнее [0,1]-грубости σ² = 1 в):
+дисперсией σ² (Σ q·S² ≤ σ² при каждом префиксе — runtime-посылка;
+σ² = 1 — грубая [0,1]-оценка):
 
   azumaSum S n ≥ n·p₀ − Δ  w.p.  ≥ 1 − exp(−Δ²/(2(nσ² + Δ)))
 
@@ -759,7 +751,7 @@ theorem adaptive_success_freedman (q : V → ℝ)
           prodPq_mono (fun _ => q) hisprob _ _
             (fun ω hω => not_lt.mp hω)
 
-/-- МОСТ ФРИДМАНА ⇒ ПОСЫЛКИ (аудит v3): если выполнение
+/-- МОСТ ФРИДМАНА ⇒ ПОСЫЛКИ: если выполнение
 эмпирической посылки A потраекторно эквивалентно тому, что
 сумма ограниченных мартингал-разностей не провалилась ниже
 −Δ, то A выполняется с вероятностью ≥ 1 − exp(−Δ²/(2(nσ+bΔ)))
@@ -2078,7 +2070,7 @@ end Hagi
 
 
 /-!
-# Freedman-мост: стохастический безопасный шаг (A14 bridge 1)
+# Freedman-мост: стохастический безопасный шаг
 
 Мост между мартингальной концентрацией и CertifiedLoop-контрактом:
 посылки о шуме стохастического градиентного шага (ограниченный
@@ -2096,7 +2088,7 @@ end Hagi
 замкнутый радиус `freedman_variance_radius`
 (exp(−r²/(4V)) при c·r ≤ 2V — без линейного члена) и мост
 `stochastic_safe_step_variance` (failure = exp(−r²/(4·T·σ))
-при c·r ≤ 2·T·σ; в этом режиме строго лучше C350-радиуса
+при c·r ≤ 2·T·σ; в этом режиме строго лучше mixed-радиуса
 exp(−r²/(4·(T·σ+c·r)))).
 
 **Что доказано:**
@@ -2148,12 +2140,12 @@ exp(−r²/(4(V+cr))) всегда (константы 4→2, cr→cr/3, рав�
   при этом работает фактический (capped) компенсатор
   min(cond var, σ) ≤ σ глобально, поэтому ветка {C > T·σ} пуста
   и union bound не нужен; улучшение радиуса — только в режиме
-  c·r ≤ 2·T·σ (посылка `hrc`), вне режима применима C350-версия;
+  c·r ≤ 2·T·σ (посылка `hrc`), вне режима применима mixed-форма;
 * λ выбирается априорно под (r, V) (per-instance),
   данные-зависимый λ-процесс не строится;
 * `CertStochasticStep` — самодостаточная структура: `CertStepGen`
-  живёт в другом слое (import запрещён LayerLint); адаптация в
-  `CertStepGen` — задача consumer-слоя (layer 3+).
+  (`Hagi.Cert.StepGen`) живёт в другом слое (import запрещён
+  LayerLint); адаптация в `CertStepGen` — задача consumer-слоя.
 
 Посылки все явные, эмпирических констант (`h_emp_`) нет.
 -/
@@ -2698,7 +2690,7 @@ theorem freedman_variance_radius (initial : PMF α) (K : ℕ → α → PMF α)
 посылках, что `stochastic_safe_step_whp`, плюс режим
 `hrc : c·r ≤ 2·T·σ`, drop = T·γ − r достигается с вероятностью
 ≥ 1 − exp(−r²/(4·T·σ)) — радиус без линейного члена, строго
-лучше C350-го exp(−r²/(4·(T·σ+c·r))) в этом режиме. Компенсатор
+лучше mixed exp(−r²/(4·(T·σ+c·r))) в этом режиме. Компенсатор
 в хвосте — фактический (capped) дисперсионный процесс
 min(cond var, σ) ≤ σ глобально, поэтому ветка {C > T·σ} пуста
 и union bound не нужен. Порог T·σ — детерминированный,
@@ -2855,10 +2847,10 @@ variable {α : Type*} [Fintype α]
 
 /-! ## Bennett-chord Freedman — полная форма r²/(2(V+c·r/3))
 
-Цикл закрывает честные пины MGF-константа 1 и
+Убирает пины MGF-константа 1 и
 отсутствие λ-оптимизации. Ядро — хорда Беннетта (доказана
-из принципа через цепочку из трёх монотонностей, Mathlib такой
-леммы на pinned rev не содержит):
+из принципа: Mathlib такой
+леммы не содержит):
 для x ∈ [0,3): exp x − 1 − x ≤ x²/(2(1−x/3)). -/
 
 /-- Первый шаг цепочки: eˣ·(1−x) ≤ 1 при x ≥ 0
@@ -3409,14 +3401,11 @@ set_option linter.style.header false
 /-!
 # Freedman для адаптированных дисперсий — история-зависимое q
 
- (хвост W5-аудита: «h_emp_var прячет вопрос адаптивности
-дисперсии»; «конечные пространства историй с ФИКСИРОВАННЫМ
-одношаговым q»). В `Hagi.Probability.Freedman` условное
+В `freedman_tail_low` условное
 распределение шага — один и тот же вектор q для каждого шага и
-каждого префикса, σ — константа. Настоящий модуль снимает оба
-ограничения на конечной prodPq-машине (Markov-kernel-машина
-`FreedmanStep.freedman_full` уже adapted — здесь закрывается
-дыра конечного формализма, потребляемого success-теоремами):
+каждого префикса, σ — константа. Здесь оба ограничения сняты
+на конечной prodPq-машине (Markov-kernel-форма `freedman_full` уже
+adapted; здесь — конечный формализм, потребляемый success-теоремами):
 
 * условные веса `qd t pref : V → ℝ` — ФУНКЦИЯ префикса:
   зависимое произведение `densD qd` (snoc-рекурсия) вместо
@@ -3456,9 +3445,10 @@ set_option linter.style.header false
   строго сильнее legacy σ = 1-хвоста exp(−Δ²/(2(n+Δ))).
 
 **Честные границы**: b — константа (диапазон приращений общий
-для шагов); anytime-форма и data-зависимый λ — открыто (как и
-в `Hagi.Probability.Freedman`); случай V = 0 не выписан
-(требуем 0 < V, как 0 < sig у предка).
+для шагов); anytime-форма и data-зависимый λ — открыто и здесь
+(на Markov-машине anytime-форма есть: `anytime_freedman_thresholds`);
+случай V = 0 не выписан
+(требуем 0 < V, как 0 < sig у `freedman_tail_low`).
 -/
 
 open Finset Real

@@ -8,17 +8,16 @@ set_option linter.style.header false
 set_option linter.dupNamespace false
 
 /-!
-# Audit ledger (audit item E7): Lean bridge for the Python
-HoeffdingAudit protocol
+# Audit ledger: Lean bridge for the Python HoeffdingAudit protocol
 
-Аудит-протокол (A10 synthesis) — это протокол НЕПРЕРЫВНОГО
+Аудит-протокол — это протокол НЕПРЕРЫВНОГО
 тестирования: измерения нарезаются на непересекающиеся срезы,
 каждая проверка тратит свой кусок α-бюджета, отклонённый кандидат
 сжигает свой срез, финальный тест держится нетронутым. Этот модуль
 формализует протокол как машину состояний над срезами тестов
 (AuditLedger) и СВЯЗЫВАЕТ её инварианты с уже доказанными
-статистическими границами C264/CertifiedEstimator — мост есть
-суть задания E7, новая концентрационная математика не выводится.
+статистическими границами CertifiedEstimator; новая
+концентрационная математика не выводится.
 
 **Соответствие полей компонентам Python-протокола (HoeffdingAudit):**
 
@@ -47,7 +46,7 @@ HoeffdingAudit protocol
   индексы финального теста; касание финального теста переключает
   флаг, и валидность аудита требует flag = false.
 
-**Мост к C264/CertifiedEstimator:**
+**Мост к CertifiedEstimator:**
 
 * `audit_false_harm_bounded` (MASTER): P(Bad t) ≤ spent t для
   каждого t ⟹ P(ни одного ложного вреда старым задачам за весь
@@ -56,7 +55,7 @@ HoeffdingAudit protocol
 * `audit_alpha_spends_radius`: если Hoeffding-радиус
   2e^{−2nε²} (`hoeffding_two_sided` CertifiedEstimator) ≤ spent t,
   хвостовое событие покрыто бюджетом — радиус ОПРАВДЫВАЕТ расход
-  (анализ гейта A10: расход α не меньше цены границы).
+  (расход α не меньше цены границы).
 
 **Честная граница**: модуль формализует БУХГАЛТЕРИЮ протокола и её
 мост к концентрации; семантика самих метрик (каким измерением
@@ -410,15 +409,14 @@ theorem audit_rejected_consumed (L : AuditLedger σ ι) (s : σ) (k : ℕ)
 
 /-! ## Мастер-теорема: связка с gate_pipeline_false_commit -/
 
-/-- MASTER (E7): если событие Bad t «floor старой задачи t
+/-- MASTER: если событие Bad t «floor старой задачи t
 ложно пострадал» имеет вероятность ≤ spent t (форма
 CertifiedEstimator e^{−2nε²}, см. `audit_alpha_spends_radius`), то
 вероятность, что НИ одна старая задача не пострадает ложно за весь
 протокол, ≥ 1 − δtotal. ПРЯМОЕ применение
 `gate_pipeline_false_commit` с β := spent, δ := δtotal —
 инвариант-поле spentTotal реестра есть в точности посылка Σ β ≤ δ
-гейта; новая union-математика НЕ выводится (challenge-pin
-плана). -/
+гейта; новая union-математика НЕ выводится). -/
 theorem audit_false_harm_bounded {V : Type} [Fintype V] [Nonempty V]
     {n : ℕ} (L : AuditLedger σ ι) (p : Fin n → V → ℝ)
     (hp : Hagi.Probability.IsProbSys p)
@@ -434,7 +432,7 @@ theorem audit_false_harm_bounded {V : Type} [Fintype V] [Nonempty V]
 (CertifiedEstimator `hoeffding_two_sided`) помещается в потраченный
 α задачи t, то двустороннее хвостовое событие покрыто бюджетом
 реестра — радиус ОПРАВДЫВАЕТ расход (расход α не меньше цены
-границы; анализ A10 гейта). -/
+границы). -/
 theorem audit_alpha_spends_radius {V : Type} [Fintype V] [Nonempty V]
     {n : ℕ} (L : AuditLedger σ ι) (t : ι)
     (p : Fin n → V → ℝ) (hp : Hagi.Probability.IsProbSys p)

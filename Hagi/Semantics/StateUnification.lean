@@ -74,7 +74,7 @@ variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 def coherentGrowth (S : GrowthState X) (f : X → (Fin S.weightDim → ℝ)) : Prop :=
   f S.params = S.weights
 
-/-- ТЕОРЕМА РАЗРЫВА (audit A17: "no invariant tying them"):
+/-- ТЕОРЕМА РАЗРЫВА:
 `advance` сохраняет когерентность РОВНО тогда, когда направление
 спуска лежит в ядре проекции f.  Доказательство существенно
 использует закон аффинной линейности f и активность шага (0 < eta).

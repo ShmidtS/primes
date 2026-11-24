@@ -9,7 +9,7 @@ set_option linter.style.header false
 # The truncated-SVD tail bridge: the approximant ACHIEVES the tail
 
 The missing UPPER side of the rectangular Eckart–Young pair.
-proved the LOWER bound — no rank-`k` approximant beats the rectangular
+`GradientBottleneckIdentification` proved the LOWER bound — no rank-`k` approximant beats the rectangular
 spectral tail (`eckart_young_lower_bound_rect_true_tail`, cited by
  `sparse_inference_error` at its `hE` premise sites). This module
 proves the upper side for the EXPLICITLY CONSTRUCTED truncated-SVD
@@ -40,16 +40,13 @@ Honest scope:
 
 * SPECTRAL leg deferred: `‖A − A_k‖₂ = σ_{k+1}` needs the singular-value
   IDENTIFICATION of `U·S_k·Vᴴ` (rotated Gram, same charpoly
-  root-sorting wall). The Frobenius form is the one
-  consumes (`Matrix.frobeniusSeminormedAddCommGroup` local instance).
+  root-sorting wall). Only the Frobenius form is proved.
 * NO new SVD existence: `A = U·S·Vᴴ` is premise-form (every real matrix
-  has an SVD mathematically; constructiveness stays behind the premise,
- discipline). The spectrum identification `hσ` (the diagonal IS
-  the rectangular singular spectrum) is likewise premise-form — the
-  honest general case.
+  has an SVD mathematically; constructiveness stays behind the premise). The
+  spectrum identification `hσ` (the diagonal IS the rectangular singular
+  spectrum) is likewise premise-form — the honest general case.
 * Matrix ↔ `LinearMap` gap stays pinned (Mathlib note).
 
-Created: 2026-11-16 (A13 priority P-3)
 -/
 
 open Matrix Finset

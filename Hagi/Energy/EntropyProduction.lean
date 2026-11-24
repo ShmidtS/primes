@@ -11,7 +11,7 @@ set_option linter.style.header false
 # EntropyProduction: the integral fluctuation theorem and the second law
 
 The first module of the thermodynamic layer (§8.8 of
-FORMALIZATION_PLAN.md, round). Port of the stochastic-
+FORMALIZATION_PLAN.md). Port of the stochastic-
 thermodynamics core — Seifert's integral fluctuation theorem,
 arXiv:2607.13391 Thm 12.9 — as PURE MATH: no `h_emp_`
 premises, no runtime.

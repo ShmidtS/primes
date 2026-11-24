@@ -285,7 +285,7 @@ end Hagi
 /-!
 # The real 6x6 lift of the F3 transform: the interleaving isometry
 
-The complex F₃ transform of `Hagi.Core.DFT3` transported to real
+The complex F₃ transform `dftPow` transported to real
 (re, im)-interleaved coordinates: `interleave z = ![z.re, z.im]`,
 lifted branch-major to `interleave3 : (Fin 3 → ℂ) → (Fin 3 × Fin 2 → ℝ)`.
 
@@ -299,7 +299,7 @@ lifted branch-major to `interleave3 : (Fin 3 → ℂ) → (Fin 3 × Fin 2 → �
 * `reBlock_mul_transpose` — block algebra
   `reBlock c * (reBlock d)ᵀ = reBlock (c * star d)`.
 
-The orthogonality of `reUnitMat` is not yet proven here.
+* `reUnitMat_mul_transpose` — the lift is orthogonal: `R Rᵀ = 1`.
 -/
 
 open scoped Matrix
@@ -402,14 +402,6 @@ theorem interleave_char_mul (z : Fin 3 → ℂ) :
       Matrix.cons_val_one]
     simp [reBlock]
     ring
-
-/-!
-The orthogonality of `reUnitMat` is documented here but not yet
-proven: the block algebra reduces `R Rᵀ` to
-`(1/3) ∑_c reBlock (chi3 (c * (a - b)))`, and the character
-orthogonality (`sum_chi3_eq_zero`) collapses the sum to `3` at
-`a = b` and `0` otherwise, giving `R Rᵀ = 1`.
--/
 
 /-- Block algebra: `reBlock c * (reBlock d)ᵀ = reBlock (c * star d)`
 — the 2×2 real blocks compose under complex multiplication. -/

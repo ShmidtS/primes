@@ -8,7 +8,7 @@ set_option linter.style.openClassical false
 /-!
 # The Hadamard spread ternary error bound (average-case, deterministic)
 
-Audit A10 §9 item 5: «Теорема о контракции реального квантайзера.
+«Теорема о контракции реального квантайзера.
 Худший случай даёт (α≈0.106, ε), а для блоков после Адамара нужна
 средняя версия: измерено ≈0.33». This module delivers the honest
 formalizable core of the "average version": a DETERMINISTIC

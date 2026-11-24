@@ -35,11 +35,12 @@ The certificate is two-sided per token (`early_exit_certificate`):
 IF a (premise, arbitrary — no optimality claim) depth router fires
 at `k = route x`, THEN the token's exit-head output deviates from
 the full-stack head output by at most `Lh · exitLeak (drop k)`
-(head Lipschitz composed C311-style) AND its executed work is the
+(head Lipschitz composed) AND its executed work is the
 prefix share of the exact work ledger `early_exit_work` (per-block
 counts in the entry-read model, `denseMatVecWork` the cited
 form). A depth router for WHO exits is the sleeping-router
-pattern (`Hagi.Learning.SleepingRouter`); connected by citation
+pattern (namespace `Hagi.Learning.SleepingRouter` in
+`Hagi.Learning.SoftRouterMix`); connected by citation
 only, no integration claimed.
 
 Honest scope: the exit RULE's optimality is NOT claimed; batch-level

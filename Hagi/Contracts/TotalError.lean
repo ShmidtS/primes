@@ -62,7 +62,6 @@ Honest scope (pins — stage combinations NOT yet composable):
   cross-carrier heads use the general `LipschitzWith` form above;
   instantiating `D` by a concrete stack needs an endo `Y → Y` head.
 
-Created: 2026-11-17 (audit 4.3 / A15 step 4.3)
 -/
 
 open ContinuousLinearMap
@@ -139,8 +138,8 @@ theorem linear_pair_output_error
     _ = (e₁ + e₂) * B := by ring
 
 /-- **ε_total for a compressed logit head** (MAIN): stage 1 = low-rank
-truncation (`e_svd`; the Frobenius side is `sparse_premise_discharged`,
-), stage 2 = quantization (`e_quant`), both mapped to output space
+truncation (`e_svd`; the Frobenius side is `sparse_premise_discharged`),
+stage 2 = quantization (`e_quant`), both mapped to output space
 by the input bound `B`, then chained through the `L`-Lipschitz decoder
 `D` whose own served error is `e_dec`:
 `‖D (W x) − D' (Wqq x)‖ ≤ L·((e_svd + e_quant)·B) + e_dec`. -/

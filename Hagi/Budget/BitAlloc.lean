@@ -388,11 +388,9 @@ halves with each extra bit). Layer error
   water-filling shape (equalized errors) is optimal in its
   simplest instance.
 
-**Honest boundary.** The full n-layer continuous water
-filling (equalized marginals) and the STEPQuant lifetime
-weighting are engineering on this kernel; the frontier
-claim of 2607.16097 (the optimum SHIFTS with total budget)
-is empirical fitting — not claimed here.
+**Boundary.** The integer n-layer optimum and the STEPQuant lifetime
+weighting are not claimed; the frontier claim of 2607.16097 (the
+optimum SHIFTS with total budget) is empirical fitting.
 -/
 
 namespace Hagi.Budget
@@ -501,14 +499,12 @@ theorem layerError_anti_mono (c : ℝ) (hc : 0 ≤ c) :
 
 /-- **The two-layer balancing law**: for nonnegative
 sensitivity, any budget split `x + (x + 2d)` is dominated by
-the balanced split `(x+d, x+d)` — balancing two layers never
-hurts (even imbalance; the odd case is covered up to the
-factor-2 invariant of `stable_factor_two`). The greedy
+the balanced split `(x+d, x+d)` (even imbalance; the odd case is
+covered up to the factor-2 invariant of `stable_factor_two`). The greedy
 exchange loop TERMINATES (`BitAllocTermination.
 no_infinite_improving_chain`: finite allocation space +
 strict improvement ⟹ pigeonhole), and at the stop point
-`stable_factor_two` certifies factor-2 balance. Still not
-proved here: the n-layer continuous water-filling optimum. -/
+`stable_factor_two` certifies factor-2 balance. -/
 theorem two_layer_equalize (c : ℝ) (hc : 0 ≤ c) (x d : ℕ) :
     layerError c x + layerError c (x + 2 * d)
       ≥ 2 * layerError c (x + d) := by
@@ -574,15 +570,11 @@ theorem imbalance_yields_gain {n : ℕ} (c : Fin n → ℝ)
     nlinarith [himb]
   linarith
 
-/-- **The factor-2 balance certificate at a no-gain point**
-( honesty reformulation — the former version restated its
-hypothesis verbatim): if NO single-bit transfer strictly improves
-the allocation, then every layer error is within factor 2 of every
-other layer error that still has a bit to give. This is now a
-GENUINE consequence of `imbalance_yields_gain` (its
-contrapositive): a factor-2 violation WOULD yield an improving
-transfer, so no-gain excludes the violation. Requires nonnegative
-sensitivities (for the j = k diagonal). -/
+/-- **The factor-2 balance certificate at a no-gain point**: if NO
+single-bit transfer strictly improves the allocation, then every layer
+error is within factor 2 of every other layer error that still has a bit
+to give — the contrapositive of `imbalance_yields_gain`. Requires
+nonnegative sensitivities (for the j = k diagonal). -/
 theorem stable_factor_two {n : ℕ} (c : Fin n → ℝ)
     (f : Fin n → ℕ) (hc : ∀ i, 0 ≤ c i)
     (hnogain : ∀ j k : Fin n, j ≠ k → 0 < f k →
@@ -636,16 +628,11 @@ theorem distill_quant_composite {E S delta c_seq : ℕ → ℝ}
   linarith
 
 /-!
-### Continuous water-filling optimum (R378)
+### Continuous water-filling optimum
 
-The n-layer continuous water-filling optimum — the last open
-item of this module (He–Zhao–Zhou TWC 2013 geometric
-water-filling, plan §1.2): in the continuous relaxation
-(real-valued bit budgets), the ERROR-EQUALIZED allocation
-(all `c i / 2 ^ f i` equal) minimizes the total error among
-ALL allocations with the same total budget. The engine is
-Jensen for exp: Σ e^{y i} ≥ n e^{ȳ} — equalized y (hence
-equalized errors) attains the bound.
+In the continuous relaxation (real-valued bit budgets), the
+ERROR-EQUALIZED allocation (all `c i / 2 ^ f i` equal) minimizes the
+total error among ALL allocations with the same total budget.
 -/
 
 theorem jensen_exp_sum_le {n : ℕ} (hn : 0 < n) (y : Fin n → ℝ) :
@@ -687,8 +674,7 @@ theorem water_filling_inner_optimum {n : ℕ} (hn : 0 < n) (c : Fin n → ℝ)
     totalErrorCont c f ≤ totalErrorCont c g := by
   -- reduced to the shared exponential water-filling core
   -- `RankBudget.rankResidual_equalized` with κ = log 2 and unit
-  -- budget weights (the dictionary 2^x = exp (x log 2); the former
-  -- Jensen engine is superseded by the canon tangent bound).
+  -- budget weights (the dictionary 2^x = exp (x log 2)).
   have hlogtwo : (0:ℝ) < Real.log 2 := Real.log_pos one_lt_two
   have hkey : ∀ (hh : Fin n → ℝ) (i : Fin n),
       c i / 2 ^ (hh i) = c i * Real.exp (-(Real.log 2) * hh i) := by
@@ -727,7 +713,7 @@ theorem water_filling_inner_optimum {n : ℕ} (hn : 0 < n) (c : Fin n → ℝ)
   rw [hf, hg]
   exact hcore
 
-/-- **Two-layer clamped water-filling corner** (R381): with
+/-- **Two-layer clamped water-filling corner**: with
 the nonnegativity constraint `b ≥ 0`, when even the FULL
 budget on layer 2 leaves its error above layer 1's zero-bit
 error (`c₁ ≤ c₂/2^B` — equalization would need negative

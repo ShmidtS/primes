@@ -13,9 +13,7 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Ortho — координатные тождества для ортонормальных семейств
-
-(R328: перенесено из Unified/RecursiveGrowth — аудит v3 §2.2:
+* `ortho_norm_sq` (Parseval-типа): `‖∑ c i • v i‖² = ∑ c i²`;
 чистая линейная алгебра живёт в низком слое.)
 
 * `ortho_norm_sq` (Parseval-типа): `‖∑ c i • v i‖² = ∑ c i²`;
@@ -29,7 +27,7 @@ namespace Hagi.Foundations
 
 /-- Parseval-тождество на произвольном Finset: норма частичной
 линейной комбинации ортонормального семейства равна сумме
-квадратов коэффициентов. Канон R333: `ortho_norm_sq`,
+квадратов коэффициентов. `ortho_norm_sq`,
 `gating_tail_bound` (Sparsity) и `spectral_tail_energy`
 (Spectral) — следствия этого принципа. -/
 theorem ortho_norm_sq_finset {E : Type*} [NormedAddCommGroup E] [InnerProductSpace ℝ E]

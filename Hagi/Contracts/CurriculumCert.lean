@@ -26,8 +26,8 @@ theorems:
 
 * DEPENDENCY-ORDERED (where order IS constitutive): the one honest
   mechanism is the warm-up premise — a later phase's rate may be
-  certified only GIVEN an earlier phase's endpoint (e.g. C315-style
-  margin conditions unlocked at quality `q₁`).  `curriculum_
+  certified only GIVEN an earlier phase's endpoint (e.g. margin
+   conditions unlocked at quality `q₁`).  `curriculum_
   dependency_chain` carries phase 2's drop premise as a CONDITIONAL
   (`objective (t n₁) ≤ q₁ → d₂ ≤ drop`), the phase-1 certificate
   discharges it, and phase 2 telescopes from its OWN endpoint (gap
@@ -128,7 +128,7 @@ closes to the intermediate gate `q₁` (`objective (t 0) − q₁ ≤ n₁·d₁
 rate `d₂` is the phase-conditional value `d₂(q₁)` — its drop premise
 is certified ONLY UNDER the phase-1 endpoint (`hd2` is a CONDITIONAL
 premise: `objective (t n₁) ≤ q₁ → d₂ ≤ drop_j`; the warm-up reading:
-e.g. C315-style margin conditions unlocked at quality q₁). The chain
+e.g. margin conditions unlocked at quality q₁). The chain
 closes by construction: the phase-1 certificate DISCHARGES the
 condition, and phase 2 telescopes from its OWN endpoint (the gap
 premise is `objective (t n₁) − ε ≤ n₂·d₂`, measured at the phase-1

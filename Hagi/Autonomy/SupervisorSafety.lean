@@ -7,7 +7,7 @@ import Mathlib.Tactic
 /-!
 # ternary Chinchilla - capacity-scaled scaling law
 
-Phase C.
+Sources: Chinchilla law L = E + A/N^alpha + B/D^beta;
 Sources: Chinchilla law L = E + A/N^alpha + B/D^beta;
 2609.36437 (bit-sensitivity split: weights tolerate fewer
 bits, activations need 12-14 bits - the b-member is

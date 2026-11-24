@@ -11,7 +11,7 @@ import Hagi.Theory.MasterEF
 # TT-CAT — the joint controller theorem (A16 two-level training)
 
 The FINAL composition of the TT-CAT controller: the alternating
-micro level (phases + C390-gated boundaries
+micro level (phases + gate-protected boundaries
 derived damages), the admission events, and the macro
 Commit/Hold/Rollback checkpoints (adaptivity route) in
 ONE record, and ONE joint theorem `ttcat_complete`: with high
@@ -74,8 +74,8 @@ window boundary (total-state restore).
 
 ## Honesty pins
 
-- **Measure premises are PREMISE-form** (the repo convention, C380/
-): the per-event level bounds `hMicro`/`hAdm`/`hMacro`
+- **Measure premises are PREMISE-form** (the repo convention): the per-event
+  level bounds `hMicro`/`hAdm`/`hMacro`
   are the consumer's to discharge. Discharge routes, CITED not
   restated (statement-duplication discipline): macro α's
   `commit_sound` (single window) `adaptive_commit_bridge`

@@ -16,7 +16,7 @@ leaf tensors (embedding, head, body LoRA factors) as a
 exponentially decaying spectral tail `E_j(r) ≈ c_j • exp(−κ_j • r)`
 (measurable on the LoRA-B spectra), and the optimal budget
 split follows the equalized-marginal condition — the exact
-analogue of `Hagi.Budget/KVWater` with the *bit* variable replaced by
+analogue of `Hagi.Budget/WaterFilling` with the *bit* variable replaced by
 the *rank*.
 
 **The model.** Tensor j, given r_j ranks, leaves a residual
@@ -32,9 +32,9 @@ ranks is `r_j • (m_j + n_j)` (the low-rank factor parameters).
   marginals `c_j κ_j exp(−κ_j r_j*) = λ` (per unit cost) and the
   budget binds, then any other feasible allocation has a total
   residual at least as large — the tangent-bound argument of
-  `KVWater` transported to the rank domain (the exponential
+  `WaterFilling` transported to the rank domain (the exponential
   convexity gives the same one-sided inequality).
-* rankResidual_allocaion — the explicit form: at the
+* rankResidual_allocation — the explicit form: at the
   equalized point, `r_j* = (log c_j − log(λ (m_j + n_j)))/κ_j` —
   the ranks grow *logarithmically* in the tail scale c_j and
   *inversely* in the decay rate κ_j: tensors with slow-decaying
@@ -42,20 +42,9 @@ ranks is `r_j • (m_j + n_j)` (the low-rank factor parameters).
   fast-decaying spectra saturate early. The active set
   (tensors with r_j* > 0) is `c_j > λ (m_j + n_j)`.
 
-**Prescription for the code.**
-
-1. BEFORE the allocation: measure the spectra of the LoRA-B
-   matrices (`lora_leaf_a1..3`) and fit `(c_j, κ_j)` per tensor
-   (log-linear regression of the singular values) — the
-   exponential-tail hypothesis is an *input assumption*, and
-   the formal certificate below is conditional on it.
-2. The optimal rank per tensor is the closed form above with λ
-   from the budget constraint — no r-sweep: the scheduled
-   sweep becomes a *verification* of the prediction, not a
-   search.
-3. The saturation prediction: rank-16 saturates for tensor j
-   iff `r_j*(16) < 16`, i.e. `c_j exp(−16 κ_j) < λ (m_j+n_j)` —
-   the closed-form answer to "where does rank-16 stop paying".
+**Prescription**: measure `(c_j, κ_j)` per tensor — the
+exponential-tail hypothesis is an *input assumption*; the optimal
+rank is the closed form above with λ from the budget constraint.
 -/
 
 open Finset
@@ -76,7 +65,7 @@ rank domain).** If the candidate allocations `(r*)` equalize the
 per-unit-cost marginals `c_j κ_j exp(−κ_j r*_j) = λ • (m_j+n_j)`
 and the budget binds, then any feasible allocation has a total
 residual at least that of `r*` — the same exponential tangent
-argument as `KVWater.waterfilling_bound`, with the *rank* in
+argument as `waterfilling_bound`, with the *rank* in
 place of the bits and the per-tensor cost weights. -/
 theorem rankResidual_equalized
     (c κ m n : ι → ℝ) (rstar r : ι → ℝ) (lam : ℝ)
@@ -164,8 +153,8 @@ theorem rankResidual_equalized
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **The explicit allocation (the closed form, round-25
-kappa-corrected — the Lean file synced with the Python fix).**
+/-- **The explicit allocation (the closed form).**
+
 At the equalized point, the optimal rank of tensor j is
 
 `r_j* = [κ_j⁻¹ · log(c_j·κ_j / (λ (m_j + n_j)))]₊` —
@@ -175,7 +164,7 @@ numerator (the marginal of E = c·e^{−κr} is c·κ·e^{−κr}; the
 equalization c_j κ_j e^{−κ_j r} = λ (m_j+n_j) gives the
 closed form) and the positive part max(0, ·) — the ACTIVE
 SET `c_j·κ_j > λ (m_j + n_j)` (the inactive tensors get
-r_j* = 0; the Python active-set from round 25 synced). The
+r_j* = 0). The
 identity here is the log-form rewrite used to compute it
 from the measured spectra. -/
 theorem rankResidual_allocation

@@ -11,12 +11,11 @@ import Hagi.Growth.GainDecomposition
 set_option linter.style.header false
 
 /-!
-# GrowthBridge — consolidated growth bridges (A5 R3 slice 5)
+# GrowthBridge — consolidated growth bridges
 
-Byte-identical merge of FastGrowth, WallClockTakeoff,
-FrontierProduction, GrowthGate, ChainToCone, T3Ignition and the
-former Unified.GrowthBridge. Namespace blocks and declaration
-FQNs preserved.
+TakeoffCounted, FastGrowth, WallClockTakeoff, FrontierProduction,
+GrowthGate, ChainToCone, T3Ignition and the growth-state takeoff
+bridges; namespace blocks and declaration FQNs preserved.
 -/
 
 section C238_fastgrowth
@@ -980,7 +979,7 @@ theorem geometric_growth_from_certificate
   have hcone := cone_two_sided_certificate C D G
     (beta^4 * kappa) gbar rho cbeta k T hk hD hC
     hstep hlow hup hdyn hrhogk hbeta' hcone0
-  -- takeoff via the elasticity spine (dedup it. 26): the
+  -- takeoff via the elasticity spine: the
   -- manual induction collapses to
   -- TakeoffElasticity.elasticity_chain_horizon with the
   -- constant chain elasticity e t = (beta^4 * kappa) * k
@@ -1066,7 +1065,7 @@ theorem T3_ignition
     (T : ℕ) (beta kappa rho cbeta k : ℝ)
     (hβ : 0 < beta) (hκ : 0 < kappa) (hk : 0 < k)
     (hceiling : beta^4 * kappa ≤ ignitionCeiling rho cbeta k)
-    -- runtime certificates (R247 vocabulary)
+  -- runtime certificates
     (hD : ∀ t ∈ Finset.range (T + 1), 0 ≤ D t)
     (hC : ∀ t ∈ Finset.range (T + 1), 0 ≤ C t)
     (hcert : ∀ t ∈ Finset.range T, beta ≤ (stages t).α_align

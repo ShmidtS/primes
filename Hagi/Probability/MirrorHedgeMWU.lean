@@ -17,25 +17,19 @@ set_option linter.style.header false
 /-!
 # MWU-канон
 
-Canonical MirrorHedge/MWU family (v5 W3 consolidation). Sections
-merged here (namespaces and FQNs preserved, module files removed):
+Canonical MirrorHedge/MWU family in one file: MWU potential one-step
+analysis, selected-loss bounds, selected-gradient MSE identities, proxy
+certificates.
 
-- `Hagi.Probability.MirrorHedgeMWU` — MWU potential one-step analysis;
-- `Hagi.Probability.MirrorHedgeMWUSelectedLoss` — selected-loss bounds;
-- `Hagi.Probability.MirrorHedgeMWUSelectedGradient` — selected-gradient
-  MSE identities;
-- `Hagi.Probability.MirrorHedgeCertificates` — proxy certificates.
-
-`MirrorHedgeGibbs` stays a separate module (Gibbs-core island
-neighborhood); `Hagi.Optimization.MirrorHedge` is the layer-3
-consumer, untouched.
+`MirrorHedgeGibbs` is a separate module; `Hagi.Optimization.MirrorHedge` is
+the layer-3 consumer.
 -/
 
 /-!
-# MirrorHedgeMWU
+# MWU-потенциал
 
-MWU-потенциал (R433+): одношаговый анализ экспоненциальных весов, логарифм нормировочной константы, double/sqrt-оценки и gibbs_hedge_squeeze.
-Split from `MirrorHedge`.
+Одношаговый анализ экспоненциальных весов, логарифм нормировочной
+константы, double/sqrt-оценки.
 -/
 
 namespace Hagi.Probability
@@ -111,14 +105,10 @@ theorem mwu_potential_step {V : Type*} [Fintype V]
   rw [Real.log_exp] at hlog
   linarith
 
-/-- **Нижняя грань потенциала (R434)**:
-ln Z' ≤ −η·ℓ_min — вклад минимизатора
-потерь доминирует:
-e^{−ηℓ_v} ≤ e^{−ηℓ_min} почленно ⟹
-Z' ≤ e^{−ηℓ_min}. Вместе с R433
-(верхняя грань): −η·ℓ_min
-≤ −ln Z' ≤ 2η·⟨ℓ⟩_w — потенциал
-зажат с обеих сторон. -/
+/-- **Нижняя грань потенциала (R434)**: ln Z' ≤ −η·ℓ_min — вклад
+   минимизатора потерь доминирует: e^{−ηℓ_v} ≤ e^{−ηℓ_min} почленно ⟹ Z' ≤
+   e^{−ηℓ_min}. Вместе с R433 (верхняя грань): −η·ℓ_min ≤ −ln Z' ≤ 2η·⟨ℓ⟩_w —
+   потенциал зажат с обеих сторон. -/
 theorem mwu_potential_lower {V : Type*} [Fintype V]
     [Nonempty V] (w : V → ℝ) (ℓ : V → ℝ) (η : ℝ)
     (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
@@ -158,15 +148,10 @@ theorem mwu_potential_lower {V : Type*} [Fintype V]
   have hlog := Real.log_le_log hZpos hsum
   rwa [Real.log_exp] at hlog
 
-/-- **Сертификат зажатия потенциала
-(R435)**: η·ℓ_min ≤ −ln Z' ≤ 2η·⟨ℓ⟩_w —
-одна теорема для потребителя
-(композиция R434 + R433).
-Следствие: ℓ_min ≤ 2⟨ℓ⟩_w —
-одношаговая гарантия
-без-регретности; многошаговый
-телескоп построится на
-ней индукцией. -/
+/-- **Сертификат зажатия потенциала (R435)**: η·ℓ_min ≤ −ln Z' ≤ 2η·⟨ℓ⟩_w
+   — одна теорема для потребителя (композиция R434 + R433). Следствие: ℓ_min
+   ≤ 2⟨ℓ⟩_w — одношаговая гарантия без-регретности; многошаговый телескоп
+   построится на ней индукцией. -/
 theorem mwu_potential_squeeze {V : Type*} [Fintype V]
     [Nonempty V] (w : V → ℝ) (ℓ : V → ℝ) (η : ℝ)
     (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
@@ -182,16 +167,10 @@ theorem mwu_potential_squeeze {V : Type*} [Fintype V]
   · linarith
   · linarith
 
-/-- **MWU с uniform-стартом (R436)**:
-специализация R435 на веса
-1/n — классический hedge с
-равномерным начальным
-распределением над
-экспертами V. Кумулятивные
-потери ℓ := L (сумма по шагам)
-дают телескопический
-потенциал: η·L_min ≤ −ln W ≤
-2η·⟨L⟩_{unif}. -/
+/-- **MWU с uniform-стартом (R436)**: специализация R435 на веса 1/n —
+   классический hedge с равномерным начальным распределением над экспертами
+   V. Кумулятивные потери ℓ := L (сумма по шагам) дают телескопический
+   потенциал: η·L_min ≤ −ln W ≤ 2η·⟨L⟩_{unif}. -/
 theorem mwu_uniform_squeeze {V : Type*} [Fintype V]
     [Nonempty V] (ℓ : V → ℝ) (η : ℝ)
     (hℓ : ∀ v, 0 ≤ ℓ v) (hη : 0 < η)
@@ -261,14 +240,10 @@ theorem mwu_potential_upper_uniform {V : Type*} [Fintype V]
   rw [hsplit] at hlog
   linarith
 
-/-- **Телескоп MWU-весов (R438)**:
-∏_{t<T} e^{−η·ℓ_t(v)} = e^{−η·∑_{t<T} ℓ_t(v)}
-(индукция, exp_add). Замкнутая
-форма ненормированных
-экспоненциальных весов:
-u_T(v) = e^{−ηL_v}. Соединяется с
-R436/R437 (W = (1/n)∑ e^{−ηL_v}) — полная
-многошаговая механика. -/
+/-- **Телескоп MWU-весов (R438)**: ∏_{t<T} e^{−η·ℓ_t(v)} = e^{−η·∑_{t<T}
+   ℓ_t(v)} (индукция, exp_add). Замкнутая форма ненормированных
+   экспоненциальных весов: u_T(v) = e^{−ηL_v}. Соединяется с R436/R437 (W =
+   (1/n)∑ e^{−ηL_v}) — полная многошаговая механика. -/
 theorem mwu_prod_exp {V : Type*} (ℓs : ℕ → V → ℝ) (η : ℝ)
     (T : ℕ) (v : V) :
     ∏ t ∈ Finset.range T, Real.exp (-(η * ℓs t v))
@@ -281,15 +256,10 @@ theorem mwu_prod_exp {V : Type*} (ℓs : ℕ → V → ℝ) (η : ℝ)
     congr 1
     ring
 
-/-- **Замкнутая форма разбиения (R439)**:
-∑_v ∏_t e^{−ηℓ_t(v)} = ∑_v e^{−ηL_v}
-(почленная композиция R438).
-Ненормированная статистика
-алгоритма — чисто
-Гиббс-статистика
-кумулятивных потерь:
-мост MWU ↔ Гиббс замыкается
-на уровне разбиения. -/
+/-- **Замкнутая форма разбиения (R439)**: ∑_v ∏_t e^{−ηℓ_t(v)} = ∑_v
+   e^{−ηL_v} (почленная композиция R438). Ненормированная статистика
+   алгоритма — чисто Гиббс-статистика кумулятивных потерь: мост MWU ↔ Гиббс
+   замыкается на уровне разбиения. -/
 theorem mwu_partition_sum {V : Type*} [Fintype V] (ℓs : ℕ → V → ℝ) (η : ℝ)
     (T : ℕ) :
     ∑ v : V, ∏ t ∈ Finset.range T, Real.exp (-(η * ℓs t v))
@@ -297,16 +267,11 @@ theorem mwu_partition_sum {V : Type*} [Fintype V] (ℓs : ℕ → V → ℝ) (η
   Finset.sum_congr rfl (fun v _ => mwu_prod_exp ℓs η T v)
 
 
-/-- **Гиббс = hedge при η = 1/T (R441)** —
-мост вертикалей:
-hedge-сертификат Гиббс-статистики:
-(1/T)E_min ≤ −ln((1/n)∑e^{−E/T}) ≤
-2(1/T)⟨E⟩_unif. Температура —
-обратный learning rate: охлаждение
-термостата = ускорение
-обучения. Вся MWU-механика
-(R432-R440) автоматически
-переносится на термодинамику. -/
+/-- **Гиббс = hedge при η = 1/T (R441)** — мост вертикалей:
+   hedge-сертификат Гиббс-статистики: (1/T)E_min ≤ −ln((1/n)∑e^{−E/T}) ≤
+   2(1/T)⟨E⟩_unif. Температура — обратный learning rate: охлаждение
+   термостата = ускорение обучения. Вся MWU-механика (R432-R440)
+   автоматически переносится на термодинамику. -/
 theorem gibbs_hedge_squeeze {V : Type*} [Fintype V]
     [Nonempty V] (E : V → ℝ) (T : ℝ) (hT : 0 < T)
     (hE : ∀ v, 0 ≤ E v)
@@ -325,15 +290,10 @@ theorem gibbs_hedge_squeeze {V : Type*} [Fintype V]
   rw [Finset.sum_congr rfl (fun v _ => hkey v), Finset.mul_sum]
   have hη : (0:ℝ) < 1/T := by positivity
   exact mwu_uniform_squeeze E (1/T) hE hη hsmall
-/-- **Двойная верхняя грань (R443)**:
-−ln W ≤ min(2η·⟨ℓ⟩_unif,
-ln n + η·ℓ_min) — две
-конкурирующие оценки
-в одной теореме:
-база для η-оптимизации
-(уравнивание двух членов даёт
-классический оптимальный
-learning rate). -/
+/-- **Двойная верхняя грань (R443)**: −ln W ≤ min(2η·⟨ℓ⟩_unif, ln n +
+   η·ℓ_min) — две конкурирующие оценки в одной теореме: база для
+   η-оптимизации (уравнивание двух членов даёт классический оптимальный
+   learning rate). -/
 theorem mwu_double_upper {V : Type*} [Fintype V]
     [Nonempty V] (ℓ : V → ℝ) (η : ℝ)
     (hℓ : ∀ v, 0 ≤ ℓ v) (hη : 0 < η)
@@ -512,7 +472,6 @@ set_option linter.style.header false
 # MirrorHedgeMWUSelectedLoss
 
 Selected-loss семейство: inverse-propensity выбранные потери, selectedLossMSE, оптимальная propensity и характеризация нуля MSE.
-Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Probability
@@ -1085,7 +1044,6 @@ set_option linter.style.header false
 # MirrorHedgeMWUSelectedGradient
 
 Selected-gradient семейство: selectedGradientMSE/selectedMeanGradientMSE (включая приватные леммы trace и optimalPropensity_value), оценки через upper-bound propensity.
-Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Probability
@@ -1425,7 +1383,6 @@ set_option linter.style.header false
 # MirrorHedgeCertificates
 
 Суррогатные сертификаты Гиббса (R463–R464): сохранение сертификата при нижней оценке энтропии, bridge-тождество, декомпозиция зазора, compounding-оценки, mutual information и amortized policy bound.
-Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Probability
@@ -1625,16 +1582,4 @@ theorem amortized_policy_bound {Pol : Type*}
       linarith
   have h3 := hmin pis
   linarith [hA pih, hA pis, hB pih]
-
-/-!
-# Концентрация меры Гиббса (хаб R386-R496)
-
-Модуль-хаб: содержимое разнесено по тематическим файлам
-(GibbsCooling, GibbsInfoCore, EntropyConvexity, CertGaps,
-PinskerTV, ChernoffCGF, MomentBounds); импорт этого файла
-даёт все декларации прежнего единого модуля. Внешние
-потребители (Thermostat, MWU) не изменились.
--/
-
-
 end Hagi.Probability

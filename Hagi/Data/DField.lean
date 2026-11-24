@@ -127,7 +127,7 @@ set_option linter.unusedDecidableInType false in
 bound `log x ≤ x − 1` and its strictness). The D-field's
 building block: a weighted KL between two probability vectors
 is nonneg, and zero iff the vectors coincide. Nonnegativity
-delegates to the canon `Hagi.Prelude.kl_nonneg` (R334). -/
+delegates to the canon `Hagi.Prelude.kl_nonneg`. -/
 theorem kl_nonneg (p q : V → ℝ)
     (hp : ∀ v, 0 < p v) (hq : ∀ v, 0 < q v)
     (hsump : ∑ v, p v = 1) (hsumq : ∑ v, q v = 1) :
@@ -387,7 +387,7 @@ of a product distribution dominates the divergence of its
 marginals. Applied token-wise along a document, this shows the
 sequence-level divergence lower-bounds the unigram divergence —
 closing the D_L ≥ D_1 gap for independent-position models
-(the dependent case remains open, see Honest boundary above). -/
+(the dependent case is not formalized). -/
 theorem KL_product_ge_marginal {V : Type} [Fintype V] [DecidableEq V] (p1 q1 p2 q2 : V → ℝ)
     (hp1 : ∀ v, 0 < p1 v) (hq1 : ∀ v, 0 < q1 v) (hp2 : ∀ v, 0 < p2 v) (hq2 : ∀ v, 0 < q2 v)
     (hsum1 : ∑ v, p1 v = 1) (hsum2 : ∑ v, p2 v = 1)
@@ -443,21 +443,14 @@ the KL-matrix (data/kl_unigram.npy), D(canonical) = 0.804,
 the leave-one-out − slimpajama → 0.584, and slimpajama the
 single measured conflict (cross-KL ≈ 13 to every corpus).
 
-**The honest paradox, fixed formally.** Slimpajama has a HIGH
-KL from the mixture (a naive D-maximizer would KEEP it — it
-feeds the divergence sum), yet the leave-one-out measurement
-shows D RISES when it is excluded (0.804 → 0.584 is the D of
-the restricted mixture — wait, the measured direction: the
-canonical-with-slimpajama D is 0.804 and without it 0.584 —
-so removing it LOWERS the naive D-field — consistent with its
-high KL contribution!). The paradox the ROUND-26 model
-resolved: the naive D(w) treats all divergence as
-replenishment; the CONFLICT corpus's divergence is a D-sink
-(its children learn to avoid it — the realized harvest is
-negative). The formal fix is the CONSTRAINT: slimpajama is
-excluded not because its KL is low (it is high) but because
-its gradient conflicts — the constraint carves it out; the
-program is max D over the NON-CONFLICTING set.
+**The honest paradox.** Slimpajama has a HIGH KL from the mixture
+(the canonical-with-slimpajama D is 0.804, without it 0.584 — removing it
+LOWERS the naive D-field), yet its gradient conflicts with the mixture
+(`Hagi.Step/Joint`): the naive D(w) treats all divergence as
+replenishment, while a CONFLICT corpus's divergence is a D-sink (its
+children learn to avoid it). The formal fix is the CONSTRAINT: slimpajama
+is excluded not because its KL is low but because its gradient conflicts;
+the program is max D over the NON-CONFLICTING set.
 
 **What the module proves:**
 
@@ -470,21 +463,10 @@ program is max D over the NON-CONFLICTING set.
   weights redistribute until no corpus is a cheaper
   divergence source than another).
 
-**Prescription for the code.**
-
-1. Compute w* on the MEASURED KL-matrix BEFORE training: the
-   concave program over the non-conflicting corpora (all but
-   slimpajama, per the measured ⟨g_i, g⟩ < 0); compare with
-   the canonical w and the leave-one-out predictions — the
-   falsifiable output is w* and D(w*), computable from
-   data/kl_unigram.npy alone.
-2. The conflict exclusion is a CONSTRAINT, not a KL test:
-   high-KL + conflicting = excluded (slimpajama); the
-   leave-one-out numbers are the model's calibration anchor.
-3. The KKT equalization is the termination check of the
-   weight solver: iterate until the active-set KLs equalize
-   (the solver's own convergence criterion — no learning rate
-   to tune).
+**Prescription**: compute w* on the MEASURED KL-matrix before training,
+over the non-conflicting corpora; the conflict exclusion is a CONSTRAINT,
+not a KL test; the KKT equalization is the termination check of the
+weight solver.
 -/
 
 open Finset
@@ -547,7 +529,7 @@ set_option linter.style.header false
 # NessDissipation: detailed balance and the entropy-production gap
 
 The third module of the thermodynamic layer (§8.8 of
-FORMALIZATION_PLAN.md, round). The plan's γ-deficit
+FORMALIZATION_PLAN.md). The plan's γ-deficit
 reframe: "the unreachable equilibrium as the measure of
 unfinished gain" (arXiv:2607.17146: the breakdown of detailed
 balance marks a NESS — a nonequilibrium steady state; the

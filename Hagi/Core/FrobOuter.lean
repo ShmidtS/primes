@@ -8,8 +8,7 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# FrobOuter — Frobenius-изометрия внешних произведений (ядро
-Eckart–Young, R295)
+# FrobOuter — Frobenius-изометрия внешних произведений
 
 `frobSq_outer_orthonormal`: Frobenius-квадрат суммы
 σ_i·(u_i ⊗ v_i) при ортонормальных семействах u, v равен
@@ -18,18 +17,15 @@ Eckart–Young, R295)
 
 Это верхняя (достижимость) часть Eckart–Young–Мирского: для
 SVD-формы A = Σ σ_i u_i⊗v_i ранговое-k-усечение A_k имеет
-‖A − A_k‖_F² = Σ_{i>k} σ_i². Mathlib v4.34.1 не имеет
-SVD/singularValues — порт полного Eckart–Young (нижняя
-оптимальность, Weyl) многоходовый; здесь доказан точный
-фундамент без спектральных посылок: нужны только
-ортонормальность семейств.
+‖A − A_k‖_F² = Σ_{i>k} σ_i². Здесь нужен только точный фундамент
+без спектральных посылок: ортонормальность семейств.
 * `frobSq_outerSum` (обобщение): то же для суммы по любому
   подмножеству индексов s;
 * `frobSq_trunc_tail` (точный хвост усечения): ошибка удаления
   s-компоненты из полной суммы — Frobenius-квадрат дополнения,
   ‖A − Σ_{i∈s}σ_i u_i⊗v_i‖²_F = Σ_{i∉s} σ_i² — достижимость
-  Eckart–Young для SVD-формы (нижняя оптимальность — FLYWHEEL-
-  порт, см. план).
+  Eckart–Young для SVD-формы (нижняя оптимальность —
+  `Hagi.External.Flywheel.EckartYoungLower`).
 -/
 
 open Finset

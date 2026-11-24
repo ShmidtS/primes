@@ -58,7 +58,7 @@ the forward term is mode-covering (preserves the leaves'
 diversity — the MERGE regime; the arithmetic pool minimizes
 it), the reverse term is consensus-extraction (the JOINT
 regime; the geometric pool minimizes it). The domination
-analysis (round-33 P1) connects: the arithmetic mean's
+analysis connects: the arithmetic mean's
 logits enter by weighted sum (a dominant corpus can own the
 mean — the 94.8% law), the geometric pool's enter by SUM of
 log-logits (each expert's relative shape preserved; the
@@ -68,27 +68,18 @@ slimpajama domination, testable WITHOUT swapping the corpus.
 
 **Prescription for the code.**
 
-1. (P2b) THE GEOMETRIC-POOL EXPERIMENT — one run on the
-   existing dbridge checkpoints: arithmetic mean (4.1375
-   measured) vs geometric mean of the 3 leaf distributions;
-   the identity licenses the comparison: the difference is
-   exactly the two KL-currencies' disagreement on the same
-   pool. Falsifiable: geometric ≥ arithmetic by CE — or the
-   diagnostic of why not (the forward term's preference).
-2. (P1b-i) On-policy RKL distillation: the teacher evaluates
-   only the student's visited states (the token-split makes
-   the objective exact on those states — no off-policy
-   correction needed).
-3. (P1b-ii) THE NCE WARNING (consistent with rounds 28/30):
-   do not estimate reverse-KL with the prior-NCE sampler —
-   the sampled estimator is consistent on a frozen model,
-   but the OPTIMIZATION dynamics diverged (the 47-nat
-   autopsy: gap(K) diagnostics certified the estimator, the
-   collapse was dynamic); for the RKL oracle use teacher
-   top-K / exact KL on the student prefixes (V = 32k: exact
-   KL is a one-pass computation, no sampling needed).
-4. (P3) The growth verdict (G_F, R_repr) — see the module's
-   growth_verdict — replaces the CE-plateau fork.
+1. (P2b) THE GEOMETRIC-POOL EXPERIMENT — arithmetic mean (4.1375
+   measured) vs geometric mean of the 3 leaf distributions on the
+   existing dbridge checkpoints: falsifiable, geometric ≥ arithmetic by CE.
+2. (P1b-i) On-policy RKL distillation: the teacher evaluates only the
+   student's visited states — the token-split makes the objective exact
+   there, no off-policy correction needed.
+3. (P1b-ii) THE NCE WARNING: do not estimate reverse-KL with the prior-NCE
+   sampler — the sampled estimator is consistent on a frozen model, but
+   the OPTIMIZATION dynamics diverged (the 47-nat autopsy); for the RKL
+   oracle use teacher top-K / exact KL on the student prefixes.
+4. (P3) The growth verdict (G_F, R_repr) — `growth_verdict` — replaces the
+   CE-plateau fork.
 -/
 
 open Finset
@@ -293,9 +284,8 @@ theorem geometric_pool_identity_nonneg (K : Type) [Fintype K] [Nonempty V]
         - Real.log (∑ u, ∏ i, (p i u)^(w i)) :=
   geometric_pool_identity K q p w hq hp hq1 hw1
 
--- not A theorem (round-41 audit): the rfl form `A = A` was a
--- prescription carrier only. Demoted to the DEFINITION of the
--- per-token KL total; the honest boundary is documented above.
+-- The per-token KL total (a definition, not a theorem): the honest
+-- boundary is documented above.
 def tokenKLTotal {T : Type} [Fintype T] (kl : T → ℝ) : ℝ := ∑ t, kl t
 
 end FreeEnergy

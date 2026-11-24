@@ -499,8 +499,8 @@ small domain experts instead of being trained from scratch.
 The modules correspond to the mathematical constructions of the project:
 
 * `Hagi.Core/Hadamard` — Sylvester (Walsh) Hadamard orthonormal mixer matrices `H_n / √n` (`H * Hᵀ = n • 1`).
-* `Hagi.Core/Kronecker` — the Kronecker product preserves (conjugate-)orthonormality; underlies the recursive Hadamard mixer and the DFT-3 Kronecker recursion `F₃ᵏ`.
-* `Hagi.Core/DFT3` — the ternary DFT-3 (F₃) mixer: `F₃` is unitary with every entry of modulus `1/√3`, so the Kronecker powers `F₃ᵏ` mix uniformly with no blind channels.
+* `Hagi.Core/Kronecker` — the Kronecker product preserves (conjugate-)orthonormality; underlies the recursive Hadamard mixer.
+* `Hagi.Core/RealF3Ortho` — the ternary DFT-3 (`F₃`) mixer: unitary with every entry of modulus `1/√3`, so the Kronecker powers `F₃ᵏ` mix uniformly with no blind channels.
 * `Hagi.Core/BlockDiag` — block-diagonal merge: at step 0 the merged model computes *exactly* the N independent experts.
 * `Hagi.Core/Merge` — step-0 equivalence of the mixer merge: with head pre-rotation `W' = W * Qᵀ` the mixer path reproduces `W *ᵥ x`; an orthonormal mixer is information-neutral.
 * `Hagi.Energy/Ternary` — ternary quantization: 5 trits pack injectively into a byte (`3⁵ = 243 ≤ 256`); nearest-grid rounding on the ternary/int4 grids has error at most half a step.
@@ -513,9 +513,6 @@ Empirical measurements (RMS errors, benchmark scores, saturation
 curves) are not mathematical statements and are intentionally out of
 scope.
 
-The family-level theory lives in `Hagi/Theory` (31 files: 10 canon
-modules — Continual, Statistics, SelfEdit, Compression, MergeQuant,
-Softmax, SafeStep, MasterTheorem, FullPipeline, BlockLipschitz — plus
-standalone bridges and bench bridges); this root module is the import
-map of the whole closure.
+The family-level theory lives in `Hagi/Theory`; this root module is the
+import map of the whole closure.
 -/

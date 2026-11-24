@@ -9,9 +9,9 @@ import Hagi.Unified.StitchingEProcess
 set_option linter.style.header false
 
 /-!
-# Gate pipeline (addendum A10 priority P1)
+# Gate pipeline
 
-Формализация гейта, КАК его использует Python-код (audit A10 §3):
+Формализация гейта, КАК его использует Python-код:
 пошаговый пайплайн «измерение → доверительная граница → бюджет →
 решение», собранный в ОДНУ теорему с итогом
 «P(любой ложный commit) ≤ δ».
@@ -329,8 +329,8 @@ theorem gate_fixed_radius_unusable (r : ℝ) (hr0 : 0 ≤ r)
 
 /-! ## мосты к единому concentration API
 
-`Hagi.Probability.Concentration` — единый radius/confidence API
-(A10 merge map). Гейтова форма — частный случай: [−1,1]-радиус η это
+`Hagi.Probability.Concentration` — единый radius/confidence API.
+Гейтова форма — частный случай: [−1,1]-радиус η это
 [0,1]-радиус η/2 (`concConfidence_pm1_rescale`). -/
 
 /-- двусторонняя [−1,1]-граница гейта `2e^{−nη²/2}` это в точности

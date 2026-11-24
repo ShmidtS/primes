@@ -41,9 +41,8 @@ Compositions on top:
 
 * MAIN 1 `samples_to_quality`: finite class + margin premise +
   `n ≥ sampleComplexity (2|ι|) δ η` ⟹ w.p. ≥ 1 − δ the empirical
-  winner is the POPULATION-best hypothesis (C315's argmax with the
-  explicit sample count; the union constant 2 of C264's two-sided
-  event is why m = 2|ι|).  `samples_to_quality_subopt` is the
+  winner is the POPULATION-best hypothesis; the union constant 2 of the
+  two-sided event is why m = 2|ι|).  `samples_to_quality_subopt` is the
   γ-slack reading ("within γ of best"): η plays the role of the
   empirical accuracy below the margin (the frontier's γ−ε).
 * MAIN 2 `data_compute_budget`: the JOINT resource certificate — the
@@ -243,8 +242,8 @@ functional is `sampleComplexity 20 0.05 0.1 = log 400 / 0.02 ≈ 299.6`
 (float, orientation only; log 400, not 200 — the union multiplicity
 is m = 2|ι| = 20) — 300 samples suffice.  The PROVED bound is
 the honest loose form `≤ 450` via `log 400 ≤ 9` (since `400 ≤ 2^9 ≤
-e^9`, using `2 = 1 + 1 ≤ exp 1`) `concRadius_anchor_315`
-style (slack 9 vs the true 5.99 documented). -/
+e^9`, using `2 = 1 + 1 ≤ exp 1`) in the
+`concRadius_anchor_315` style (slack 9 vs the true 5.99). -/
 theorem sample_complexity_anchor_334 :
     sampleComplexity (2 * 10) 0.05 0.1 ≤ 450 := by
   have h91 : (9:ℝ) / (2 * (0.1:ℝ) ^ 2) = 450 := by norm_num

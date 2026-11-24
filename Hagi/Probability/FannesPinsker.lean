@@ -40,7 +40,7 @@ statements byte-identical. Definitions live in `Hagi.Math.Info.InfoCore`.
   log_sum_ineq_on);
 * `mix_entropy_lower` — вогнутость aH(q)+bH(û) ≤ H(aq+bû);
 * `shannon_le_log_card` — H ≤ log d (KL с uniform);
-* `fannes_unconditional` — ГЛАВНАЯ: H(p)−H(q) ≤ t·log d +
+* `fanes_unconditional` — ГЛАВНАЯ: H(p)−H(q) ≤ t·log d +
   (1+t)·h₂(t/(1+t)), t = Hagi.Information.tvHalf p q.
 -/
 
@@ -449,17 +449,12 @@ end Hagi.Unified
 
 
 /-!
-# InfoCanonical — канонические мосты теории информации (TD-03, цикл 15)
-# (в Unified: мост потребляет FannesComplete из того же слоя)
+# InfoCanonical — канонические мосты теории информации
 
-Дублирование определений (аудит TD-03): энтропия/TV определены
-независимо в `Prelude.Info` (entDef/tvDef) и
-`Information.DiscreteFannes` (shannon/tvHalf). Мосты ниже
-устанавливают ТОЧНЫЕ тождества, после чего любой набор теорем
-(Пинскер из Probability.PinskerTV, Фаннес из
-Unified.FannesComplete) применим к обоим мирам без дублей —
-merge-before-delete: сначала мосты, удаление дублирующих
-обёрток — отдельное решение после аудита потребителей.
+Энтропия/TV определены независимо в `Hagi.Prelude` (entDef/tvDef) и
+`Hagi.Information` (shannon/tvHalf). Мосты ниже устанавливают ТОЧНЫЕ
+тождества, после чего любой набор теорем (Пинскер, Фаннес) применим к
+обоим мирам без дублей.
 -/
 
 open Finset
@@ -472,14 +467,12 @@ theorem shannon_eq_entDef {V : Type*} [Fintype V] (p : V → ℝ) :
   simp [Hagi.Information.shannon, Hagi.Prelude.entDef,
     Real.negMulLog]
 
-/-- Полная вариация: tvHalf = tvDef. ДЕДУП (A19.3):
-канонический мост — `Hagi.Information.tvHalf_eq_tvDef`;
-здесь — deprecated alias на него. -/
+/-- Полная вариация: tvHalf = tvDef. Deprecated alias на канонический
+мост `Hagi.Information.tvHalf_eq_tvDef`. -/
 @[deprecated Hagi.Information.tvHalf_eq_tvDef (since := "2026-11-19")]
 alias tvHalf_eq_tvDef := Hagi.Information.tvHalf_eq_tvDef
 
-/-- ПРИМЕР ДЕЛЕГАЦИИ: фаннес-граница Фаннеса в мире Prelude:
-через мост переносится главная теорема FannesComplete. -/
+/-- Fannes-граница в мире Prelude: перенос `fanes_unconditional` через мосты. -/
 theorem fanes_entDef {V : Type*} [Fintype V] [DecidableEq V]
     (p q : V → ℝ) (hp : ∀ i, 0 ≤ p i) (hq : ∀ i, 0 ≤ q i)
     (hp1 : ∑ i, p i = 1) (hq1 : ∑ i, q i = 1) :
@@ -506,9 +499,9 @@ end Hagi.Unified.InfoCanonical
 * переводчик δ-зазора в TV-расстояние до дирака: если
   минимум энергии отделён зазором δ, то полная масса вне
   минимума t_n = Σ_{v≠v*} p_{T_n}(v) ≤ C·e^{−δ/T_n}
-  (граница R386 `gibbs_concentration`);
-* Fannes-граница (R532 `fanes_unconditional`): энтропия
-  распределения,-close к дираку на t, ограничена
+  (граница `gibbs_concentration`);
+* Fannes-граница (`fanes_unconditional`): энтропия распределения,
+  t-close к дираку, ограничена
   t·log d + (1+t)·h₂(t/(1+t)).
 
 Итог: S(p_T) ≤ C·e^{−δ/T}·log d + (1+C·e^{−δ/T})·h₂(·) —
@@ -519,7 +512,7 @@ T → 0⁺ (термин экспоненциально мал, Nernst).
 * `tvHalf_dirac_eq` — tvHalf p (dirac v*) = масса вне v*;
 * `nernst_fannes` — S(p) ≤ t·log d + (1+t)·h₂(t/(1+t)),
   t = масса вне v*;
-* `nernst_explicit` — при Gibbs-весах с зазором δ: явная
+* `gibbs_nernst` — при Gibbs-весах с зазором δ: явная
   экспоненциальная граница S ≤ Ce^{−δ/T}·log d + ….
 -/
 
@@ -732,22 +725,11 @@ open Hagi.Prelude
 open Finset Real
 
 open Finset Real in
-/-- **TV ≤ положительная
-часть KL (R469)**:
-(1/2)·Σ|p−q| ≤
-Σ_{v: q<p} p·ln(p/q).
-Механика: расщепление
-Σ|p−q| = 2·Σ_A(p−q)
-(дополнение меняет
-знак) + per-v ln u ≥ 1−1/u
-с u = q/p на A.
-ВАЖНО: линейное
-KL ≥ TV НЕВЕРНО
-(контрпример p=(0.9,0.1),
-q=(0.5,0.5): KL=0.368 <
-TV=0.4; Пинскер требует √).
-Кирпич
-к Пинскеру. -/
+/-- **TV ≤ положительная часть KL (R469)**: (1/2)·Σ|p−q| ≤ Σ_{v: q<p}
+   p·ln(p/q). Механика: расщепление Σ|p−q| = 2·Σ_A(p−q) (дополнение меняет
+   знак) + per-v ln u ≥ 1−1/u с u = q/p на A. ВАЖНО: линейное KL ≥ TV
+   НЕВЕРНО (контрпример p=(0.9,0.1), q=(0.5,0.5): KL=0.368 < TV=0.4;
+   Пинскер требует √). Кирпич к Пинскеру. -/
 theorem tv_le_pos_part_kl {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (p q : V → ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -816,14 +798,9 @@ theorem tv_le_pos_part_kl {V : Type*} [Fintype V] [DecidableEq V]
       Finset.sum_le_sum hpt
 
 open Finset Real in
-/-- **Бхаттачаря
-≤ 1 (R470)**:
-Σ√(p·q) ≤ 1 — Коши
-(sum_mul_sq_le_sq_mul_sq
-в форме квадратов с
-sq_sqrt-свёрткой).
-Кирпич Пинскер-цепи
-(BC→KL). -/
+/-- **Бхаттачаря ≤ 1 (R470)**: Σ√(p·q) ≤ 1 — Коши
+   (sum_mul_sq_le_sq_mul_sq в форме квадратов с sq_sqrt-свёрткой). Кирпич
+   Пинскер-цепи (BC→KL). -/
 theorem bhattacharyya_cauchy {V : Type*} [Fintype V]
     (p q : V → ℝ) (hp : ∀ v, 0 ≤ p v) (hq : ∀ v, 0 ≤ q v)
     (hp1 : ∑ v : V, p v = 1) (hq1 : ∑ v : V, q v = 1) :
@@ -859,16 +836,10 @@ theorem bhattacharyya_cauchy {V : Type*} [Fintype V]
   linarith [abs_le.mp hsq |>.2]
 
 open Finset Real in
-/-- **1 − BC ≤ KL/2 (R471)**:
-1 − Σ√(p·q) ≤
-(1/2)·Σp·ln(p/q).
-Per-v ядро: с t := √(p/q):
-p − √(pq) = √(pq)(t−1),
-(1/2)p·ln(p/q) = √(pq)·t·ln t,
-и t−1 ≤ t·ln t (из
-ln u ≤ u−1 с u := 1/t).
-С R470 (BC ≤ 1) замыкает
-Пинскер-цепь: 1−BC ≤ KL/2. -/
+/-- **1 − BC ≤ KL/2 (R471)**: 1 − Σ√(p·q) ≤ (1/2)·Σp·ln(p/q). Per-v
+   ядро: с t := √(p/q): p − √(pq) = √(pq)(t−1), (1/2)p·ln(p/q) = √(pq)·t·ln
+   t, и t−1 ≤ t·ln t (из ln u ≤ u−1 с u := 1/t). С R470 (BC ≤ 1) замыкает
+   Пинскер-цепь: 1−BC ≤ KL/2. -/
 theorem one_minus_bc_le_half_kl {V : Type*} [Fintype V]
     (p q : V → ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -941,29 +912,11 @@ theorem one_minus_bc_le_half_kl {V : Type*} [Fintype V]
   nlinarith
 
 open Finset Real in
-/-- **Пинскер,
-слабая √-форма
-(R472)**:
-(1/2)·Σ|p−q| ≤
-√(KL).
-Цепь: тождество
-|p−q| = |√p−√q|·(√p+√q)
-+ Коши (суммы
-квадратов) →
-Σ|p−q| ² ≤
-(2−2BC)(2+2BC) =
-4(1−BC)(1+BC) ≤
-8(1−BC) ≤ 4·KL
-(R470: BC ≤ 1; R471:
-1−BC ≤ KL/2) →
-TV ≤ √(KL).
-Выборочный код:
-K на R469–R471.
-Точная форма
-(KL/2) требует
-двоич-редукций
-(DPI + калкулус) —
-не в этом юните. -/
+/-- **Пинскер, слабая √-форма (R472)**: (1/2)·Σ|p−q| ≤ √(KL). Цепь:
+   тождество |p−q| = |√p−√q|·(√p+√q) + Коши (суммы квадратов) → Σ|p−q| ² ≤
+   (2−2BC)(2+2BC) = 4(1−BC)(1+BC) ≤ 8(1−BC) ≤ 4·KL (R470: BC ≤ 1; R471:
+   1−BC ≤ KL/2) → TV ≤ √(KL). Выборочный код: K на R469–R471. Точная форма
+   (KL/2) требует двоич-редукций (DPI + калкулус) — не в этом юните. -/
 theorem pinsker_sqrt_kl {V : Type*} [Fintype V]
     (p q : V → ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -1057,19 +1010,9 @@ theorem pinsker_sqrt_kl {V : Type*} [Fintype V]
   exact Real.le_sqrt_of_sq_le hS2
 
 open Finset Real in
-/-- **Дуальная
-характеризация
-TV (R473)**:
-для любой 0 ≤ f ≤ 1
-|E_p f − E_q f| ≤ TV.
-Верх: расщепление
-Σ(p−q)f →
-Σ_A(p−q)f + 0 ≤
-Σ_A(p−q) = TV;
-низ — заменой
-f → 1−f.
-PAC-Bayes-кирпич (дуальность
-TV). -/
+/-- **Дуальная характеризация TV (R473)**: для любой 0 ≤ f ≤ 1 |E_p f −
+   E_q f| ≤ TV. Верх: расщепление Σ(p−q)f → Σ_A(p−q)f + 0 ≤ Σ_A(p−q) = TV;
+   низ — заменой f → 1−f. PAC-Bayes-кирпич (дуальность TV). -/
 theorem tv_dual_abs {V : Type*} [Fintype V] [DecidableEq V]
     (p q : V → ℝ) (f : V → ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -1165,20 +1108,10 @@ theorem tv_dual_abs {V : Type*} [Fintype V] [DecidableEq V]
   exact ⟨by linarith [hd2, hneg], hup⟩
 
 open Finset Real in
-/-- **−ln BC ≤ KL/2
-(R474)**:
-−ln Σ√(p·q) ≤
-(1/2)·Σp·ln(p/q).
-Log-sum R451 с
-парой a := p,
-b := √(p·q)
-(LHS = ln(1/BC)); per-v:
-p/√(pq) = √(p/q),
-т.е. ln(p/√(pq)) =
-(1/2)ln(p/q) (log_sqrt).
-Эквив: BC ≥
-e^{−KL/2} — кирпич
-Бретаньоль–Юбера. -/
+/-- **−ln BC ≤ KL/2 (R474)**: −ln Σ√(p·q) ≤ (1/2)·Σp·ln(p/q). Log-sum
+   R451 с парой a := p, b := √(p·q) (LHS = ln(1/BC)); per-v: p/√(pq) =
+   √(p/q), т.е. ln(p/√(pq)) = (1/2)ln(p/q) (log_sqrt). Эквив: BC ≥
+   e^{−KL/2} — кирпич Бретаньоль–Юбера. -/
 theorem neg_log_bc_le_half_kl {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (p q : V → ℝ)
     (hp : ∀ v, 0 < p v) (hq : ∀ v, 0 < q v)
@@ -1232,22 +1165,9 @@ theorem neg_log_bc_le_half_kl {V : Type*} [Fintype V] [DecidableEq V]
   exact h
 
 open Finset Real in
-/-- **Бретаньоль–
-Юбер (R475)**:
-TV ≤
-√(1−e^{−KL})
-.
-Цепь: Коши
-(R472-механика) →
-Σ|p−q|² ≤
-4(1−BC²);
-R474: BC ≥
-e^{−KL/2} →
-1−BC² ≤
-1−e^{−KL}.
-Тиснее R472 при
-большом KL
-(√(1−e^{−KL}) ≤ 1). -/
+/-- **Бретаньоль– Юбер (R475)**: TV ≤ √(1−e^{−KL}) . Цепь: Коши
+   (R472-механика) → Σ|p−q|² ≤ 4(1−BC²); R474: BC ≥ e^{−KL/2} → 1−BC² ≤
+   1−e^{−KL}. Тиснее R472 при большом KL (√(1−e^{−KL}) ≤ 1). -/
 theorem tv_le_sqrt_one_minus_exp {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V]
     (p q : V → ℝ)
@@ -1342,21 +1262,10 @@ theorem tv_le_sqrt_one_minus_exp {V : Type*} [Fintype V] [DecidableEq V]
   exact Real.le_sqrt_of_sq_le hTV
 
 open Finset Real in
-/-- **Совместная
-выпуклость KL
-(R476)**: для c ∈ (0,1):
-KL(c·p₁+(1−c)·p₂
-‖ c·q₁+(1−c)·q₂)
-≤
-c·KL(p₁‖q₁) +
-(1−c)·KL(p₂‖q₂).
-Per-v — двухточечный
-log-sum: R451 на
-Fin 2 с парами
-(c·p₁v, (1−c)·p₂v) и
-(c·q₁v, (1−c)·q₂v);
-разбавение диляций
-mul_div_mul_left. -/
+/-- **Совместная выпуклость KL (R476)**: для c ∈ (0,1): KL(c·p₁+(1−c)·p₂
+   ‖ c·q₁+(1−c)·q₂) ≤ c·KL(p₁‖q₁) + (1−c)·KL(p₂‖q₂). Per-v — двухточечный
+   log-sum: R451 на Fin 2 с парами (c·p₁v, (1−c)·p₂v) и (c·q₁v, (1−c)·q₂v);
+   разбавение диляций mul_div_mul_left. -/
 theorem kl_joint_convex {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (p₁ p₂ q₁ q₂ : V → ℝ) (c : ℝ)
     (hp₁ : ∀ v, 0 < p₁ v) (hp₁1 : ∑ v : V, p₁ v = 1)
@@ -1405,18 +1314,9 @@ theorem kl_joint_convex {V : Type*} [Fintype V] [DecidableEq V]
   linarith
 
 open Finset Real in
-/-- **Донскер–
-Варадхан,
-нижняя грань
-(R477)**: KL(p‖q) ≥
-E_p f −
-ln(Σq·e^f).
-Механика: софтмакс
-r := q·e^f/Z,
-KL(p‖r) ≥ 0 (R447),
-per-v
-ln(p/r) =
-ln(p/q) − f + ln Z. -/
+/-- **Донскер– Варадхан, нижняя грань (R477)**: KL(p‖q) ≥ E_p f −
+   ln(Σq·e^f). Механика: софтмакс r := q·e^f/Z, KL(p‖r) ≥ 0 (R447), per-v
+   ln(p/r) = ln(p/q) − f + ln Z. -/
 theorem kl_variational_lower {V : Type*} [Fintype V] [Nonempty V]
     (p q f : V → ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -1468,18 +1368,9 @@ theorem kl_variational_lower {V : Type*} [Fintype V] [Nonempty V]
   linarith
 
 open Finset Real in
-/-- **PAC-Чернофф
-для событий
-(R478)**: при
-KL(p‖q) ≤ κ:
-Σ_{v∈s} p ≤ κ +
-ln(1+(e−1)·q(s))
-— одложенная
-софтмакс-форма
-R477 с f :=
-индикатором s;
-ключевой
-PAC-Bayes-кирпич. -/
+/-- **PAC-Чернофф для событий (R478)**: при KL(p‖q) ≤ κ: Σ_{v∈s} p ≤ κ +
+   ln(1+(e−1)·q(s)) — одложенная софтмакс-форма R477 с f := индикатором s;
+   ключевой PAC-Bayes-кирпич. -/
 theorem pac_chernoff_events {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (p q : V → ℝ) (s : Finset V) (κ : ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v : V, p v = 1)
@@ -1539,9 +1430,7 @@ end Hagi.Probability
 export Hagi.Probability (kl_variational_lower one_minus_bc_le_half_kl pinsker_sqrt_kl tv_dual_abs)
 
 /-! ### Константная-4 форма Пинскера + CMI-итерация
-(перенесено из Hagi.Information.Pinsker, консолидация:
-один модуль = всё семейство Пинскера. Namespace сохранён —
-потребители `Hagi.Information.pinsker4_fin` и т.д. не ломаются.) -/
+(объявления в namespace `Hagi.Information`) -/
 
 open Hagi.Prelude Real
 open scoped NNReal

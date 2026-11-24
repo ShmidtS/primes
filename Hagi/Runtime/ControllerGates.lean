@@ -8,7 +8,7 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# ControllerGates (ex-MacroCycleV2, R339) — mathematical
+# ControllerGates — mathematical kernels for engineering upgrades
 kernels for engineering upgrades
 
 * Variance gating: the logit range scales linearly under

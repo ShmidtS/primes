@@ -20,9 +20,10 @@ Honesty notes (premise-form statement):
 
 * The achievable-update set is formalized as the premise `hΔ : Δ.rank
   ≤ k`. The head-derivation — a rank-`D` head forces achievable logit
-  updates to have rank at most `2D` — is DEFERRED, as is the
-  rectangular contexts-×-vocabulary carrier: `logitGradM` is the
-  square `n × n` complex matrix view (real entries coerced) required
+  updates to have rank at most `2D` — is DEFERRED; the rectangular
+  carrier is the `Rectangular` section below and
+  `Hagi.Contracts.GradientBottleneckIdentification`. Here `logitGradM` is
+  the square `n × n` complex matrix view (real entries coerced) required
   by the Flywheel SVD API.
 * The bound can be vacuous when `k ≥ n` (empty tail); the statement
   remains true.

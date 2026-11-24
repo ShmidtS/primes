@@ -2,7 +2,7 @@ import Hagi.Probability.CertifiedEstimator
 import Hagi.Probability.Freedman
 
 /-!
-# Unified concentration radius/confidence API (A10 merge map)
+# Unified concentration radius/confidence API
 
 One parameterized `radius`/`confidence` pair for the Hoeffding mean-tail
 family, with the canonical theorem chain routed through it and comparison
@@ -18,10 +18,9 @@ statements:
 * `concConfidence_pm1_rescale` — the gate's [−1,1] form
   `exp(−nη²/2)` IS `concConfidence (η/2) n` (radius doubles on the
   [−1,1] scale);
-* `hoeffdingBridge_weaker` — `Ensemble/HoeffdingBridge`'s
-  `exp(−t²/(2n²))` bound follows from the canonical `exp(−2t²/n)`:
-  deletion evidence (audit A10: bridge is the WEAKER leaf; quarantine
-  disposition, not deleted here — the freeze lock awaits `--update`).
+* `hoeffdingBridge_weaker` — the deleted (b9fba226) weaker leaf
+  `exp(−t²/(2n²))` followed from the canonical `exp(−2t²/n)`; kept
+  as comparison evidence.
 -/
 
 namespace Hagi.Probability
@@ -134,16 +133,12 @@ theorem concConfidence_pm1_rescale {n : ℕ} (hn : 0 < n) (eta : ℝ) :
   field_simp
   ring
 
-/-! ## Weaker-bridge comparison (deletion evidence, audit A10) -/
+/-! ## Weaker-bridge comparison -/
 
-/-- `Ensemble/HoeffdingBridge.hoeffding_tail_via_weighted` bounds the
-sum tail by `exp(−t²/(2n²))`; the canonical
-`hoeffding_tail`/`hoeffding_mean_tail` chain bounds it by
-`exp(−2t²/n)`, which is SMALLER for every `n ≥ 1` (exponent gap factor
-n/4): the canonical bound IMPLIES the bridge bound. Together with the
-bridge being an in-tree leaf (survey: no consumers), this is the
-deletion evidence; disposition = quarantine flag awaiting the freeze
-lock `--update`, per audit A10. -/
+/-- Canonical `hoeffding_tail`/`hoeffding_mean_tail` bound `exp(−2t²/n)`
+is SMALLER for every `n ≥ 1` than the deleted weaker leaf's
+`exp(−t²/(2n²))` (exponent gap factor n/4): the canonical bound IMPLIES
+the leaf bound — the comparison evidence behind its removal. -/
 theorem hoeffdingBridge_weaker {n : ℕ} (hn : 0 < n) {t : ℝ} (_ht : 0 ≤ t) :
     Real.exp (-2 * t ^ 2 / (n : ℝ))
       ≤ Real.exp (-t ^ 2 / (2 * ((n : ℝ)) ^ 2)) := by
@@ -158,8 +153,7 @@ theorem hoeffdingBridge_weaker {n : ℕ} (hn : 0 < n) {t : ℝ} (_ht : 0 ≤ t) 
     mul_nonneg (mul_nonneg (sq_nonneg t) hnn.le) (by nlinarith)
   nlinarith [h5]
 
-/-! ## Unified premise API for the Freedman family (A17
-stage 4)
+/-! ## Unified premise API for the Freedman family
 
 The audit ask: ONE premise shape for the concentration family so
 consumers take the radius from ONE place. The record below
@@ -371,13 +365,12 @@ open MeasureTheory ProbabilityTheory
 /-- The Ville-channel premise record: the anytime-valid side
 of the unified API. A significance `level` (α), a filtration, an
 e-process `L` with the supermartingale / nonnegativity /
-unit-budget premises — the premise shape behind `EProcMonitor`
- and the anytime-valid consumers. DATA only: the engine
-(`ville_anytime_false_alarm`) lives above layer 2; the
+unit-budget premises — the premise shape of `Hagi.Contracts.VilleMonitor.EProcMonitor`.
+DATA only: the engine (`ville_anytime_false_alarm`, `Hagi.Unified.AnytimeMartingale`)
+lives above layer 2; the
 master theorem `Hagi.Contracts.VilleMonitor.concVilleAnytime`
-cites it once against this record. Adaptive-data caveat
-inherited: the e-process premises are premise-form, exactly as in
- — nothing here claims validity on adaptively reused
+cites it once against this record. DATA only: the premises are
+premise-form — nothing here claims validity on adaptively reused
 data. -/
 structure ConcVilleChannel {Ω : Type*} {m0 : MeasurableSpace Ω}
     (μ : Measure Ω) [IsProbabilityMeasure μ] where

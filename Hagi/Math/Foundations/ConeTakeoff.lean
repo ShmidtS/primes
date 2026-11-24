@@ -25,7 +25,7 @@ open Finset Real
 namespace Hagi.Foundations
 
 --
-/-- **Канонический одношаговый конус-лемма (R291)**: при
+/-- **Канонический одношаговый конус-лемма **: при
 точном шаге `C (t+1) = C t + γ·D t`, динамике
 `ρ·D t + β·C t ≤ D (t+1)`, `0 < C t`, конусе `k·C t ≤ D t`,
 `γ·k ≤ ρ` и `β ≥ γ·k² + (1−ρ)·k` — конус сохраняется на
@@ -171,7 +171,7 @@ theorem frontier_cone_invariant (C D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
       exact frontier_cone_inductive C D ξ α γ ρ β hα hγ hρ t
         (hCpos t) ih (h_dyn t) (h_C_cap t) (hβ t)
 
-/-! ## The composition with R104 -/
+/-! ## The composition -/
 
 end Hagi.Foundations
 

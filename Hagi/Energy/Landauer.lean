@@ -86,7 +86,7 @@ theorem landauer_sandwich {wPre wPost : V → ℝ}
 /-- **Budget-capped erasure at the certified quantization level**:
 with the certified window `quantErr <= 1/2` and `0 <= kappa`,
 `s`, the discarded information per compress step is at most
-`kappa*s/(2*cUnit)` — the thermodynamic cap on per-cycle容量
+`kappa*s/(2*cUnit)` — the thermodynamic cap on per-cycle capacity
 loss, purely from the certified ledger. -/
 theorem landauer_cap_certified {wPre wPost : V → ℝ}
     (hp : ∀ v, 0 < wPre v) (hq : ∀ v, 0 < wPost v)
@@ -114,7 +114,7 @@ theorem landauer_cap_certified {wPre wPost : V → ℝ}
       _ = kappa * s / (2 * cUnit) := hrw
   linarith [h1, hdiv]
 
-/-! ### Iteration 2: memory, not arithmetic — the capacity cap -/
+/-! ### Memory, not arithmetic — the capacity cap -/
 
 /-- **Written-bits cap (Tkachenko arXiv:2503.09980: "the
 thermodynamic price of a neural network is set by its memory")**:
@@ -167,7 +167,7 @@ theorem serial_divergence_cap (B cOp n : ℝ) (hcOp : 0 < cOp)
   exact (le_div_iff₀ hcOp).mpr h2
 
 
-/-! ### Iteration 6: cycle budget capstone (measure + write) -/
+/-! ### Cycle budget capstone (measure + write) -/
 
 /-- **Cycle budget split (capstone of the thermodynamic line)**:
 one training cycle = full readout-credit measurement (exactly `k`
@@ -191,11 +191,11 @@ theorem cycle_budget_split (B cUnit k F : ℝ) (hcUnit : 0 < cUnit)
   linarith
 
 
-/-! ### Iteration 7: telescoped budget over the trajectory -/
+/-! ### Telescoped budget over the trajectory -/
 
 /-- **Trajectory budget telescope**: if every cycle `t` of a
 run of `T` cycles satisfies its budget split
-`cUnit * (k t + F t) ≤ B t` (iteration-6 capstone per cycle) and
+`cUnit * (k t + F t) ≤ B t` (the cycle capstone per cycle) and
 the per-cycle budgets telescope under the total energy `Etot`
 (`∑ B t ≤ Etot`), then the WHOLE run satisfies the same line:
 `cUnit * (∑ k t + ∑ F t) ≤ Etot`. The measure/write competition
@@ -218,7 +218,7 @@ theorem trajectory_budget_telescope (cUnit : ℝ) (hcUnit : 0 < cUnit)
     _ ≤ Etot := htel
 
 
-/-! ### Iteration 8: lifetime compose (termination x budget) -/
+/-! ### Lifetime compose (termination x budget) -/
 
 /-- **Lifetime compose**: a run whose every cycle dissipates at
 most `d0` (the per-cycle budget) and whose trajectory terminates
@@ -248,14 +248,14 @@ theorem lifetime_thermodynamic_ceiling (cUnit E0 Emin : ℝ)
   exact htel
 
 
-/-! ### Iteration 9: witness — the ceiling line is ATTAINABLE -/
+/-! ### Witness — the ceiling line is ATTAINABLE -/
 
 /-- **Witness: the ceiling is attainable** (non-vacuity of the
 budget line). A pure-measurement cycle spending its ENTIRE budget
 on reading `k` bits of credit (`B = cUnit * k`) and writing
 nothing (`F = 0`) sits exactly on the ceiling edge
 `cUnit * (k + 0) = B`: the thermodynamic ceiling does not forbid
-a cycle — it is TIGHT. Combined with iteration 8, `E0 − Emin`
+a cycle — it is TIGHT. Combined with the lifetime compose, `E0 − Emin`
 over `cUnit` is the exact reachable total, and the learning
 problem reduces to choosing the split `(k, F)` on the line
 `k + F = B / cUnit` to maximize realized capability — the formal
@@ -269,7 +269,7 @@ theorem witness_ceiling_attainable (cUnit B k : ℝ) (hcUnit : 0 < cUnit)
     exact div_pos (mul_pos hcUnit hk) hcUnit
 
 
-/-! ### Iteration 10: optimal split (quality model) -/
+/-! ### Optimal split (quality model) -/
 
 /-- **Optimal split** ("maximum quality at minimal volume" as a
 theorem): let capability after the cycle be a function θ(k) of the
@@ -277,7 +277,7 @@ measured credit ONLY (a quality model in the sense of the
 information-theoretic scaling laws, Jeon–Van Roy
 arXiv:2407.01456: quality is a functional of absorbed information),
 strictly increasing in `k`. Among all budget-line splits
-(`k + F = B/cUnit`, iteration 5–6–9) with a volume cap `F ≤ Fmax`,
+(`k + F = B/cUnit`) with a volume cap `F ≤ Fmax`,
 the split `k* = B/cUnit − Fmax` PARETO-DOMINATES: any other split
 has strictly less measured credit, hence strictly less capability,
 and never less volume. The formal core: under thermodynamic laws,
@@ -292,8 +292,7 @@ theorem optimal_split_pareto (B cUnit Fmax : ℝ) (hcUnit : 0 < cUnit)
   hθ (by linarith)
 
 
-/-! ### Iteration 11: growth witness — capability growth is
-thermodynamically realizable -/
+/-! ### Growth witness — capability growth is thermodynamically realizable -/
 
 /-- **Growth witness** (the self-development core, non-vacuous):
 for any lifetime `T ≥ 1`, minimal per-cycle credit `kmin > 0` and
@@ -302,7 +301,7 @@ total energy `Etot` covering the pure-measurement line
 every cycle a pure-measurement cycle on the budget edge
 (`k t = kmin`, `F t = 0`, `B t = cUnit * kmin`, total `T * kmin`
 credit absorbed) — and since capability θ is strictly increasing
-in absorbed credit (iteration-10 quality model), the final
+in absorbed credit (the quality model above), the final
 capability STRICTLY EXCEEDS the initial one: the model has GROWN
 while obeying every thermodynamic law. Growth + thermodynamic
 compatibility in one statement: the ceiling does not forbid
@@ -325,7 +324,7 @@ theorem thermodynamic_growth_witness (cUnit kmin Etot : ℝ)
     exact hθ (by linarith)
 
 
-/-! ### Iteration 12: every-cycle growth (prefix monotonicity) -/
+/-! ### Every-cycle growth (prefix monotonicity) -/
 
 /-- **Strict prefix growth**: in the growth witness trajectory,
 capability does not merely improve from start to finish — it
@@ -357,7 +356,7 @@ theorem strict_prefix_growth (kmin : ℝ)
   nlinarith [hkmin]
 
 
-/-! ### Iteration 13: first crossing — minimal cycles to target -/
+/-! ### First crossing — minimal cycles to target -/
 
 /-- **First crossing** (target reachability): if the witness
 trajectory of `T` cycles strictly exceeds a capability target

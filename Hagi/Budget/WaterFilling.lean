@@ -17,13 +17,10 @@ budget-feasible bit allocations the total error attains its
 minimum, and at the minimum no strictly improving transfer
 can exist (it would stay inside the budget set, contradicting
 minimality), so `imbalance_yields_gain` contrapositive gives
-the factor-2 balance. honest boundary: this is an existence
-proof (via `Finset.min'`), not a construction; the
-TERMINATION OF THE GREEDY REALLOCATION LOOP is now
-formalized separately in `BitAllocTermination.
-no_infinite_improving_chain` (a strictly-improving
-walk on the finite fixed-budget allocation space cannot
-continue forever).
+the factor-2 balance. Honest boundary: this is an existence proof
+(via `Finset.min'`), not a construction; the TERMINATION OF THE
+GREEDY REALLOCATION LOOP is `BitAllocTermination.
+no_infinite_improving_chain`.
 
 **Result.** `exists_balanced_allocation`: for any layer
 sensitivities and any bit budget `B`, there EXISTS an
@@ -278,21 +275,16 @@ theorem waterfilling_bound (c : ι → ℝ) (kappa : ℝ)
     _ ≤ ∑ i, c i * Real.exp (-kappa * b i) :=
         Finset.sum_le_sum fun i _ => hper i
 
-/-- **The active-set form (round-34 sync with the Python
-fix): the allocation law with the positive part.** The
-closed-form water level
+/-- **The active-set form: the allocation law with the positive
+part.** The closed-form water level
 
 `b_i* = max(0, (1/κ)·log(c_i/λ))` —
 
-the negative-bit clamp: tensors with c_i ≤ λ (the residual
-under the price even at zero budget) are EXCLUDED (b_i* = 0)
-and the budget redistributes over the active set
-{c_i > λ}. The Lean side previously recorded only the
-interior form (c_i·e^{−κb_i*} = λ); the positive part is the
-boundary case of the same KKT (the complementarity: the
-inactive tensors' marginal at 0 is under the price). The
-formal statement: for the inactive tensor (c_i ≤ λ) the
-clamped allocation is zero. -/
+the negative-bit clamp: tensors with c_i ≤ λ are EXCLUDED (b_i* = 0)
+and the budget redistributes over the active set {c_i > λ} — the
+boundary case of the same KKT (complementarity). The formal
+statement: for the inactive tensor (c_i ≤ λ) the clamped allocation
+is zero. -/
 theorem waterfilling_inactive_clamp (c_i lam kappa : ℝ)
     (hcpos : 0 < c_i) (hlam : 0 < lam) (hkappa : 0 < kappa)
     (hinactive : c_i ≤ lam) :
@@ -343,8 +335,8 @@ the fresh leaves). One cycle applies two maps:
 
 * `genMean_assoc` — the generational merge is associative: the
   mean-of-means equals the flat mean over all leaves — the
-  formal ground for the round-21 merge fix (the leaf
-  granularity normalization): hierarchical merge with identical
+  mean-of-means equals the flat mean over all leaves: hierarchical merge
+  with identical
   subgroups is *the same object* as the flat merge, so identity
   and the 1/n scale survive every level (the `3×-identical
   merged == single` test is the N=9 instance).
@@ -362,18 +354,12 @@ the fresh leaves). One cycle applies two maps:
   the fresh disagreement) falls under ε and the SATURATED
   verdict fires at the *generational* level.
 
-**Prescription for the code.** The generational verdict for
-growth_gate: measure the sibling-disagreement of the *new*
-leaves (the same twoGap statistic as the ladder level); the
-recursion is alive while `G_new ≥ ε` (the fresh leaves still
-disagree measurably) and dies exactly when `G_new < ε` — at
-which point the only remaining axis is the data axis
-(EXHAUSTED): change the corpus mixture (the field D), not the
-architecture. The two constants (`ρ`, `D`) are measured per
-generation, and the death threshold is the SAME ε as the
-ladder-level SATURATED — one criterion, two scales.
+**Prescription**: the recursion is alive while the fresh-leaf
+disagreement `G_new ≥ ε` and dies when `G_new < ε` — then change the
+corpus mixture (the field D), not the architecture; the death threshold
+is the SAME ε as the ladder-level SATURATED.
 
-**Distill-back (round 22, P4 — honest scope).** The
+**Distill-back (honest scope).** The
 expressivity question (can a V·d leaf represent the KL of a
 3-leaf ensemble: `min_KL(p_wide ‖ p_leaf)`) is a capacity
 question of the *block* architecture vs the ensemble; the
@@ -397,9 +383,8 @@ noncomputable def genMean {ι : Type*} [Fintype ι]
 
 /-- **Associativity of the generational mean (the merge-fix
 ground).** The hierarchical mean-of-means (merge N groups of
-identical-size subgroups, then merge the merged) equals the flat
-mean over all leaves — the round-21 granularity fix is the
-statement that the *normalization* of the outer merge must be
+mean over all leaves: the outer merge must be normalized by the
+leaf count, and the flat
 the leaf count, and this theorem is the formal reason: the flat
 mean is the invariant object that both levels must reproduce. -/
 theorem genMean_assoc {ι κ : Type*} [Fintype ι] [Fintype κ]
@@ -475,21 +460,11 @@ flagged, not a theorem about the real transformer).
   the instances inherit their status from their tail
   hypotheses.
 
-**Prescription for the code.**
-
-1. Every allocation knob reads the same table: compute
-   −E'_j/c_j per resource from the measured fit; allocate
-   while it exceeds λ; the λ from the budget B (the shadow
-   price is measured, not tuned).
-2. The ASSUMPTION rows are honest: the LoRA-κ and the
-   keep-rate variance are PENDING measurements (r-sweep
-   {32,48}, keep-rate variance) — the law applies to them
-   only after the fits are in; do not ship allocations built
-   on the flat-spectrum κ (it is not measurable at r=16).
-3. The generational stopping (`Hagi.Compound.compound_budget`)
-   is the same law in the time domain: continue while
-   α•D + J > ε_c — the marginal value of another generation
-   against its cost; the D-field row is its data side.
+**Prescription**: allocate while −E'_j/c_j exceeds the shadow price λ
+(from the budget B); the ASSUMPTION rows (LoRA-κ, keep-rate variance)
+apply only after their fits are measured — do not ship allocations built
+on the flat-spectrum κ. The generational stopping
+(`Hagi.Foundations.compound_budget`) is the same law in the time domain.
 -/
 
 open Finset

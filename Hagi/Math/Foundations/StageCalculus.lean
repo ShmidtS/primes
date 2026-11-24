@@ -90,7 +90,7 @@ theorem joint_stage (L eta dnorm inner E2 E1 : ℝ)
   have hterm : eta * dnorm ^ 2 ≤ eta * inner := mul_le_mul_of_nonneg_left hdescent heta0
   linarith
 
-/-! ## Optimal step size analysis (R347)
+/-! ## Optimal step size analysis
 
 Under the smoothness bound `E2 ≤ E1 − η·inner + Lη²·dnorm²/2`
 the guaranteed decrease `η·dnorm²/2` (via `joint_stage`) is

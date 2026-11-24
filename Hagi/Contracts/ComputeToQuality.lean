@@ -91,7 +91,7 @@ certified drop is exactly `2·A²/R²` per `ceOneHot_safeStep_le_
 residual`, but NO constant is baked in here), and the initial gap
 `Δ₀ = objective (t 0) − ε` fits in `n` drops (`Δ₀ ≤ n·d`), then
 after `n` steps the quality floor ε is met: `objective (t n) ≤ ε`.
-Pure telescoping — the C294-style bound applied to training steps
+Pure telescoping
 (the engine is `trajectory_telescope_gen`; the sum bound is
 `Finset.sum_le_sum`). No upper bound on n is claimed or needed. -/
 theorem steps_to_quality (deltaLevel : S → ℝ)
@@ -115,8 +115,7 @@ budget and the step count being the MINIMAL witness (the honest
 ceiling premise `n·d ≤ Δ₀ + d`, satisfied by n = ⌈Δ₀/d⌉ where Δ₀ =
 `objective (t 0) − ε` is the initial gap and d the uniform
 certified drop of MAIN 1; minimality does NOT follow from descent
-alone — a trajectory may overrun, the probe iteration caught
-that), the total certified compute is at most
+alone — a trajectory may overrun), the total certified compute is at most
 `(Δ₀ + d)/d · W ≤ (Δ₀/d + 1)·W`: the end-to-end statement of
 «минимизация вычислений». -/
 theorem total_compute_to_quality (deltaLevel : S → ℝ)
@@ -150,7 +149,7 @@ COMPRESSED configuration's per-step descent constant is no better
 than the dense one (`hdd : d ≤ d'` — a PREMISE; no claim that
 compression preserves the descent rate), the gap is nonnegative,
 and the rank is low enough for the per-step advantage (`2k ≤ n`,
- `lowrank_op_count_le` condition), then the idealized
+ making the `lowrank_op_ratio` work fraction ≤ 1), then the idealized
 low-rank total compute `(Δ₀/d')·2kn` beats the dense `(Δ₀/d)·n²`:
 on the (d, W) frontier the cheaper per-step work wins exactly when
 the descent constant does not degrade. The work products are CITED
@@ -185,8 +184,7 @@ theorem lowrank_total_compute_le (Δ d d' : ℝ) {k n : ℕ}
 
 /-! ## The resource-ledger packaging -/
 
-/-- **MAIN 3 — the compute budget certificate** (the C267-style
-budget law for compute): a trajectory of uniform certified drop d
+/-- **MAIN 3 — the compute budget certificate**: a trajectory of uniform certified drop d
 and EXACT per-step compute spend W satisfies the three ledger
 obligations simultaneously — the quality floor is met
 (`steps_to_quality`), the budget channel closes exactly

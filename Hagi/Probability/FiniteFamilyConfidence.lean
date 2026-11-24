@@ -7,8 +7,8 @@ import Hagi.Probability.FiniteFamilyConfidenceEmpirical
 /-!
 # Confidence for a fixed finite family on a finite independent product
 
-This module promotes the reviewed Cycle87 prototypes by composing the existing
-one-sided Hoeffding certificate with the existing finite union bound.  The
+Composes the one-sided Hoeffding certificate with the finite union bound.
+The
 family is fixed before the product sample is observed.  The result is a
 probability calculation on the explicitly supplied independent product; it
 does not assert that any external training or deployment sample is
@@ -30,7 +30,7 @@ noncomputable def populationMean {n : ℕ} (p : Fin n → V → ℝ)
     (X : Fin n → V → ℝ) : ℝ :=
   (∑ i, coordMean p X i) / (n : ℝ)
 
-/- `empiricalMean` moved to `Hagi.Probability.FiniteFamilyConfidenceEmpirical`
+/- `empiricalMean` lives in `Hagi.Probability.FiniteFamilyConfidenceEmpirical`
 (same namespace). -/
 
 omit [Nonempty V] in

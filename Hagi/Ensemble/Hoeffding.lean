@@ -11,7 +11,7 @@ set_option linter.style.header false
 /-!
 # T1a — the Hoeffding kernel (chord route)
 
-The admission-criterion core (open since round-47): for a
+The admission-criterion core: for a
 pool of experts with probability weights p and logit
 deviations d whose pairwise disagreement is bounded by M,
 the mixture generating function obeys
@@ -26,10 +26,10 @@ bounded-disagreement pool is at most ½·log cosh M.
 Route: the chord inequality of exp (convexity on [−M, M]),
 double-summed with the constant-factoring lemmas.
 
-**Honest boundary**: the log-cosh → quadratic reduction
-(½ log cosh M ≤ M²/4) and the Hoeffding tail form
-P(gap − mean ≥ t) are not proven here; the admission
-criterion uses the exact ½·log cosh M bound.
+**Honest boundary**: the Hoeffding tail form P(gap − mean ≥ t) is
+proven later in this file (`hoeffding_tail`); the admission criterion uses
+the exact ½·log cosh M bound (`half_log_cosh_le` gives the quadratic
+reduction).
 -/
 
 open Finset Real
@@ -496,7 +496,7 @@ theorem domain_disagreement_floor (p d : k → ℝ)
   rw [show 1 / 2 * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v))
       = Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v)) / 2 from by ring]
 
-/-- The exact CE-gap identity (audit bridge #1). -/
+/-- The exact CE-gap identity . -/
 theorem twoGap_ce_identity {k : Type} [Fintype k] (m d : k → ℝ) (t : k) :
     Hagi.twoGap (fun v => Real.exp (m v) / ∑ w, Real.exp (m w)) d
       = (Hagi.ceOneHot t (fun v => m v + d v)
@@ -586,11 +586,9 @@ theorem ce_gap_bounded {k : Type} [Fintype k] [Nonempty k] (m d : k → ℝ) (t 
   rw [hid] at hbound
   linarith
 
-/-! ## The M²/8 infrastructure (round-68)
+/-! ## The M²/8 chord infrastructure
 
-The audit (round-68) confirmed the M²/8 sharp constant is a
-real consequence of pair_factor + the centered Hoeffding
-lemma. The two chord factors are now proven:
+The two chord factors:
 
 - `chord_factor1`: Σ p e^d ≤ (D−μ)/(2D)·e^{−D} + (μ+D)/(2D)·e^D
   with μ = Σ p d — the exact chord value of the marginal
@@ -600,13 +598,10 @@ lemma. The two chord factors are now proven:
 **Negative finding (recorded)**: the product of the two
 chord bounds equals cosh²D + (μ/(2D))²·(e^D−e^{−D})²/4·…
 i.e. EXCEEDS cosh²D when μ ≠ 0 — the direct cosh²D product
-route does not close. The sharp M²/8 requires the full
-centered Hoeffding lemma (the transcendental (b−a)²/8 step,
-absent from Mathlib) applied to the centered deviations
-d − μ (range ≤ 2D = the pairwise diameter M, mean zero):
+route does not close. The sharp M²/8 goes through the centered
+Hoeffding lemma (`hoeffding_fin` below) applied to the centered
+deviations d − μ (range ≤ 2D = the pairwise diameter M, mean zero):
 each factor ≤ e^{M²/8}, product ≤ e^{M²/4}, twoGap ≤ M²/8.
-Declared open — the factors above are the chord half of that
-lemma; the missing half is the log-sum bound of
 ((b)e^a − (a)e^b)/(b−a) ≤ e^{(b−a)²/8}.
 -/
 /-- The sharp two-factor chord bound: factor 1. -/
@@ -668,7 +663,7 @@ theorem chord_factor2 {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
       show (-(∑ v, p v * d v) + D) = D - ∑ v, p v * d v from by ring] at h
   exact h
 
-/-- **The certified pruning/merge certificate (roadmap #3)**:
+/-- **The certified pruning/merge certificate**:
 merging two leaves whose logits differ by at most delta at
 every token (the centroid-closeness / high-mutual-
 information regime) increases the cross-entropy by at most
@@ -681,9 +676,9 @@ alias prune_certificate := _root_.Hagi.Ensemble.ce_gap_bounded
 section HoeffdingFin
 
 /-!
-### Hoeffding lemma, finite form (R374)
+### Hoeffding lemma, finite form
 
-The missing sharp `(b − a)²/8` half of the chord bound
+The sharp `(b − a)²/8` half of the chord bound: for a FINITE weighted
 (recorded negative finding above): for a FINITE weighted
 ensemble `w` on `V` with values `d v ∈ [a, b]` and exact
 weighted mean `∑ w v * d v = 0`, the weighted exponential
@@ -787,7 +782,7 @@ theorem hoeffding_fin (w d : V → ℝ) (a b : ℝ)
     _ = Real.exp (t ^ 2 * (b - a) ^ 2 / 8) := hkey
 
 /-!
-### The Hoeffding tail (R383) — closing the file's honest boundary
+### The Hoeffding tail
 
 From the MGF bound (`hoeffding_fin`) to the actual tail
 event probability via the Chernoff method: for centered
@@ -872,7 +867,7 @@ theorem hoeffding_tail (w d : V → ℝ) (a b : ℝ)
   exact le_of_eq (by ring)
 
 /-!
-### Union bound over a finite class (R384)
+### Union bound over a finite class
 
 Uniform tail over a finite class of centered bounded
 functions — the finite-class uniform convergence kernel:
@@ -882,7 +877,7 @@ functions — the finite-class uniform convergence kernel:
 Route: pointwise indicator domination
 (`if ∃k … then w v else 0 ≤ ∑_k if ε ≤ d k v then w v else 0`
 via `Finset.single_le_sum`), then `Finset.sum_comm` and the
-per-k bound `hoeffding_tail` (R383). -/
+per-k bound `hoeffding_tail`. -/
 variable {K : Type*} [Fintype K]
 
 theorem hoeffding_union_tail (w : V → ℝ) (d : K → V → ℝ)

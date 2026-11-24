@@ -19,9 +19,9 @@ set_option linter.style.header false
   `temperature_changes_softmax` — if rescaled logits (`c ≠ 1`)
   produce the same softmax distribution, the logits were constant.
 
-A19.1: the `lse` / `ceOneHot` / `softmaxP` family moved to the
-canonical Info module `Hagi.Math.Info.InfoCore` (frozen FQNs
-`Hagi.Core.*` / `Hagi.*` preserved; this module imports it).
+The `lse` / `ceOneHot` / `softmaxP` family lives in the canonical Info
+module `Hagi.Math.Info.InfoCore` (FQNs `Hagi.Core.*` / `Hagi.*` preserved;
+this module imports it).
 -/
 
 open scoped Matrix

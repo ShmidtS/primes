@@ -3,14 +3,14 @@ import Hagi.State.Transition
 import Hagi.Unified.CertifiedLoop
 
 /-!
-# StepCertificate — мост TrainState → универсальный StepCert (Gate 3, §5.1)
+# StepCertificate — мост TrainState → универсальный StepCert
 
 TrainState получает канонический измеритель качества
 (MeasuredState через evaluate — качество из фактического состояния)
 и конструктор сертифицированного шага: спуск выводится из
 trainStep_energy_descent (НЕ назначается), риск/бюджет — из
 точной бухгалтерии trainStep. Траекторная композиция наследуется
-универсальной certified_loop (§5.2: без дублирования).
+универсальной certified_loop (без дублирования).
 -/
 
 namespace Hagi.Contracts
@@ -21,7 +21,7 @@ open Hagi.Unified.LinkedQVec
 variable {n a r c k : ℕ}
 
 /-- Канонический измеритель TrainState: качество = evaluate
-(из фактического состояния, §4.2). -/
+(из фактического состояния). -/
 noncomputable def trainMeasured : MeasuredState (TrainState n a r c k) where
   evaluate := Hagi.State.evaluate
 

@@ -4,13 +4,14 @@ import Hagi.External.Flywheel.SVDRectangularOrdering
 set_option relaxedAutoImplicit false
 
 /-!
-# Rectangular spectral identification bridge (E2 /)
+# Rectangular spectral identification bridge
 
- embedded rectangular carriers into the square Flywheel SVD via
+`GradientBottleneck` embedded rectangular carriers into the square
+Flywheel SVD via
 the row-selector `selP inj` and proved the Eckart-Young lower bound
 for the EMBEDDED spectrum, deferring its identification with the
-rectangular `Matrix.SVD.Rectangular.singularValues` spectrum. This
-file closes that deferral.
+rectangular `Matrix.SVD.Rectangular.singularValues` spectrum;
+this file proves the identification.
 
 Key observation (`selP_conjTranspose_mul_selP`): for injective
 `inj`, the selector `selP inj` has orthonormal columns, so the
@@ -31,7 +32,7 @@ Hermitian Gram matrix, hence:
   rectangular tail `rectangularTail`;
 * `eckart_young_lower_bound_rect_true_tail` — the rectangular
   Eckart-Young lower bound restated against the rectangular
-  spectrum itself (the audit's identification);
+  spectrum itself (the identification);
 * `gradient_bottleneck_bound_rect_true_tail` — the consumer
   instantiation for `logitGradRectM`.
 
@@ -46,8 +47,6 @@ Mathlib note: `Mathlib.Analysis.InnerProductSpace.SingularValues`
 offers a `LinearMap.singularValues` API with the analogous facts,
 but no matrix ↔ `LinearMap` bridge is pinned in this repository;
 this file stays in the matrix/`eigenvalues₀` carrier.
-
-Created: 2026-11-15
 -/
 
 open Matrix Finset
@@ -134,7 +133,7 @@ set_option linter.unusedDecidableInType false in
 index range, the square `Matrix.SVD.singularValues₀` of the
 embedded matrix `selP inj * A` agrees with the rectangular
 `Matrix.SVD.Rectangular.singularValues` of `A`. This is the
-identification deferred . -/
+identification `GradientBottleneck` defers. -/
 theorem embedded_singularValues_eq_rect (inj : m → n) (hinj : Function.Injective inj)
     (A : Matrix m n ℂ) (k : Fin (min (Fintype.card m) (Fintype.card n))) :
     Matrix.SVD.singularValues₀ (selP inj * A)

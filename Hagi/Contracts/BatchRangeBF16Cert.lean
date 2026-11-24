@@ -32,11 +32,11 @@ normal binade differences are exactly representable); the code carrier
 is rational `decode` while logits are real, so the eps = 0 theorem
 takes an exact logit-equality premise rather than a cast.
 
-The concrete instantiation `batchCEMetrics` puts the true batch loss
-on the Euclidean parameter carrier with constant remaining budget/risk
-levels (R1 polarity slice: `riskRem = riskTotalLimit - protectedRisk`
-supplied by the caller, since the GrowthState carrier lives in
-quarantined `Hagi.Research.Legacy`), and the two `TransitionStep` constructors
+The concrete instantiation `batchCEMetrics` puts the true batch loss on the
+Euclidean parameter carrier with constant remaining budget/risk
+levels (`riskRem = riskTotalLimit - protectedRisk` supplied by the
+caller, since the GrowthState carrier lives in quarantined
+`Hagi.Research.Legacy`), and the two `TransitionStep` constructors
 realize the two-stage acceptance gate slice: progress when the gate is
 active and `0 ≤ riskRem - opRisk`, hold via `HoldStep.id` otherwise.
 These are formal one-step certificates, not runtime code.
@@ -157,11 +157,10 @@ theorem bf16_exact_binade_ceRange_descent {V : Type} [Fintype V] [Nonempty V]
 open Hagi.Cert.Adapters
 
 /-- Concrete system metrics for the batch-CE setting on the Euclidean
-parameter carrier: the objective is the true arithmetic-mean batch
-loss; risk and budget are the concrete remaining levels (R1 polarity
-slice: the caller supplies `riskRem = riskTotalLimit - protectedRisk`,
-since the GrowthState carrier lives in quarantined `Hagi.Research.Legacy`);
-the task tag is `Unit`. -/
+parameter carrier: the objective is the true arithmetic-mean batch loss;
+risk and budget are the concrete remaining levels (the caller supplies
+`riskRem = riskTotalLimit - protectedRisk`, since the GrowthState carrier
+lives in quarantined `Hagi.Research.Legacy`); the task tag is `Unit`. -/
 noncomputable def batchCEMetrics {V : Type} [Fintype V] {B d : ℕ}
     (X : Fin B → Matrix V (Fin d) ℝ) (y : Fin B → V)
     (riskRem budgetRem : ℝ) :
@@ -254,7 +253,7 @@ noncomputable def batchCE_transitionStep_hold {V : Type} [Fintype V]
     (Hagi.Contracts.BatchCETrajectory.batchLoss_nonneg X θ y))
 
 
-/-! ## derived-eps bridge from the rational BF16 carrier (A8 F3)
+/-! ## derived-eps bridge from the rational BF16 carrier
 
 The eps premise of the guarded-descent gate is normally supplied by
 the caller. For rational-valued target logits inside the bf16 normal

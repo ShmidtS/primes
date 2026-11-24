@@ -17,7 +17,7 @@ set_option linter.style.header false
 `joint_stage_linked`: the joint-stage descent with the real
 inner product and norm from `safeQP_descent`; only smoothness
 is h_emp_. Lyapunov termination is delegated to
-`Hagi.Foundations.lyapunov_termination_fin` (R197+audit dedup).
+`Hagi.Foundations.lyapunov_termination_fin`.
 `protected_generation_budget`: per-generation regression ≤ ε
 and spend ≤ b accumulate to at most `T·ε` and `T·b` over `T`
 generations.
@@ -103,7 +103,7 @@ structure StageEffects where
   growEnergy : ℝ
   /-- Merge stage: post energy and protected risk (F3 mixer; the
     parameter part is the orthonormal RealF3 mixer path — `reBlock`,
-    R89/R90 orthogonality). -/
+    orthogonality). -/
   mergeEnergy : ℝ
   mergeRisk : ℝ
   /-- Merge stage: compute cost (P1.3: honest resource
@@ -163,7 +163,7 @@ structure GrowthState (X : Type*) [NormedAddCommGroup X]
   /-- Measured stage constants. -/
   sp : StageParams
   /-- The measured per-stage effect fields (h_emp_ inputs),
-  grouped as one record (audit v3 Phase 4, R341). -/
+  grouped as one record. -/
   effects : StageEffects
 
 /-- The potential `Φ := energy + protectedRisk`. -/
@@ -224,7 +224,7 @@ def grow (S : GrowthState X) : GrowthState X where
   effects := S.effects
 
 /-- **Merge**: the F3-merged pool (parameter path: the orthonormal
-RealF3 mixer, R89/R90); the energy effect is the Concat-adapter gap
+RealF3 mixer); the energy effect is the Concat-adapter gap
 law on `mergeEnergy`. -/
 def merge (S : GrowthState X) : GrowthState X where
   weightDim := S.weightDim
@@ -297,7 +297,7 @@ structure Certificate where
   /-- Protected-risk spent in the generation. -/
   riskSpend : ℝ
   /-- Compute budget spent in the generation.
-  Accounting semantics (unified plan §5.4, R312):
+  Accounting semantics (unified plan §5.4):
   covers ONLY the growth and joint stages
   (`growCost + jointCost`); the compression cost
   `costCompress` is deliberately NOT a budget spend
@@ -381,7 +381,7 @@ theorem potential_merge (S : GrowthState X)
     (h_emp_merge : S.effects.mergeEnergy ≤ S.energy - gainMerge S) :
     potential (merge S) - potential S ≤ -gainMerge S + riskMerge S := by
   -- the content is `merge_stage` (Emerged ≤ Emean − G); the sign
-  -- G ≥ 0 is the Concat adapter's (R88) — no free parameter
+  -- G ≥ 0 is the Concat adapter's — no free parameter
   have hp : potential (merge S)
       = S.effects.mergeEnergy + (S.protectedRisk + S.effects.mergeRisk) := rfl
   have hps : potential S = S.energy + S.protectedRisk := rfl
@@ -520,7 +520,7 @@ theorem budget_account (S : GrowthState X) :
       + S.effects.compressCost := rfl
   linarith
 
-/-! ### StageCertificate (audit v3 Phase 4 step 2, R342) -/
+/-! ### StageCertificate -/
 
 /-- The one-generation stage certificate: the potentials before
 and after the composed generation plus the verifier certificate
@@ -721,7 +721,7 @@ ADDS the fix beside them, never edits them):
   nothing forces the post-cycle state's effects to be a re-measurement
   — see `stale_effects_gap_witness` for the formal gap.
 * **Capability tie.** The master invariant's `cap` channel
-  (`CertifiedHAGIInvariant.capability_growth`, R107) is an abstract
+  (`CertifiedHAGIInvariant.capability_growth`) is an abstract
   `ℕ → ℝ` sequence; without the equality `cap t = (St t).capability`
   the growth theorem does not certify state capability growth. The
   missing premise is named here (`CapabilityTie`) and PROVEN for the
