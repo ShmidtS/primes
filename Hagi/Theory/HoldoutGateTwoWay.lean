@@ -4,7 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Theory.Statistics
 
 /-!
-# HoldoutGateTwoWay — holdout-гейт ↔ популяционный риск (C660)
+# HoldoutGateTwoWay — holdout-гейт ↔ популяционный риск
 
 Код-предикат (HAGI_v2 `hagi/unified.py`, `_maybe_grow` @b3740e0:504-581):
 новый блок принимается (`GROW`) iff

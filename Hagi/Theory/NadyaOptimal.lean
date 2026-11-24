@@ -11,12 +11,12 @@ set_option linter.style.openClassical false
 set_option linter.style.header false
 
 /-!
-# NadyaOptimal — идеи «HAGI v2 Optimal» и их носители в primes (C666)
+# NadyaOptimal — идеи «HAGI v2 Optimal» и их носители в primes
 
 Источник (READ-ONLY): `C:/HAGI_v2/checkpoints/Надя.txt` @2026-11-24,
 961 строк Python «HAGI v2 Optimal — Compact Self-Growing Neuro-Symbolic
 Byte Model». Формализованы только идеи с честным носителем; остальное —
-карточки в STATUS.md (C666).
+карточки в STATUS.md.
 
 * §BitAlloc: _pack_trits5/_unpack_trits5 (Надя.txt:413-424, 5 тритов
   {-1,0,1} → byte, base-3, цифра = уровень + 1) — round-trip
@@ -28,7 +28,7 @@ Byte Model». Формализованы только идеи с честным
 * §Schedules: cosine-расписание HybridMuon (Надя.txt:136,
   sched = 0.15 + 0.85·½(1 + cos(π·min(t,T)/T))) — границы, старт,
   финиш, монотонность; Muon-шаг (Надя.txt:140-144) — `muon_step_norm_bound`.
-* WIDTH-рост (C667) — отдельный модуль `Hagi/Theory/WidthGrowth.lean`;
+* WIDTH-рост — отдельный модуль `Hagi/Theory/WidthGrowth.lean`;
   DEPTH-рост `trunk_function_preserving` — FunctionPreservingGrowth.
 * §LCB: paired_gain (Надя.txt:109-112) — гейт ingest_continual
   (Надя.txt:884-890, GROW iff lcb > 0): вероятность ложного GROW
@@ -36,9 +36,9 @@ Byte Model». Формализованы только идеи с честным
   и детерминированном радиусе (`paired_lcb_false_grow_bound`).
 * §Bypass: EXACT_BYPASS (Надя.txt:695-750) — one-hot предиктор ⇒ CE = 0,
   идеальная длина кода = 0 = энтропия (`bypass_reaches_compression_limit`;
-  мост ExactBypass C541 ↔ ArchiverCodeLength C653).
+  мост ExactBypass ↔ ArchiverCodeLength).
 
-Арithmetic coder (Надя.txt:460-560) не формализован — карточка C653;
+Арithmetic coder (Надя.txt:460-560) не формализован — карточка ArchiverCodeLength;
 coherence_dust_filter — эвристика без certified-свойства (карточка).
 -/
 

@@ -37,7 +37,7 @@ restored — exactly, with no partial borrowing from the candidate.
   step; the gate/rollback semantics above do not depend on it (it
   only affects WHICH candidate reaches the gate). The scale schedule
   and the per-trial accept predicate ARE modeled below (WAVE 254
-  bridge, C643); the Adam trial step itself is not.
+  bridge); the Adam trial step itself is not.
 - The early HOLD branches (missing tasks, backward failure,
   non-finite gradient, gradient conflict, degenerate direction —
   source: hagi/selfmodel.py:95-124) leave the state untouched in
@@ -253,7 +253,7 @@ source: hagi/selfmodel.py:164-169. -/
 def backtrackAccept (wb wa errBound worst mtr : ℝ) : Prop :=
   worst ≤ mtr ∧ wb - wa > errBound
 
-/-- **`backtrack_accept_drop`** (h1 form of C642 for a COMMIT trial): an
+/-- **`backtrack_accept_drop`** (h1 form of `warmup_safe` for a COMMIT trial): an
 accepted trial lowers the weighted validation loss by more than the error
 budget: `wa ≤ wb − drop` with `drop := wb − wa − errBound ≥ 0` (in fact
 strictly positive). `drop` is a fact of the accept predicate, not a

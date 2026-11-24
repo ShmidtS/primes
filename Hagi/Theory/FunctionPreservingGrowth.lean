@@ -28,38 +28,32 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
 * (b) `blocksLip_grow_identity` — константа Липшица не меняется
   (`L_old · 1 = L_old`: lip-добавка на шаге 0 = 0, выведена);
   общий случай — per-block premise контракта (см. pins).
-* (e) Post warm-up сертификат роста (C642) — `warmup_safe`: при
+* (e) Post warm-up сертификат роста — `warmup_safe`: при
   identity-старте и certified-шагах train-objective ≤ fOld при
   любом вердикте holdout-гейта.
-* (f) Контракт certified-шага (C644) — `CertifiedFiniteStep`
+* (f) Контракт certified-шага — `CertifiedFiniteStep`
   (COMMIT: drop выше порога ∧ obj θ' ≤ obj θ − drop; HOLD: точный
   rollback, drop = 0) ⇒ h1 (`warmup_h1_of_certified_steps`) ⇒
   композиция с (e); негативы: uncertified-шаг контракт не проходит,
   per-batch drop на другой objective не телескопирует.
-* (g) Certified-шаг на параметрах БЛОКА (C646) — range-лемма CE
+* (g) Certified-шаг на параметрах БЛОКА — range-лемма CE
   живёт на ЛОГИТАХ (`Hagi.Energy.lse_shift_upper`), носитель θ не
   входит: `certified_step_block_of_range` (любое `L : B → K → ℝ`),
   `block_step_certified_of_range_bound` / `block_step_commit_of_range_bound`
   (COMMIT-ветка контракта для `CE ∘ L`); негатив
   `block_range_bound_violated_not_certified`.
-* (h) Полезность первого шага (C657) — `useful_first_step`
+* (h) Полезность первого шага — `useful_first_step`
   (drop(η) = |a|η − R²η²/8, η* = 4|a|/R², drop_max = 2a²/R²),
   `useful_eta_le` (максимум единственный), `exists_useful_eta`,
   `first_step_useful_certified` (COMMIT-контракт на `CE_t ∘ L`),
   `first_step_strict_improves` (obj < fOld); негатив
   `no_signal_no_drop` (a = 0 ⇒ drop ≤ 0).
-* (i) Chain rule для линейного носителя (C663) — `chainGrad`,
+* (i) Chain rule для линейного носителя — `chainGrad`,
   `chain_linear` (T1: ⟨p − y, J·d⟩ = −⟪g, d⟫, g = Jᵀ(y − p)),
   `useful_of_adam_first` (T2: Adam-first + линейность ⇒ COMMIT —
-  гипотеза (h) «a < 0» ВЫВЕДЕНА из C655).
-* (j) Нелинейный носитель: спуск по дифференциалу (C665) —
-  `useful_step_of_fderiv` (N2: `Df(b) d = −c < 0` ⇒ строгое
-  убывание для малого η, любой дифференцируемый носитель),
-  `useful_of_adam_first_fderiv` (T3: Adam-first ⇒ убывание для
-  любого `L` с производной Фреше), `hasFDerivAt_relu` /
-  `hasFDerivAt_reluL` (relu-блок дифференцируем по b1 вне kink),
-  `useful_of_adam_first_relu` (T4: Adam-first на b1-блоке).
-* (j) Нелинейный носитель: спуск по дифференциалу (C665) —
+  гипотеза (h) «a < 0» ВЫВЕДЕНА из
+  `adam_first_step_dot_pos`).
+* (j) Нелинейный носитель: спуск по дифференциалу —
   `useful_step_of_fderiv` (N2: `Df(b) d = −c < 0` ⇒ строгое
   убывание для малого η, любой дифференцируемый носитель),
   `useful_of_adam_first_fderiv` (T3: Adam-first ⇒ убывание для
@@ -91,14 +85,14 @@ Cycle-соответствие: `scripts/bench_bridge.py --mode grow` испол
 - **lip после обучения** — per-block premise контракта
   `CertifiedBlock`: операторная норма обученного
   блока на потребителе. На шаге 0 добавка = 0 выведена здесь.
-- **Существование полезного блока** — ЛОКАЛЬНО доказано (C657,
-  секция «Полезность первого warm-up шага»): при линейном по η
+- **Существование полезного блока** — ЛОКАЛЬНО доказано
+  (секция «Полезность первого warm-up шага»): при линейном по η
   смещении логитов, descent-сигнале `a < 0` и `stepEps < 2a²/R²`
   первый шаг блока certified COMMIT (`first_step_useful_certified`,
   `first_step_strict_improves`). Глобальная достижимость
   (`drop ≥ δ` после многих шагов, non-convex) — по-прежнему не
   доказана; `a < 0` — гипотеза для НЕЛИНЕЙНОГО по параметрам
-  носителя (b1/W1). Частично закрыто C665 (секция «Нелинейный
+  носителя (b1/W1). Частично закрыто (секция «Нелинейный
   носитель: спуск по дифференциалу»): вне kink (`w i + b i ≠ 0`)
   b1-блок дифференцируем и Adam-first даёт СТРОГОЕ убывание CE
   для малого η (`useful_of_adam_first_relu`) — но без certified-
@@ -106,7 +100,7 @@ Cycle-соответствие: `scripts/bench_bridge.py --mode grow` испол
   нелинейно) и без W1 (производная по W1 — через `a`, не
   формализована).
   Для ЛИНЕЙНОГО носителя (Wo-блок при фиксированных скрытых
-  активациях, lm.py:581) гипотеза ЗАКРЫТА (C663, секция «Chain rule
+  активациях, lm.py:581) гипотеза ЗАКРЫТА (секция «Chain rule
   для линейного носителя»): `chain_linear` даёт
   `a = −⟪g, d⟫`, `useful_of_adam_first` выводит COMMIT из
   `adam_first_step_dot_pos`.
@@ -266,9 +260,9 @@ theorem zero_init_orthoFiber_identity {D C : ℕ}
   unfold orthoFiberAttn
   simp
 
-/-! ## (e) Post warm-up сертификат роста (C642)
+/-! ## (e) Post warm-up сертификат роста
 
-Разрыв C640: после шага 0 (`Wo ≠ 0`) функция НЕ сохранена —
+После шага 0 (`Wo ≠ 0`) функция НЕ сохранена —
 сертификата «функция сохранена после обучения» нет. Что можно
 сертифицировать честно: train-objective НИКОГДА не ухудшается
 относительно старой модели, если warm-up стартует с identity и
@@ -380,7 +374,7 @@ theorem post_warmup_growth_safe_of_certified (obj : B → ℝ)
   post_warmup_growth_safe obj θ drop fOld h0 hstep hdrop n gate
     fun _ => warmup_safe obj θ drop fOld h0 hstep hdrop n
 
-/-! ### Контракт certified-шага ⇒ h1 (C644)
+/-! ### Контракт certified-шага ⇒ h1
 
 h1 из `warmup_safe` («каждый шаг certified») — гипотеза, пока шаги
 делает голый Adam (unified.py:423-431 @ca52eb4). Носитель шага,
@@ -422,7 +416,7 @@ theorem warmup_h1_of_certified_steps (obj : B → ℝ) (θ : ℕ → B)
       linarith
     · rw [h0]
 
-/-- **`warmup_safe_of_certified_steps`** — композиция с C642: при
+/-- **`warmup_safe_of_certified_steps`** — композиция с `warmup_safe`: при
 identity-старте (h0) certified-траектория даёт `obj (θ n) ≤ fOld`
 (`warmup_safe` с hstep/hdrop из `warmup_h1_of_certified_steps`). -/
 theorem warmup_safe_of_certified_steps (obj : B → ℝ) (θ : ℕ → B)
@@ -445,7 +439,7 @@ theorem post_warmup_growth_safe_of_certified_steps (obj : B → ℝ)
   obtain ⟨hstep, hdrop⟩ := warmup_h1_of_certified_steps obj θ drop hcert
   exact post_warmup_growth_safe_of_certified obj θ drop fOld h0 hstep hdrop n gate
 
-/-- **Негатив (без сертификата)**: шаг из негатива C642
+/-- **Негатив (без сертификата)**: шаг из негатива `warmup_safe`
 (identity-старт, `obj (θ 1) = 1 > 0`) НЕ удовлетворяет контракту
 `CertifiedFiniteStep` ни при каком drop — т.е. контракт отсекает
 шаг, портящий objective, а не просто его игнорирует. -/
@@ -461,7 +455,7 @@ theorem uncertified_step_not_certified (drop : ℝ) :
 минибатча (WAVE 239, lm.py:1002-1005: «per-batch bounds do NOT
  telescope»). Для ДРУГОГО функционала тот же шаг даёт рост:obj_b
 упал на 1/2, а obj вырос на 1. Значит `hcert` с ОДНИМ obj —
-реальное ограничение: телескоп C642 законен только если все шаги
+реальное ограничение: телескоп `warmup_safe` законен только если все шаги
 сертифицированы на одном и том же функционале. -/
 theorem batch_drop_not_global :
     ∃ (objB obj : ℝ → ℝ) (θ θ' : ℝ) (d : ℝ),
@@ -470,9 +464,9 @@ theorem batch_drop_not_global :
   · norm_num
   · simp only [id_eq]; norm_num
 
-/-! ### Certified-шаг на параметрах БЛОКА (C646)
+/-! ### Certified-шаг на параметрах БЛОКА
 
-`_certified_finite_step` пишет только в trunk. Вопрос-гейт C645:
+`_certified_finite_step` пишет только в trunk. Вопрос-гейт:
 зависит ли range-лемма CE (`finite_displacement_ce_upper`, lm.py:235)
 от носителя параметров? НЕТ: лемма — о ЛОГИТАХ, `d` — смещение
 логитов. В каноне это `Hagi.Energy.lse_shift_upper` на абстрактных
@@ -559,9 +553,9 @@ theorem block_range_bound_violated_not_certified :
       exact absurd hle (not_le.mpr (lt_trans h2 hlog))
     · exact absurd heq (by norm_num)
 
-/-! ### Полезность первого warm-up шага (C657)
+/-! ### Полезность первого warm-up шага
 
-Вопрос C656: доказано лишь `obj ≤ fOld` («не хуже»). Когда блок
+Вопрос: доказано лишь `obj ≤ fOld` («не хуже»). Когда блок
 гарантированно даёт drop? Носитель: семейство шагов `bη η` с
 ЛИНЕЙНЫМ по η смещением логитов `L (bη η) − L b = η • D` (код:
 шаг с фиксированным направлением, lm.py:581 `h = h +
@@ -570,9 +564,10 @@ range-леммы выполняется с `r = η·R`, `R` — range-конст
 направления `D`, а линейная часть равна `η·a`,
 `a = ⟨softmax z − onehot, D⟩`. Сертификат:
 `linDrop a R η = −(η·a + η²·R²/8)` — вогнутая парабола по η.
-Связь `a` с `⟨g, d⟩` C655 (`a = ⟨Jᵀ(p−y), d⟩` по chain rule) НЕ
-формализована: `L` нелинейна по параметрам, `a < 0` входит как
-гипотеза «descent в логитах». -/
+Связь `a` с `⟨g, d⟩` (`a = ⟨Jᵀ(p−y), d⟩` по chain rule)
+выведена ниже для линейного носителя (`chain_linear`); для
+нелинейного по параметрам `L` `a < 0` входит как гипотеза «descent
+в логитах». -/
 
 /-- Сертифицированный drop линейного по η семейства шагов:
 `−(η·a + η²·R²/8)`, где `a` — линейная часть range-леммы,
@@ -694,11 +689,11 @@ theorem first_step_strict_improves {K : Type} [Fintype K] [Nonempty K]
 
 end WarmUp
 
-/-! ### Chain rule для линейного носителя (C663)
+/-! ### Chain rule для линейного носителя
 
-Вопрос C657: откуда берётся `a < 0`? Код (lm.py:581 `h = h +
+Вопрос: откуда берётся `a < 0`? Код (lm.py:581 `h = h +
 relu(a@W1+b1)@Wo`): градиент CE по Wo идёт через residual-поток,
-шаг — Adam-first (`d_i = g_i/(|g_i|+ε)`, C655). Формально
+шаг — Adam-first (`d_i = g_i/(|g_i|+ε)`). Формально
 `∇_b (CE ∘ L)(b) = DL(b)ᵀ ∇CE(z)` — chain rule. На ЛИНЕЙНОМ по
 параметрам носителе (Wo при фиксированных h: Δz = J·ΔWo)
 производных Фреше не нужно — это алгебра Finset-сумм (перестановка
@@ -734,8 +729,8 @@ theorem chain_linear {P K : Type} [Fintype P] [Fintype K]
       = ∑ i, ∑ v, J v i * (y v - p v) * d i from
     Finset.sum_congr rfl fun i _ => Finset.sum_mul Finset.univ _ (d i)]
 
-/-- **T2 `useful_of_adam_first`**: гипотеза C657 «`a < 0`» ВЫВЕДЕНА
-для линейного носителя из `adam_first_step_dot_pos` (C655).
+/-- **T2 `useful_of_adam_first`**: гипотеза «`a < 0`» ВЫВЕДЕНА
+для линейного носителя из `adam_first_step_dot_pos`.
 Посылки (параметры — вектор `P → ℝ`, кодовый Wo-блок):
 `g = chainGrad J (softmax (L b)) (onehot t) ≠ 0` (градиент `CE_t ∘ L`
 по параметрам), `d = Adam-first` направление `g/(|g|+ε)`,
@@ -786,9 +781,9 @@ theorem useful_of_adam_first {P K : Type} [Fintype P] [Fintype K] [Nonempty K] [
       (-adamDot g d) R hlin hR hrange ha hdesc
       (by simpa using hmax)
   exact ⟨η, hη, hcert⟩
-/-! ### Нелинейный носитель: спуск по дифференциалу (C665)
+/-! ### Нелинейный носитель: спуск по дифференциалу
 
-Вопрос C663: `a < 0` выведен только для носителя, ЛИНЕЙНОГО по
+`a < 0` выведен только для носителя, ЛИНЕЙНОГО по
 параметрам. Для b1/W1 (lm.py:581 `relu(a@W1+b1)@Wo`) смещение логитов
 нелинейно по η — range-лемма с `r = η·R` и certified-величина drop
 так не выводятся. Минимальный честный вывод для нелинейного носителя —
@@ -976,7 +971,7 @@ theorem hasFDerivAt_reluL {ι K : Type} [Fintype ι] [Fintype K] (w b : ι → �
 `reluL w · wo` (b1-блок lm.py:581), все pre-активации ненулевые,
 `g = chainGrad (reluJac w b wo) (softmax z) (onehot t) ≠ 0`, Adam-first
 `d` ⇒ `∃ η > 0, CE_t (reluL w (b + η • d) wo) < CE_t (reluL w b wo)`.
-Закрывает honest-pin C663/C657 для нелинейного носителя на уровне
+Закрывает honest-pin для нелинейного носителя на уровне
 СТРОГОГО УБЫВАНИЯ (certified-величина drop — не выводится). -/
 
 theorem useful_of_adam_first_relu {ι K : Type} [Fintype ι] [Nonempty ι] [Fintype K]

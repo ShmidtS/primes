@@ -6,7 +6,7 @@ import Hagi.Probability.Azuma
 /-!
 # BatchGlobalTelescope — от per-batch certified drop к глобальному objective
 
-Три уровня (C647, разбор негатива `batch_drop_not_global`):
+Три уровня (разбор негатива `batch_drop_not_global`):
 
 - (A) batch = весь датасет ⇒ batch-objective и есть глобальный
   objective; телескоп уже дан `Hagi.Theory.MasterTheoremV3.master_theorem_v3`

@@ -5,7 +5,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib
 
 /-!
-# AdamDirection — знак ⟨g, d_Adam⟩ (wave 259, C655)
+# AdamDirection — знак ⟨g, d_Adam⟩
 
 Код-факт (HAGI_v2 READ-ONLY @b3740e0): `torch.optim.Adam(...)`
 без `betas`/`eps` — lm.py:349,403,779,930, unified.py:473,548 —
@@ -27,8 +27,8 @@ import Mathlib
   β₂ = 999/1000, g₁ = 1, g₂ = −1/10): `m̂₂ = (2/25)/(19/100) > 0`,
   поэтому `⟨g₂, d₂⟩ < 0` — общий шаг Адама НЕ является
   сертифицированным спуском. В коде HAGI_v2 шаг поэтому принимается
-  только измерённым гейтом `backtrackAccept` (selfmodel.py:134-169,
-  C643) — градиентное соглашение `min_dot` считается для направления
+  только измерённым гейтом `backtrackAccept` (selfmodel.py:134-169)
+  — градиентное соглашение `min_dot` считается для направления
   MGDA ДО Адама (selfmodel.py:119-123).
 -/
 

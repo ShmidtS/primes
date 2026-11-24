@@ -76,19 +76,10 @@ open scoped InnerProductSpace
 open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.NegativeTransfer
 
-/-- **(master_theorem_v3, — спецификация машины)**: для любого
-прогона v3-машины на любом конечном корпусе ВСЕ пять гарантий
-выполняются одновременно — existentially-quantified композиция
-полных частей: (1) параметр-бюджет `params bs.length ≤ 2·k·dd` —
-знание растёт, объём нет (`self_compress_loop_sound.2`); (2)
-zero-forgetting — выход замороженной задачи неизменен ТОЧНО
-(`adapter_per_task_sound`); (3) obj-цепь certified — телескоп
-`step bs.length ≤ o0 + bs.sum` (`self_compress_loop_sound.1`);
-(4) покрытие монотонно — каждая ранее покрытая позиция остаётся
-покрытой (`iterative_loop_sound` при k = 0); (5) warm-перенос
-управляем ТОЧНОЙ границей `2⟪θ,t⟫ vs ‖θ‖²` (`neg_transfer_char`).
-Каждая конъюнкта — делегат к существующей теореме БЕЗ ослабления
-гипотез; адапт-мосты не нужны (формулировки уже итоговые). -/
+/-- **(master_theorem_v3, — спецификация машины)**: клозы (1)–(5)
+карты выше выполняются одновременно для любого прогона v3-машины;
+каждая конъюнкта — делегат к существующей теореме БЕЗ ослабления
+гипотез. -/
 theorem master_theorem_v3
     {d : Type*} [Fintype d] [Nonempty d] {ι : Type}
     (k dd : ℕ) (_hcard : Fintype.card d = dd)
@@ -133,16 +124,7 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.CoverageReading
 
 /-- **(hagi_master_v31, — консолидация certified-машины v3.1)**:
-для любого прогона v3-машины все ПЯТЬ гарантий v3 (параметр-бюджет,
-zero-forgetting, certified obj-телескоп, монотонность покрытия,
-точный iff-transfer) выполняются одновременно, И к ним три клоза
-добора: (6) оптимальный snap-грид `snapK = ⌈log₂(L·d/ε)⌉ − 1`
-минимален для ε-бюджета при `ε < L·d`; (7) каждый байт входа
-`i < n` покрыт некоторым окном `[s, s + k)` решётки `covStarts`;
-(8) для L-smooth objective с равным GD-бюджетом финал зажат
-`f z − n•nlBudget ≤ f (nlRun n γ grad z) ≤ f z` (sufficient-уровень
-двухуровневого transfer-контура рядом с точным iff (5)). Каждая
-конъюнкта — делегат к существующей теореме БЕЗ ослабления гипотез. -/
+клозы (1)–(8); (1)–(5) — проекции `master_theorem_v3`. -/
 theorem hagi_master_v31
     {d : Type*} [Fintype d] [Nonempty d] {ι : Type}
     (k dd : ℕ) (_hcard : Fintype.card d = dd)
@@ -201,15 +183,7 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.GrowSnap
 
 /-- **(hagi_master_v32, — консолидация certified-машины v3.2)**:
-все 8 гарантий v3.1 (`hagi_master_v31`) выполняются
-одновременно, И к ним (9) schedule-клоз: guaranteed per-step drop
-при оптимальном шаге γ* = 1/L равен `G ^ 2 / (2 * L)`
-(`nl_drop_optimal`); (10) hierarchical-coverage-клоз: без
-верхней границы на n каждый байт `i < nB` входа покрыт окном
-`[t, t + w)` решётки `hierStarts nB B w s'` при `0 < B`, `0 < s' ≤ w`
-(`hier_covers_any_n`, peak ≤ m — streaming-чтение любого
-объёма). Каждая конъюнкта — делегат БЕЗ ослабления гипотез;
-клозы (9)–(10) переиспользуют L/G/hL из гипотез v3.1. -/
+клозы (1)–(10); (1)–(8) — проекции `hagi_master_v31`. -/
 theorem hagi_master_v32
     {d : Type*} [Fintype d] [Nonempty d] {ι : Type}
     (k dd : ℕ) (_hcard : Fintype.card d = dd)
@@ -273,14 +247,8 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.GrowSnap
 
 /-- **(hagi_master_v33, — консолидация certified-машины v3.3)**:
-все 10 гарантий v3.2 (`hagi_master_v32`) выполняются
-одновременно, И к ним (11) reading-floor-клоз: при строчке `s = w`
-(`hierStarts nB B w w`) и `w ∣ B` total окон равен
-`(nB + w - 1) / w = ⌈nB/w⌉` — информационному минимуму — и НЕ
-превышается никаким списком `L`, покрывающим `[0, nB)` окнами
-длины `w` (`hier_optimal`). Каждая конъюнкта — делегат БЕЗ
-ослабления гипотез; клоз (11) переиспользует nB/B из hier-блока
-v3.2 и добавляет `hw : 0 < w`, `hdiv : w ∣ B`. -/
+клозы (1)–(11); (1)–(10) — проекции `hagi_master_v32`; (11) добавляет
+`hw : 0 < w`, `hdiv : w ∣ B`. -/
 theorem hagi_master_v33
     {d : Type*} [Fintype d] [Nonempty d] {ι : Type}
     (k dd : ℕ) (_hcard : Fintype.card d = dd)
@@ -350,18 +318,8 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Probability
 
 /-- **(hagi_master_v34, — консолидация certified-машины v3.4)**:
-все 11 гарантий v3.3 (`hagi_master_v33`) выполняются одновременно, И
-к ним три делегата growth-контура:
-(12) при residual-сигнале `a < 0` и `stepEps < 2a²/R²` единственный
-полезный первый шаг growth-блока даёт STRICT улучшение CE на
-носителе `t` (`first_step_strict_improves`);
-(13) первый шаг Adam — направление спуска: `⟨g, d⟩ > 0` при `g ≠ 0`
-(`adam_first_step_dot_pos`);
-(14) holdout-гейт two-way: при `|Θ| ≤ N`,
-`log(2N/δ) ≤ 2k(ε/B)²` с вероятностью ≥ 1 − δ принятый кандидат
-имеет популяционный риск ≤ old + 2ε − margin
-(`holdout_gate_two_way_delta`).
-Каждая конъюнкта — делегат БЕЗ ослабления гипотез. -/
+клозы (1)–(14); (1)–(11) — проекции `hagi_master_v33`; (12)–(14) — три
+независимых гипотезных блока (growth / Adam / holdout). -/
 theorem hagi_master_v34
     {d : Type*} [Fintype d] [Nonempty d] {ι : Type}
     (k dd : ℕ) (_hcard : Fintype.card d = dd)

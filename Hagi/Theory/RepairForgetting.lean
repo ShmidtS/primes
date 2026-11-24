@@ -1,7 +1,7 @@
 import Mathlib
 
 /-!
-# RepairForgetting — итеративный repair забывания (wave 257, C651)
+# RepairForgetting — итеративный repair забывания
 
 Код-факт (HAGI_v2 READ-ONLY @e9a96fc, hagi/unified.py
 `Unified._repair_forgetting`, режим `REPAIR_MODE = "replay"`,

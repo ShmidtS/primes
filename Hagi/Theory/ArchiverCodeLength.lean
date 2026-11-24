@@ -2,7 +2,7 @@ import Hagi.Probability.FiniteLogScore
 import Mathlib
 
 /-!
-# ArchiverCodeLength — длина кода против энтропии (wave 258, C653)
+# ArchiverCodeLength — длина кода против энтропии
 
 Код-факт (HAGI_v2 READ-ONLY @b3740e0, hagi/archiver.py): byte LM —
 вероятностная модель 32-бит range coder с 16-бит CDF (`probs_to_cdf`
@@ -13,7 +13,7 @@ archiver.py:33-39: freq = max(1, round(P·65200)), остаток до 65536 —
 утверждает: archive size within o(1) of -log2 P(data) ⇒ ratio IS CE.
 
 ЧТО ЗДЕСЬ ДОКАЗАНО (L2, модель идеального кодера; НЕ модель реального
-range coder — см. STATUS C653):
+range coder):
 
 * `codelength_ge_entropy_of_kraft` — Kraft ⇒ H(p) ≤ E[len] (биты):
   из Σ 2^{-len} ≤ 1 и Gibbs (через `ceDef_self_le_of_support`).

@@ -6,7 +6,7 @@ set_option linter.style.openClassical false
 set_option linter.style.header false
 
 /-!
-# WidthGrowth — function-preserving WIDTH-рост `grow_width` (C667)
+# WidthGrowth — function-preserving WIDTH-рост `grow_width`
 
 Источник (READ-ONLY): `C:/HAGI_v2/checkpoints/Надя.txt` @2026-11-24
 (Надя.txt:350-410). Послойный носитель `WParams` (nh = 1, hd = d):

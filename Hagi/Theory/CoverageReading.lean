@@ -697,7 +697,7 @@ theorem mixedCost_lower {n w : ℕ} {a c : ℝ} (ha : 0 < a)
 
 end Hagi.Theory.WindowTradeoff
 
-/-! ## WindowOrder — порядок слотов внутри одного окна (C651) -/
+/-! ## WindowOrder — порядок слотов внутри одного окна -/
 
 namespace Hagi.Theory.WindowOrder
 

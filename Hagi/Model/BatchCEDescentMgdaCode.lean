@@ -23,7 +23,7 @@ entered through the stop test.
 * `batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary`: the canon
   instantiation on `batchResidualGradient`.
 
-Honest limits (STATUS C639 card): the code solves the problem on
+Honest limits: the code solves the problem on
 NORMALIZED gradients, so the canon statement applies verbatim only when
 all task gradients have equal norm (e.g. the test pairs); for unequal
 norms the code's `d` is the min-norm point of the normalized hull, not
