@@ -566,7 +566,7 @@ one iff there is residual signal
   identity, `CE = fOld`).
 - **Anchor.**
   `Hagi.Theory.FunctionPreservingGrowth.useful_eta_le`
-  (Hagi/Theory/FunctionPreservingGrowth.lean:565);
+  (Hagi/Theory/FunctionPreservingGrowth.lean:559);
   `exists_useful_eta` (:588); `first_step_strict_improves` (:644);
   `first_step_useful_certified` (:609); `useful_first_step_pos` (:558);
   `no_signal_no_drop` (:597); определения `linDrop` (:547), `stepEps` (:364).
