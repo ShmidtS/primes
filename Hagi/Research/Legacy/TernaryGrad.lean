@@ -9,6 +9,8 @@ import Hagi.Energy.Quantizer
 import Hagi.Step.SignSGD
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # Квантование градиента (объединённое)
 
 QuantizedCone и TernaryGrad. Имена деклараций

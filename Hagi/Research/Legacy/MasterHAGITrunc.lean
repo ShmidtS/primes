@@ -9,13 +9,15 @@ import Hagi.Growth.LinearCone
 set_option linter.style.header false
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # R159: MasterHAGI-усечение — посылки роста только t < T
 
-Аудит 2026-10-04 (пункт №1 «что бы я сделал»): в `MasterHAGI`
+В `MasterHAGI`
 посылки роста h_emp_step / h_emp_gain_prod / h_emp_dyn / h_emp_C_cap / h_emp_beta
 квантифицированы по ВСЕМ t — вместе с потолком C* (наш же
 Saturation) они противоречивы на длинном горизонте (тот же
-дефект, что был у hagi_synthesis до rev.2).
+дефект, что у `hagi_synthesis` без ограничения горизонта).
 
 * `frontier_cone_trunc` — конус D >= (alpha/gamma) C при
   посылках ТОЛЬКО t < T (индукция через `frontier_cone_inductive`);
@@ -23,13 +25,12 @@ Saturation) они противоречивы на длинном горизон
 * `MasterHAGI_trunc` — капстоун: growth-посылки t < T (с
   h_emp_-именами: динамика производства, gate-порог,
   ceiling — измеряемые); условие потолка C* удалено
-  (R311: не участвовало в выводе; насыщение —
-  cert_horizon_bound в ArchitectureTheorem);
+  (условие C* не участвовало в выводе; насыщение —
+  `cert_horizon_bound` в ArchitectureTheorem);
 * `masterhagi_growth_witness` — числовой свидетель
-  не-вакуозности: C = D = (3/2)^t, alpha = gamma = 1/2,
-  rho = 0, beta = 3/4, xi = 0 (все усечённые посылки
-  выполнены при любом T; C* = 10 держит горизонт T <= 5,
-  измерено: 1.5^5 = 7.59375 <= 10 < 1.5^6 = 11.390625).
+  не-вакуозности growth-блока: C = D = 2^t, G = 2^t,
+  alpha = gamma = 1, rho = 0, beta = 2, xi = 0; все усечённые
+  посылки выполнены при T <= 6 (2^6 = 64 <= C* = 100 < 2^7).
 -/
 
 open Real Finset InnerProductSpace
@@ -99,7 +100,7 @@ t < T) — C_T >= C0 * (1+alpha)^T. Совместимость с потолко
 доказывает ту же нижнюю границу из конусного блока без
 `h_emp_C_cap` — разделяйте минимальный темп (прогресс) и
 потолок (насыщение), как в `Model.cone_growth_window`;
-полная миграция — отдельный шаг (см. STATUS).
+полная миграция капстоуна на этот путь не сделана.
 -/
 theorem sustained_takeoff_trunc (C G D : ℕ → ℝ)
     (alpha gamma rho beta : ℝ) (xi : ℕ → ℝ) (T : ℕ)

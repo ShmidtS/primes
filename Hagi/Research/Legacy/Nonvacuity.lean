@@ -7,6 +7,8 @@ import Hagi.Runtime.TernaryExact
 import Hagi.Core.Concat
 import Hagi.Research.Legacy.StateTakeoff
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # R263 (audit §7.1): the h_emp_merge bridge from the Core layer
 
 The audit's central gap: no `h_emp_*` premise of the capstone
@@ -33,9 +35,7 @@ Instantiating the stage ledger fields
 `growEnergy := mean CE`, `mergeEnergy := CE(t, mid)`,
 `gap := jensenGap z₁ z₂` therefore satisfies h_emp_merge
 exactly (`h_emp_merge_of_bridge`), with `gap` independently
-grounded in the Core `lse` theory — the first nonvacuous
-`h_emp_*` instantiation beyond the ternary distortion witness
-(`Unified.Nonvacuity`).
+grounded in the Core `lse` theory.
 -/
 
 open Real Finset Hagi
@@ -310,7 +310,7 @@ set_option linter.style.header false
 
 The audit's central complaint: the capstone's premise set
 `CorePremises` is never shown satisfiable — no `example`, no
-`#guard`, nothing pins the 15 conjuncts to a real cycle.
+`#guard`, nothing pins the 16 conjuncts to a real cycle.
 
 This module exhibits ONE concrete cycle where every `h_emp_*`
 stage law holds with equality (the degenerate-but-consistent
@@ -325,12 +325,9 @@ not assumed:
   off-grid weight; the ternary quantizer rounds it to 0), and
   the half-step bound is the ternary rounding theorem.
 
-This is audit stage 7, item 3 (witnesses of nonvacuity) and
-the first `h_emp_*`-shaped conjunct fed by a Core-layer
-theorem. The remaining stage laws are still chosen as
-equalities (a ledger instantiation); deriving h_emp_grow /
-h_emp_merge from the Hadamard/block-diag layer is the open
-frontier.
+The remaining stage laws are chosen as equalities (a ledger
+instantiation); h_emp_merge is discharged for the concat class
+by the bridge above.
 -/
 
 open Real Finset InnerProductSpace Hagi Hagi.Foundations
@@ -434,7 +431,7 @@ noncomputable def S₁ (E : ℝ) [NormedAddCommGroup X] [InnerProductSpace ℝ X
 /-!
 ## Non-idle witness (R357): positive gap and gain
 
-`corePremises_nonvacuous` pins the 15 conjuncts at equality
+`corePremises_nonvacuous` pins the conjuncts at equality
 with zero gap/gain — satisfiable but degenerate. The NON-idle
 witness below feeds the merge conjunct with the STRICT Jensen
 gap of two genuinely disagreeing experts (`jensenGap_pos_witness`,
@@ -514,12 +511,12 @@ with `c = η⟪g,d⟫ − Lη²‖d‖²/2 ≥ 0` (merge gap + SafeQP descent).
 The horizon witnesses therefore stop at ONE productive step; the
 multi-step capstone witness is the IDLE orbit
 (`Assumptions.trunc_idle_witness`). This is the formal shape of
-the audit's point that the measured-effects ledger must be
-reinterpretated per stage (Etap 2) before multi-step productive
+the obstruction: the measured-effects ledger must be
+reinterpreted per stage before multi-step productive
 trajectories can exist. -/
 
 set_option maxHeartbeats 800000 in
--- audit v8 section 5: the 16-conjunct full-contract record proof chokes whnf at default heartbeats
+-- the 16-conjunct full-contract record proof chokes whnf at default heartbeats
 /-- **The single-step obstruction**: under the full transition
 contract, two consecutive `CorePremises` steps force a strictly
 positive total ledger loss `gap + c + growGain` against a
@@ -657,9 +654,9 @@ horizon `T = 2` this demands
 `alpha * C0 = growGain = alpha * C1` with
 `C1 = (1+alpha) * C0` — impossible for `alpha > 0`, `C0 > 0`.
 Hence `state_capability_takeoff`-style hypotheses (with constant
-measured gain) are UNSATISFIABLE on two steps: the linked
-capstone's growth premise is vacuous, a model defect to repair
-via time-indexed stage inputs. -/
+measured gain) is UNSATISFIABLE on two steps: under this
+fixed-effects transition the linked capstone's growth premise is
+vacuous. -/
 theorem full_cycle_two_step_growth_inconsistent {X : Type*} [NormedAddCommGroup X]
     [InnerProductSpace ℝ X] (S : ℕ → Hagi.GenState X) (alpha : ℝ)
     (hα : 0 < alpha)
@@ -725,9 +722,9 @@ invariant along the cycle, so a strictly productive run cannot
 extend beyond ONE step while the ledger stays honest
 (`kappa = 0`). The multi-step capstone witness is the IDLE orbit
 (`Assumptions.trunc_idle_witness`); productive multi-step
-trajectories require the stage-semantics reinterpretation of the
-effects record (Etap 2), where each stage's successor state
-carries the NEXT stage's measurements.
+trajectories require a per-stage reinterpretation of the effects
+record, where each stage's successor state carries the NEXT
+stage's measurements.
 -/
 
 open Hagi.Step
@@ -1062,11 +1059,11 @@ theorem corePremises_nonvacuous (E : ℝ) :
 end Witness
 
 /-!
-## Cycle 69: the T ≥ 2 bridge for `state_capability_takeoff`
+## The T ≥ 2 bridge for `state_capability_takeoff`
 
 `full_cycle_two_step_growth_inconsistent` above needs the
-collapsed premise `alpha * C t <= growGain_t` (t < 2). The
-new theorem derives it from the EXACT substantive premises of
+collapsed premise `alpha * C t <= growGain_t` (t < 2). This
+section derives it from the EXACT substantive premises of
 `Hagi.Unified.state_capability_takeoff` plus `2 <= T`: the cone
 at `t = 0` propagates to `t = 1` by ONE application of
 `frontier_cone_inductive` (only its `t = 0` instance), and the
@@ -1078,7 +1075,7 @@ premises remain measured empirical inputs; nothing here closes
 them.
 -/
 
-/-- **Cycle 69**: with the exact premises of
+/-- With the exact premises of
 `state_capability_takeoff` and horizon `2 <= T`, the two-step
 impossibility `full_cycle_two_step_growth_inconsistent` already
 fires: the cone base and one inductive step give

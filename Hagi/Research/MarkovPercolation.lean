@@ -7,6 +7,8 @@ import Hagi.Research.SchellingPercolation
 import Hagi.Probability.MarkovPathSupport
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # Positive support of graph walks under Markov routing
 
 This isolated candidate adapts Mathlib `SimpleGraph.Walk.getVert` to the

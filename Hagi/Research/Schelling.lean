@@ -16,6 +16,7 @@ set_option relaxedAutoImplicit false
 
 @[expose] public section
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # Local compatibility on a finite simple graph
 
 Only actual graph neighbors are inspected. Satisfaction requires at least

@@ -6,6 +6,7 @@ import Mathlib.Tactic
 import Hagi.Growth.Saturation
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # Потолки роста (объединённые)
 
 GainCeiling и GrowthCeiling. Имена деклараций
@@ -13,7 +14,7 @@ GainCeiling и GrowthCeiling. Имена деклараций
 -/
 
 /-!
-# GainCeiling — композиционый потолок gain-операторов
+# GainCeiling — композиционный потолок gain-операторов
 
 * `gain_product_bound`: субмультипликативность нормы
   композиции двух операторов;

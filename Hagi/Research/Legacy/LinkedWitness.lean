@@ -2,14 +2,14 @@ import Hagi.Research.Legacy.MasterHAGICoupled
 import Hagi.Model.CertifiedTransition
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # LinkedWitness — склейка (g) аудита v5
 
 НЕТРИВИАЛЬНЫЙ витнес LinkedHAGIInvariant на T = 3 с
 ненулевым состоянием: семейство CertifiedTransition строится
 на РЕАЛЬНОЙ witness-траектории wTraj (capability 1 → 8,
 бюджет 100 → 94), и certified_family_linked порождает
-связанный инвариант. Витнес не T=1/нулевой — прямой ответ
-аудиту v5 п.6.
+связанный инвариант. Витнес не T=1/нулевой (аудит v5 п.6).
 -/
 
 namespace Hagi.Unified
@@ -44,7 +44,7 @@ theorem wTraj_certified_family :
         wU2 (by simp [wU2]) (by simp [wU2]) (by simp [wU2])
 
 
-/-- ПОНЫЙ НЕТРИВИАЛЬНЫЙ ВИТНЕС: LinkedHAGIInvariant на wTraj,
+/-- ПОЛНЫЙ НЕТРИВИАЛЬНЫЙ ВИТНЕС: LinkedHAGIInvariant на wTraj,
 T = 3, ненулевые состояния (capability 1→8, budget 100→94),
 alpha = 1. Построен ЧЕРЕЗ certified_family_linked — витнес
 самого капстоуна на реальных exec-переходах. -/

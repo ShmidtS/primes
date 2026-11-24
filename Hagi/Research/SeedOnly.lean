@@ -4,6 +4,8 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Math.Foundations.Recurrence
 import Hagi.Core.RootContrast
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # CycleChannel — generation-decay law and channel switching
 
 Under a saturating-decay model, a generation's free-energy gap `F`

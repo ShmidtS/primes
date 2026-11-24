@@ -1,6 +1,7 @@
 import Hagi.Research.Legacy.MasterHAGI
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # LearningProblem — склейка (b) аудита v5 (ядро)
 
 Мини-формулировка задачи обучения: состояния с энергией и
@@ -16,7 +17,7 @@ namespace Hagi.Unified
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-- Ядро задачи обучения: энергия и ёмкость состояния +
-ладауэровский принцип (ёмкость ограничена свободной
+ландауэровский принцип (ёмкость ограничена свободной
 энергией, ε = 1) + энергобаланс шага. -/
 structure LearningKernel (S S' : GenState X) where
   /-- Ландауэровская граница: capability ≤ energy. -/

@@ -5,6 +5,7 @@ import Hagi.Data.DField
 import Hagi.Math.Info.InfoCore
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # CrossModalGap — the cross-modal information gain
 
 For a positive normalized joint law `p` on `X × Y`, the gap

@@ -4,6 +4,8 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Probability.CertifiedEstimator
 import Hagi.Research.Legacy.MasterHAGITrunc
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # CertifiedTakeoff — сертифицируемый конус (R554)
 
 Мост «выборочная сертификация → takeoff»: cone0-посылка

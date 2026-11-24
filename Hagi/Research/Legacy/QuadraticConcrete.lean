@@ -1,6 +1,8 @@
 import Hagi.Research.Legacy.CorePremisesDerived
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # Concrete-слой: квадратичная функция потерь (аудит v6, §3)
 
 «Один содержательный пример: квадратичная функция на ℝ,

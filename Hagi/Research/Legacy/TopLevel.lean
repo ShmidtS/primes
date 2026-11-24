@@ -7,9 +7,11 @@ import Hagi.System.GrowthState
 import Hagi.Step.ProjectionDescent
 import Mathlib.Tactic
 /-!
-# the quantization-to-energy bridge (audit bridge #4)
+Quarantine (provenance): archived research code, outside the default build; not live code.
 
-The round-67 audit found the missing edge: MacroCycle's
+# the quantization-to-energy bridge
+
+Missing edge (found by an audit): MacroCycle's
 compress stage assumed an abstract dnorm ≤ 1/2 without
 grounding in the real ternary pipeline. This module chains:
 
@@ -513,8 +515,7 @@ theorem top_level_cycle_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSp
   -- the joint stage with REAL descent quantities (derived from safeQP_descent)
   have hjoint := Hagi.joint_stage_linked C hconv h0 g0 ds hs hmin L eta E2 E3
     hL heta heta0 h_emp_smooth
-  -- the quant stage DERIVED through the R70 bridge (dependency made real —
-  -- the R75 honesty fix: not an assumed final bound)
+  -- the quant stage DERIVED through quant_energy_bridge (not an assumed final bound)
   have hquant := Hagi.Energy.quant_energy_bridge w q s kappa (E4 - E3) hs0 hres hkappa h_emp_lip
   -- assemble the three real stages: merge law, joint descent, quant cost
   linarith

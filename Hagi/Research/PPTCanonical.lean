@@ -5,6 +5,7 @@ import Hagi.Research.PPT
 import Hagi.Probability.PMFBridge
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # A canonical finite carrier for `discovery_prob_stationary`
 
 Given an actual finite probability vector, identity sampling is measured

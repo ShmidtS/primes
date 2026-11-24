@@ -4,6 +4,8 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Growth.GainDecomposition
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # RoundViability — критерий stop/continue для цикла
 
 Критерий по измеряемой энергии разногласия `devEnergy dev`

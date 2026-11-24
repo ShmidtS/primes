@@ -7,6 +7,8 @@ import Hagi.Research.SchellingPercolation
 import Hagi.Unified.ParetoExecution
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # Bounded structural admission for finite candidate controllers
 
 A constrained view retains the supplied controller's quality, successor,

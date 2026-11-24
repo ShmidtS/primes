@@ -8,6 +8,8 @@ import Hagi.Architecture.CortexFiber
 import Hagi.Optimization.Momentum
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # Состояние омни-модальности (объединённое)
 
 TemporalState (временная динамика), CapabilityMatrix

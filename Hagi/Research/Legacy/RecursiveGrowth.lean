@@ -7,6 +7,8 @@ import Hagi.Math.Foundations.Ortho
 import Hagi.Step.ProjectionDescent
 import Hagi.Math.Foundations.Telescope
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # The per-stage Lyapunov decomposition of the macro cycle
 
 Each stage of Grow → Merge → Joint → Compress is bounded
@@ -61,7 +63,7 @@ set_option linter.style.header false
 # Recursive growth: sparse gating, Fisher null space, isometry
 perturbation, analytic steps, SafeQP descent budget
 
-* `topk_routing_optimal` (ortho_norm_sq/gating_tail_bound — в Foundations/Ortho, R328):
+* `topk_routing_optimal` (ortho_norm_sq/gating_tail_bound — Foundations/Ortho):
   Parseval identity for orthonormal coefficients; the routing
   error equals the tail energy `Σ_{i∉s} c i ^ 2`; a top-k set
   minimizes the tail among k-element subsets.
@@ -143,7 +145,7 @@ theorem topk_routing_optimal {ι : Type*} [Fintype ι] [DecidableEq ι]
   have hu2 := Finset.sum_sdiff (f := fun i => c i ^ 2) (Finset.subset_univ s')
   linarith
 
-/-! ## Roadmap #4: Fisher null-space — no forgetting -/
+/-! ## Fisher null-space — no forgetting -/
 
 /-- If `dL ≤ ⟪dW, F dW⟫` (h_emp_quad) and `F dW = 0`, then
 `dL ≤ 0`. -/
@@ -156,7 +158,7 @@ theorem fisher_nullspace {E : Type*} [NormedAddCommGroup E] [InnerProductSpace �
   rw [show inner ℝ dW 0 = 0 from by simp] at h_emp_quad
   linarith
 
-/-! ## Roadmap #6a: unitarity perturbation — Wilkinson bound -/
+/-! ## Unitarity perturbation — Wilkinson bound -/
 
 /-- If `Q` is an isometry, `Qt x = Q x + Err x`, and
 `‖Err x‖ ≤ d * ‖x‖` for all `x`, then `‖Qt x‖ ≤ (1 + d) * ‖x‖`. -/

@@ -6,6 +6,7 @@ import Hagi.Research.Legacy.ArchitectureTheorem
 set_option linter.style.header false
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # Свидетель невакуумности HAGICert (этап 7 рецензии)
 
 Рецензия просила примеры-свидетели невакуумности для

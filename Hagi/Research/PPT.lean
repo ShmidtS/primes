@@ -8,6 +8,8 @@ import Hagi.Math.Info.InfoCore
 set_option linter.style.header false
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # the PPT discovery layer (arXiv 2609.38104, "Explore Broadly, Reason Sharply")
 
 The concrete `discover` mechanism for HAGI's growth loop: parallel-tempering /

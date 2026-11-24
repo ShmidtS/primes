@@ -6,6 +6,8 @@ import Hagi.Research.Legacy.MasterHAGITrunc
 set_option linter.style.header false
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # Takeoff ПОЛЯ состояния (аудит R265, проблема №1)
 
 `cap : ℕ → ℝ` в MasterHAGI — отдельная

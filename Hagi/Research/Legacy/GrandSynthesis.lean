@@ -7,6 +7,8 @@ import Hagi.Unified.LinkedQVec
 import Hagi.Growth.LinearCone
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # GrandSynthesis — the composed capstone
 
 `grand_synthesis` composes the measurement chain
@@ -30,8 +32,8 @@ namespace Hagi.Unified
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-- Бюджетная неповышаемость — арифметическое следствие
-неотрицательности трат (REFACTOR_PLAN E2/Ф2): не содержательное
-утверждение о модели, выделено из конъюнкций капстоунов. -/
+неотрицательности трат: арифметическое следствие, выделено
+из конъюнкций капстоунов. -/
 theorem budget_nonincreasing_of_nonneg_spend (budget spend : ℕ → ℝ)
     (T : ℕ)
     (hspend : ∀ t ∈ Finset.range T, 0 ≤ spend t)
@@ -59,7 +61,7 @@ AUDIT v4 §3.1 — premise transparency: the conjunctions are NOT EQUAL:
 * PASSED (hqvec): componentwise quality floor.
 The passed conjunctions are MEASURABLE premises, not consequences
 of the learning mechanism; their source is the certification stage. -/
--- DEPRECATED (REFACTOR_PLAN F1): flat-premise form; use grand_synthesis_weak
+-- flat-premise form; prefer `grand_synthesis_weak`
 theorem grand_synthesis
     (C D G : ℕ → ℝ) (stages : ℕ → DisagreementStages)
     (T : ℕ) (beta kappa gbar rho cbeta k : ℝ)

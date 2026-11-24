@@ -7,6 +7,8 @@ import Hagi.Research.CrossModalGap
 import Hagi.Probability.FiniteLogScore
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 Bounded finite conditional mutual information.
 
 The reference-ratio identity is stated for strictly positive normalized joints.

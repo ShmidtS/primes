@@ -7,6 +7,8 @@ import Hagi.Probability.AdaptiveSuccess
 set_option linter.style.header false
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # RecursiveSelfDevelopment — обновление opportunity и замкнутый takeoff
 
 * `opportunity_renewal`: при `ρ·D + β·C − ξ ≤ D'` и

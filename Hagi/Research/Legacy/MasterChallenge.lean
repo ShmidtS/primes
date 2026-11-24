@@ -1,6 +1,7 @@
 import Hagi.Research.Legacy.CorePremisesDerived
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # Comparator-Challenge: MasterHAGICore (аудит v6, шаг 2)
 
 Методология openai/math Comparator: ЧЕСТНАЯ формулировка

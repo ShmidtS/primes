@@ -9,6 +9,8 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # RsiCriterion — пошаговое условие самоподдержки RSI
 
 * `rsi_step_growth`: при динамике

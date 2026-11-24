@@ -1,12 +1,12 @@
 import Hagi.Research.Legacy.MasterHAGI
--- Продуктивный T=2 свидетель итогового инварианта из advance-переходов.
 import Hagi.Model.StageSemantics
 import Hagi.Energy.Landauer
 /-!
-# AdvanceWitness — продуктивный T=свидетель
+Quarantine (provenance): archived research code, outside the default build; not live code.
 
-Карантин Research/Legacy: docstring-заголовок только; код не трогается.
-Продуктивный свидетель итогового инварианта на реальных advance-переходах
+# AdvanceWitness — продуктивный T=2 свидетель итогового инварианта
+
+Свидетель итогового инварианта на реальных advance-переходах
 (аудит v3). Сводка: STATUS.md, секция Research/Legacy/AdvanceWitness.
 -/
 open Hagi.Model

@@ -2,6 +2,8 @@ import Hagi.Research.Legacy.MasterHAGI
 import Hagi.Unified.DerivAlong
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # CorePremisesDerived — премисы стадий как ТЕОРЕМЫ (аудит v6, шаг 1)
 
 Аудит v6: «Подключить DerivAlong к CorePremises, чтобы хотя

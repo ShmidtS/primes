@@ -12,6 +12,8 @@ import Hagi.Unified.CertifiedLoop
 set_option linter.style.header false
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # R111: MasterHAGI — the CONDITIONAL capstone: the unified
 # certified invariant assembled from the existing pieces
 
@@ -31,9 +33,9 @@ those theorems plus honest telescoping/bridging algebra.
   risk-spend bound by `Hagi/Generalization/ModeState` (R109)
   `safeqp_risk_bound_compose` (per-domain sum = risk increment,
   the h_sumdL link).
-* **Progress** — `Hagi/Unified/GrowthState` (R91)
+* **Progress** — `Hagi/System/GrowthState` (R91)
   `growth_cycle_potential` / `certificate_sound` (whose
-  real-variable form is `Hagi/Unified/TopLevel.lean`
+  real-variable form is `Hagi/Research/Legacy/TopLevel.lean`
   `top_level_cycle_bound`, R88): the macro-cycle potential law
   Φ(compress∘joint∘merge∘grow S) ≤ Φ(S) − decrease + riskSpend.
 * **Renewal / Growth** — `Hagi/Growth/FrontierScaling` (R107)
@@ -45,7 +47,7 @@ those theorems plus honest telescoping/bridging algebra.
   `generalization_safe_step`: Φ_HAGI decreases by the certified
   fit amount minus λ·(risk spend) minus ν·ε_Q (the probe
   tolerance ε_Q is pure telemetry, h_emp_G).
-* **Budget** — `Hagi/Unified/GrowthState` (R91)
+* **Budget** — `Hagi/System/GrowthState` (R91)
   `budget_account`: the composed budget is EXACTLY the initial
   budget minus the declared budgetSpend; telescoped over T
   cycles.
@@ -68,10 +70,8 @@ curvature), h_emp_G (probe telemetry), the R107 dynamics
 (h_dyn/hβ — measurable from Diversity/GapLaw telemetry), the
 R95 independence/p-floor hypotheses, and the per-cycle net
 premise h_net (the certified stage decrease covers the
-λ-weighted risk and the ν-weighted probe slack). Deriving these
-from the real runtime (Implementation Refinement) is the open
-frontier I — this module is the CONDITIONAL certificate of the
-LOOP given the measured premises, not their derivation.
+λ-weighted risk and the ν-weighted probe slack). These are NOT derived from the real runtime: this module is the
+CONDITIONAL certificate of the LOOP given the measured premises.
 
 ## Two-level composition (task item 5)
 
@@ -87,8 +87,9 @@ CorePremises modeling conjuncts (stage laws, Lipschitz
 windows) are EMPIRICAL — they lack the h_emp_ prefix for
 historical source-theorem compatibility. The
 horizon-truncated, h_emp_-named form is
-`Hagi/Unified/MasterHAGITrunc.lean` (`MasterHAGI_trunc`,
-`masterhagi_growth_witness`): prefer it for new use.
+`Hagi/Research/Legacy/MasterHAGITrunc.lean` (`MasterHAGI_trunc`,
+`masterhagi_growth_witness`); the canonical path is
+`Hagi.Unified.CertifiedLoop.certified_loop`.
 -/
 
 open Real Finset InnerProductSpace MeasureTheory ProbabilityTheory
@@ -149,7 +150,7 @@ instantiated at the pre-cycle state `S` and post-cycle state
 `S'`:
 
 * conjuncts 1–13: `growth_cycle_potential` / `certificate_sound`
-  (R91, `Hagi/Unified/GrowthState`): the gap sign, the measured
+  (R91, `Hagi/System/GrowthState`): the gap sign, the measured
   stage laws (h_emp_grow, h_emp_merge, h_emp_smooth,
   h_emp_dist, h_emp_lip), the SafeQP window (hL, heta, heta0,
   hdescent) and the compress constants (hkappa, hs, hdn);
@@ -272,10 +273,8 @@ protectedRisk and budget — an `S'` with the right accounting but
 arbitrary `capability`/`params`/`experts` satisfied it. The
 honest refinement is the FULL record equality: `S'` IS the
 composed cycle state (ALL fields), with the probe vector
-carried over unchanged. This is the Lean-side half of the
-RuntimeRefinement bridge (§I of the audit); the runtime side
-(actual tensor/optimizer execution implying this equality)
-remains the implementation gap, stated as a premise here. -/
+carried over unchanged. The runtime side (actual tensor/optimizer
+execution implying this equality) is not formalized; the equality is a premise here. -/
 def FullCycleRefinement (S S' : GenState X) (epsG : ℝ) : Prop :=
   S'.toGrowthState = compress (joint (merge (grow S.toGrowthState)))
   ∧ ∀ i, |Qvec S'.gen i - Qvec S.gen i| ≤ epsG
@@ -296,9 +295,9 @@ theorem full_cycle_field_eq {S S' : GenState X} {epsG : ℝ}
   exact ⟨by rw [heq], by rw [heq], by rw [heq]⟩
 
 
-/-! ## Telescoping helpers — делегация Foundations (R163)
+/-! ## Telescoping helpers — делегация Foundations
 
-Приватные копии удалены; `telescope_le` / `telescope_sum_le` /
+Приватных копий нет; `telescope_le` / `telescope_sum_le` /
 `telescope_sub_sum` разрешаются в `Hagi.Foundations` через
 `open Hagi.Foundations` выше. -/
 
@@ -356,9 +355,9 @@ production-dynamics premises (the capability channel C, G, D, ξ
 semantics live on their own sequences), the FULL five-component
 invariant `CertifiedHAGIInvariant` holds at T.
 
-This certifies the LOOP given the measured premises; the
-premises' derivation from the real runtime is the open frontier
-I (see the module docstring's h_emp inventory). -/
+Conditional on the measured premises (see the module docstring's
+h_emp inventory); their derivation from the real runtime is not
+claimed. -/
 
 @[deprecated Hagi.Unified.CertifiedLoop.certified_loop]
 theorem MasterHAGI {K : Type*} [Fintype K] [Nonempty K]

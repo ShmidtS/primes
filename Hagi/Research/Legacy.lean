@@ -20,6 +20,8 @@ import Hagi.Research.Legacy.TernaryGrad
 import Hagi.Research.Legacy.TopLevel
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # Hagi.Research.Legacy — archived legacy modules (quarantine, archive move)
 
 Legacy vacuous-stack modules (quarantine), physically archived

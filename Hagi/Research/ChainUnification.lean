@@ -4,6 +4,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Growth.GainDecomposition
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # ChainUnification — relating the two gain-pipeline vocabularies
 
 * `training_core_is_measurement_tail`: if `s.G_cap` is expressed

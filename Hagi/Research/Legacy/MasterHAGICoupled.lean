@@ -7,6 +7,8 @@ import Hagi.Model.StageSemantics
 import Hagi.Model.CertifiedTransition
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # MasterHAGICoupled — closing the three structural gaps of the
 capstone flagged by the external audit (R246)
 

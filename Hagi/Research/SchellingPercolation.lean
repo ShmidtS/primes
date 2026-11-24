@@ -7,6 +7,7 @@ import Hagi.Research.Schelling
 import Hagi.Research.Site
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # Exact finite bridge between local compatibility and site percolation
 
 Edge addition preserves the filtered compatible-neighbor cardinal, but local

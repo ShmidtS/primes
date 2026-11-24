@@ -6,7 +6,9 @@ Authors: HAGI_v2 formalization team
 import Hagi.Research.SchellingCandidateSelection
 import Hagi.Research.MarkovPercolation
 
-/-! Structural admission to exact Markov history support, with independent walk
+/-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+ Structural admission to exact Markov history support, with independent walk
 horizons and no endpoint-marginal, common-hitting-time, or quality claim. -/
 
 set_option relaxedAutoImplicit false

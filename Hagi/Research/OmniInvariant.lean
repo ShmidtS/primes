@@ -4,6 +4,8 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Step.Dominate
 import Hagi.Research.CrossModalGap
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # Omni capability growth
 
 The one-step capability update `omniStep C gIntra gCross cComp

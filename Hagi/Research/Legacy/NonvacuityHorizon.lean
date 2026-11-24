@@ -10,12 +10,11 @@ import Hagi.Pretraining.RobustnessLaw
 set_option linter.style.header false
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
 # Параметрические nonvacuity-свидетели ↔ cert_horizon_bound
-(R531)
 
-Закрытие открытого пункта STATUS «параметрические
-nonvacuity-свидетели ↔ cert_horizon_bound (связать свидетель
-с горизонтом)»: семейство траекторий насыщения
+Параметрические nonvacuity-свидетели для `cert_horizon_bound`
+(свидетель связан с горизонтом): семейство траекторий насыщения
 `C t = Cstar − Δ(1−σ)^t`, `F t = σΔ(1−σ)^t/γ` реализует
 посылки `cert_horizon_bound` на произвольном горизонте T,
 совместимом с геометрическим условием конуса

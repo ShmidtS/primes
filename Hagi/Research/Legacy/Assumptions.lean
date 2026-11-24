@@ -7,11 +7,13 @@ import Hagi.Growth.LinearCone
 set_option linter.style.header false
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # R263 (audit §7.2): the consolidated assumption record
 
 The audit's complaint: the capstones take their measured
 premises as a SCATTER of positional hypotheses (`h_emp_grow`,
-`h_emp_merge`, ..., 26 binders on `MasterHAGI_trunc`) with no
+`h_emp_merge`, ..., 24 hypothesis binders on `MasterHAGI_trunc`) with no
 single named home.
 
 This module collects the horizon premises of

@@ -11,6 +11,8 @@ open scoped Classical
 set_option linter.style.header false
 
 /-!
+Quarantine (provenance): archived research code, outside the default build; not live code.
+
 # Site percolation on a finite square grid (Layers 1–2)
 
 A control system for the HAGI threshold question (audit §5): a
