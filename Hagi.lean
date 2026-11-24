@@ -486,6 +486,7 @@ import Hagi.Theory.KnowledgeConsolidation
 import Hagi.Theory.RepairForgetting
 import Hagi.Theory.ArchiverCodeLength
 import Hagi.Theory.NadyaOptimal
+import Hagi.Theory.WidthGrowth
 set_option linter.style.header false
 
 /-!

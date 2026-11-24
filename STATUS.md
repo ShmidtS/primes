@@ -2096,20 +2096,16 @@ unified.py:383-440 @ca52eb4; `_certified_finite_step` lm.py:826 @ca52eb4.
   holdout-гейт — измерение; η* — certificate-оптимум, не шаг кода; depth- и
   width-рост — разные носители, унификации нет.
 
-## Hagi/Theory/NadyaOptimal.lean («Надя.txt» HAGI v2 Optimal: BitAlloc, Schedules, LCB, Bypass, width-рост)
+## Hagi/Theory/NadyaOptimal.lean («Надя.txt» HAGI v2 Optimal: BitAlloc, Schedules, LCB, Bypass)
 
 Источник: `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY, 961 строк Python).
 
 | теорема | формулировка | file:line | Надя.txt @снимок 2026-11-24 |
 |---|---|---|---|
-| `trit5_unshift`, `trit5_roundtrip`, `trit5Pack_lt_243`, `int4_roundtrip`, `exists_best_mse_scale` | BitAlloc: unpack ∘ pack = id (5 тритов < 243; int4-пара < 256); ∃ минимизатор MSE на конечном списке. Родитель pack — `trit_roundtrip`/`tritPack_injective` TritCodec.lean:117, :132 | Hagi/Theory/NadyaOptimal.lean:79, :86, :94, :105, :133 | :390-440 |
-| `cosine_sched_bounds`, `cosine_sched_start`, `cosine_sched_end`, `cosine_sched_mono`, `muon_step_norm_bound` | HybridMuon: 3/20 ≤ sched ≤ 1, sched 0 = 1, sched T = 3/20, монотонно; ‖шаг Muon‖ ≤ a·c при ‖orth‖ ≤ c | Hagi/Theory/NadyaOptimal.lean:150, :158, :164, :173, :208 | :120-152 |
-| `paired_mean_dev_bound`, `paired_lcb_false_grow_bound` | LCB-гейт: paired Hoeffding через `holdout_concentration` Statistics.lean:178; P[ложный GROW] ≤ 2·exp(−2k(r/2B)²) при popMean d ≤ 0 | Hagi/Theory/NadyaOptimal.lean:1068, :1117 | :109-112, :884-890 |
-| `rmsOut`, `rmsMs_pad`, `rmsnorm_scale_inv`, `padTo`, `sum_pad`, `sum_pad_scale`, `eq_padTo`, `mulvec_rowPad`, `matPadS`, `mulvec_matPadS`, `padTo_castLE` | padding-леммы; rmsnorm gain ×√(d0/d1), eps ×(d0/d1) ⇒ первые d0 координат равны старым ТОЧНО | Hagi/Theory/NadyaOptimal.lean:227, :231, :281, :310, :314, :349, :356, :375, :391, :395, :418 | :350-386 |
-| `rotIdx`, `rotMate`, `rotV`, `rotV_smul`, `rotary_old_pairs_unchanged` | T2 rotary: padTo-вектор × padTo-таблицы cos/sin ⇒ старые пары (2i, 2i+1) без изменения, новые — 0 | Hagi/Theory/NadyaOptimal.lean:425, :429, :435, :441, :451 | rotary f1 = concat |
-| `attn_score_scale_preserved`, `attn_out_pad`, `h1_pad`, `wlogits_width_preserved` | T1 (K·Q)/√hd1 = старому при W_q ×`qScale`; T3 композиция: logits_new(padTo v, padTo c) = logits_old(v, c) — width-рост function-preserving (nh = 1) | Hagi/Theory/NadyaOptimal.lean:514, :544, :560, :782 | grow_width |
-| `WParams`, `qScale`, `WGrowth`, forward `wX0`→`wN1`→`wQ`/`wK`/`wV`→`wKr`/`wQr`→`wScore`→`wW`→`wAttn`→`wH1`→`wN2`→`wG`/`wU`/`wSw`(`swish` NormAct.lean:166)→`wH2`→`wLogits` | носитель: параметры, правило роста (нулевые `matPadS`-блоки, компенсация нормировок, gain ×√(d0/d1)), одноголовый forward | Hagi/Theory/NadyaOptimal.lean:597, :637, :733, :643–:726 | модель |
-| `idealLen_eq_zero_of_prob_one`, `bypass_reaches_compression_limit` | EXACT_BYPASS: q = 1 на носителе p ⇒ ceBits = expLen = entBits = 0 (мост `ce_covered_zero` ExactBypass.lean:70 ↔ `idealLen_self_bounds` ArchiverCodeLength.lean:208) | Hagi/Theory/NadyaOptimal.lean:1141, :1151 | :695-750 |
+| `trit5_unshift`, `trit5_roundtrip`, `trit5Pack_lt_243`, `int4_roundtrip`, `exists_best_mse_scale` | BitAlloc: unpack ∘ pack = id (5 тритов < 243; int4-пара < 256); ∃ минимизатор MSE на конечном списке. Родитель pack — `trit_roundtrip`/`tritPack_injective` TritCodec.lean:117, :132 | Hagi/Theory/NadyaOptimal.lean:72, :79, :87, :98, :126 | :390-440 |
+| `cosine_sched_bounds`, `cosine_sched_start`, `cosine_sched_end`, `cosine_sched_mono`, `muon_step_norm_bound` | HybridMuon: 3/20 ≤ sched ≤ 1, sched 0 = 1, sched T = 3/20, монотонно; ‖шаг Muon‖ ≤ a·c при ‖orth‖ ≤ c | Hagi/Theory/NadyaOptimal.lean:143, :151, :157, :166, :201 | :120-152 |
+| `paired_mean_dev_bound`, `paired_lcb_false_grow_bound` | LCB-гейт: paired Hoeffding через `holdout_concentration` Statistics.lean:178; P[ложный GROW] ≤ 2·exp(−2k(r/2B)²) при popMean d ≤ 0 | Hagi/Theory/NadyaOptimal.lean:221, :270 | :109-112, :884-890 |
+| `idealLen_eq_zero_of_prob_one`, `bypass_reaches_compression_limit` | EXACT_BYPASS: q = 1 на носителе p ⇒ ceBits = expLen = entBits = 0 (мост `ce_covered_zero` ExactBypass.lean:70 ↔ `idealLen_self_bounds` ArchiverCodeLength.lean:208) | Hagi/Theory/NadyaOptimal.lean:294, :304 | :695-750 |
 
 - Уже есть, не дублировано: auto_transfer_gate = `warm_better_char`
   (NegativeTransfer.lean:127) + `auto_transfer_gate_sound`
@@ -2118,10 +2114,24 @@ unified.py:383-440 @ca52eb4; `_certified_finite_step` lm.py:826 @ca52eb4.
   теореме); iid-holdout и CE ∉ [0,B] — модель; list-level `_pack_int4`
   (нечётный padding, срез `out[:length]`) не формализован; список
   кандидатов `_best_mse_ternary` — нет; полярная норма c — гипотеза;
-  momentum/weight decay Muon вне утверждения; width: nh > 1, нечётная
-  ширина, клип сигмоиды [−20, 20], пулинг/emb/alibi — гипотезы `WGrowth`;
-  float32 ≠ ℝ; unseen-маска градиента тривиальна (Adam с momentum — не
+  momentum/weight decay Muon вне утверждения; float32 ≠ ℝ; unseen-маска
+  градиента тривиальна (Adam с momentum — не
   нулевое обновление); arithmetic coder — карточка ArchiverCodeLength.
+
+## Hagi/Theory/WidthGrowth.lean (function-preserving WIDTH-рост grow_width, C667; выделен из NadyaOptimal)
+
+Источник: `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY), grow_width.
+
+| теорема | формулировка | file:line | Надя.txt @снимок 2026-11-24 |
+|---|---|---|---|
+| `rmsOut`, `rmsMs_pad`, `rmsnorm_scale_inv`, `padTo`, `sum_pad`, `sum_pad_scale`, `eq_padTo`, `mulvec_rowPad`, `matPadS`, `mulvec_matPadS`, `padTo_castLE` | padding-леммы; rmsnorm gain ×√(d0/d1), eps ×(d0/d1) ⇒ первые d0 координат равны старым ТОЧНО | Hagi/Theory/WidthGrowth.lean:42, :46, :96, :125, :129, :164, :171, :190, :206, :210, :233 | :350-386 |
+| `rotIdx`, `rotMate`, `rotV`, `rotV_smul`, `rotary_old_pairs_unchanged` | T2 rotary: padTo-вектор × padTo-таблицы cos/sin ⇒ старые пары (2i, 2i+1) без изменения, новые — 0 | Hagi/Theory/WidthGrowth.lean:240, :244, :250, :256, :266 | rotary f1 = concat |
+| `attn_score_scale_preserved`, `attn_out_pad`, `h1_pad`, `wlogits_width_preserved` | T1 (K·Q)/√hd1 = старому при W_q ×`qScale`; T3 композиция: logits_new(padTo v, padTo c) = logits_old(v, c) — width-рост function-preserving (nh = 1) | Hagi/Theory/WidthGrowth.lean:329, :359, :375, :597 | grow_width |
+| `WParams`, `qScale`, `WGrowth`, forward `wX0`→`wN1`→`wQ`/`wK`/`wV`→`wKr`/`wQr`→`wScore`→`wW`→`wAttn`→`wH1`→`wN2`→`wG`/`wU`/`wSw`(`swish` NormAct.lean:166)→`wH2`→`wLogits` | носитель: параметры, правило роста (нулевые `matPadS`-блоки, компенсация нормировок, gain ×√(d0/d1)), одноголовый forward | Hagi/Theory/WidthGrowth.lean:412, :452, :548, :458–:541 | модель |
+
+- Honest-остаток: width: nh > 1, нечётная ширина, клип сигмоиды [−20, 20],
+  пулинг/emb/alibi — гипотезы `WGrowth`; float32 ≠ ℝ; с DEPTH-ростом
+  (FunctionPreservingGrowth) носители разные, унификации нет.
 
 ## Hagi/Theory/AdaptiveMajorizer.lean (adaptive-step мост, секция «Code bridge»)
 
