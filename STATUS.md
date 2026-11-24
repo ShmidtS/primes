@@ -2919,3 +2919,74 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   drop_max = 1/2 > stepEps; η = 1/2 ⇒ 3/8; η = 2 ⇒ 0; η = 4 ⇒ −4
   (overshoot хуже identity); A = 0 ⇒ ¬ COMMIT ∀η. Log:
   .tmp/C657/gates.log.
+
+## C660 holdout-гейт ↔ PAC-Bayes: two-way сертификат (honest)
+
+- Beat: C660 = roadmap C656 (4) — «holdout-гейт ↔ PAC-Bayes»:
+  что ИЗМЕРЕННЫЙ holdout-гейт роста блока гарантирует о популя-
+  ционном риске (C640/C642 honest-разрыв: «гейт — измерение, не
+  доказательство»). Base HEAD 85c7c670, tree clean.
+  Lean-правка: только новый Hagi/Theory/HoldoutGateTwoWay.lean
+  (+3 theorem) и +1 import в Hagi.lean.
+- Код HAGI_v2 (READ-ONLY) @b3740e0 (= HEAD HAGI_v2; @ca52eb4 те же
+  строки 383-440): unified.py:504 `_maybe_grow`; предикат ТОЧНО:
+  - holdout: unified.py:536-543 — `cut = int(n*0.9)`, окна
+    `_np.arange(cut, n)[:512]`, т.е. ПЕРВЫЕ ≤ 512 окон последнего
+    10% fresh-домена; детерминированный срез, НЕ пересемплируется;
+    loss — mean CE (не [0,1]), одно и то же множество окон для
+    «before» и «after»;
+  - old = trunk + свежий блок сразу после `m.grow` (Wo = 0 ⇒ old
+    ≡ trunk по логитам), new = trunk + блок после warm-up (трени-
+  руются только W1,b1,Wo нового блока, unified.py:556);
+  - PEEKING: unified.py:563-567 — каждые 50 батчей holdout-CE
+    читается и лучшее состояние блока сохраняется (`c < best_ce`)
+    ⇒ holdout используется для ВЫБОРА состояния, не только гейта;
+  - гейт: unified.py:577 `if after >= before - 1e-4: rollback`
+    ⟺ GROW iff holdoutMean(new) < holdoutMean(old) − 1e-4
+    (СТРОГОЕ улучшение с margin 1e-4; отклонение = точный
+    rollback блока).
+- Носитель primes: `holdout_uniform_codebook`
+  (Hagi/Theory/Statistics.lean:293, two-sided Hoeffding, конечное
+  семейство на одной holdout-выборке) + `prodPq_compl`/`prodPq_mono`
+  (Hagi/Probability/CertifiedEstimator.lean). `gibbs_variational`
+  (Hagi/Data/PACBayes.lean) и `anytime_catoni` (Statistics.lean:395)
+  НЕ использованы: anytime_catoni — супермартингал по номеру шага
+  ВЫБОРКИ (пересемплируемый holdout), а код заглядывает много раз
+  в ОДНУ выборку ⇒ peeking по гипотезам, не по размеру; точный
+  носитель — uniform по конечному семейству. Недублирование:
+  `block_admission_sound` (BlockAdmission.lean:315) берёт holdout-
+ средние через premise `RiskChannel` и НЕ даёт популяционного вывода;
+  CEHeldout — fixed-codebook fresh-label confidence без гейта.
+- Теоремы (Hagi.Theory.HoldoutGateTwoWay):
+  - `holdout_gate_two_way`: ℓ : Θ → Ω → ℝ, потери ∈ [0,B],
+    выборка k iid uniform, old : Θ, cand : (Fin k → Ω) → Θ
+    (кандидат может зависеть от выборки), margin, ε > 0 ⇒
+    1 − |Θ|·2·exp(−2k(ε/B)²) ≤ P[ holdoutMean(new) ≤
+    holdoutMean(old) − margin → popMean(new) ≤ popMean(old)
+    + 2ε − margin ]. Union bound по Θ покрывает и peeking-выбор
+    состояния блока.
+  - `two_sided_union_budget`: log(2N/δ) ≤ 2kx² ⇒ 2N·exp(−2kx²) ≤ δ.
+  - `holdout_gate_two_way_delta`: |Θ| ≤ N ⇒ 1 − δ ≤ тот же event.
+- Witness .tmp/C660/traj.lean: k = 512, δ = 1/20, |Θ| = 2 (нет
+  peeking), B = 1, ε = 1/8: log 80 ≤ 16 = 2·512·(1/8)² ⇒
+  P ≥ 19/20 [гейт принял ⇒ pop_new ≤ pop_old + 1/4]; GOOD-событие
+  ⇒ вывод (witness c660_gate_conclusion, только .tmp). Аксиомы всех 5: [propext,
+  Classical.choice, Quot.sound].
+- СТАТУС. Сертифицировано: при iid-holdout принятый гейт не ухуд-
+  шает популяционный риск больше чем на 2ε (w.p. ≥ 1−δ), где
+  ε/B = sqrt(log(2N/δ)/(2k)). Остаётся честно открытым:
+  (1) iid- holdout — МОДЕЛЬ: код — детерминированный связный срез
+  конца домена (соседние окна перекрываются на k−1 байт; train-
+  окна < cut могут перекрывать holdout-контекст);
+  (2) CE не ограничен [0,B] — нормировка на `ceBound`-аналог
+  (CEHeldout) для кода не формализована;
+  (3) N для кода: 2 + число checkpoint-оценок (≤ ~7 на 300 шагов)
+  — число из кода, не теорема; margin 1e-4 ≪ ε ≈ 0.12 — при
+  k = 512 сертификат практически вакуумный (2ε = 0.25 в единицах
+  B), т.е. honest: гейт полезен статистически только при k ≫ 512
+  или малом B;
+  (4) связь с `gen` CommitGate (GateCert.gen ≥ 2ε замыкает гейт
+  коммита) — НЕ формализована (CommitGate в слое Unified, импорт
+  Theory → Unified не добавлялся).
+- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (8959 = 8956 + 3);
+  ALLAXIOMS: PASS (.tmp/C660/gates.log).

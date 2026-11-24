@@ -450,6 +450,7 @@ import Hagi.Theory.FullPipeline
 import Hagi.Theory.BlockAdmission
 import Hagi.Theory.BlockLipschitz
 import Hagi.Theory.FunctionPreservingGrowth
+import Hagi.Theory.HoldoutGateTwoWay
 import Hagi.Theory.GrowTrunkBlock
 import Hagi.Theory.GrowSnap
 import Hagi.Theory.AdaptiveMajorizer
