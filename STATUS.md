@@ -2938,6 +2938,74 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (overshoot хуже identity); A = 0 ⇒ ¬ COMMIT ∀η. Log:
   .tmp/C657/gates.log.
 
+## C667 width-рост grow_width: полный function-preserving (T1 attention, T2 rotary, T3 logits)
+
+- Beat: C667 = закрыть карточку-остаток C666 п.7 (Надя.txt:350-410,
+  READ-ONLY): grow_width d0→d1, h0→h1 — доказать, что логиты
+  grown-модели на дополненных нулями входах равны старым ТОЧНО. Base
+  HEAD 5c99e460, tree clean. Lean-правка: только
+  `Hagi/Theory/NadyaOptimal.lean` (секция WidthGrowth, +~760 строк:
+  +26 def, +2 structure, +12 theorem). Скрипты не трогал.
+- Носитель (KISS, честно): одноголовый случай nh = 1 ⇒ hd = d = 2·half
+  (четная ширина — нечётная в коде тоже «работает», но координата
+  2·half0 старой модели не вращается, а в новой попадает в новую пару:
+  равенство ломается — honest-pin, не формализовано). `WParams`:
+  eps, rms1/rms2, b2, W_loc (по срезам), W_q/W_k/W_v/W_o, W_g/W_u/W_d,
+  W_out, cos/sin последней позиции и по позициям, alibi. Forward
+  `wX0` → `wN1` → `wQ`/`wK`/`wV` → `wKr`/`wQr` (rotary) → `wScore`
+  ((K·Q)/√hd + alibi) → `wW` (softmax) → `wAttn` → `wH1` → `wN2` →
+  `wG`/`wU`/`wSw` (swish) → `wH2` → `wLogits`. Правило роста —
+  предикат `WGrowth` (блочное дополнение нулями `matPadS`, W_q —
+  блок ×`qScale` = √(hd1/hd0), gain ×√(d0/d1), eps ×(d0/d1),
+  rotary-таблицы = concat нулями, alibi/b2 без изменения).
+- Слои доказательства:
+  - T1 `attn_score_scale_preserved`: K1 = padTo K, Q1 = padTo (c·Q)
+    ⇒ (K1·Q1)/√hd1 = (K·Q)/√hd0 (леммы `sum_pad`, `sum_pad_scale`,
+    `eq_padTo`, `mulvec_rowPad`, `mulvec_matPadS`, `padTo_castLE`).
+  - T2 `rotary_old_pairs_unchanged`: `rotV` (плоский rotary, пары
+    (2i, 2i+1), `rotIdx`/`rotMate`) при padTo-векторе и padTo-таблицах
+    cos/sin: старые координаты идентичны, новые — нули;
+    `rotV_smul` (линейность по масштабу) склеивает W_q-масштаб с rotary.
+  - T3 `wlogits_width_preserved`: композиция — rmsnorm_scale_inv (две
+    RMSNorm) × T1 ⇒ равные scores ⇒ равные softmax-веса
+    (`attn_out_pad`) ⇒ attn сохраняется ⇒ h1 (`h1_pad`) ⇒ FFN
+    (нулевые новые строки W_g/W_u, нулевые новые столбцы W_d ⇒ swish·up
+    = 0 на новых t) ⇒ h2 ⇒ W_out (нулевые новые строки) ⇒
+    logits_new(padTo v, padTo c) = logits_old(v, c) для всех v, c, o.
+- Honest-остаток (карточка): (1) многоголовый случай nh > 1 — не
+  формализован; доказательство блочно-переносимо (каждая голова
+  независимо: T1/T2 по-координатно внутри головы, W_o — нулевые
+  новые строки), но WParams/`WGrowth` — одноголовые. (2) Нечётная
+  ширина. (3) Клип сигмоиды [−20, 20] (Надя.txt:252) не формализован
+  (`swish` без клипа). (4) Входы v/c — абстрактные: пулинг
+  p_pool (новые столбцы = 1/r), emb-дополнение, alibi-таблица —
+  гипотезы `WGrowth`, не доказанные свойства grow_width.
+  (5) Float32 в коде ≠ ℝ: равенство точное в ℝ, не побитово.
+- Два вида роста, оба function-preserving (карта): DEPTH —
+  `trunk_function_preserving` (FunctionPreservingGrowth): trunk ++
+  [identityBlock] = старый trunk, следствия `lmLogits_grow_identity`
+  (grown LM и старая — одни логиты). WIDTH — `wlogits_width_preserved`
+  (этот бит): d0→d1, h0→h1 по `WGrowth` — те же логиты на
+  дополненных входах. Общее: нулевая инициализация новых
+  координат/столбцов (identity-блок = attn 0; width = новые строки и
+  столбцы 0) + точная компенсация нормировок (identity norm = id;
+  width = gain ×√(d0/d1), eps ×(d0/d1), W_q ×√(hd1/hd0)). Различие:
+  depth-носитель — `CertifiedBlock`/`lmTrunk` (LMCompose), width-носитель
+  — `WParams` (NadyaOptimal); дословной унификации носителей нет
+  (KISS, как и pins FunctionPreservingGrowth).
+- Аксиомы (AllAxiomCheck + .tmp/C667/traj.log): все три —
+  [propext, Classical.choice, Quot.sound].
+- Witness .tmp/C667/traj.lean (rc=0): qScale 12 24 = √2; T1 hd0=12,
+  hd1=24 (scores равны); T2 half0=6, half1=12; T3 WParams 6→12.
+- Gates (.tmp/C667/gates.log): scripts/ci.sh → CI: PASS rc=0
+  (ReachLint 559, TrivialLint, triviality, MathlibPin fc4f59e5, DupLint,
+  NsLint, DocLint, LayerLint, FREEZE PASS 9043, AssumptionScan,
+  MergeModule, StatusLint, Challenge, StmtDup, MachineDiff, ALLAXIOMS).
+- Freeze: 9043 = 9003 + 40 (26 def + 2 structure + 12 theorem = 40,
+  ровно новые объявления).
+
+
+
 ## C666 «Надя.txt» ↔ primes: карта 10 идей HAGI v2 Optimal и их носители
 
 - Beat: C666 — формализовать и объединить идеи
@@ -2997,9 +3065,7 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
      THEOREM `rmsnorm_scale_inv`: padded (x,0), gain ×√(d0/d1),
      eps ×(d0/d1) ⇒ `rmsOut` первых d0 координат равен старому
      ТОЧНО (без пренебрежения eps); лемма `rmsMs_pad` (mean(y²) по
-     d1 = (d0/d1)·mean(x²)). Honest-остаток (карточка): W_q scale
-     и rotary-частоты, полный logits(new) = logits(old) — не
-     формализованы; это WIDTH-рост, другой вид, чем
+     d1 = (d0/d1)·mean(x²)). Honest-остаток (карточка) — ЗАКРЫТО C667 (`wlogits_width_preserved`): W_q scaleй вид, чем
      DEPTH-рост `trunk_function_preserving` (FunctionPreservingGrowth).
   8. EXACT_BYPASS / JSON_MOD_XOR (Надя.txt:695-750) — THEOREM
      `bypass_reaches_compression_limit`: если q — распределение
