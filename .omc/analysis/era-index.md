@@ -1,4 +1,4 @@
-# Era index — C591–C667 (2026-11-22/24)
+# Era index — C591–C668 (2026-11-22/25)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat-файлы
@@ -258,3 +258,23 @@
 - Honest: certified-величина drop для нелинейного носителя и
   производная по W1 открыты; нечётная ширина и nh > 1 не формализованы;
   hagi/unified.py:1010 @bab8aff ещё `[::-1]`; U2 открыт.
+
+<a id="c668"></a>
+## C668 — производная по первому слою W1 (freeze 9043→9054)
+
+- Коммит: `feat: first layer gradient rank one and useful w1 step`
+  (sha — в receipt `.tmp/C668/receipt.md`).
+- Исследование: F3 = «производная по W1 не формализована»; код —
+  `_block_add` lm.py:586 @ca52eb4 (`relu(a @ W1 + b1) @ Wo`), `W1` —
+  lm.py:594 @ca52eb4. Внешние источники не использованы: реестр Palomar
+  (1351 entries, API) не содержит fderiv/chain rule/backprop;
+  sciencemadereadable даёт статьи о low-rank-градиентах (Sonthalia et al.
+  2025), не формализации.
+- Результат: `Hagi/Theory/FirstLayerGrad.lean` — `hasFDerivAt_w1L`
+  (chain rule: линейная `W1 ↦ W1ᵀx` + `hasFDerivAt_reluL`),
+  `w1_grad_rank_one` (`g (i,j) = g i · x j`),
+  `w1_directional_derivative`, `useful_of_adam_first_w1` (T5, строгое
+  убывание), `w1_rank_one_step_eq_bias`.
+- Honest: certified drop по W1 не выведен; один вход (батч = Σ_t g_t ⊗ a_t
+  не формализован); оптимум по норме Фробениуса не формализован;
+  U2 открыт.

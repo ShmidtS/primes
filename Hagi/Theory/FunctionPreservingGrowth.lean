@@ -60,6 +60,8 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
   любого `L` с производной Фреше), `hasFDerivAt_relu` /
   `hasFDerivAt_reluL` (relu-блок дифференцируем по b1 вне kink),
   `useful_of_adam_first_relu` (T4: Adam-first на b1-блоке).
+  Слой `W1` (производная по матрице, rank-one градиент, T5) —
+  следующий модуль `Hagi/Theory/FirstLayerGrad.lean` (C668).
 * (c) `function_preserving_admissible` — в НЕЙТРАЛЬНОЙ конфигурации
   адмиссии (λM = λR = 0, ε_cert = 0) identity-блок проходит
   `blockAdmissionRule` при любом Δcost: gain = 0 на шаге 0 (точное
@@ -97,8 +99,10 @@ Cycle-соответствие: `scripts/bench_bridge.py --mode grow` испол
   b1-блок дифференцируем и Adam-first даёт СТРОГОЕ убывание CE
   для малого η (`useful_of_adam_first_relu`) — но без certified-
   величины drop (range-лемма линейна по η, здесь смещение логитов
-  нелинейно) и без W1 (производная по W1 — через `a`, не
-  формализована).
+  нелинейно). Слой `W1` формализован отдельно (C668,
+  `Hagi/Theory/FirstLayerGrad.lean`): `hasFDerivAt_w1L`,
+  rank-one градиент, `useful_of_adam_first_w1` — тот же уровень
+  (строгое убывание, без certified-величины).
   Для ЛИНЕЙНОГО носителя (Wo-блок при фиксированных скрытых
   активациях, lm.py:581) гипотеза ЗАКРЫТА (секция «Chain rule
   для линейного носителя»): `chain_linear` даёт
@@ -701,7 +705,8 @@ relu(a@W1+b1)@Wo`): градиент CE по Wo идёт через residual-п�
 = −Σ_i d_i·Σ_v J_{v i}(y_v − p_v). Носитель: индекс параметров
 `P`, якобиан `J : K → P → ℝ`, направление `d : P → ℝ`,
 смещение логитов `D v = Σ_i J v i * d i`. НЕЛИНЕЙНЫЙ носитель `b` дифференцируем вне kink
-(`hasFDerivAt_reluL`); матрица `W1` — не формализована. -/
+(`hasFDerivAt_reluL`); матрица `W1` — `Hagi/Theory/FirstLayerGrad.lean`
+(C668: `hasFDerivAt_w1L`, rank-one градиент). -/
 
 /-- Градиент `CE ∘ L` по параметрам линейного носителя (chain rule
 для линейной части): `g i = Σ_v J v i * (y v − p v)` = `Jᵀ ∇CE`. -/

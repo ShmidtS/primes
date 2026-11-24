@@ -2080,23 +2080,57 @@ unified.py:383-440 @ca52eb4; `_certified_finite_step` lm.py:826 @ca52eb4.
 
 | теорема | формулировка | file:line | bench |
 |---|---|---|---|
-| `identityBlock`, `trunk_function_preserving`, `lmLogits_grow_identity` (→ `lmLogits` LMCompose.lean:215), `function_preserving_growth` | trunk ++ [identity-блок] = старый trunk ⇒ те же логиты (только шаг 0). Родня: `zero_init_identity` (NonlinearStep0.lean:104), `adapter_neutral_B` (AdapterGrowth.lean:101) | Hagi/Theory/FunctionPreservingGrowth.lean:133, :162, :172, :196 | `--mode grow` (C444, `blockAdmissionRule`) |
-| `warmup_telescope`, `warmup_safe`, `warmup_strict` | h0 (старт = fOld) + h1 (каждый шаг obj' ≤ obj − drop) ⇒ obj n ≤ fOld − Σ drop | Hagi/Theory/FunctionPreservingGrowth.lean:284, :299, :314 | `certified-warmup-sim` (C654) |
-| `uncertified_step_can_worsen` | без h1 один шаг растёт obj — негатив | Hagi/Theory/FunctionPreservingGrowth.lean:331 | — |
-| `post_warmup_growth_safe`, `post_warmup_growth_safe_of_certified` | + rollback-гейт (`guardedStep` RollbackGate.lean:86): при любом вердикте obj ≤ fOld | Hagi/Theory/FunctionPreservingGrowth.lean:348, :367 | — |
-| `stepEps`, `CertifiedFiniteStep`, `warmup_h1_of_certified_steps`, `warmup_safe_of_certified_steps`, `post_warmup_growth_safe_of_certified_steps` | контракт COMMIT (drop > 1e-12 ∧ obj' ≤ obj − drop) ∨ HOLD ⇒ h1 ⇒ warmup_safe и rollback-композиция | Hagi/Theory/FunctionPreservingGrowth.lean:391, :398, :406, :422, :433 | `certified-warmup-sim` (C654) |
-| `uncertified_step_not_certified`, `batch_drop_not_global` | негативы: растущий шаг не проходит контракт; drop на batch ≠ drop на другом functional | Hagi/Theory/FunctionPreservingGrowth.lean:446, :460 | — |
-| `certified_step_block_of_range`, `block_step_certified_of_range_bound`, `block_step_commit_of_range_bound`, `block_range_bound_violated_not_certified` | range-лемма о логитах (`lse_shift_upper` PoEBound.lean:164) не зависит от носителя ⇒ шаг по параметрам блока certified при range ≤ r | Hagi/Theory/FunctionPreservingGrowth.lean:487, :503, :517, :532 | — |
-| `linDrop`, `useful_first_step`, `useful_first_step_pos`, `useful_eta_le`, `exists_useful_eta`, `first_step_useful_certified`, `first_step_strict_improves`, `no_signal_no_drop` | линейный по η шаг: drop_max = 2a²/R² при η* = −4a/R²; a < 0 ∧ 2a²/R² > stepEps ⇒ COMMIT и CE < fOld; a = 0 ⇒ drop ≤ 0 ∀η | Hagi/Theory/FunctionPreservingGrowth.lean:575, :580, :586, :593, :616, :637, :672, :625 | — |
-| `chainGrad`, `chain_linear`, `useful_of_adam_first` | ∇(CE∘L) = Jᵀ∇CE (алгебра); Adam-first g ≠ 0 ⇒ a < 0 ⇒ certified COMMIT на линейном носителе (Wo при фиксированном h) | Hagi/Theory/FunctionPreservingGrowth.lean:708, :716, :741 | — |
-| `useful_step_of_fderiv`, `useful_of_adam_first_fderiv`, `reluL`, `reluMask`, `reluJacLin`, `reluJac`, `hasFDerivAt_relu`, `hasFDerivAt_reluL`, `useful_of_adam_first_relu` | fderiv d = −c < 0 ⇒ ∃ η > 0 строгого убывания (`fderiv_ceOneHot_comp_apply` CEGradient.lean:170; `smax_pos` PoEBound.lean:104, `softDef_sum_one` InfoCore.lean:118); инстанс Adam-first по b1 relu-блока вне kink (БЕЗ certified-величины drop) | Hagi/Theory/FunctionPreservingGrowth.lean:805, :860, :888, :892, :909, :921, :895, :932, :977 | — |
+| `identityBlock`, `trunk_function_preserving`, `lmLogits_grow_identity` (→ `lmLogits` LMCompose.lean:215), `function_preserving_growth` | trunk ++ [identity-блок] = старый trunk ⇒ те же логиты (только шаг 0). Родня: `zero_init_identity` (NonlinearStep0.lean:104), `adapter_neutral_B` (AdapterGrowth.lean:101) | Hagi/Theory/FunctionPreservingGrowth.lean:137, :166, :176, :200 | `--mode grow` (C444, `blockAdmissionRule`) |
+| `warmup_telescope`, `warmup_safe`, `warmup_strict` | h0 (старт = fOld) + h1 (каждый шаг obj' ≤ obj − drop) ⇒ obj n ≤ fOld − Σ drop | Hagi/Theory/FunctionPreservingGrowth.lean:288, :303, :318 | `certified-warmup-sim` (C654) |
+| `uncertified_step_can_worsen` | без h1 один шаг растёт obj — негатив | Hagi/Theory/FunctionPreservingGrowth.lean:335 | — |
+| `post_warmup_growth_safe`, `post_warmup_growth_safe_of_certified` | + rollback-гейт (`guardedStep` RollbackGate.lean:86): при любом вердикте obj ≤ fOld | Hagi/Theory/FunctionPreservingGrowth.lean:352, :371 | — |
+| `stepEps`, `CertifiedFiniteStep`, `warmup_h1_of_certified_steps`, `warmup_safe_of_certified_steps`, `post_warmup_growth_safe_of_certified_steps` | контракт COMMIT (drop > 1e-12 ∧ obj' ≤ obj − drop) ∨ HOLD ⇒ h1 ⇒ warmup_safe и rollback-композиция | Hagi/Theory/FunctionPreservingGrowth.lean:395, :402, :410, :426, :437 | `certified-warmup-sim` (C654) |
+| `uncertified_step_not_certified`, `batch_drop_not_global` | негативы: растущий шаг не проходит контракт; drop на batch ≠ drop на другом functional | Hagi/Theory/FunctionPreservingGrowth.lean:450, :464 | — |
+| `certified_step_block_of_range`, `block_step_certified_of_range_bound`, `block_step_commit_of_range_bound`, `block_range_bound_violated_not_certified` | range-лемма о логитах (`lse_shift_upper` PoEBound.lean:164) не зависит от носителя ⇒ шаг по параметрам блока certified при range ≤ r | Hagi/Theory/FunctionPreservingGrowth.lean:491, :507, :521, :536 | — |
+| `linDrop`, `useful_first_step`, `useful_first_step_pos`, `useful_eta_le`, `exists_useful_eta`, `first_step_useful_certified`, `first_step_strict_improves`, `no_signal_no_drop` | линейный по η шаг: drop_max = 2a²/R² при η* = −4a/R²; a < 0 ∧ 2a²/R² > stepEps ⇒ COMMIT и CE < fOld; a = 0 ⇒ drop ≤ 0 ∀η | Hagi/Theory/FunctionPreservingGrowth.lean:579, :584, :590, :597, :620, :641, :676, :629 | — |
+| `chainGrad`, `chain_linear`, `useful_of_adam_first` | ∇(CE∘L) = Jᵀ∇CE (алгебра); Adam-first g ≠ 0 ⇒ a < 0 ⇒ certified COMMIT на линейном носителе (Wo при фиксированном h) | Hagi/Theory/FunctionPreservingGrowth.lean:713, :721, :746 | — |
+| `useful_step_of_fderiv`, `useful_of_adam_first_fderiv`, `reluL`, `reluMask`, `reluJacLin`, `reluJac`, `hasFDerivAt_relu`, `hasFDerivAt_reluL`, `useful_of_adam_first_relu` | fderiv d = −c < 0 ⇒ ∃ η > 0 строгого убывания (`fderiv_ceOneHot_comp_apply` CEGradient.lean:170; `smax_pos` PoEBound.lean:104, `softDef_sum_one` InfoCore.lean:118); инстанс Adam-first по b1 relu-блока вне kink (БЕЗ certified-величины drop) | Hagi/Theory/FunctionPreservingGrowth.lean:810, :865, :893, :897, :914, :926, :900, :937, :982 | — |
 
-- Honest-остаток: (F3) производная по W1 не формализована; (U2) global
+- Honest-остаток: (F3 → закрыт C668, `Hagi/Theory/FirstLayerGrad.lean`);
+  (U2) global
   reachability «expressive блок ⇒ drop ≥ δ» открыт (non-convex + UAT);
-  certified drop для нелинейного носителя не выведен; в коде warm-up — голый
+  certified drop для нелинейного носителя (b1 и W1) не выведен; в коде
+  warm-up — голый
   Adam (unified.py:423-433 @ca52eb4), h1 условен, L-smooth блока не доказана;
   holdout-гейт — измерение; η* — certificate-оптимум, не шаг кода; depth- и
   width-рост — разные носители, унификации нет.
+
+## Hagi/Theory/FirstLayerGrad.lean (производная по первому слою W1, C668)
+
+Код-якорь HAGI_v2: `_block_add` lm.py:586 @ca52eb4
+(`h = h + t.relu(a @ blk["W1"] + blk["b1"]) @ blk["Wo"]`), `W1 : dim ×
+hidden` — lm.py:594 @ca52eb4. Пин F3 карточки FunctionPreservingGrowth
+(«производная по W1 не формализована») закрыт: слой `W1 : ι → δ → ℝ`
+(строка `i`, столбец `j`), один вход `x : δ → ℝ`, pre-activation
+`w1Pre x W1 i = Σ_j W1 i j * x j`.
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `w1Pre`, `w1L`, `w1PreCLM`, `w1Jac`, `w1Jac_apply`, `w1Entry` | логиты как функция матрицы: `w1L W1 b wo x = reluL (W1ᵀx) b wo`; `W1 ↦ W1ᵀx` — непрерывное линейное; якобиан `J·Δ v = Σ_i mask i·(Δᵀx) i·wo i v`; запись `J v (i,j) = mask i·wo i v·x j` | Hagi/Theory/FirstLayerGrad.lean:49, :54, :59, :72, :77, :114 | — |
+| `hasFDerivAt_w1L` | вне kink (`w1Pre x W1 i + b i ≠ 0`) `w1L · b wo x` дифференцируема по матрице, производная `w1Jac` (`hasFDerivAt_reluL` по симметрии `reluL w b = reluL b w` + `HasFDerivAt.comp` с линейной `W1 ↦ W1ᵀx`) | Hagi/Theory/FirstLayerGrad.lean:87 | — |
+| `w1_grad_rank_one` | градиент по `W1` RANK-ONE: `chainGrad w1Entry p y (i,j) = g i · x j`, `g i = Σ_v (y v − p v)·mask i·wo i v` (строка `Woᵀ r`, умноженная на вход) | Hagi/Theory/FirstLayerGrad.lean:123 | — |
+| `w1_directional_derivative` | pairing range-леммы `⟨p − y, J·Δ⟩ = −Σ_{ij} (g i · x j)·Δ i j` — Frobenius-скалярное произведение rank-one градиента с возмущением (`chain_linear` на `ι × δ`) | Hagi/Theory/FirstLayerGrad.lean:140 | — |
+| `useful_of_adam_first_w1` | T5: Adam-first по матрице `W1` (параметр `ι × δ`), вне kink, `g ≠ 0` ⇒ `∃ η > 0`, `CE_t (w1L (W1 + η•d)) < CE_t (w1L W1)` (через `useful_of_adam_first_fderiv`) | Hagi/Theory/FirstLayerGrad.lean:167 | — |
+| `w1_rank_one_step_eq_bias` | rank-one обновление `ΔW1 = (c/Σx²)•(u ⊗ x)` для одного входа равно сдвигу bias `b + c • u` (первый слой вдоль входа — тот же b1-слой) | Hagi/Theory/FirstLayerGrad.lean:188 | — |
+
+Witness: `.tmp/C668/traj.lean` (d = 3, d_ff = 4, 2 класса; мёртвый нейрон 2):
+`fderiv (w1L · b wo x) W Δ = Σ_i mask i·(Δᵀx) i·wo i v` численно = (14, 42),
+логиты = (14, 28), rank-one шаг c = 2, u = e₁ ⇒ логиты (16, 30); rc = 0.
+Freeze 9043 → 9054 (+11: `w1Pre`, `w1L`, `w1PreCLM`, `w1Jac`, `w1Jac_apply`,
+`hasFDerivAt_w1L`, `w1Entry`, `w1_grad_rank_one`, `w1_directional_derivative`,
+`useful_of_adam_first_w1`, `w1_rank_one_step_eq_bias`).
+
+- Honest-остаток: уровень — строгое убывание (T3/T4), certified-величина
+  drop по W1 не выведена; один вход `x` (в коде — батч/последовательность
+  `a @ W1`, градиент по батчу = Σ_t g_t ⊗ a_t — сумма rank-one, не
+  формализована); оптимум `ΔW1` по норме Фробениуса (вариант B/C:
+  `η* = 4|a|/R²`, минимальность rank-one) — не формализован; kink
+  (`w i + b i = 0`) вне носителя.
 
 ## Hagi/Theory/NadyaOptimal.lean («Надя.txt» HAGI v2 Optimal: BitAlloc, Schedules, LCB, Bypass)
 
@@ -2320,10 +2354,10 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.
 
-## History (C538–C667)
+## History (C538–C668)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C667, якоря `#c638-c640`
-  … `#c665-c667`); более ранние per-beat файлы — `git log`. Журнал
+- Era index: `.omc/analysis/era-index.md` (C591–C668, якоря `#c638-c640`
+  … `#c665-c667`, `#c668`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
   (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
   `git show b3939aa5:STATUS.md`.

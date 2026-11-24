@@ -31,7 +31,7 @@ the optimal snap grid k* = ⌈log₂(L·d/ε)⌉ − 1, the useful first warm-up
 step **η* = 4|a|/R² with drop_max = 2a²/R²**, and the codelength sandwich
 **H(p) ≤ E[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1** via Kraft–McMillan.
 Release feature: **17 PALOMAR cards** and a **§0 map of 31 code
-bridges** (C521–C667) in which the consumer's own code (HAGI_v2, python
+bridges** (C521–C668) in which the consumer's own code (HAGI_v2, python
 `file:line@sha`) is checked against the canon and labelled exact,
 conditional or honest-gap. We state the open hypotheses as pins (§5,
 pins 30–34): U2 global reachability, the chain rule behind a < 0 (closed
@@ -53,21 +53,21 @@ something the theorem does not cover, said so). Row numbers are cycles.
 
 | Layer | Canon (Lean file:line) | Code anchor (HAGI_v2 file:line@sha) | Status | Cycle |
 |---|---|---|---|---|
-| growth | `grow_block_bench_sound` (Hagi/Theory/GrowTrunkBlock.lean:123); `function_preserving_growth` (Hagi/Theory/FunctionPreservingGrowth.lean:196) | `_block_add`/`grow`, hagi/lm.py:581-601 @ca52eb4 | exact | C640 |
+| growth | `grow_block_bench_sound` (Hagi/Theory/GrowTrunkBlock.lean:123); `function_preserving_growth` (Hagi/Theory/FunctionPreservingGrowth.lean:200) | `_block_add`/`grow`, hagi/lm.py:581-601 @ca52eb4 | exact | C640 |
 | growth | `grow_blocks_repeat_sound` (Hagi/Theory/GrowTrunkBlock.lean:148) | `MAX_BLOCKS = 2`, hagi/unified.py:381 @ca52eb4 | exact (2 blocks) | C640 |
 | growth | `growthGate` (Hagi/Theory/NegativeTransfer.lean:570) | `_maybe_grow`, hagi/unified.py:383-440 @ca52eb4 | honest gap: heuristic signal, not the canonical gate | C640 |
 | growth | `snap_k_eq_ceil` (Hagi/Theory/GrowSnap.lean:342); `grow_snap_cycle_sound` (:145) | no snap grid in HAGI_v2; bench twin `--mode grow-snap` | honest gap: no consumer code | C521/C593 |
 | growth | `adapter_step_certified` (Hagi/Theory/AdapterGrowth.lean:190) | bench twin `--mode adapter-grow` | conditional (bench carrier) | C532 |
 | step | `ce_range_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1497) | range branch, hagi/lm.py:1313-1324 @1ae924e | exact | C638 |
 | step | `ce_adaptive_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1473) | `_adaptive_step`, hagi/lm.py:1261 @1ae924e | conditional (window (1e-5, 50]) | C638 |
-| step | `CertifiedFiniteStep` (Hagi/Theory/FunctionPreservingGrowth.lean:398); `warmup_h1_of_certified_steps` (:406) | `_certified_finite_step`, hagi/lm.py:826-879 @ca52eb4 | conditional (one objective) | C644 |
-| step | `useful_first_step` (Hagi/Theory/FunctionPreservingGrowth.lean:580); `first_step_useful_certified` (:637) | block `grow()`, hagi/lm.py:589-601 @ca52eb4 | conditional (a < 0, hlin) | C657 |
+| step | `CertifiedFiniteStep` (Hagi/Theory/FunctionPreservingGrowth.lean:402); `warmup_h1_of_certified_steps` (:410) | `_certified_finite_step`, hagi/lm.py:826-879 @ca52eb4 | conditional (one objective) | C644 |
+| step | `useful_first_step` (Hagi/Theory/FunctionPreservingGrowth.lean:584); `first_step_useful_certified` (:637) | block `grow()`, hagi/lm.py:589-601 @ca52eb4 | conditional (a < 0, hlin) | C657 |
 | step | `adam_first_step_dot_pos` (Hagi/Step/AdamDirection.lean:85); `ema_sign_flip_negative` (:125) | `torch.optim.Adam`, hagi/lm.py:349 @b3740e0 | exact as a verdict: descent only at t = 1 | C655 |
 | step | `mgda_eq_of_stationary` (Hagi/Model/BatchCEDescentMgdaCode.lean:126) | `mgda_weights`, hagi/selfmodel.py:35-60 @ca52eb4 | exact at ε = 0, equal ‖g‖ | C639 |
 | reading | `covStartsStep_covers` (Hagi/Theory/CoverageReading.lean:184); `hier_covers_any_n` (:283) | bench twin `--mode adaptive-span`, `generate-hier` | honest gap: no consumer code | C602/C611 |
 | reading | `slot_last` (Hagi/Theory/CoverageReading.lean:720); `slotRev_first` (:734) | `_windows`, hagi/unified.py:297-316 @b3740e0 | exact for order; honest gap: target adjacency | C651 |
 | reading | `slot_last` (Hagi/Theory/CoverageReading.lean:720); `padSlot_tail` (:748); `padSlot_last` (:756); `padSlot_full` (:765) | train_guarded holdout, hagi/lm.py:905-907 @bab8aff; `_read_all_windows`, hagi/lm.py:1041-1054 @bab8aff; `generate`, hagi/lm.py:1126-1127 @bab8aff | exact for order; honest gap: `unified.py:1010` @bab8aff still reads `[::-1]` | C664 |
-| step | `chain_linear` (Hagi/Theory/FunctionPreservingGrowth.lean:716); `useful_of_adam_first` (:741) | block `grow()`, hagi/lm.py:581/:594-596 @ca52eb4 | conditional (linear carrier; nonlinear: strict descent only, C665) | C663 |
+| step | `chain_linear` (Hagi/Theory/FunctionPreservingGrowth.lean:721); `useful_of_adam_first` (:741) | block `grow()`, hagi/lm.py:581/:594-596 @ca52eb4 | conditional (linear carrier; nonlinear: strict descent only, C665) | C663 |
 | probability | `holdout_gate_two_way` (Hagi/Theory/HoldoutGateTwoWay.lean:52); `holdout_gate_two_way_delta` (:109) | growth gate, hagi/unified.py:536-543/:563-567/:577 @b3740e0 | conditional (iid slice; k = 512 near-vacuous) | C660 |
 | transfer | `neg_transfer_char` (Hagi/Theory/NegativeTransfer.lean:117); `nl_drop_optimal` (:481) | `_fit_domain_adapter`, hagi/unified.py:360/:367 @b3740e0 | conditional (quad model; bench gate C601) | C572/C606 |
 | transfer | `auto_transfer_gate_sound` (Hagi/Theory/AutoTransferGate.lean:139) | bench twin `--mode transfer-gate-certified` | honest gap: no consumer code | C577 |
@@ -83,7 +83,8 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | probability | `paired_lcb_false_grow_bound` (Hagi/Theory/NadyaOptimal.lean:270) | LCB gate, Надя.txt:109-112/:884-890 | conditional (deterministic radius r; code uses z·σ̂/√n) | C666 |
 | compression | `bypass_reaches_compression_limit` (Hagi/Theory/NadyaOptimal.lean:304); `ce_covered_zero` (Hagi/Theory/ExactBypass.lean:70) | EXACT_BYPASS, Надя.txt:695-750 | exact for the ideal coder (q = 1 on the support) | C666 |
 | growth | `wlogits_width_preserved` (Hagi/Theory/WidthGrowth.lean:597); `attn_score_scale_preserved` (:329); `rotary_old_pairs_unchanged` (:266) | `grow_width`, Надя.txt (function name) | exact for nh = 1, even width; honest gap: nh > 1, odd width, clip are hypotheses `WGrowth` | C667 |
-| rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:348) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
+| step | `hasFDerivAt_w1L` (Hagi/Theory/FirstLayerGrad.lean:87); `w1_grad_rank_one` (:123); `useful_of_adam_first_w1` (:167) | first layer `W1`, hagi/lm.py:586/:594 @ca52eb4 | strict descent only (no certified drop; single input) | C668 |
+| rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
 
 **What is proved end to end.** Inside Lean, with no code hypothesis:
 the cycle theorem (`certify_then_commit_sound`,
@@ -770,7 +771,7 @@ Version deltas: `hagi_master_v31` (`MasterTheoremV3.lean:128`) =
 (1)–(8); `hagi_master_v32` (`:187`) = v3.1 + (9)(10); `hagi_master_v33`
 (`:252`) = v3.2 + (11); `hagi_master_v34` (`:323`) = v3.3 + (12)(13)(14)
 (C662): the useful first growth step (`first_step_strict_improves`,
-Hagi/Theory/FunctionPreservingGrowth.lean:672), the Adam first step
+Hagi/Theory/FunctionPreservingGrowth.lean:676), the Adam first step
 (`adam_first_step_dot_pos`, Hagi/Step/AdamDirection.lean:85) and the
 two-way holdout gate (`holdout_gate_two_way_delta`,
 Hagi/Theory/HoldoutGateTwoWay.lean:109), all three with their
@@ -969,11 +970,11 @@ global only probabilistically. Across the era the weak link moved from
 Axioms of every new theorem: propext, Classical.choice, Quot.sound.
 
 
-### 3.20 Later bridges (C651–C667): deltas on the §0 map
+### 3.20 Later bridges (C651–C668): deltas on the §0 map
 
 Rows: §0 (repair, archiver, Adam, useful first step, chain rule,
 holdout gate, window order; C666–C667: BitAlloc, schedule, LCB gate,
-bypass, width growth). Code anchors are `git show`-verified at @e9a96fc
+bypass, width growth; C668: first-layer W1 derivative). Code anchors are `git show`-verified at @e9a96fc
 (wave 256–257), @b3740e0 (wave 258) and @bab8aff (wave 258b); the
 Nadya.txt anchors are a 2026-11-24 snapshot.
 <!-- source: STATUS.md cards C651, C653–C655, C657, C660, C663, C664, C666, C667;
@@ -1010,6 +1011,21 @@ R = 2 ⇒ η* = 1, drop_max = 1/2. Pin 31 (chain rule a < 0) closed for a
 LINEAR carrier in C663 (`chain_linear`, `useful_of_adam_first`) and
 for the relu block only as strict descent for small η (C665); the
 nonlinear certified drop is open.
+
+**(iv-b) First layer `W1` (C668).** The pin “derivative w.r.t. W1 not
+formalized” is closed for a single input x: outside the kink the logits
+`reluL (W1ᵀx) b wo` are differentiable in the matrix (`hasFDerivAt_w1L`,
+chain rule of the linear `W1 ↦ W1ᵀx` with `hasFDerivAt_reluL`), the
+gradient is rank one, `g (i,j) = g i · x j` with
+`g i = Σ_v (y v − p v)·mask i·wo i v` (`w1_grad_rank_one`), its pairing
+with a perturbation Δ is `⟨p − y, J·Δ⟩ = −Σ_{ij} (g i · x j)·Δ i j`
+(`w1_directional_derivative`), Adam-first on the matrix gives strict
+descent for small η (`useful_of_adam_first_w1`), and the rank-one update
+`(c/Σx²)·(u ⊗ x)` equals the bias shift `b + c·u`
+(`w1_rank_one_step_eq_bias`). Witness .tmp/C668/traj.lean, rc = 0
+(d = 3, d_ff = 4, one dead unit). Code: `_block_add`, lm.py:586 and the
+`W1` parameter, lm.py:594 @ca52eb4. Still open: certified drop on W1,
+batch inputs (Σ_t g_t ⊗ a_t), Frobenius-norm optimality of the update.
 
 **(v) Window order (C651 → C664).** After wave 258 the context is
 `idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;
@@ -1453,8 +1469,9 @@ not a Lean clause.
 31. **The descent signal a < 0 is a hypothesis.** UPDATE (C663/C665):
    for a LINEAR logit carrier the link is proved (`chain_linear`,
    `useful_of_adam_first`), and for the relu block strict descent for
-   small η is proved (`useful_of_adam_first_relu`); the certified drop
-   magnitude on the nonlinear carrier is open, and a < 0 still enters
+   small η is proved (`useful_of_adam_first_relu`), and for the first-layer
+   matrix W1 as well (C668, `hasFDerivAt_w1L`, `useful_of_adam_first_w1`);
+   the certified drop magnitude on the nonlinear carrier is open, and a < 0 still enters
    the useful-step theorem as a hypothesis. hlin (linear logit displacement in η) is a code-side
    JVP fact at Wo = 0, not a theorem (C657).
 32. **Without-replacement conservativity is not formalized.** The code
@@ -1585,13 +1602,13 @@ not a Lean clause.
 | mgda_eq_of_stationary | Hagi/Model/BatchCEDescentMgdaCode.lean:126 | C639 |
 | batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary | Hagi/Model/BatchCEDescentMgdaCode.lean:146 | C639 |
 | grow_block_bench_sound | Hagi/Theory/GrowTrunkBlock.lean:123 | C640 |
-| function_preserving_growth | Hagi/Theory/FunctionPreservingGrowth.lean:196 | C640 |
-| warmup_safe | Hagi/Theory/FunctionPreservingGrowth.lean:299 | C642 |
-| post_warmup_growth_safe | Hagi/Theory/FunctionPreservingGrowth.lean:348 | C642 |
+| function_preserving_growth | Hagi/Theory/FunctionPreservingGrowth.lean:200 | C640 |
+| warmup_safe | Hagi/Theory/FunctionPreservingGrowth.lean:303 | C642 |
+| post_warmup_growth_safe | Hagi/Theory/FunctionPreservingGrowth.lean:352 | C642 |
 | backtrack_accept_drop | Hagi/Theory/RollbackGate.lean:261 | C643 |
-| warmup_h1_of_certified_steps | Hagi/Theory/FunctionPreservingGrowth.lean:406 | C644 |
-| batch_drop_not_global | Hagi/Theory/FunctionPreservingGrowth.lean:460 | C644 |
-| certified_step_block_of_range | Hagi/Theory/FunctionPreservingGrowth.lean:487 | C646 |
+| warmup_h1_of_certified_steps | Hagi/Theory/FunctionPreservingGrowth.lean:410 | C644 |
+| batch_drop_not_global | Hagi/Theory/FunctionPreservingGrowth.lean:464 | C644 |
+| certified_step_block_of_range | Hagi/Theory/FunctionPreservingGrowth.lean:491 | C646 |
 | batch_drop_generalizes | Hagi/Contracts/BatchGlobalTelescope.lean:122 | C647 |
 | certified_batch_drop_global | Hagi/Contracts/BatchGlobalTelescope.lean:178 | C647 |
 | rounds_union | Hagi/Contracts/BatchGlobalTelescope.lean:300 | C648 |
@@ -1621,32 +1638,32 @@ not a Lean clause.
 | adam_coord_sign_flip_neg | Hagi/Step/AdamDirection.lean:106 | C655 |
 | adam_step_not_always_descent | Hagi/Step/AdamDirection.lean:116 | C655 |
 | ema_sign_flip_negative | Hagi/Step/AdamDirection.lean:125 | C655 |
-| linDrop | Hagi/Theory/FunctionPreservingGrowth.lean:575 | C657 |
-| useful_first_step | Hagi/Theory/FunctionPreservingGrowth.lean:580 | C657 |
-| useful_first_step_pos | Hagi/Theory/FunctionPreservingGrowth.lean:586 | C657 |
-| useful_eta_le | Hagi/Theory/FunctionPreservingGrowth.lean:593 | C657 |
-| exists_useful_eta | Hagi/Theory/FunctionPreservingGrowth.lean:616 | C657 |
-| no_signal_no_drop | Hagi/Theory/FunctionPreservingGrowth.lean:625 | C657 |
-| first_step_useful_certified | Hagi/Theory/FunctionPreservingGrowth.lean:637 | C657 |
-| first_step_strict_improves | Hagi/Theory/FunctionPreservingGrowth.lean:672 | C657 |
-| identityBlock | Hagi/Theory/FunctionPreservingGrowth.lean:133 | C640 |
-| trunk_function_preserving | Hagi/Theory/FunctionPreservingGrowth.lean:162 | C640 |
-| lmLogits_grow_identity | Hagi/Theory/FunctionPreservingGrowth.lean:172 | C640 |
-| warmup_telescope | Hagi/Theory/FunctionPreservingGrowth.lean:284 | C642 |
-| warmup_strict | Hagi/Theory/FunctionPreservingGrowth.lean:314 | C642 |
-| uncertified_step_can_worsen | Hagi/Theory/FunctionPreservingGrowth.lean:331 | C642 |
-| CertifiedFiniteStep | Hagi/Theory/FunctionPreservingGrowth.lean:398 | C644 |
-| block_step_certified_of_range_bound | Hagi/Theory/FunctionPreservingGrowth.lean:503 | C646 |
-| block_step_commit_of_range_bound | Hagi/Theory/FunctionPreservingGrowth.lean:517 | C646 |
-| block_range_bound_violated_not_certified | Hagi/Theory/FunctionPreservingGrowth.lean:532 | C646 |
+| linDrop | Hagi/Theory/FunctionPreservingGrowth.lean:579 | C657 |
+| useful_first_step | Hagi/Theory/FunctionPreservingGrowth.lean:584 | C657 |
+| useful_first_step_pos | Hagi/Theory/FunctionPreservingGrowth.lean:590 | C657 |
+| useful_eta_le | Hagi/Theory/FunctionPreservingGrowth.lean:597 | C657 |
+| exists_useful_eta | Hagi/Theory/FunctionPreservingGrowth.lean:620 | C657 |
+| no_signal_no_drop | Hagi/Theory/FunctionPreservingGrowth.lean:629 | C657 |
+| first_step_useful_certified | Hagi/Theory/FunctionPreservingGrowth.lean:641 | C657 |
+| first_step_strict_improves | Hagi/Theory/FunctionPreservingGrowth.lean:676 | C657 |
+| identityBlock | Hagi/Theory/FunctionPreservingGrowth.lean:137 | C640 |
+| trunk_function_preserving | Hagi/Theory/FunctionPreservingGrowth.lean:166 | C640 |
+| lmLogits_grow_identity | Hagi/Theory/FunctionPreservingGrowth.lean:176 | C640 |
+| warmup_telescope | Hagi/Theory/FunctionPreservingGrowth.lean:288 | C642 |
+| warmup_strict | Hagi/Theory/FunctionPreservingGrowth.lean:318 | C642 |
+| uncertified_step_can_worsen | Hagi/Theory/FunctionPreservingGrowth.lean:335 | C642 |
+| CertifiedFiniteStep | Hagi/Theory/FunctionPreservingGrowth.lean:402 | C644 |
+| block_step_certified_of_range_bound | Hagi/Theory/FunctionPreservingGrowth.lean:507 | C646 |
+| block_step_commit_of_range_bound | Hagi/Theory/FunctionPreservingGrowth.lean:521 | C646 |
+| block_range_bound_violated_not_certified | Hagi/Theory/FunctionPreservingGrowth.lean:536 | C646 |
 | growthGate | Hagi/Theory/NegativeTransfer.lean:570 | C640 |
 | neg_transfer_char | Hagi/Theory/NegativeTransfer.lean:117 | C572 |
 | hagi_master_v33 | Hagi/Theory/MasterTheoremV3.lean:252 | C622 |
 | hagi_master_v34 | Hagi/Theory/MasterTheoremV3.lean:323 | C662 |
 | holdout_gate_two_way | Hagi/Theory/HoldoutGateTwoWay.lean:52 | C660 |
 | holdout_gate_two_way_delta | Hagi/Theory/HoldoutGateTwoWay.lean:109 | C660 |
-| chain_linear | Hagi/Theory/FunctionPreservingGrowth.lean:716 | C663 |
-| useful_of_adam_first | Hagi/Theory/FunctionPreservingGrowth.lean:741 | C663 |
+| chain_linear | Hagi/Theory/FunctionPreservingGrowth.lean:721 | C663 |
+| useful_of_adam_first | Hagi/Theory/FunctionPreservingGrowth.lean:746 | C663 |
 | padSlot | Hagi/Theory/CoverageReading.lean:741 | C664 |
 | padSlot_tail | Hagi/Theory/CoverageReading.lean:746 | C664 |
 | padSlot_last | Hagi/Theory/CoverageReading.lean:754 | C664 |
@@ -1663,4 +1680,6 @@ not a Lean clause.
      v1.1 (C664): rows of FunctionPreservingGrowth.lean moved +11 lines
      (C663), MasterTheoremV3.lean +11 (C662) — repinned by
      .tmp/C664/repin.py against 85c7c670; rows C660/C662/C663/C664 added.
-     v1.1a (C667): FunctionPreservingGrowth.lean rows +22 (C665) at e160b7ec. -->
+     v1.1a (C667): FunctionPreservingGrowth.lean rows +22 (C665) at e160b7ec.
+     v1.1b (C668): FunctionPreservingGrowth.lean rows +5 (docstring C668);
+     row C668 (FirstLayerGrad.lean) added. -->
