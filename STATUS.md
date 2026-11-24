@@ -1990,7 +1990,7 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
   {16, 64, 256}: чтения {6250, 1563, 391}; linear-cost {100000, 100032,
   100096}.
 
-## scripts/bench_bridge.py (C551–C635: режимы без собственного Lean-ряда)
+## scripts/bench_bridge.py (C551–C654: режимы без собственного Lean-ряда)
 
 Все режимы: append-блок + choice + dispatch (backward-совместимо,
 канон ALGORITHMS §27), certified snap-GD (drop>0 COMMIT / HOLD),
@@ -2065,1217 +2065,254 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   Lean-witness gatetest.lean PASS. `--lambda-sweep`: λ=1/10⁴ → 6 GROW
   (golden); λ ≥ 1/10³ → первый гейт STAY, глубина 2; certified_stay
   λ* ≈ 10⁴¹ (GROW ⟺ λ < pb/params).
+- C654 `--mode certified-warmup-sim` (`certified_warmup_sim_run`):
+  certified warm-up против plain Adam на adapter-grow (trunk заморожен);
+  snapshot fOld 3.761650 -> certified 2.783855 (600 COMMIT, 0 HOLD),
+  plain Adam 3.583951 без сертификата; Verdict PASS, warmup_safe true.
 
-## History (C538–C635)
+## Hagi/Theory/FunctionPreservingGrowth.lean (рост: identity, warm-up, certified-шаг, useful first, chain rule)
 
-- Era index (C591–C633): `.omc/analysis/era-index.md`; earlier
-  per-beat files — `git log`; line-level
-  history: `git log --oneline -- STATUS.md` (полный дожатый журнал —
-  b3939aa5).
+Код-якорь HAGI_v2: `_block_add`/`grow` lm.py:581-601 @ca52eb4
+(`h = h + relu(a@W1+b1)@Wo`, Wo = 0, W1 random); `_maybe_grow`
+unified.py:383-440 @ca52eb4; `_certified_finite_step` lm.py:826 @ca52eb4.
 
-## C638 adaptive step certificate bridge from hagi v2 waves 252-254
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `identityBlock`, `trunk_function_preserving`, `lmLogits_grow_identity` (→ `lmLogits` LMCompose.lean:217), `function_preserving_growth` | trunk ++ [identity-блок] = старый trunk ⇒ те же логиты (только шаг 0). Родня: `zero_init_identity` (NonlinearStep0.lean:104), `adapter_neutral_B` (AdapterGrowth.lean:103) | Hagi/Theory/FunctionPreservingGrowth.lean:139, :168, :178, :202 | `--mode grow` (C444, `blockAdmissionRule`) |
+| `warmup_telescope`, `warmup_safe`, `warmup_strict` | h0 (старт = fOld) + h1 (каждый шаг obj' ≤ obj − drop) ⇒ obj n ≤ fOld − Σ drop | Hagi/Theory/FunctionPreservingGrowth.lean:290, :305, :320 | `certified-warmup-sim` (C654) |
+| `uncertified_step_can_worsen` | без h1 один шаг растёт obj — негатив | Hagi/Theory/FunctionPreservingGrowth.lean:337 | — |
+| `post_warmup_growth_safe`, `post_warmup_growth_safe_of_certified` | + rollback-гейт (`guardedStep` RollbackGate.lean:87): при любом вердикте obj ≤ fOld | Hagi/Theory/FunctionPreservingGrowth.lean:354, :373 | — |
+| `stepEps`, `CertifiedFiniteStep`, `warmup_h1_of_certified_steps`, `warmup_safe_of_certified_steps`, `post_warmup_growth_safe_of_certified_steps` | контракт COMMIT (drop > 1e-12 ∧ obj' ≤ obj − drop) ∨ HOLD ⇒ h1 ⇒ warmup_safe и rollback-композиция | Hagi/Theory/FunctionPreservingGrowth.lean:397, :404, :412, :428, :439 | `certified-warmup-sim` (C654) |
+| `uncertified_step_not_certified`, `batch_drop_not_global` | негативы: растущий шаг не проходит контракт; drop на batch ≠ drop на другом functional | Hagi/Theory/FunctionPreservingGrowth.lean:452, :466 | — |
+| `certified_step_block_of_range`, `block_step_certified_of_range_bound`, `block_step_commit_of_range_bound`, `block_range_bound_violated_not_certified` | range-лемма о логитах (`lse_shift_upper` PoEBound.lean:168) не зависит от носителя ⇒ шаг по параметрам блока certified при range ≤ r | Hagi/Theory/FunctionPreservingGrowth.lean:493, :509, :523, :538 | — |
+| `linDrop`, `useful_first_step`, `useful_first_step_pos`, `useful_eta_le`, `exists_useful_eta`, `first_step_useful_certified`, `first_step_strict_improves`, `no_signal_no_drop` | линейный по η шаг: drop_max = 2a²/R² при η* = −4a/R²; a < 0 ∧ 2a²/R² > stepEps ⇒ COMMIT и CE < fOld; a = 0 ⇒ drop ≤ 0 ∀η | Hagi/Theory/FunctionPreservingGrowth.lean:580, :585, :591, :598, :621, :630, :642, :677 | — |
+| `chainGrad`, `chain_linear`, `useful_of_adam_first` | ∇(CE∘L) = Jᵀ∇CE (алгебра); Adam-first g ≠ 0 ⇒ a < 0 ⇒ certified COMMIT на линейном носителе (Wo при фиксированном h) | Hagi/Theory/FunctionPreservingGrowth.lean:713, :721, :746 | — |
+| `useful_step_of_fderiv`, `useful_of_adam_first_fderiv`, `reluL`, `reluMask`, `reluJacLin`, `reluJac`, `hasFDerivAt_relu`, `hasFDerivAt_reluL`, `useful_of_adam_first_relu` | fderiv d = −c < 0 ⇒ ∃ η > 0 строгого убывания (`fderiv_ceOneHot_comp_apply` CEGradient.lean:170; `smax_pos` PoEBond.lean:108, `softDef_sum_one` InfoCore.lean:118); инстанс Adam-first по b1 relu-блока вне kink (БЕЗ certified-величины drop) | Hagi/Theory/FunctionPreservingGrowth.lean:810, :865, :893, :897, :914, :926, :900, :937, :982 | — |
 
-- Beat: C638 = Lean-мост от сертификата шага HAGI_v2 (коммиты
-  4c70f7a wave252, 1ae924e wave254, hagi/lm.py:1261-1345 и
-  hagi/selfmodel.py:78-175) к primes. Base HEAD 0b28a7a7, tree clean.
-  Файл: [`AdaptiveMajorizer.lean`](Hagi/Theory/AdaptiveMajorizer.lean),
-  секция «Code bridge» (строки 1190-1540).
-- Карточка файл -> теорема -> код-якорь HAGI_v2 (1ae924e):
-  - `ceDispRange` (1201) + `ceDispRange_nonneg` (1210) +
-    `ce_direction_range` (1223): точный диапазон направленного
-    логит-смещения (sup' - inf'), his range при масштабе eta.
-    Якорь: lm.py:1286,1293 (per_sample_range, `R = max`).
-  - `ceAdaptiveCurvRange` (1247) + `ceOneHot_next_le_adaptive_range`
-    (1259): канон `ceOneHot_next_le_adaptive_tight` на ТОЧНОМ
-    диапазоне (тот же перенос, range-гипотеза из
-    `ce_direction_range`). Якорь: lm.py:1287-1300 (C = kappa(R)*Var).
-  - `kappaClamp` (1440) = множитель кода (1/2 ниже 1e-5, иначе
-    kappa(min R 50)); `kappaClamp_eq_kappa` (1458): на окне
-    (1e-5, 50] он РАВЕН точному. Якорь: lm.py:1298-1300.
-  - `ceAdaptiveCurvCode` (1445) + `ce_adaptive_code_drop` (1474):
-    для eta в [0,1] CE после шага <= текущего - (eta*A - eta^2*C)
-    с C кода, при диапазоне в окне. Без привязки eta к A/(2C):
-    claim = сам majorizer, сертифицирован на любом
-    масштабированном шаге (defect 2 wave252: drop считался для
-    непромасштабированного eta*). Якорь: lm.py:1313-1324.
-  - `ce_range_code_drop` (1498): для eta >= 0 claim
-    eta*A - eta^2*(R^2/8) ветки range БЕЗ unit-cap (majorizer
-    `Hagi.Model.ceOneHot_next_le` на [0,inf)). Якорь:
-    lm.py:1314,1323-1324 (eta = 4A/R^2*lr_scale, drop).
-- `adaptive_claim_scaled` (1514) + `adaptive_claim_scaled_bounds`
-  (1526): чистая алгебра defect 2 — при s в [0,1] claim в точке
-  s*A/(2C) равен (2s - s^2)*(A^2/(4C)) и лежит между s^2 и 1
-  дробей A^2/(4C); при s=0.05 это 39/400 (в 400/39 ~ 10.26 раз
-  меньше старого claim A^2/(4C) — измерено в 4c70f7a как «~10x»).
-- Честные границы (negative), witness (lake env
-  lean, rc=0):
-  - реальный код на конфиге теста wave252 (dim 32, hidden 64, seed
-    0, lr_scale 0.05), инструментированный прогон 12 шагов:
-    adaptive-ветка НЕ берётся ни разу (eta* ~ 203-260 > 1), все
-    12 шагов идут через range-ветку, 12/12 claim <= реализованный
-    drop (например A=0.14199921488761902, R=0.23055753111839294,
-    eta=0.5342657242561132, claim 0.07396868055108989 <=
-    0.07546329498291016) — то есть сертификат реального кода
-    это `ce_range_code_drop`, а не `ce_adaptive_code_drop`.
-    Float-негатив clamp: kappa(1e-8) = -0.607747, kappa(1e-9) =
-    82.740371 (точный множитель в коде непригоден ниже 1e-6).
-  - окно (1e-5, 50] — реальная гипотеза: ниже порога clamp даёт
-    1/2 < kappa(R), выше cap — kappa(50) < kappa(R); там C кода
-    ЗАНИЖЕН относительно канона и claim НЕ сертифицирован
-    мостом (код полагается на post-step rollback lm.py:1337-1344).
-    Мост объявляет это явно гипотезами hlo/hcap.
-  - tangent-vs-exact: код строит majorizer на JVP-смещении, теорема
-    — о точном; в нелинейной LM (dim 16, hidden 32, seed 0, 5
-    шагов lr_scale 0.05) rollback сработал 2/5 (eta 1.011 и 1.139,
-    реализованный drop 0 < claim 0.083/0.095) — вне модели
-    линейного CE, честно вне моста.
-- Wave254 (selfmodel: MGDA на нормированных градиентах,
-  LR-масштабирование Adam-бэктрекинга, per-task gate) НЕ
-  формализован в C638: в коде нет константы гладкости L и нет
-  Armijo-условия (гейт — validation loss), поэтому Armijo-теорема
-  не имела бы код-якоря; соответствие evaluated finite MGDA
-  траекторий (FixedBatch.lean) коду mgda_weights — кандидат C639.
+- Honest-остаток: (F3) производная по W1 не формализована; (U2) global
+  reachability «expressive блок ⇒ drop ≥ δ» открыт (non-convex + UAT);
+  certified drop для нелинейного носителя не выведен; в коде warm-up — голый
+  Adam (unified.py:423-433 @ca52eb4), h1 условен, L-smooth блока не доказана;
+  holdout-гейт — измерение; η* — certificate-оптимум, не шаг кода; depth- и
+  width-рост — разные носители, унификации нет.
 
-## C639 mgda code correspondence bridge from hagi v2 wave 254
+## Hagi/Theory/NadyaOptimal.lean («Надя.txt» HAGI v2 Optimal: BitAlloc, Schedules, LCB, Bypass, width-рост)
 
-- Beat: C639 = соответствие кода HAGI_v2 mgda_weights
-  (hagi/selfmodel.py:35-60, коммит 1ae924e wave 254; вызов
-  selfmodel.py:113, тесты tests/test_selfmodel_gate.py:74-77 и
-  selftest selfmodel.py:229-233) канону `batchGradientMinimizer`
-  (Hagi/Model/BatchCEDescent.lean:368-402, потребители
-  FixedBatch.lean «Evaluated finite MGDA trajectories» 134-196,
-  `evaluatedBatchMinimumNormPath_floor_kept_and_objective_lt`
-  147-186). Base HEAD 8999bdc8, tree clean. Файл:
-  [`BatchCEDescentMgdaCode.lean`](Hagi/Model/BatchCEDescentMgdaCode.lean).
-- Вердикт соответствия: ТОЧНО на остановке, ПРИБЛИЖЁННО по
-  допуску, РАЗНЫЕ ЗАДАЧИ по нормировке.
-  - Код: Frank-Wolfe по симплексу над НОРМИРОВАННЫМИ градиентами
-    `G = g/(‖g‖+1e-12)` (selfmodel.py:44), старт равномерный
-    (:45), шаг `gamma = 2/(2+t)` (:52), максимум 200 итераций
-    (:35); стоп, когда `min_j ⟨G_j,d⟩ ≥ ‖d‖² − 1e-16`, `d = α@G`
-    (:48-50); затем clamp/renormalize (:55-60, тождество, если
-    цикл вышел через стоп-тест).
-  - Канон Lean: `batchGradientMinimizer` = точная min-norm точка
-    convex hull RAW `batchResidualGradient` (:368-374), сертифицирует
-    min-norm (`_norm_le` :395), KKT (`_kkt` :542: `‖ω‖² ≤ ⟨g_b,ω⟩`
-    для всех b) и спуск вдоль `-ω` (`dirAction_neg_…_le` :578).
-    Это в точности вариационное неравенство стоп-теста кода.
-  - Код решает ТУ ЖЕ задачу (min-norm на hull) при `ε = 0`;
-    при `ε > 0` — 2ε-приближение по квадрату нормы; при разных
-    ‖g_j‖ — min-norm точку hull НОРМИРОВАННЫХ градиентов, что
-    НЕ min-norm точка raw hull (код это знает: selfmodel.py:114-120,
-    «WAVE 254 (bug)», и смешивает нормированные). Канон-мост
-    вербатим применим, когда все ‖g_j‖ равны (тест-пары).
-- Карточка файл -> теорема -> код-якорь HAGI_v2 (1ae924e):
-  - `mgdaCodeDirection` (44): `∑ α_j • v_j` = смесь кода
-    `d = alpha @ G` (selfmodel.py:49). Якорь: :49, :120.
-  - `SimplexWeights` (49): `(∀ j, 0 ≤ α_j) ∧ ∑ α_j = 1` —
-    контракта `alpha / s` после clamp (:55-60).
-  - `MgdaStationary v α ε` (54): `∀ j, ‖d‖² − ε ≤ ⟨v_j, d⟩` —
-    стоп-тест `dots[j] >= d·d − 1e-16` (:50) при `ε = 1e-16`.
-  - `inner_le_of_mem_convexHull_range` (60): любая точка hull не
-    хуже наименее выровненной вершины (`⟪c,d⟫ ≥ min_j ⟨v_j,d⟩`).
-  - `mgdaCodeDirection_mem_convexHull` (91): симплекс-смесь ∈ hull.
-  - `mgda_norm_sq_le_of_stationary` (102): ε-стационарная смесь
-    даёт `‖d‖² − 2ε ≤ ‖c‖²` для всех c ∈ hull (Young) —
-    приближённое соответствие при допуске.
-  - `mgda_eq_of_stationary` (126): при `ε = 0` смесь кода РАВНА
-    min-norm точке. Якорь: стоп-тест :50 с `1e-16` в float32
-    неотличим от 0 (probe: gap = 0.0 на всех 6 кейсах).
-  - `batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary`
-    (146): инстанциация на канон `batchGradientMinimizer X θ y`
-    через `batchResidualGradient`. Якорь: selfmodel.py:113 (`alpha =
-    mgda_weights(grads)`), FixedBatch.lean:147.
-- Witness (lake env lean, rc=0): тест-пара
-  tests/test_selfmodel_gate.py:74-77 (a=e0, b=e1): α=(1/2,1/2)
-  — probe кода: stop на итерации 0, gap 0.0; hstat проверяет
-  стоп-тест точно, мост даёт `d = segmentMinNorm e0 e1`.
-  Негативы: (1) α=[2,−1] — не SimplexWeights, d ∉ hull;
-  (2) α=[1,0] — на симплексе, но `MgdaStationary` ЛОЖЬ
-  (⟨e1,e0⟩=0 < 1), мост неприменим и ‖d‖²=1 > 1/2;
-  (3) при ε>0 — только 2ε-оценка, равенства нет.
-  Probe кода (read-only): 6 кейсов
-  (orthogonal, identical, conflict, 4d e1/e2, scaled 500 vs 5e-4,
-  60°) — все останавливаются на итерации 0 с gap 0.0.
-- Честные границы: (a) нормировка — код решает на `g/‖g‖`, канон
-  на raw; при разных нормах вербатим-моста к raw-hull нет (код
-  смешивает нормированные, selfmodel.py:120; но dots/conflict-гейт
-  считает на RAW :121-123 — смешение двух пространств, вне моста);
-  (b) Frank-Wolfe без стоп-теста (200 итераций исчерпаны) —
-  только симплекс, без сертификата; скорость O(1/k) для FW НЕ
-  формализована (KISS: 2ε-оценка — единственное приближение);
-  (c) float32: `1e-16` < eps(f32)≈1.2e-7, т.е. тест в коде
-  фактически `≥ ‖d‖²` с округлением — мост формализует
-  вещественный тест, не float-семантику.
+Источник: `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY, 961 строк Python).
 
-## C640 function preserving growth bridge from hagi v2 wave 255
+| теорема | формулировка | file:line | Надя.txt @снимок 2026-11-24 |
+|---|---|---|---|
+| `trit5_unshift`, `trit5_roundtrip`, `trit5Pack_lt_243`, `int4_roundtrip`, `exists_best_mse_scale` | BitAlloc: unpack ∘ pack = id (5 тритов < 243; int4-пара < 256); ∃ минимизатор MSE на конечном списке. Родитель pack — `trit_roundtrip`/`tritPack_injective` TritCodec.lean:117, :132 | Hagi/Theory/NadyaOptimal.lean:79, :86, :94, :105, :133 | :390-440 |
+| `cosine_sched_bounds`, `cosine_sched_start`, `cosine_sched_end`, `cosine_sched_mono`, `muon_step_norm_bound` | HybridMuon: 3/20 ≤ sched ≤ 1, sched 0 = 1, sched T = 3/20, монотонно; ‖шаг Muon‖ ≤ a·c при ‖orth‖ ≤ c | Hagi/Theory/NadyaOptimal.lean:150, :158, :164, :173, :208 | :120-152 |
+| `paired_mean_dev_bound`, `paired_lcb_false_grow_bound` | LCB-гейт: paired Hoeffding через `holdout_concentration` Statistics.lean:178; P[ложный GROW] ≤ 2·exp(−2k(r/2B)²) при popMean d ≤ 0 | Hagi/Theory/NadyaOptimal.lean:1068, :1117 | :109-112, :884-890 |
+| `rmsOut`, `rmsMs_pad`, `rmsnorm_scale_inv`, `padTo`, `sum_pad`, `sum_pad_scale`, `eq_padTo`, `mulvec_rowPad`, `matPadS`, `mulvec_matPadS`, `padTo_castLE` | padding-леммы; rmsnorm gain ×√(d0/d1), eps ×(d0/d1) ⇒ первые d0 координат равны старым ТОЧНО | Hagi/Theory/NadyaOptimal.lean:227, :231, :281, :310, :314, :349, :356, :375, :391, :395, :418 | :350-386 |
+| `rotIdx`, `rotMate`, `rotV`, `rotV_smul`, `rotary_old_pairs_unchanged` | T2 rotary: padTo-вектор × padTo-таблицы cos/sin ⇒ старые пары (2i, 2i+1) без изменения, новые — 0 | Hagi/Theory/NadyaOptimal.lean:425, :429, :435, :441, :451 | rotary f1 = concat |
+| `attn_score_scale_preserved`, `attn_out_pad`, `h1_pad`, `wlogits_width_preserved` | T1 (K·Q)/√hd1 = старому при W_q ×`qScale`; T3 композиция: logits_new(padTo v, padTo c) = logits_old(v, c) — width-рост function-preserving (nh = 1) | Hagi/Theory/NadyaOptimal.lean:514, :544, :560, :782 | grow_width |
+| `WParams`, `qScale`, `WGrowth`, forward `wX0`→`wN1`→`wQ`/`wK`/`wV`→`wKr`/`wQr`→`wScore`→`wW`→`wAttn`→`wH1`→`wN2`→`wG`/`wU`/`wSw`(`swish` NormAct.lean:166)→`wH2`→`wLogits` | носитель: параметры, правило роста (нулевые `matPadS`-блоки, компенсация нормировок, gain ×√(d0/d1)), одноголовый forward | Hagi/Theory/NadyaOptimal.lean:597, :637, :733, :643–:726 | модель |
+| `idealLen_eq_zero_of_prob_one`, `bypass_reaches_compression_limit` | EXACT_BYPASS: q = 1 на носителе p ⇒ ceBits = expLen = entBits = 0 (мост `ce_covered_zero` ExactBypass.lean:70 ↔ `idealLen_self_bounds` ArchiverCodeLength.lean:208) | Hagi/Theory/NadyaOptimal.lean:1141, :1151 | :695-750 |
 
-- Beat: C640 = соответствие кода HAGI_v2 function-preserving trunk
-  growth (ca52eb4, wave 255) канону роста primes. Base HEAD 9fbca579,
-  tree clean. HAGI_v2 ca52eb4 = коммит из 4 python-файлов
-  (hagi/lm.py, hagi/unified.py, scripts/neuro_symbolic_cycle.py,
-  tests/test_live_adapter.py); Lean-файла FunctionPreservingGrowth.lean
-  в репозитории HAGI_v2 НЕТ ни в коммите, ни в дереве (fd по
-  C:/HAGI_v2: 0 .lean) — имя существует только в заголовке коммита и
-  в комментариях кода (hagi/lm.py:565, :583; hagi/unified.py:75).
-  Statement «FunctionPreservingGrowth.lean» = имя bench-прецедента
-  (bench_bridge --mode grow, C444), не Lean-файл: sorry/axioms
-  проверять не в чем.
-- Вердикт-класс: (a) — statement кода ⊂ канон, код не дублируется.
-  Код (hagi/lm.py:581-587 `_block_add`): `h = h + relu(a @ W1 + b1) @ Wo`;
-  свежий блок `grow()` (:589-601): W1 случайная (:594), b1 = 0 (:595),
-  Wo = 0 (:596). Это residual-блок с нулевым выходным фактором и
-  произвольной (нелинейной, случайной) внутренностью.
-  - `benchResidualBlock` (Hagi/Theory/GrowTrunkBlock.lean:86) +
-    `benchResidual_zero` (:95): γ = 0 маскирует ЛЮБУЮ внутреннюю h —
-    сильнее кода (код: скалярно-матричный нуль Wo, канон: произвольный
-    нулевой гейт). Инстанс: γ • Wo, witness growBlock_eq.
-  - `grow_block_bench_sound` (:124), `grow_block_obj_invariant` (:135):
-    глубина 2 → 3 сохраняет trunk-функцию и ЛЮБОЙ функционал (логиты,
-    CE) ТОЧНО = «logits preserved EXACTLY, max|diff| = 0.0»
-    (tests/test_live_adapter.py:85). `grow_blocks_repeat_sound` (:149)
-    = MAX_BLOCKS = 2 (hagi/unified.py:381).
-  - LM-носитель: `identityBlock` (Hagi/Theory/FunctionPreservingGrowth.lean:79),
-    `trunk_function_preserving` (:108), `lmLogits_grow_identity` (:118 —
-    то же имя, что в комментарии кода lm.py:568), `function_preserving_growth`
-    (:142).
-  - LoRA-форма: `adapter_neutral_B` (Hagi/Theory/AdapterGrowth.lean:103,
-    B = 0 ⇒ identity при произвольной A) — паттерн wave 230
-    (AdapterBank, C532), который wave 255 переносит на блоки trunk.
-  - Core: `zero_init_identity` (Hagi/Core/NonlinearStep0.lean:104).
-- Что в коде НОВОЕ относительно доказанного (честные границы):
-  - Гейт `_maybe_grow` (hagi/unified.py:383-440): сигнал GrowthGate
-    `128·‖G‖²/(2L)` (:405) против c_add (:404, доля новых
-    параметров × 10) → HOLD (:407); канон `growthGate`
-    (Hagi/Theory/NegativeTransfer.lean:574, `growth_gate_sound` :677)
-    сертифицирует только ветку stay при `signal ≤ c_add`; порог
-    c_add в коде — эвристика, не каноническая стоимость.
-  - Warm-up блока при замороженном trunk (:423-434, Adam только по
-    W1/b1/Wo, 2 эпохи, ≤300 шагов/эпоху) и keep-iff `holdout CE` не
-    хуже, иначе точный `blocks.pop()` (:435-437): сертификата
-    «после обучения функция сохранена» НЕТ и быть не может — после
-    шага 0 Wo ≠ 0, блок меняет функцию. Канон это и говорит: gain
-    после шага 0 — measured, не теорема (honest pins
-    FunctionPreservingGrowth.lean); клоз (2) master_theorem_v3
-    (MasterTheoremV3.lean:81, zero-forgetting через
-    `adapter_per_task_sound` AdapterGrowth.lean:582) требует
-    замороженной per-task ветви — growth блока trunk под него НЕ
-    подпадает; код это признаёт эмпирически (OLD CE +0.123 vs +0.498,
-    не 0).
-  - Измеренное «forgetting 4x lower» — A/B на 6 чанках с одного
-    чекпоинта (коммит-сообщение), не теорема; «нейтральный блок не
-    забывает» верно только на шаге 0.
-  - Bench-соответствие: scripts/bench_bridge.py --mode grow (C444)
-    исполняет `blockAdmissionRule`; wave 255 использует другой гейт
-    (GrowthGate-сигнал + holdout), унификация gate-ов — вне бита.
-- Witness (lake env lean 4.36.0, rc=0):
-  growBlock W1 b1 Wo x = x + reluBranch — форма кода; growBlock_eq:
-  при `Wo = γ • Wo'` блок = `benchResidualBlock γ (branch)` —
-  положительное: grow_2_to_3 (глубина 2 → 3, Wo = 0, W1 произвольная),
-  grow_2_to_3_obj (любой функционал), grow_2_blocks (2 блока),
-  lm_grow (LM-носитель). Негатив (nonzero_out_not_preserving): x = 0,
-  b1 = 1, Wo = 1 → выход = card r ≠ 0 — ненулевая выходная матрица
-  (после warm-up) функцию НЕ сохраняет. Аксиомы всех пяти:
-  [propext, Classical.choice, Quot.sound].
+- Уже есть, не дублировано: auto_transfer_gate = `warm_better_char`
+  (NegativeTransfer.lean:127) + `auto_transfer_gate_sound`
+  (AutoTransferGate.lean:139); best-snapshot peeking = `holdout_gate_two_way_delta`.
+- Honest-остаток: радиус LCB в коде z·σ̂/√n случаен (детерминированный r в
+  теореме); iid-holdout и CE ∉ [0,B] — модель; list-level `_pack_int4`
+  (нечётный padding, срез `out[:length]`) не формализован; список
+  кандидатов `_best_mse_ternary` — нет; полярная норма c — гипотеза;
+  momentum/weight decay Muon вне утверждения; width: nh > 1, нечётная
+  ширина, клип сигмоиды [−20, 20], пулинг/emb/alibi — гипотезы `WGrowth`;
+  float32 ≠ ℝ; unseen-маска градиента тривиальна (Adam с momentum — не
+  нулевое обновление); arithmetic coder — карточка ArchiverCodeLength.
 
-## C642 post warmup growth certificate from hagi v2 wave 255
+## Hagi/Theory/AdaptiveMajorizer.lean (adaptive-step мост, секция «Code bridge»)
 
-- Beat: C642 = roadmap C641 top-1 — закрыть главный разрыв C640:
-  после warm-up (Wo ≠ 0) функция нового блока не сертифицирована.
-  Base HEAD 945887b7, tree clean. Код HAGI_v2 (READ-ONLY):
-  hagi/unified.py:383-440 (gate _maybe_grow @ca52eb4) — grow()
-  добавляет identity-блок, warm-up учит ТОЛЬКО новый блок при
-  замороженном trunk, keep iff holdout CE не хуже, иначе точный
-  blocks.pop (rollback); hagi/lm.py:589-601 (свежий блок Wo = 0).
-- Теорема-форма (Hagi/Theory/FunctionPreservingGrowth.lean, секция
-  WarmUp, ns Hagi.Theory.FunctionPreservingGrowth дословно):
-  - Носитель (минимальный, честный): obj : B → ℝ — train-objective
-    модели trunk ⊕ block(b); θ : ℕ → B — траектория warm-up по
-    параметрам НОВОГО блока; drop : ℕ → ℝ — сертифицированный спад
-    шага. Носитель абстрактный: параметризация блока кода
-    (W1/b1/Wo, Adam) в L-smooth модель NegativeTransfer (nlRun /
-    nl_obj_le_start) НЕ вписана — Adam не GD, L-smooth блока не
-    доказана; поэтому индукция SafeStep-типа (hstep как посылка).
-  - `warmup_telescope` — obj (θ n) ≤ obj (θ 0) − Σ drop (индукция).
-  - `warmup_safe` — (h0) obj (θ 0) = fOld [identity-старт:
-    функция старой модели = `function_preserving_growth` на шаге 0],
-    (h1) ∀ t, obj (θ (t+1)) ≤ obj (θ t) − drop t ∧ 0 ≤ drop t
-    ⇒ obj (θ n) ≤ fOld. Рост НИКОГДА не ухудшает train-objective.
-  - `warmup_strict` — + (∀ t, dMin ≤ drop t) ⇒ obj (θ n) ≤
-    fOld − n·dMin.
-  - `post_warmup_growth_safe` — композиция с rollback-гейтом:
-    итог = guardedStep gate (θ 0) (θ n); ACCEPT-ветка как посылка
-    haccept, REJECT — точный rollback (`rollback_state_params`) ⇒
-    obj = fOld. `post_warmup_growth_safe_of_certified` — haccept
-    выведен из `warmup_safe` ⇒ при любом вердикте гейта
-    obj ≤ fOld.
-  - Негатив `uncertified_step_can_worsen`: без h1 один шаг может
-    дать obj (θ 1) = 1 > 0 = obj (θ 0) (θ 0 = 0).
-- Что сертифицировано: train-obj монотонность (≤ fOld) при h0+h1
-  для ЛЮБОГО числа шагов, с любым вердиктом holdout-гейта.
-  Что остаётся гипотезой (не теорема):
-  - h1 «каждый шаг warm-up certified» — код warm-up (Adam, 2 эпохи)
-    НЕ проверяет drop на каждом шаге; сертификат условный;
-  - holdout-гейт — код ИЗМЕРЯЕТ holdout CE, неравенство не доказано
-    (train ≠ holdout); в теореме это ветвление, не вывод;
-  - L-smooth нового блока и рост функции ≠ сохранение функции:
-    «функция сохранена после warm-up» по-прежнему НЕТ и быть не
-    может (C640 negativeTransfer-вердикт не меняется).
-- Witness (lake env lean 4.36.0, rc=0,
-  logs/traj.log): n = 3 шага, θ t = −t, drop = 1 ⇒ θ 3 = −3 ≤ 0 и
-  ≤ 0 − 3·1 (точно); witness_gate — оба вердикта gate сохраняют
-  obj ≤ 0; witness_negative — без h1 рост obj возможен. Аксиомы
-  всех шести: [propext, Classical.choice, Quot.sound].
+Код-якорь HAGI_v2 @1ae924e: hagi/lm.py:1286-1324 (`R`, `C = kappa(R)*Var`,
+eta = 4A/r2·lr_scale); коммиты 4c70f7a (w252), 1ae924e (w254).
 
-## C643 armijo backtracking bridge from hagi v2 wave 254
+| теорема | формулировка | file:line | код-якорь @sha |
+|---|---|---|---|
+| `ceDispRange`, `ceDispRange_nonneg`, `ce_direction_range` | точный диапазон направленного логит-смещения (sup' − inf') | Hagi/Theory/AdaptiveMajorizer.lean:1201, :1210, :1223 | lm.py:1286, :1293 |
+| `ceAdaptiveCurvRange`, `ceOneHot_next_le_adaptive_range` | канон `ceOneHot_next_le_adaptive_tight` (:764) на точном диапазоне | Hagi/Theory/AdaptiveMajorizer.lean:1247, :1259 | lm.py:1287-1300 |
+| `kappaClamp`, `kappaClamp_eq_kappa`, `ceAdaptiveCurvCode` | множитель кода (1/2 ниже 1e-5, иначе kappa(min R 50)); на окне (1e-5, 50] равен точному | Hagi/Theory/AdaptiveMajorizer.lean:1440, :1458, :1445 | lm.py:1298-1300 |
+| `ce_adaptive_code_drop` | CE после шага ≤ текущего − (eta·A − eta²·C), eta ∈ [0,1], C кода, диапазон в окне (majorizer — без привязки eta к A/2C) | Hagi/Theory/AdaptiveMajorizer.lean:1474 | lm.py:1313-1324 |
+| `ce_range_code_drop` | eta ≥ 0: claim eta·A − eta²·R²/8 ветки range без unit-cap (`ceOneHot_next_le` CEDescent.lean:282) | Hagi/Theory/AdaptiveMajorizer.lean:1498 | lm.py:1314, :1323-1324 |
+| `adaptive_claim_scaled`, `adaptive_claim_scaled_bounds` | defect 2: claim в точке s·A/2C = (2s − s²)·A²/4C ∈ [s², 1]·A²/4C; s = 0.05 → 39/400 | Hagi/Theory/AdaptiveMajorizer.lean:1514, :1526 | 4c70f7a «~10x» |
 
-- Beat: C643 — гипотезу h1 из C642 («каждый шаг warm-up certified»)
-  превратить из гипотезы в код-факт для Adam backtracking wave254.
-  Base HEAD eb399530, tree clean. HAGI_v2 (READ-ONLY) @1ae924e:
-  hagi/selfmodel.py:78-180 (guarded_optimizer_step).
-- ЧТО КОД ДЕЛАЕТ НА САМОМ ДЕЛЕ (посылка задачи не подтвердилась):
-  это НЕ Armijo. Предикат приёма пробного шага
-  (`backtrackAccept`): worst ≤ max_task_regression ∧ wb − wa >
-  total_bound (selfmodel.py:164-169) — worst = максимум регрессии
-  одной задачи, wb/wa = взвешенные holdout-до/после,
-  total_bound = e_gen + e_quant + e_route + m_safety. Членов
-  σ·γ·⟪g,d⟫ в коде НЕТ: σ отсутствует. Направление d — MGDA на
-  НОРМАЛИЗОВАННЫХ градиентах (selfmodel.py:119-120), записывается в
-  p.grad и подаётся в Adam; масштаб пробного шага — умножение lr
-  каждой param-group (selfmodel.py:150), не θ − γ·d. Полускорость:
-  scale = 1.0, scale *= 0.5 (β = 1/2, selfmodel.py:133,174);
-  k_max = max_backtracks = 8 (selfmodel.py:78) → range(9): ровно 9
-  проб; при непринятии — полный rollback (HOLD).
-- Теоремы (Hagi/Theory/RollbackGate.lean, ns Hagi.Theory.RollbackGate):
-  - `btScale` — масштаб bt-й пробы: (1/2)^bt;
-  - `backtrackAccept` — предикат приёма пробы (как в коде);
-  - `backtrack_accept_drop` — принятое ⇒ wa ≤ wb − drop ∧ 0 ≤ drop,
-    drop = wb − wa − errBound (h1-форма, drop — факт предиката);
-  - `backtrack_scale_halves` — btScale (bt+1) = btScale bt / 2;
-  - `backtrack_trials_bounded` — убывание масштаба; btScale 8 =
-    1/256 (числа кода). Терминация — bounded for (9 проб), а не
-    порог γ_min: порога в коде нет.
-- ЗАРЫВАЕТ ЛИ h1 ДЛЯ WARM-UP: НЕТ. Warm-up gate _maybe_grow
-  (hagi/unified.py:423-437 @ca52eb4) — голый torch Adam:
-  zero_grad / backward / step, 2 эпохи, без backtracking.
-  guarded_optimizer_step вызывается ТОЛЬКО из self-test
-  (selfmodel.py:201,214,222) — ни train, ни warm-up его не зовут.
-  h1 остаётся гипотезой для warm-up. Мост закрывает только: ЕСЛИ
-  шаг принят предикатом wave254, ТО drop ≥ 0 (и obj в нём —
-  holdout-лосс, не train-obj).
-- Лемма adam_inner_nonneg НЕ доказана и не включена: код не
-  подаёт сырой градиент в Adam напрямую (EMA m̂/√v̂ по направлению
-  MGDA), покомпонентная знаковая лемма код-фактом не является.
-- Witness (lake env lean 4.36.0, rc=0,
-  logs/traj.log): btScale 0/1/8/9 = 1, 1/2, 1/256, 1/512; 9 проб;
-  принятая проба wb = 2, wa = 1.9 ⇒ drop = 0.1 > 0; hstep/hdrop
-  `warmup_safe` следуют из по-шагового приёма. Негатив: без предиката
-  obj растёт (`uncertified_step_can_worsen`). Аксиомы трёх теорем:
-  [propext, Classical.choice, Quot.sound].
-- Отклонение от плана: заявленный Armijo-предикат (σ, β, γ_min) в
-  коде отсутствует — формализован фактический предикат.
+- Honest: на конфиге теста w252 adaptive-ветка не берётся (eta* ~ 203-260 >
+  1) — сертификат реального кода это `ce_range_code_drop`; вне окна (1e-5,
+  50] C кода занижен, claim не сертифицирован (код полагается на post-step
+  rollback lm.py:1337-1344 @1ae924e); код строит majorizer на JVP-смещении,
+  теорема — о точном (нелинейная LM: rollback 2/5, вне моста); float-негатив
+  clamp ниже 1e-6; wave254 MGDA — BatchCEDescentMgdaCode.
 
-## C644 certified warmup composition and proposal from hagi v2 wave 255
+## Hagi/Model/BatchCEDescentMgdaCode.lean (код mgda_weights ↔ канон min-norm)
 
-- Beat: C644 = roadmap C643 — закрыть h1 из C642 честно с нашей
-  стороны: теорема-композиция «warm-up из certified-шагов ⇒ h1 ⇒
-  warmup_safe» + docs-предложение для HAGI_v2 (user-push, их код не
-  правим). Base HEAD ad36e5bb, tree clean. HAGI_v2 (READ-ONLY)
-  @ca52eb4: hagi/lm.py `_certified_finite_step`.
-- КОНТРАКТ КОДА (точный, lm.py:826-879 @ca52eb4).
-  докстринг train_guarded). Сигнатура: (ctx, nxt, lr_scale=1.0,
-  max_backtracks=12) -> float. Параметры — ТОЛЬКО trunk (emb, W1,
-  b1, W2, b2), snapshot. Направление −∇ CE(full_logits(ctx)[:, -1],
-  nxt); ‖d‖² ≤ 1e-24 → 0.0 (HOLD). eta = lr_scale·4A/r2 (r2 — JVP
-  tangent width²; fallback 1.0). 13 проб: restore, θ += eta·d,
-  upper = finite_displacement_ce_upper(z0, z1, nxt) (lm.py:235 —
-  лемма диапазона CE(z+d) − CE(z) ≤ ⟨softmax z − onehot, d⟩ +
-  range(d)²/8, без линейности по θ), drop = −upper; drop > 1e-12 →
-  return drop (COMMIT), иначе eta *= 0.5; после цикла — restore и
-  0.0 (HOLD). Единственный вызов: lm.py:999 (refine byte-LM,
-  батчи по 32; комментарий lm.py:1002-1005: per-batch bounds НЕ
-  телескопируют). unified.py шаг НЕ зовёт.
-- Теоремы (Hagi/Theory/FunctionPreservingGrowth.lean, секция WarmUp,
-  ns Hagi.Theory.FunctionPreservingGrowth): `stepEps` (1e-12);
-  `CertifiedFiniteStep` — абстрактный контракт: COMMIT (drop >
-  stepEps ∧ obj θ' ≤ obj θ − drop) ∨ HOLD (θ' = θ ∧ drop = 0);
-  `warmup_h1_of_certified_steps` — каждый шаг по контракту ⇒ h1;
-  `warmup_safe_of_certified_steps`, — h0 + контракт ⇒ obj ≤ fOld
-  (C642 `warmup_safe`); `post_warmup_growth_safe_of_certified_steps`
-  — то же через rollback-гейт, оба вердикта; негативы:
-  `uncertified_step_not_certified` (шаг с ростом obj не проходит
-  контракт ни при каком drop), `batch_drop_not_global` (drop 1/2 на
-  batch-objective при росте другого functional на 1).
-- ЧТО НЕ ЗАКРЫТО (честно): в КОДЕ warm-up остаётся голым Adam
-  (unified.py:423-433) — h1 закрыт УСЛОВНО: траектория обязана
-  состоять из шагов по контракту НА ОДНОМ И ТОМ ЖЕ obj. Шаг кода
-  сертифицирует batch CE своего минибатча и пишет в trunk, а не в
-  блок; переносу на warm-up посвящено предложение.
-- Proposal docs/PROPOSAL-certified-warmup.md (+ строка 7 в
-  docs/PROPOSAL-index.md): warm-up через механизм certified step с
-  HOLD-семантикой на фиксированном objective вместо Adam; приоритет
-  высокий; стоимость — forward на пробу (+ JVP, если есть
-  functional-логиты блока — их нет); числа НЕ измерены (не запускали).
-- Witness (lake env lean 4.36.0, rc=0,
-  logs/traj.log): n = 2, шаг 0 COMMIT drop = 1/2, шаг 1 HOLD; итог
-  obj = −1/2 ≤ 0 − 1/2 (точно); оба вердикта gate; негативы.
-  Аксиомы пяти теорем: [propext, Classical.choice, Quot.sound].
+Код-якорь HAGI_v2 @1ae924e: hagi/selfmodel.py:35-60 Frank-Wolfe по
+симплексу над нормированными градиентами, `gamma = 2/(2+t)`, ≤ 200 итераций,
+стоп `min_j ⟨G_j,d⟩ ≥ ‖d‖² − 1e-16`; вызов :113.
 
-## C646 certified step on block params via logit range lemma
+| теорема | формулировка | file:line | код-якорь @sha |
+|---|---|---|---|
+| `mgdaCodeDirection`, `SimplexWeights`, `mgdaCodeDirection_mem_convexHull` | смесь кода `d = alpha @ G` на симплексе ∈ convex hull | Hagi/Model/BatchCEDescentMgdaCode.lean:44, :49, :91 | selfmodel.py:49, :55-60 |
+| `MgdaStationary`, `inner_le_of_mem_convexHull_range`, `mgda_norm_sq_le_of_stationary` | стоп-тест `∀j, ‖d‖² − ε ≤ ⟨v_j,d⟩`; ε-стационарная смесь ⇒ ‖d‖² − 2ε ≤ ‖c‖² ∀c ∈ hull | Hagi/Model/BatchCEDescentMgdaCode.lean:54, :60, :102 | selfmodel.py:50 |
+| `mgda_eq_of_stationary`, `batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary` | ε = 0 ⇒ смесь = min-norm точке hull; инстанс канона `batchGradientMinimizer` (BatchCEDescent.lean:368, сырые `batchResidualGradient` :338; потребитель `evaluatedBatchMinimumNormPath_floor_kept_and_objective_lt` FixedBatch.lean:147) | Hagi/Model/BatchCEDescentMgdaCode.lean:126, :146 | selfmodel.py:113 |
 
-- Beat: C646 = roadmap C645 top-1 — certified_step_block. Base HEAD
-  46a28709, tree clean. HAGI_v2 (READ-ONLY) @ca52eb4:
-  `_certified_finite_step` (hagi/lm.py:826) пишет только в trunk;
-  warm-up блока — plain Adam.
-- ВОПРОС-ГИТ (вердикт): зависит ли range-лемма CE
-  (finite_displacement_ce_upper, lm.py:235) от носителя параметров?
-  НЕТ. Она — о логитах: CE(z+d) − CE(z) ≤ ⟨softmax z − onehot, d⟩ +
-  range(d)²/8, d — смещение ЛОГИТОВ. В каноне это
-  `lse_shift_upper` (PoEBond: абстрактные `x y : V → ℝ`). θ-носитель
-  не входит ⇒ шаг по любым параметрам (блок, trunk) сертифицируется
-  той же леммой, если известен range(Δz). Перенос «бесплатный».
-- Теоремы (FunctionPreservingGrowth.lean, секция WarmUp):
-  `certified_step_block_of_range` — для любого `L : B → K → ℝ`
-  (логиты как функция параметров; в частности `L b = lmLogits`
-  модели с блоком `b` при замороженном trunk; `lmLogits_grow_identity`
-  — точка старта) и `d = L b' − L b`: та же оценка;
-  `block_step_certified_of_range_bound` — range ≤ r ⇒
-  obj_b b' ≤ obj_b b − drop (drop = −upper);
-  `block_step_commit_of_range_bound` — drop > `stepEps` ⇒ COMMIT-ветка
-  `CertifiedFiniteStep` ⇒ `warmup_h1_of_certified_steps` применим
-  к блоку; негатив `block_range_bound_violated_not_certified`
-  (range bound нарушен, objective растёт ⇒ сертификата нет ни при
-  каком drop — аналог `batch_drop_not_global`).
-- Что остаётся КОДУ (не доказано, реализация): вычислить range(Δz)
-  через block-only JVP при замороженном trunk (Δz = ∂z/∂θ_block ·
-  Δθ_block) и вариант `_certified_finite_step` по параметрам блока.
-  Существование полезного блока — не доказывается (тот же pin).
-- Witness (lake env lean 4.36.0, rc=0,
-  logs/traj.log): L b = (0, b), шаг 0 → 1/2, range 1/2 ≤ 1, upper =
-  −1/4 + 1/8 ⇒ drop = 1/8 > `stepEps`, COMMIT; шаг 1 HOLD;
-  `warmup_h1_of_certified_steps` / `warmup_safe_of_certified_steps`
-  на блоке; негатив. Аксиомы: [propext, Classical.choice, Quot.sound].
+- Вердикт: ТОЧНО на остановке, ПРИБЛИЖЁННО (2ε) по допуску, РАЗНЫЕ ЗАДАЧИ
+  по нормировке. Witness: α = (1/2, 1/2) = `segmentMinNorm` e0 e1
+  (ProjectionDescent.lean:79); негативы [2,−1], [1,0]. Bench: нет.
+- Honest: код решает на g/‖g‖, канон — на raw (при разных нормах моста
+  нет; conflict-гейт считает на raw, selfmodel.py:114-123); FW без
+  стоп-теста — только симплекс, скорость O(1/k) не формализована;
+  float32 `1e-16` < eps(f32) — мост формализует вещественный тест.
 
-## C647 batch to global drop telescoping
+## Hagi/Contracts/BatchGlobalTelescope.lean (batch → global drop: телескоп, EB, union bound)
 
-- Beat: C647 = roadmap C645 top-2 — телескоп batch→global, разбор
-  негатива C644 `batch_drop_not_global`. Base HEAD e84eac25, tree
-  clean. HAGI_v2 (READ-ONLY) @ca52eb4: `_certified_finite_step`
-  (hagi/lm.py:826), вызов lm.py:999 в refine-фазе train_guarded.
-- КОД-ФАКТ (lm.py:978-1008 @ca52eb4): до 64 позиций
-  `rng.choice(..., size=min(64, N), replace=False)` — БЕЗ возвращения;
-  8 раундов `rng.permutation`, срезы по 32 (`bx = refine_X[perm[s:s+32]]`);
-  каждый вызов сертифицирует CE СВОЕГО минибатча, принимается любой
-  `d > 0` (commits += 1, total_drop += d), отбора по величине нет;
-  mixed/global objective отсутствует; ledger = сумма per-batch
-  ("scope": "per-batch-sum, no telescoping guarantee"`, комментарий
-  lm.py:1002-1005 — per-batch bounds НЕ телескопируют). unified.py шаг
-  `_certified_finite_step` не зовёт; его батчи — `rng.choice`
-  (unified.py:427, :835), тоже без возвращения.
-- УРОВНИ (вердикт):
-  (A) batch = весь датасет: batch-objective = глобальный, телескоп уже
-  есть — `master_theorem_v3` клоз 3 (obj = `step`, абстракция над
-  носителем; NOT batch-specific) и `fixedBatchObjective_sum_certifiedDrop_le_telescope`.
-  (B) фиксированный batch: ДОКАЗАНО детерминистически + вероятностно.
-  (C) случайный batch на каждом шаге: НЕ формализовано — нужна модель
-  батча; честно сводится к (B) + union bound по шагам (не сделано).
-- Теоремы (Hagi/Contracts/BatchGlobalTelescope.lean, ns
-  Hagi.Contracts.BatchGlobalTelescope): `batch_telescope_fixed` — T1,
-  абстрактный телескоп по ОДНОМУ objective (шаг `t < T`: `f (t+1) ≤ f t − d t`
-  ⇒ `f T + Σ d ≤ f 0`); `fixedBatch_telescope` — T1 на `fixedBatchState`
-  (3 строки из существующего `fixedBatchObjective_sum_certifiedDrop_le_telescope`,
-  форма «финал ≤ старт − Σ drop»); `batch_drop_generalizes` — T2: δ v —
-  per-sample приращение loss, `Σ q δ` — глобальное; iid-выборка n ⇒
-  `1 − α ≤ P[mean_sample δ < Σ q δ + ebGap]` через
-  `empirical_bernstein_mean_bound` (посылки: диапазон b, взвешенная
-  дисперсия ≤ sig, sig > 0); `certified_batch_drop_global` — композиция:
-  на сэмпле, где `dropB ≤` фактический drop по выборке,
-  `obj_G θ' ≤ obj_G θ − dropB + ebGap` с вероятностью ≥ 1 − α
-  (через δ' = −δ, нижняя сторона EB); `ebGap` =
-  √(2·sig·ln(2/α)/n) + 2·b·ln(2/α)/n; вспомогательные `centeredSample`,
-  `centeredSample_snoc`, `azumaSum_centeredSample` (сведение `azumaSum`
-  к сумме сэмплов).
-- ЧТО ИМЕННО ЗАКРЫТО/НЕТ: закрыт МОСТ «batch drop → глобальный objective»
-  при iid-модели батча. НЕ доказано: (1) iid для кода — там выборка без
-  возвращения (консервативная идеализация: конечная совокупность даёт
-  меньшую дисперсию, но это не формализовано); (2) код меряет drop на
-  батче из 32, а EB посылки (b, sig) — про per-sample приращения, их
-  надо СЧИТАТЬ на коде (не делается); (3) уровень (C) — 8 раундов с
-  новой перестановкой: union bound по шагам не собран.
-- Witness (lake env lean 4.36.0, rc=0,
-  logs/traj.log): T1 n = 3 (f t = 10 − t, d = 1 ⇒ f 3 + 3 = 10 точно);
-  T2 V = Bool, q uniform, δ = ±1, b = sig = 1, n = 4, α = 1/2;
-  композиция loss v θ = θ·δ v, θ = 0 → 1, dropB = 0. Аксиомы: [propext,
-  Classical.choice, Quot.sound].
+Код-факт HAGI_v2 @ca52eb4: lm.py:978-1008 — 8 раундов permutation-срезов
+по 32, per-batch certified drop, ledger «per-batch-sum, no telescoping».
 
-## C648 certified rounds union bound
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `batch_telescope_fixed`, `fixedBatch_telescope` | T1: шаг t < T: f(t+1) ≤ f t − d t ⇒ f T + Σ d ≤ f 0 (клоз 3 `master_theorem_v3`: obj = `step` LogitGrowth.lean:62); на `fixedBatchState` (BatchCETrajectory/FixedBatch.lean:288; родня `fixedBatchObjective_sum_certifiedDrop_le_telescope` :368) | Hagi/Contracts/BatchGlobalTelescope.lean:45, :61 | refine train_guarded |
+| `ebGap`, `centeredSample`, `centeredSample_snoc`, `azumaSum_centeredSample`, `batch_drop_generalizes` | T2: iid-выборка n ⇒ P[mean δ < Σ q δ + ebGap] ≥ 1 − α через `empirical_bernstein_mean_bound` (EmpiricalBernstein.lean:286; посылки b, `sig` > 0 — взвешенная дисперсия; `azumaSum` Azuma.lean:169) | Hagi/Contracts/BatchGlobalTelescope.lean:75, :81, :88, :97, :121 | — |
+| `certified_batch_drop_global` | на сэмпле dropB ≤ фактического drop ⇒ obj_G θ' ≤ obj_G θ − dropB + ebGap, w.p. ≥ 1 − α | Hagi/Contracts/BatchGlobalTelescope.lean:177 | — |
+| `roundDens`, `roundP`, `roundP_isProb`, `round_marginal`, `rounds_union` | модель независимых раундов; union bound 1 − Σ eps ≤ P[∀ i, A i] (`prodPq_union_finset` CertifiedEstimator.lean:563) | Hagi/Contracts/BatchGlobalTelescope.lean:228, :233, :236, :251, :299 | — |
+| `rounds_telescope`, `roundGood`, `certified_rounds_union` | k раундов: obj k ≤ obj 0 − Σ dropB + k·ebGap(α/k) (8 раундов, α = 1/10 → α/8 = 1/80) | Hagi/Contracts/BatchGlobalTelescope.lean:340, :352, :366 | — |
 
-- Beat: C648 = продолжение C647, уровень (C) — случайный batch на каждом
-  шаге. Base HEAD 2a554dc7, tree clean. Код-факт тот же
-  (HAGI_v2 @ca52eb4, lm.py:978-1008): 8 раундов permutation-срезов по 32,
-  `_certified_finite_step` per-batch, принимается любой d > 0.
-- МОДЕЛЬ (гипотеза, не факт кода): раунды НЕЗАВИСИМЫ — пространство
-  `Fin k → Fin n → V` с произведением мер `roundP` (плотность раунда
-  `roundDens` = iid-выборка из `q`). Для кода независимость от обновления θ
-  НЕ гарантирована: permutation-раунды зависимы через θ; bound УСЛОВНЫЙ
-  на модель. Внутри раунда iid — консервативная идеализация WOR (см. T2).
-- Теоремы (Hagi/Contracts/BatchGlobalTelescope.lean, ns
-  Hagi.Contracts.BatchGlobalTelescope): `roundP_isProb`,
-  `round_marginal` (маргинал раунда под произведением = мера одного
-  раунда); `rounds_union` — union bound: `A i` о выборке раунда `i`,
-  `∀i, 1 − eps i ≤ P[A i]` ⇒ `1 − ∑ eps ≤ P[∀ i, A i]`
-  (через `prodPq_union_finset` + `round_marginal`);
-  `rounds_telescope` — `obj (i+1) ≤ obj i − dropB i + g` ⇒
-  `obj k ≤ obj 0 − ∑ dropB + k·g` (из `batch_telescope_fixed`);
-  `roundGood` (def) — хороший раунд; `certified_rounds_union` — T1:
-  при посылках EB для каждого раунда (b, sig по per-sample приращениям)
-  с вероятностью ≥ `1 − alpha` каждый раунд хорош, и тогда при
-  «certified ≤ фактического drop по выборке» в каждом раунде
-  `obj k ≤ obj 0 − ∑ dropB + k·ebGap b sig n (alpha/k)`. Реальный вывод
-  для кода: суммарный certified drop 8 раундов ослабляется на
-  `8·ebGap(α/8)` (α = 1/10 ⇒ на раунд α/8 = 1/80).
-- T2 (консервативность выборки без возвращения) — НЕ доказано, honest-карточка:
-  в Mathlib (rg по `without replacement|sampleWOR|finite population|
-  hypergeometric|Finset.random|orderPreserving`) нет готовой леммы о
-  дисперсии выборки без возвращения (finite population correction
-  (N−n)/(N−1) ≤ 1). Консервативность WOR относительно iid-EB — интуиция,
-  не формализовано; цена: нужна order-statistics/FCP-лемма (варианта
-  среднего по равномерной n-подвыборке ≤ вар. среднего по iid). Не
-  выдумывал.
-- ЧТО ИМЕННО ЗАКРЫТО/НЕТ: закрыт union bound по k раундам В МОДЕЛИ
-  независимых раундов и телескоп глобального objective со slack k·ebGap.
-  НЕ доказано: (1) независимость раундов для кода — гипотеза-модель;
-  (2) консервативность WOR (T2); (3) коду требуется СЧИТАТЬ `b` и `sig`
-  для per-sample приращений loss на каждом раунде (сейчас не считает) и
-  разделывать α по раундам (α/8).
-- Witness (lake env lean 4.36.0, rc=0): k = 8,
-  α = 1/10 ⇒ α/k = 1/80; V = Bool, q uniform, loss v t = t·δ v,
-  δ = ±1, b = sig = 1, n = 4, dropB = 0; `ebGap 1 1 4 (1/80) =
-  √(2·ln 160/4) + 2·ln 160/4`, slack `8·ebGap > 0`. Аксиомы: [propext,
-  Classical.choice, Quot.sound].
+- Honest: (WOR) консервативность выборки без возвращения относительно
+  iid-EB НЕ доказана (finite population correction; в Mathlib леммы нет);
+  (iid раундов) независимость раундов от обновления θ — модель, bound
+  условный; коду надо считать b, sig и делить α по раундам (не делает).
 
-## C651 bridges: repair forgetting (wave 257) and window order (wave 258; superseded by C664)
+## Hagi/Theory/RepairForgetting.lean (repair старых доменов с rollback)
 
-- Beat: C651 = волны 256–258 (HAGI_v2 READ-ONLY: e9a96fc, b3740e0;
-  HEAD b3740e0, dirty worktree — чтение только через git show).
-  Base HEAD 8fb0f1fa, tree clean.
-- Волна 256 (e9a96fc, lm.py:694): lr train_guarded 3e-3 → 1e-3 — Adam
-  двигает каждый вес ~lr за шаг независимо от градиента, длинный
-  прогон раздувает веса до сатурации softmax. Гиперпараметр, моста
-  нет.
-- Волна 257 (e9a96fc, unified.py:402-406, :408-455, вызов :256):
-  после шага на свежем домене, пока парный gate (CE старых доменов на
-  фиксированных окнах, `_old_domains_ce` :635-660) выше pre: snapshot
-  параметров → train_certified на СТАРЫХ байтах (весь trunk, lr 3e-4,
-  2 эпохи) → замер; нет улучшения (new ≥ post − 1e-4) → точный
-  rollback (`q.copy_(s0)` :450) и СТОП; иначе следующий раунд. Бюджет
-  6 раундов. Это НЕ replay-батчи A в B и НЕ rollback адаптера —
-  ограждённый retrain старых доменов с откатом за раунд. Режим block
-  (:462-495, только новый блок, trunk заморожен) измерен хуже (+2.62)
-  и выключен.
-- Числа +0.553 → +0.036 (commit msg, здесь НЕ перемеряно): средний CE
-  первых 10 доменов после чанка 60 минус после чанка 10 (60 реальных
-  чанков): без repair 2.73 → 3.28; r=3/lr=1e-3 +0.343; r=6/lr=3e-4
-  +0.036. Это сквозное забывание прогона, а не gate-значение раунда.
-  Не ноль: 20/89 repair-шагов упёрлись в rollback; цена ×10 времени.
-- Сопоставление с клозом (2) `master_theorem_v3`
-  (Hagi/Theory/MasterTheoremV3.lean:81): zero-forgetting ТОЧНО при
-  hfroz (состояние замороженной задачи не пишется). Repair пишет в
-  общий trunk — посылка НЕ выполнена, клоз кодом не инстанцируется;
-  `adapter_per_task_sound` (AdapterGrowth.lean:582, C544) и GPM
-  `gpm_multi_zero_forgetting` (Continual.lean:145) — тоже мимо: в коде
-  нет ни per-task адаптера, ни проекции градиента, просто Adam на
-  старых байтах.
-- Теорема-мост (Hagi/Theory/RepairForgetting.lean, ns
-  Hagi.Theory.RepairForgetting, +5 theorem, +2 def, +1 inductive):
-  `stepValue` / `stepValue_retrain` / `stepValue_rollback` (один раунд
-  как функция: принятый шаг = кандидат, откаченный = прежнее значение
-  ТОЧНО); RepairRun tol r v z — индуктивное отношение «старт →
-  финал» с тремя ветками кода (done / retrain при w < v − tol /
-  rollback при ¬ w < v − tol с точным сохранением значения и СТОП);
-  `acceptedCount`; `repair_drop_bound` — ЛИНЕЙНАЯ граница
-  z ≤ v − tol·(#принятых); `accepted_le_budget` (#принятых ≤ r);
-  `repair_sound` — конъюнкция: z ≤ v (gate никогда не растёт, при
-  0 ≤ tol), z ≤ v − tol·a, a ≤ r.
-- HONEST: геометрической границы (1 − ρ)^k НЕТ и из кода не следует —
-  раунд принимается при любом улучшении > 1e-4 (ρ не фиксирован),
-  цикл останавливается на первом не-улучшении, так что post может
-  остаться > pre (верхней границы забывания нет). Gate-значение —
-  выборочная оценка CE (≤ 8 доменов × 256 позиций), не популяционное
-  забывание. Bridge status: EXACT для потока управления (ветки, порог,
-  бюджет, rollback = тождество), гипотеза-уровень для самих чисел.
-- Волна 258 (b3740e0, hagi/archiver.py): byte LM = вероятностная
-  модель арифметического кодера: 32-бит range coder, 16-бит CDF,
-  probs_to_cdf :33-39 (freq = max(1, round(P·65200)), остаток до
-  65536 — в argmax ⇒ ни у одного байта нет нулевой вероятности);
-  encode_step :52-70, decode_step :96-118; контейнер
-  HAGI3 | u32 len | mode (0 stored / 1 coded), coded выбирается только
-  если строго короче stored (:188); колонковый батчинг: блоки по L = k
-  байт независимы (нулевой паддинг k перед блоком), колонка c всех
-  блоков группы кодируется одним forward по уже известным байтам —
-  декодер (:191-222) симметричен. Хеша чекпоинта в контейнере нет:
-  «only the SAME model decodes» — контракт docstring (:19), не код.
-- Измерено: commit — production checkpoint, 11/11 lossless, 5.16
-  бит/байт против zlib 2.40. Здесь: tests/test_archiver.py @b3740e0,
-  извлечён через git show в копию вне worktree — 6 passed (round-trip
-  на skewed/random/periodic/tiny, stored-fallback, < 7 b/B на
-  периодике, привязка к модели, порча отвергается).
-- Сопоставление с `trit_roundtrip` (TritCodec.lean:117) /
-  `tritPack_injective` (:132): это позиционная упаковка 5 тритов в ℕ
-  < 243, а не последовательный интервальный кодер на квантованных
-  softmax-вероятностях. В primes нет Lean-модели range coder.
-  Вердикт: теоремы НЕТ — честный мост требует (i) модели интервального
-  кодера с инвариантом непустого интервала (freq ≥ 1, сумма 65536,
-  lo ≤ hi после шага) и (ii) леммы симуляции encoder/decoder — это
-  отдельный цикл, не следствие TritCodec. Lossless сегодня = тесты +
-  измерение, не Lean. Compression.lean и MergeQuant.lean — lossy
-  rate-distortion, неприменимы.
-- Волна 258, фикс реверсных окон (b3740e0, unified.py:297-316): было
-  X = idx[p+k−1 .. p] newest-first при train-time gather_all
-  (lm.py:738-755) oldest-first raw[pos−len .. pos−1], y = raw[pos].
-  Commit-замер (production trunk, 3 чанка): CE 3.51/4.36/3.67 против
-  6.03/6.41/6.09 при реверсе.
-- НАХОДКА (здесь, код b3740e0): после фикса контекст стал
-  idx[p−n .. p) (:314), но цель осталась y = idx[pos + k] (:315) — для
-  p ≥ k между новейшим байтом контекста и целью зазор в k байт.
-  Замерено на копии hagi/ @b3740e0 (git show; small model dim 32,
-  hidden 64, периодика 64, 6 эпох, 512 позиций, k = 96;
-  e9a96fc newest-first CE 4.455;
-  b3740e0 `_windows` CE 7.307; train-порядок с соседней целью
-  (y = idx[p]) CE 0.181; gate `_old_domains_ce` CE 0.181. Фикс сделал
-  вход гейта ХУЖЕ для всех потребителей `_windows` (adapter gate
-  `_fit_domain_adapter` :360/:367/:518, `_maybe_grow` :518, live
-  adapter :611); gate repair `_old_domains_ce` и archiver (своя
-  конструкция `_ctx`) не затронуты. HAGI_v2 read-only — не чинилось.
-  Реверс остался в certified holdout (lm.py:900-910) и
-  `_read_all_windows` (lm.py:1042, :1564) — commit это заявляет.
-- Сопоставление с CoverageReading: `covStarts` (:45) — о ТОМ, какие
-  позиции читаются (`covStarts_covers` :54), не о порядке внутри окна
-  и не о том, какой байт цель; класс бага wave 258 не моделировался.
-- Теоремы порядка (секция WindowOrder в Hagi/Theory/CoverageReading.lean,
-  ns Hagi.Theory.WindowOrder, +4 theorem, +2 def): slot k p j = p + j
-  (oldest-first слот → позиция), `slot_mono`, `slot_last` (query-слот
-  k−1 = новейший байт p+k−1), slotRev k p j = p + (k−1−j),
-  `slotRev_first` (в реверсе слот 0 = новейший байт), `slotRev_last`.
-  HONEST: это инвариант ПОРЯДКА только; инвариант смежности цели
-  (target = idx[p] для окна, кончающегося на p−1) — тот, который
-  b3740e0 нарушает, Lean-утверждением здесь не является.
-- Witness (lake env lean 4.36.0, rc=0): tol = 1/10000, бюджет 6,
-  прогон 3.28 → 3.10 →
-  2.90 → 2.80 (3 принятых, затем done) ⇒ 2.80 ≤ 3.28 − tol·3; rollback-
-  прогон 3.28 (кандидат 3.2799) ⇒ значение сохранено, 0 принятых;
-  k = 96: slot_last = 95, slotRev_first = 95, slotRev_last = 0.
-  Аксиомы: [propext, Classical.choice, Quot.sound] (window-часть без
-  Classical.choice).
-- Попутно: docs/paper-draft.md Appendix A — rollback_gate_sound
-  :98 → :100 (rg на HEAD), IterState :117 сверен (совпадает).
-- Якоря file:line сверенены по `git show` e9a96fc /
-  b3740e0 (lm.py:694, unified.py:256/:402-406/:408-458/:635-660,
-  archiver.py:19/:33-39/:52-70/:96-118/:188, lm.py:738-755); числа
-  +0.553 / +0.036 / +0.343 / +2.62 / 20/89 — из commit message
-  e9a96fc (не перемеряны).
+Код-якорь HAGI_v2 @e9a96fc: unified.py:408-455 (вызов :256, gate
+`_old_domains_ce` :635-660, rollback `q.copy_(s0)` :450, бюджет 6).
 
-## C653 bridge: archiver codelength vs entropy (wave 258, archiver statement-audit)
+| теорема | формулировка | file:line | код-якорь @sha |
+|---|---|---|---|
+| `stepValue`, `stepValue_retrain`, `stepValue_rollback` | раунд: принятый шаг = кандидат, откаченный = прежнее значение ТОЧНО | Hagi/Theory/RepairForgetting.lean:42, :46, :52 | unified.py:450 |
+| `RepairRun`, `acceptedCount`, `accepted_le_budget` | индуктивное отношение «старт → финал» (done / retrain при w < v − tol / rollback + СТОП); #принятых ≤ r | Hagi/Theory/RepairForgetting.lean:61, :69, :93 | unified.py:408-455 |
+| `repair_drop_bound`, `repair_sound` | z ≤ v − tol·(#принятых); gate не растёт, линейная граница, бюджет | Hagi/Theory/RepairForgetting.lean:78, :105 | — |
 
-- Beat: C653 = roadmap C652 top-1: statement-audit `hagi/archiver.py`
-  @b3740e0 + минимальный честный мост (HAGI_v2 READ-ONLY через
-  `git show`; HEAD b3740e0, clean). Base HEAD 596b5504, tree clean.
-- ЧТО КОД УТВЕРЖДАЕТ (буквально): (1) docstring archiver.py:1-4 —
-  «archive size is within o(1) of -log2 P(data), so the compression
-  ratio IS the model's CE in bits per byte»; (2) :6-7 — 32-bit range
-  coder, 16-bit CDF, freq ≥ 1 (ни один байт не имеет нулевой
-  вероятности); (3) :19 — «Only the SAME model decodes» (контракт
-  docstring, хеша чекпоинта в контейнере нет); (4) commit msg —
-  lossless 11/11, 5.16 b/B vs zlib 2.40, ~90 KB/s.
-- АЛГОРИТМ: классический binary range coder (не arithmetic coder с
-  точными дробями): probs_to_cdf :33-39 — freq = max(1, round(P·65200))
-  int32, остаток 65536 − Σfreq → в argmax, кумулятивная cdf (N,257);
-  encode_step :52-70 — на символ: rl = hi−lo+1, hi := lo + (rl·c_hi)//T
-  − 1, lo := lo + (rl·c_lo)//T (T = 65536), затем renorm-цикл
-  (E1 hi<HALF → бит 0; E2 lo≥HALF → бит 1; E3 lo≥Q1 ∧ hi<Q3 →
-  underflow-счётчик uf+1) с bit-stuffing `_put` :46-50; finish :72-78
-  — 1 дополнительный бит + паддинг до байта; decode_step :96-118 —
-  searchsorted по cdf для target ((val−lo+1)·T − 1)//rl, тот же
-  renorm с подкачкой битов (`_nb` возвращает 0 за концом потока).
-  Модель — softmax(logits) по контексту k байт (_probs :121-131),
-  колонковый батчинг: блоки по L = k байт независимы (нулевой паддинг
-  в начале блока), колонка c всех блоков группы — один forward.
-- Codelength: нигде явно не считается; биты выхода = Σ по символам
-  (−log₂ p̂_сим) + o(1) — СВОЙСТВО range coder'а, код его не считает и
-  не логирует; «ratio IS CE» — утверждение о выходе, а не измеренная в
-  коде величина (bench считает len(archive)·8/len(data), CE отдельно
-  не печатается).
-- ЧИСЛА wave258 (commit msg): lossless 11/11 (9 disk chunks + 2
-  текста, production checkpoint, CUDA); 5.16 бит/байт против zlib 2.40
-  (per chunk 2.76..6.78 vs 0.77..3.86); периодика, малая модель:
-  0.535 b/B trained / 0.553 unseen; ~90 KB/s encode. «20/89» — НЕ из
-  wave258: это repair-раунды e9a96fc (20 из 89 упёрлись в rollback),
-  STATUS C651 уже фиксирует. Здесь не перемеряно (C651 прогонял 6
-  тестов test_archiver.py на копии @b3740e0: 6 passed).
-- ФОРМАТ: MAGIC "HAGI3" (5) | u32 total_len | u8 mode; mode 0: raw; mode 1:
-  u8 L | группы {u16 nb, u32 bit_len, bitstream} | tail (байты вне
-  n_blk·L). compress :160-188 выбирает stored, если coded не короче
-  (:188) или len < 64 / n_blk = 0 (:171).
-- ROUND-TRIP: «lossless» = ТЕСТ (tests/test_archiver.py:13-17
-  `_roundtrip` assert decompress(compress(d)) == d; 6 кейсов :40-41),
-  не теорема и не claim в коде; симметрия encoder/decoder —
-  «by construction» (docstring :9-12).
+- Bridge: EXACT для потока управления; числа — из commit msg (не перемеряно):
+  +0.553 → +0.036 CE, 20/89 repair-шагов в rollback, цена ×10.
+- Honest: геометрической границы НЕТ (принимается любое улучшение > 1e-4,
+  post может остаться > pre); gate — выборочная CE (≤ 8 доменов × 256
+  позиций), не популяционное забывание; Repair пишет в общий trunk ⇒ клоз
+  (2) `master_theorem_v3` (замороженная ветка; `adapter_per_task_sound`
+  AdapterGrowth.lean:582, `gpm_multi_zero_forgetting` Continual.lean:145)
+  не инстанцируется.
 
-### Statement-audit — три уровня
+## Hagi/Theory/CoverageReading.lean — WindowOrder (порядок слотов окна)
 
-- L1 (round-trip injective: decode(encode(x)) = x для range coder
-  archiver.py:52-118): ВЕРДИКТ — НЕ формализуется в этом бите, честная
-  карточка. Оценка цены по коду: нужно (i) модель состояния
-  (lo, hi : ℕ, uf, bits), (ii) лемма непустоты интервала после шага
-  `(rl·c_lo)//T ≤ (rl·c_hi)//T − 1` при rl ≥ T (32-битный диапазон
-  до renorm, T = 2^16) и c_lo < c_hi (freq ≥ 1, :35), (iii) лемма
-  searchsorted (decode_step :102: c[sym] ≤ target < c[sym+1]),
-  (iv) инвариант val ∈ [lo, hi] через renorm-ветки E1/E2/E3 (:106-116)
-  с подкачкой битов, (v) finish/паддинг. Оценка ≥ 400 строк Lean + 2
-  новые модели (encoder state, bit-поток с underflow); прецедента в
-  primes нет (TritCodec — позиционная упаковка, не интервальный
-  кодер). 3 fails → not attempted.
-- L2 (codelength bound) — ДОКАЗАНО, Hagi/Theory/ArchiverCodeLength.lean
-  (ns Hagi.Theory.ArchiverCodeLength, +11 theorem, +5 def):
-  - `codelength_ge_entropy_of_kraft`: Σ 2^{−len} ≤ 1 ⇒ entBits p ≤
-    expLen p len (Kraft ⇒ H(p) ≤ E[len], биты). Доказательство: q_i =
-    2^{−len_i}/K — распределение, Gibbs `ceDef_self_le_of_support`
-    (FiniteLogScore.lean:168) даёт ceDef p p ≤ ceDef p q =
-    log2·E[len] + log K, log K ≤ 0.
-  - `codelength_ge_entropy_of_uniquelyDecodable`: гипотеза Kraft
-    выводится из Mathlib `IsUniquelyDecodable.
-    finsetSum_one_div_card_pow_length_le_one` (KraftMcMillan.lean) для
-    inj enc : X → List Bool с IsUniquelyDecodable (range enc).
-  - `idealLen_kraft`: len i = ⌈−log₂ p̂_i⌉₊ удовлетворяет Kraft
-    (2^{−⌈a⌉} ≤ 2^{−a} = p̂_i); `idealLen_ge_entropy`: H(p) ≤ E_p[len].
-  - `idealLen_le_ce_add_one` (L2b): E_p[⌈−log₂ p̂⌉₊] ≤ ceBits p p̂ + 1
-    (⌈a⌉ < a + 1; посылка p̂ ≤ 1 — распределение).
-  - `ceBits_eq_entBits_add_kl`: CE_bits = H_bits + KL(p‖p̂)/log 2 —
-    мост к `klDef_eq_ceDef_sub_of_support` (FiniteLogScore.lean:97).
-  Итого сэндвич: H(p) ≤ E_p[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1.
-- L3 («HAGI as archiver», p̂ = p): `idealLen_self_bounds` — при p̂ = p
-  KL = 0 ⇒ H(p) ≤ E_p[⌈−log₂ p⌉₊] ≤ H(p) + 1. Это единственный
-  экземпляр, где «codelength = H» literally true (с точностью +1 бит).
-- HONEST ГРАНИЦЫ: (a) модель — ИДЕАЛЬНЫЙ кодер (len = ⌈−log₂ p̂⌉₊,
-  Shannon-Fano-стиль), а не range coder archiver.py: +1 бит/символ —
-  цена ⌈⌉, у range coder'а o(1) на ВЕСЬ поток, а не на символ, но
-  Lean-модели range coder нет (L1); (b) p̂ — квантованная CDF
-  (freq = round(P·65200), min 1, :35) ≠ softmax P: реальная цена —
-  KL(p‖q_cdf) ≥ KL(p‖P), в коде не измеряется; (c) stored-mode
-  (:188) и заголовок (10 + 6 байт/группа) в границе не учтены —
-  граница для mode 1 payload; (d) «within o(1) of −log₂ P» — для
-  range coder'а это классический факт, здесь НЕ доказан (только
-  идеальный кодер); (e)round-trip — тест, не теорема.
-- Сопоставление: `trit_roundtrip` (TritCodec.lean:117) — не
-  интервальный кодер; Compression.lean / MergeQuant.lean — lossy;
-  Mathlib @fc4f59e5 Kraft/KraftMcMillan/PrefixFree/UniquelyDecodable —
-  использованы (KraftMcMillan.lean:155 `finsetSum_one_div_card_pow_
-  length_le_one`); Mathlib не содержит entropy-as-codelength —
-  выведено здесь через Gibbs из primes.
-- Аксиомы: [propext, Classical.choice, Quot.sound] для всех шести
-  ключевых теорем.
+Код-якорь HAGI_v2: @b3740e0 unified.py:297-316 (контекст oldest-first, цель
+y = idx[p+k] — зазор k байт; CE 7.307 против 0.181 при y = idx[p]); @bab8aff
+lm.py:1041-1054, :905-907, :1126-1127 (holdout 3.59..4.23 против 8.13..11.56
+nats — commit msg).
 
-## C654 bench certified-warmup-sim (simulation, adapter-grow carrier)
+| теорема | формулировка | file:line | носитель кода @sha |
+|---|---|---|---|
+| `slot`, `slot_mono`, `slot_last` | oldest-first: slot k p j = p + j, query-слот k−1 = байт p+k−1 | Hagi/Theory/CoverageReading.lean:709, :718, :722 | lm.py:905-907 @bab8aff |
+| `slotRev`, `slotRev_first`, `slotRev_last` | реверс: слот 0 = новейший байт | Hagi/Theory/CoverageReading.lean:714, :734, :728 | до фикса |
+| `padSlot`, `padSlot_tail`, `padSlot_last`, `padSlot_full` | generation-путь: левый паддинг + `slot` со сдвигом; query в слоте k−1; n = k ⇒ окно = `slot k p` | Hagi/Theory/CoverageReading.lean:743, :748, :756, :765 | lm.py:1041-1054 @bab8aff |
 
-- Beat: C654 = сравнение certified warm-up блока против plain Adam
-  warm-up. НОВЫЙ bench-режим `certified-warmup-sim` в
-  scripts/bench_bridge.py (`certified_warmup_sim_run`). Base HEAD
-  08405376, tree clean. Это СИМУЛЯЦИЯ на bench-носителе (adapter-grow /
-  mh2 trunk заморожен после phase A), а НЕ воспроизведение кода range
-  coder'а HAGI_v2 и НЕ прогон HAGI_v2.
-- Certified arm (python double `ByteLM._certified_finite_step` /
-  `finite_displacement_ce_upper`): upper = <softmax - onehot, dlogits>
-  + range(dlogits)^2/8 на РЕАЛЬНОМ конечном смещении логитов (dlogits
-  считается аналитическим JVP `tangent_range_sq`, без линейности по
-  параметрам); drop = -upper; COMMIT iff drop > 1e-12, иначе eta/2 (до
-  12 halvings), затем HOLD с точным откатом. <= 600 шагов.
-- Plain arm (unified.py): Adam lr 1e-3, betas 0.9/0.999, eps 1e-8, 2
-  эпохи, batch 64, <= 300 шагов/эпоху, БЕЗУСЛОВНО — ни один шаг не
-  проверяется, отката нет.
-- Identity: Wo = 0 дает obj == fOld бит-в-бит (assert `logits ==
-  old_Z`). Задачи с < 2 snapped классов отброшены (CE тождественный 0).
-- ЧИСЛА snapshot (34 pts, T=2 после фильтра, H=2, n_params=66):
-  fOld 3.761650 -> certified 2.783855 (600 COMMIT, 0 HOLD, 0 halvings,
-  sum_drop 0.561600; bound 3.200050 >= obj), plain Adam 3.583951
-  (2 шага, sum|dq| 0.105631). Verdict PASS, warmup_safe true.
-- ЧИСЛА --live-corpus (C610 fallback, T=2, n_params=102; LIVE-лог
-  может дрейфовать между прогонами): fOld 4.811144 -> certified 3.394217
-  (600 COMMIT, 0 HOLD, 0 halvings, sum_drop 0.780696; bound 4.030448 >=
-  obj), plain Adam 4.444299 (4 шага). Verdict PASS.
-- ЧЕСТНЫЙ ФАКТ по plain arm: в ОБЕИХ прогонах plain Adam УМЕНИШИЛ obj
-  (3.58 < 3.76; 4.44 < 4.81), т.е. знак отрицательный — НО без
-  сертификата: не существует проверки, что это верно для следующего
-  корпуса/инициализации. Certified arm гарантирует obj_final <= fOld по
-  построению (каждый COMMIT удовлетворяет obj' <= obj - drop, что и
-  проверяется assert'ом на каждом шаге).
-- Precision: obj = mean CE по ВСЕМ точкам (batch mean сертификата и
-  градиента; task-mean сертификатом НЕ покрывается).
-- Golden 5/5 byte-identical (grow-snap, mini-hagi, adapter-grow,
-  adaptive-span, transfer-gate-certified). pytest scripts/Test*.py: 5
-  failed / 58 passed — тот же набор, что на чистом HEAD 08405376 (Lean
-  .olean «incompatible header», TestFreeze/TestAllAxiomCheck, env).
-  DocLint PASS, StatusLint PASS.
+- `covStarts` (:45) — про начала окон, инвариант другой, не пересекается.
+- Honest: инвариант ТОЛЬКО порядка (смежность цели — не Lean-утверждение);
+  hagi/unified.py:1010 @bab8aff (neural-фолбэк `[::-1]`) всё ещё развёрнут;
+  второй `_read_all_windows` (lm.py:1569-1581) не менялся.
 
-## C655 adam direction: first step vs sign flip (wave 259, honest)
+## Hagi/Theory/ArchiverCodeLength.lean (длина кода ↔ энтропия; statement-audit archiver.py)
 
-- Beat: C655 = roadmap C649/C652 top-2 — честная проверка: является
-  ли `⟨g, d_Adam⟩ ≥ 0` код-фактом (d = m̂/(√v̂+eps), m̂ = EMA
-  градиентов, v̂ = EMA квадратов). Base HEAD 0ccaa34f, tree clean.
-- Код HAGI_v2 (READ-ONLY) @b3740e0: `torch.optim.Adam(...)` без
-  аргументов betas/eps — lm.py:349,403,779,930, unified.py:473,548 — т.е.
-  torch-дефолты β₁ = 0.9, β₂ = 0.999, eps = 1e-8 (проверено в
-  torch: param_groups betas (0.9, 0.999), eps 1e-08). AdamW (с weight_decay) — только
-  memory_store/memory_policy.py:188.
-- Модуль Hagi/Step/AdamDirection.lean (ns Hagi.Step), 11 деклараций.
-  ВЕРДИКТ: `⟨g, d⟩ ≥ 0` — ТОЛЬКО на первом шаге (t = 1);
-  на t ≥ 2 общий шаг Адама НЕ является сертифицированным спуском.
-  - `ema_one_unbiased`: m₁ = (1−β)·g₁, m̂₁ = m₁/(1−β¹) = g₁.
-  - T1 `adam_first_step_dot_nonneg`: m̂ = g, v̂ = g² ⇒
-    d_i = g_i/(|g_i|+eps), ⟨g,d⟩ = Σ g_i²/(|g_i|+eps) ≥ 0;
-    `adam_first_step_dot_pos`: строго > 0 при g ≠ 0, eps > 0.
-  - T2 `adam_coord_sign_flip_neg`: знак d_i — знак m̂_i, не g_i;
-    при g_i·m̂_i < 0 вклад координаты < 0.
-  - `ema_sign_flip_negative`: контрпример шага 2, β₁ = 9/10,
-    β₂ = 999/1000, g₁ = 1, g₂ = −1/10: m₂ = 2/25 (0.08),
-    m̂₂ = (2/25)/(19/100) > 0, v₂ = 1009/10⁶, v̂₂ > 0 ⇒
-    ⟨g₂, d₂⟩ < 0. ВНИМАНИЕ: арифметика посылки задачи (m̂₂ = 0.89)
-    считала m̂₂ = β₁g₁ + (1−β₁)g₂ — это НЕ форма torch; корректно
-    m̂₂ = (β₁·m₁ + (1−β₁)g₂)/(1−β₁²) = 0.08/0.19 ≈ 0.421. Знак и
-    вывод те же; в теореме — форма torch.
-  - `adam_step_not_always_descent`: ¬∀ g m v eps, 0 ≤ g·(m/(√v+eps)).
-- СВЯЗКА С КОДОМ (C643 мост): шаг Адама принимается только
-  измерённым гейтом `backtrackAccept` (selfmodel.py:134-169: worst ≤
-  max_task_regression ∧ wb − wa > total_bound, иначе HOLD с точным
-  откатом параметров и optimizer state). Согласование градиентов
-  `min_dot ≥ −conflict_tol` (selfmodel.py:121-126) считается для
-  направления MGDA ДО записи в p.grad и ДО Адама — т.е. код НИКОГДА
-  не опирается на ⟨g, d_Adam⟩ ≥ 0. ⇒ C642 h1 для Adam-шага требует
-  backtrack_accept; цепочка C642 → C643 → C655 замкнута.
-- Аксиомы: [propext, Classical.choice, Quot.sound] для всех шести
-  ключевых теорем.
-- Gates: lake build Hagi PASS (lean 4.36.0), Freeze PASS, ReachLint,
-  LayerLint, NsLint, DocLint, DupLint, STMDUP, Challenge, TrivialLint,
-  StatusLint PASS.
+Код-якорь HAGI_v2 @b3740e0: hagi/archiver.py — 32-бит range coder, 16-бит
+CDF, probs_to_cdf :33-39 (freq = max(1, round(P·65200))), encode_step
+:52-70, decode_step :96-118, stored-fallback :188.
 
-## C657 useful first warmup step: certified drop > 0 (honest, U1)
+| теорема | формулировка | file:line | опора |
+|---|---|---|---|
+| `expLen`, `entBits`, `ceBits` | E_p[len], H(p) и CE в битах | Hagi/Theory/ArchiverCodeLength.lean:35, :38, :41 | — |
+| `codelength_ge_entropy_of_kraft`, `codelength_ge_entropy_of_uniquelyDecodable` | Kraft ⇒ H(p) ≤ E[len]; Kraft из uniquely decodable | Hagi/Theory/ArchiverCodeLength.lean:55, :106 | `ceDef_self_le_of_support` FiniteLogScore.lean:168; Mathlib KraftMcMillan |
+| `idealLen`, `idealLen_kraft`, `idealLen_ge_entropy`, `idealLen_le_ce_add_one` | len = ⌈−log₂ p̂⌉₊: Kraft, H(p) ≤ E[len] ≤ ceBits + 1 | Hagi/Theory/ArchiverCodeLength.lean:129, :150, :157, :164 | — |
+| `ceBits_eq_entBits_add_kl`, `idealLen_self_bounds` | CE = H + KL/log 2; при p̂ = p: H ≤ E[len] ≤ H + 1 | Hagi/Theory/ArchiverCodeLength.lean:194, :208 | `klDef_eq_ceDef_sub_of_support` FiniteLogScore.lean:97 |
 
-- Beat: C657 = roadmap C656 top-3 — «существование полезного
-  блока»: certified условие, при котором новый блок ГАРАНТИРОВАННО
-  даёт drop > 0 после шага 0 (доказано было лишь obj ≤ fOld).
-  Base HEAD d9b046b4, tree clean. Lean-правка: только
-  Hagi/Theory/FunctionPreservingGrowth.lean (секция WarmUp, +1 def,
-  +7 theorem).
-- Код HAGI_v2 (READ-ONLY) @ca52eb4: lm.py:581
-  `h = h + relu(a@W1+b1)@Wo` (новый блок — 1-hidden-layer MLP на
-  residual-потоке, W1 random, b1 = 0, Wo = 0); lm.py:235
-  range-лемма (`lse_shift_upper`: CE(z+d) − CE(z) ≤
-  ⟨softmax z − onehot, d⟩ + range(d)²/8); lm.py:594-596 AdaptiveMajorizer
-  ce_direction_range. UAT-стейтмента в primes НЕТ (rg по Hagi:
-  только «universal» в RobustnessLaw/BoolVenn — не об аппроксимации).
-- Носитель (minimal): семейство шагов `bη : ℝ → B` с линейным
-  смещением логитов `L (bη η) u − L b u = η·D u` (шаг по
-  фиксированному направлению при Wo = 0), `R` — range-константа
-  направления (`D u − D v ≤ R`), `a = ⟨softmax (L b) − onehot_t, D⟩`.
-  Certificate: `linDrop a R η = −(η·a + η²·R²/8)` (r = η·R — посылка
-  range-леммы выполняется тривиально).
-  - `useful_first_step`: drop(η*) = 2a²/R² при η* = −4a/R² = 4|a|/R².
-  - `useful_eta_le`: drop(η) ≤ 2a²/R² ∀η, равенство только при η*
-    (едининая точка максимума); `useful_first_step_pos`: 2a²/R² > 0.
-  - `exists_useful_eta`: a < 0, R > 0, stepEps < 2a²/R²
-    (⇔ |a| > √(stepEps·R²/2)) ⇒ ∃ η > 0: stepEps < drop(η).
-  - `first_step_useful_certified`: то же на носителе блока — шаг
-    `b → bη η` удовлетворяет `CertifiedFiniteStep` на `CE_t ∘ L`
-    (через `block_step_commit_of_range_bound`, C646).
-  - `first_step_strict_improves`: + identity-старт `CE_t (L b) = fOld`
-    ⇒ CE_t (L (bη η)) < fOld — строгое улучшение (warmup_strict n=1).
-  - Негатив `no_signal_no_drop`: a = 0 ⇒ drop(η) = −η²R²/8 ≤ 0 ∀η
-    — без residual-сигнала COMMIT невозможен ни при каком шаге.
-- ВЕРДИКТ. U1 (локальный) ДОКАЗАН: первый warm-up шаг certified-выгоден
-  ⟺ descent-сигнал a < 0 (residual-сигнал ≠ 0) и drop_max = 2a²/R²
-  > stepEps. U2 (глобальный, «блок expressive ⇒ reachable drop ≥ δ»)
-  — ЧЕСТНО ОТКРЫТ: нужна оптимизационная гарантия на non-convex
-  ландшафте (многих шагов) + UAT на конечной сетке — ни того, ни
-  другого в primes нет; код: W1 random ⇒ a ≠ 0 почти наверняка, но
-  это вероятностное утверждение кода, не теорема.
-- Pins: (1) `a < 0` ← `⟨g, d⟩ > 0` по chain rule и (2) линейность по η
-  — закрыты C663 (линейный носитель; нелинейный — C665, без
-  certified-величины drop); (3) η* — certificate-оптимум, не шаг кода.
-- Аксиомы: [propext, Classical.choice, Quot.sound] для всех пяти
-  ключевых теорем.
-- Witness: A = −1, R = 2 ⇒ η* = 1,
-  drop_max = 1/2 > stepEps; η = 1/2 ⇒ 3/8; η = 2 ⇒ 0; η = 4 ⇒ −4
-  (overshoot хуже identity); A = 0 ⇒ ¬ COMMIT ∀η.
+- Сэндвич: H(p) ≤ E_p[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1.
+- Honest: (range-coder round-trip) lossless = тесты (6 passed
+  tests/test_archiver.py @b3740e0), Lean-модели интервального кодера НЕТ
+  (≥ 400 строк, прецедента нет); граница доказана для ИДЕАЛЬНОГО кодера
+  (+1 бит/символ; у range coder o(1) на поток — не доказано); p̂ —
+  квантованная CDF ≠ softmax; stored-mode и заголовок не учтены; числа
+  commit msg (5.16 b/B vs zlib 2.40) не перемеряны.
 
-## C667 width-рост grow_width: полный function-preserving (T1 attention, T2 rotary, T3 logits)
+## Hagi/Step/AdamDirection.lean (Adam: спуск только на первом шаге)
 
-- Beat: C667 = закрыть карточку-остаток C666 п.7 (Надя.txt:350-410,
-  READ-ONLY): grow_width d0→d1, h0→h1 — доказать, что логиты
-  grown-модели на дополненных нулями входах равны старым ТОЧНО. Base
-  HEAD 5c99e460, tree clean. Lean-правка: только
-  `Hagi/Theory/NadyaOptimal.lean` (секция WidthGrowth, +~760 строк:
-  +26 def, +2 structure, +12 theorem). Скрипты не трогал.
-- Носитель (KISS, честно): одноголовый случай nh = 1 ⇒ hd = d = 2·half
-  (четная ширина — нечётная в коде тоже «работает», но координата
-  2·half0 старой модели не вращается, а в новой попадает в новую пару:
-  равенство ломается — honest-pin, не формализовано). `WParams`:
-  eps, rms1/rms2, b2, W_loc (по срезам), W_q/W_k/W_v/W_o, W_g/W_u/W_d,
-  W_out, cos/sin последней позиции и по позициям, alibi. Forward
-  `wX0` → `wN1` → `wQ`/`wK`/`wV` → `wKr`/`wQr` (rotary) → `wScore`
-  ((K·Q)/√hd + alibi) → `wW` (softmax) → `wAttn` → `wH1` → `wN2` →
-  `wG`/`wU`/`wSw` (swish) → `wH2` → `wLogits`. Правило роста —
-  предикат `WGrowth` (блочное дополнение нулями `matPadS`, W_q —
-  блок ×`qScale` = √(hd1/hd0), gain ×√(d0/d1), eps ×(d0/d1),
-  rotary-таблицы = concat нулями, alibi/b2 без изменения).
-- Слои доказательства:
-  - T1 `attn_score_scale_preserved`: K1 = padTo K, Q1 = padTo (c·Q)
-    ⇒ (K1·Q1)/√hd1 = (K·Q)/√hd0 (леммы `sum_pad`, `sum_pad_scale`,
-    `eq_padTo`, `mulvec_rowPad`, `mulvec_matPadS`, `padTo_castLE`).
-  - T2 `rotary_old_pairs_unchanged`: `rotV` (плоский rotary, пары
-    (2i, 2i+1), `rotIdx`/`rotMate`) при padTo-векторе и padTo-таблицах
-    cos/sin: старые координаты идентичны, новые — нули;
-    `rotV_smul` (линейность по масштабу) склеивает W_q-масштаб с rotary.
-  - T3 `wlogits_width_preserved`: композиция — rmsnorm_scale_inv (две
-    RMSNorm) × T1 ⇒ равные scores ⇒ равные softmax-веса
-    (`attn_out_pad`) ⇒ attn сохраняется ⇒ h1 (`h1_pad`) ⇒ FFN
-    (нулевые новые строки W_g/W_u, нулевые новые столбцы W_d ⇒ swish·up
-    = 0 на новых t) ⇒ h2 ⇒ W_out (нулевые новые строки) ⇒
-    logits_new(padTo v, padTo c) = logits_old(v, c) для всех v, c, o.
-- Honest-остаток (карточка): (1) многоголовый случай nh > 1 — не
-  формализован; доказательство блочно-переносимо (каждая голова
-  независимо: T1/T2 по-координатно внутри головы, W_o — нулевые
-  новые строки), но WParams/`WGrowth` — одноголовые. (2) Нечётная
-  ширина. (3) Клип сигмоиды [−20, 20] (Надя.txt:252) не формализован
-  (`swish` без клипа). (4) Входы v/c — абстрактные: пулинг
-  p_pool (новые столбцы = 1/r), emb-дополнение, alibi-таблица —
-  гипотезы `WGrowth`, не доказанные свойства grow_width.
-  (5) Float32 в коде ≠ ℝ: равенство точное в ℝ, не побитово.
-- Два вида роста, оба function-preserving (карта): DEPTH —
-  `trunk_function_preserving` (FunctionPreservingGrowth): trunk ++
-  [identityBlock] = старый trunk, следствия `lmLogits_grow_identity`
-  (grown LM и старая — одни логиты). WIDTH — `wlogits_width_preserved`
-  (этот бит): d0→d1, h0→h1 по `WGrowth` — те же логиты на
-  дополненных входах. Общее: нулевая инициализация новых
-  координат/столбцов (identity-блок = attn 0; width = новые строки и
-  столбцы 0) + точная компенсация нормировок (identity norm = id;
-  width = gain ×√(d0/d1), eps ×(d0/d1), W_q ×√(hd1/hd0)). Различие:
-  depth-носитель — `CertifiedBlock`/`lmTrunk` (LMCompose), width-носитель
-  — `WParams` (NadyaOptimal); дословной унификации носителей нет
-  (KISS, как и pins FunctionPreservingGrowth).
-- Аксиомы (AllAxiomCheck): все три —
-  [propext, Classical.choice, Quot.sound].
-- Witness (rc=0): qScale 12 24 = √2; T1 hd0=12,
-  hd1=24 (scores равны); T2 half0=6, half1=12; T3 WParams 6→12.
-- Gates: scripts/ci.sh → CI: PASS rc=0
-  (ReachLint 559, TrivialLint, triviality, MathlibPin fc4f59e5, DupLint,
-  NsLint, DocLint, LayerLint, FREEZE, AssumptionScan,
-  MergeModule, StatusLint, Challenge, StmtDup, MachineDiff, ALLAXIOMS).
+Код-якорь HAGI_v2 @b3740e0: `torch.optim.Adam` без аргументов (β = 0.9/0.999,
+eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
 
+| теорема | формулировка | file:line |
+|---|---|---|
+| `ema_one_unbiased` | m̂₁ = g₁ (bias-corrected EMA) | Hagi/Step/AdamDirection.lean:67 |
+| `adam_first_step_dot_nonneg`, `adam_first_step_dot_pos` | T1: d_i = g_i/(|g_i|+eps) ⇒ ⟨g,d⟩ ≥ 0; строго > 0 при g ≠ 0 | Hagi/Step/AdamDirection.lean:74, :85 |
+| `adam_coord_sign_flip_neg`, `ema_sign_flip_negative`, `adam_step_not_always_descent` | T2: знак d_i — знак m̂_i; контрпример шага 2 (β₁ = 9/10, g₁ = 1, g₂ = −1/10, форма torch m̂₂ = 0.08/0.19) ⇒ ⟨g₂,d₂⟩ < 0 | Hagi/Step/AdamDirection.lean:106, :125, :116 |
 
+- Код не опирается на ⟨g, d_Adam⟩ ≥ 0: шаг принимается измерённым гейтом
+  `backtrackAccept` (selfmodel.py:134-169 @1ae924e) ⇒ h1 для Adam-шага
+  требует backtrack_accept. Bench: нет.
 
-## C666 «Надя.txt» ↔ primes: карта 10 идей HAGI v2 Optimal и их носители
+## Hagi/Theory/HoldoutGateTwoWay.lean (holdout-гейт ↔ PAC-Bayes, two-way)
 
-- Beat: C666 — формализовать и объединить идеи
-  `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY @2026-11-24, 961 строк
-  Python «HAGI v2 Optimal — Compact Self-Growing Neuro-Symbolic Byte
-  Model»). Base HEAD 32a61ee5, tree clean. Новый модуль
-  `Hagi/Theory/NadyaOptimal.lean` (namespace `Hagi.Theory.NadyaOptimal`,
-  10 def, 16 theorem; wired в Hagi.lean root). Скрипты не трогал.
-- Карта 10 идей (theorem / уже есть / honest-эвристика):
-  1. auto_transfer_gate (Надя.txt:103-106: `2⟪θ,t⟫ > ‖θ‖²`) — УЖЕ
-     ЕСТЬ: точная iff-граница C572 `warm_better_char`
-     (`Hagi/Theory/NegativeTransfer.lean`) и `auto_transfer_gate_sound`
-     (AutoTransferGate.lean); дублирования нет — только строка в карте.
-  2. paired_gain / LCB-гейт (Надя.txt:109-112, z = 1.5;
-     :884-890 GROW iff lcb > 0) — THEOREM `paired_mean_dev_bound`
-     (Hoeffding через `holdout_concentration`: |d| ≤ B ⇒
-     P[popMean d + r ≤ holdoutMean d] ≤ 2·exp(−2k(r/(2B))²)) и
-     `paired_lcb_false_grow_bound` (ложный GROW при popMean d ≤ 0).
-     Honest: радиус r ДЕТЕРМИНИРОВАННЫЙ; в коде радиус
-     z·σ̂/√n по выборочному σ̂ (случайная величина, зависит от
-     выборки) — под union bound C660 не попадает без
-     дополнительного аргумента; iid-holdout — модель (окна
-     перекрываются); CE не ограничен [0,B] — нормировка не
-     формализована (тот же honest-pin, что C660).
-  3. BitAlloc trit5 (Надя.txt:413-424) — THEOREM `trit5_roundtrip`
-     (unpack ∘ pack = id) + `trit5_unshift`, `trit5Pack_lt_243`;
-     носитель — TritCodec C574 `trit_roundtrip` (pack base-3 уже
-     был; здесь только сдвиг цифры = уровень + 1 — специализация,
-     не дублирование). int4 (Надя.txt:427-440) — THEOREM
-     `int4_roundtrip` (byte < 256 ∧ unpack(pack a b) = (a, b)).
-     `_best_mse_ternary` (Надя.txt:390-410) — `exists_best_mse_scale`
-     (существование минимизатора MSE на конечном списке кандидатов;
-     сам список кандидатов — running-mean/mean/rms — не формализован).
-     Honest: list-level `_pack_int4` с нечётным padding и срезом
-     `out[:length]` НЕ формализован (3 попытки, Sunk Cost → карточка).
-  4. Arithmetic coder (Надя.txt:460-560) — НЕ формализован: честная
-     карточка C653 (ArchiverCodeLength: Kraft/идеальный кодер,
-     32-bit range coder — ≥400 строк). Ссылка.
-  5. coherence_dust_filter (Надя.txt:73-92: PMI bigram с
-     leave-one-out, 2-means 8 итераций, порог gap) — honest-ЭВРИСТИКА
-     без certified-свойства. Что могло бы сертифицироваться: PMI-порог
-     ⇒ отбор Regular доменов (закон vs random) — не доказано;
-     loo_count_ge (count − 1 ≥ 0) тривиален и не добавлен
-     (TrivialLint).
-  6. HybridMuon (Надя.txt:120-152) — THEOREM `cosine_sched_bounds`
-     (3/20 ≤ sched ≤ 1), `cosine_sched_start` (sched 0 = 1),
-     `cosine_sched_end` (t ≥ T ⇒ sched = 3/20), `cosine_sched_mono`
-     (0 ≤ t₁ ≤ t₂ ⇒ sched t₂ ≤ sched t₁; Real.strictAntiOn_cos),
-     `muon_step_norm_bound` (‖(p − a•orth) − p‖ ≤ a·c при ‖orth‖ ≤ c).
-     Honest: c — гипотеза операторной нормы полярной матрицы;
-     PolarExpressCert (`Hagi/Optimization/PolarExpressCert.lean`)
-     даёт скалярный interval-сертификат, Фробениус-граница из него
-     НЕ выведена; momentum/nesterov (m + 0.5·0.1·g) и weight decay
-     (p *= 1 − lr·sched·wd) — вне утверждения.
-  7. grow_width (Надя.txt:350-386: d0→d1, rms scale ×√(d0/d1),
-     eps ×(d0/d1), W_q ×√(hd1/hd0), rotary f1 = concat) — ЯДРО
-     THEOREM `rmsnorm_scale_inv`: padded (x,0), gain ×√(d0/d1),
-     eps ×(d0/d1) ⇒ `rmsOut` первых d0 координат равен старому
-     ТОЧНО (без пренебрежения eps); лемма `rmsMs_pad` (mean(y²) по
-     d1 = (d0/d1)·mean(x²)). Honest-остаток (карточка) — ЗАКРЫТО C667 (`wlogits_width_preserved`): W_q scaleй вид, чем
-     DEPTH-рост `trunk_function_preserving` (FunctionPreservingGrowth).
-  8. EXACT_BYPASS / JSON_MOD_XOR (Надя.txt:695-750) — THEOREM
-     `bypass_reaches_compression_limit`: если q — распределение
-     (∑q = 1, q ≥ 0), ставящее 1 на носителе p ⇒ ceBits p q = 0 ∧
-     expLen p (idealLen q) = 0 ∧ entBits p = 0 (символьный закон =
-     предел сжатия); `idealLen_eq_zero_of_prob_one`. Носитель —
-     bridge ExactBypass C541 (`ce_covered_zero`) ↔ ArchiverCodeLength
-     C653 (`idealLen_self_bounds`): H = 0 ⇒ 0 ≤ E[len] ≤ 1 здесь
-     усилено до E[len] = 0. Honest: сам закон (id·7+3 mod 97 и
-     т.д.) и детерминированность следующего байта — code-side.
-  9. ingest_continual unseen-маска (Надя.txt:868-869: g_Wout[:, ~unseen]
-     = 0, emb только unseen) — тривиально по построению (зануление
-     градиента ⇒ нулевое обновление видимых строк при Adam-first;
-     для Adam с momentum/v — НЕ нулевое обновление из-за истории).
-     Не добавлен (TrivialLint: premise = conclusion); гейт — п.2.
-  10. Best-snapshot по holdout каждые 75/25 шагов (Надя.txt:847-855,
-      :500-505) — УЖЕ ЕСТЬ: peeking покрыт union bound C660
-      `holdout_gate_two_way_delta` (HoldoutGateTwoWay.lean).
-- Аксиомы (AllAxiomCheck): все 16 —
-  [propext, Classical.choice, Quot.sound]; `int4_roundtrip` —
-  [propext, Quot.sound].
-- Witness (rc=0): trit5 [1,0,2,1,0] → code 140
-  (decide) → round-trip; int4 (3,14) → 227 → (3,14); cosine
-  T = 450: sched 0 = 1, sched 450 = 3/20, sched 225 ≤ sched 100;
-  rmsnorm_scale_inv d0 = 24, d1 = 48; lcb B = 1, r = 1/8, k = 512 ⇒
-  2·exp(−4); bypass Fin 1: p = q = 1 ⇒ CE = expLen = H = 0.
-- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS.
+Код-якорь HAGI_v2 @b3740e0: unified.py:536-543 (первые ≤ 512 окон
+последних 10% домена, детерминированный срез), peeking :563-567, гейт :577
+(GROW iff after < before − 1e-4, иначе rollback).
 
-## C665 нелинейный носитель: спуск по дифференциалу для relu-блока (honest)
+| теорема | формулировка | file:line | bench / proposal |
+|---|---|---|---|
+| `holdout_gate_two_way`, `two_sided_union_budget`, `holdout_gate_two_way_delta` | потери ∈ [0,B], k iid: 1 − |Θ|·2·exp(−2k(ε/B)²) ≤ P[гейт принял ⇒ pop_new ≤ pop_old + 2ε − margin]; |Θ| ≤ N ⇒ P ≥ 1 − δ; union bound покрывает peeking | Hagi/Theory/HoldoutGateTwoWay.lean:52, :89, :109 | docs/PROPOSAL-holdout-size.md |
 
-- Beat: C665 = roadmap C664 top-2 — закрыть honest-pin C663/C657 для
-  НЕЛИНЕЙНОГО носителя (b1/W1 через relu; lm.py:581
-  `h = h + relu(a@W1+b1)@Wo` @ca52eb4). Base HEAD fc167976, tree
-  clean. Lean-правка: только Hagi/Theory/FunctionPreservingGrowth.lean
-  (+import Hagi.Theory.BlockLipschitz, +open Topology, docstring
-  пункт (j) + правка pin, +3 def, +5 theorem). Скрипты не трогал.
-- Постановка (KISS, 2 уровня; N1 «локальная линеаризация» НЕ делалась):
-  - **N2 `useful_step_of_fderiv`** (E нормированное): `f`
-    дифференцируема в `b`, `fderiv ℝ f b d = -c`, `0 < c` ⇒
-    `∃ η > 0, f (b + η • d) < f b`. Стандартная лемма о
-    descent-направлении: определение производной
-    (hasFDerivAt_iff_tendsto вдоль `η ↦ b + η • d`) даёт
-    `f (b + η • d) = f b − η·c + o(η)`; при `η < δ` — противоречие с
-    неубыванием. БЕЗ certified-величины drop.
-  - **T3 `useful_of_adam_first_fderiv`**: любой носитель
-    `L : E → K → ℝ` с `HasFDerivAt L L' b`, `L' d = J·d`,
-    `g = chainGrad J (softmax (L b)) (onehot t) ≠ 0`,
-    `d = adamDir g g² ε` ⇒ `∃ η > 0, CE_t (L (b + η • d)) < CE_t (L b)`.
-    Вывод: `fderiv (CE_t ∘ L) b d = Σ_v (p v − y v)·(L' d) v`
-    (`Hagi.Model.CEGradient.fderiv_ceOneHot_comp_apply`, C-ранний
-    модуль) = `-⟪g, d⟫` (`chain_linear`, C663) `< 0`
-    (`adam_first_step_dot_pos`, C655) ⇒ N2.
-  - **relu-инстанс**: `reluL w b wo v = Σ_i relu (w i + b i)·wo i v`
-    (b1-блок при фиксированных `a@W1 = w` и строке `Wo = wo`),
-    `reluMask x = if 0 < x then 1 else 0`,
-    `hasFDerivAt_relu` (relu дифференцируема вне kink: `id` при
-    `x > 0`, `0` при `x < 0`; в Mathlib relu-леммы нет — прямое
-    доказательство через `HasFDerivAt.congr_of_eventuallyEq`),
-    `reluJac w b wo d v = Σ_i reluMask (w i + b i)·d i·wo i v`,
-    `hasFDerivAt_reluL` (все `w i + b i ≠ 0` ⇒ `HasFDerivAt (reluL w · wo) (reluJac w b wo) b`;
-    покоординатно: сумма HasFDerivAt.const_mul + hasFDerivAt_pi),
-    **T4 `useful_of_adam_first_relu`**: Adam-first по b1 ⇒ строгое
-    убывание CE для малого η.
-- ВЕРДИКТ. Pin «нелинейный носитель открыт» ЗАКРЫТ на уровне
-  СТРОГОГО УБЫВАНИЯ для малого η (b1-блок, вне kink). Honest-остаток:
-  (1) certified-величина drop для нелинейного носителя — НЕ выведена
-  (range-лемма C646 линейна по η; здесь смещение логитов
-  `Σ_i (relu (w i + η d i) − relu (w i))·wo i v` нелинейно) —
-  COMMIT-контракт `CertifiedFiniteStep` по-прежнему только для
-  линейного носителя (C663); (2) W1 — производная по W1 идёт через
-  вход `a` (нужен ещё один chain rule через `a @ ·`) — не
-  формализована, `w` входит как константа; (3) на kink
-  (`w i + b i = 0`) relu недифференцируема — носитель выпадает из
-  посылки T4 (в коде kink вероятность 0, но формально не доказано);
-  (4) `L`-носитель к коду lm.py:581 — code-side, не теорема.
-- Witness (rc=0): Fin 1 → Fin 2, w = 10, b1 = 0,
-  Wo = (1, 0), t = 0, eps = 1/8 ⇒ z = (10, 0), g 0 = 1 − p 0 = p 1 > 0
-  (доказано из `softDef_sum_one` + `smax_pos`), g ≠ 0, T4 даёт
-  ∃ η > 0 с CE (reluL w (b1 + η • adamDir g …) wo) < CE (reluL w b1 wo).
-  Числа (python, measured не заявляется, иллюстрация): p 1 ≈ 4.5e-5,
-  Adam-first d ≈ g/(|g|+1e-8) ≈ 1.0, шаг η = 1: CE 4.54e-5 → 1.67e-5.
-  Негатив: g = 0 ⇒ `fderiv (CE ∘ L) b d = 0` — N2 неприменим
-  (нет `c > 0`); для линейного носителя — `no_signal_no_drop` (C657).
-- Аксиомы: [propext, Classical.choice, Quot.sound] —
-  useful_step_of_fderiv / useful_of_adam_first_fderiv /
-  useful_of_adam_first_relu / hasFDerivAt_reluL (AllAxiomCheck).
-- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (вкл. private reluJacLin).
+- Опора: `holdout_uniform_codebook` (Statistics.lean:293),
+  `prodPq_compl`/`prodPq_mono` (CertifiedEstimator.lean:103, :119);
+  `anytime_catoni` (Statistics.lean:395) и `gibbs_variational`
+  (PACBayes.lean:99) не подходят (peeking по гипотезам, не по размеру
+  выборки); `block_admission_sound` (BlockAdmission.lean:315,
+  `RiskChannel` CertCEHoldout.lean:58) популяции не даёт.
+- Honest: (iid holdout) — МОДЕЛЬ: код — связный срез (окна
+  перекрываются на k−1); CE ∉ [0,B] — нормировка на `ceBound`
+  (CEHeldout.lean:203) не формализована; (k = 512 вакуумность) ε ≈ 0.12·B
+  ≫ margin 1e-4 ⇒ сертификат полезен при k ≫ 512 или малом B; N = 2 +
+  число checkpoint-оценок — из кода; связь с `GateCert`
+  (Unified/CommitGate.lean:37) не формализована.
 
-## C664 wave258b-мост: generation-путь и train_guarded holdout — порядок окон (exact для порядка)
+## Hagi/Theory/RollbackGate.lean (Armijo-подобный backtracking wave254 — фактический предикат)
 
-- Beat: C664 = HAGI_v2 wave 258b, коммит bab8aff «fix(wave258b):
-  remaining reversed windows — generation path and the train_guarded
-  holdout» (READ-ONLY через git show). Base HEAD 0ce30c0d, tree clean.
-  Расширение WindowOrder-инварианта C651 (CoverageReading.lean:700):
-  слот k − 1 = самый новый байт = query (`slot_last`, :722).
-- Что чинил wave258b: тот же баг, что `Unified._windows` (b3740e0),
-  ещё в ТРЁХ потребителях oldest-first trunk (hagi/lm.py @bab8aff):
-  - RopeAttentionByteLM._read_all_windows, lm.py:1041-1054 (вызов
-    generate_auto, :1069): окна покрытия строились ctx[j:i][::-1]
-    (newest-first, переменная длина хвоста) → ctx[j:i] + ЛЕВЫЙ паддинг
-    [32]*(k − len) до одной ширины k;
-  - holdout-оценка train_guarded, lm.py:905-907: срез idx[p+k−1 .. p]
-    развёрнут → idx[p .. p+k−1] (дословно слоты `slot`);
-  - generate, lm.py:1126-1127 (WAVE 258c): ctx[::-1] → ctx[-k:].
-  Числа commit msg (НЕ перемеряно): holdout CE 3.59..4.23 nats (было
-  8.13..11.56), generation-путь 2.25 (было 3.64) на 31 полном окне.
-- Опора: gather_all (lm.py:738-755 @bab8aff) — base = pos − 1 − (len − 1)
-  + j при j ≥ pad − len ⇒ тоже ЛЕВЫЙ паддинг (байт 0) + oldest-first;
-  train_guarded и generation после bab8aff строят окна ОДИНАКОВО.
-- Мост (Hagi/Theory/CoverageReading.lean, ns Hagi.Theory.WindowOrder,
-  +1 def `padSlot`, +3 theorem):
-  - `padSlot` (:743) k n p pad : Fin k → ℕ — слот-функция окна
-    generation-пути: j < k − n ⇒ паддинг, иначе p + (j − (k − n));
-  - `padSlot_tail` (:748): за пределами паддинга слоты = `slot n p`
-    со сдвигом на ширину паддинга;
-  - `padSlot_last` (:756): query-байт p + n − 1 в ПОСЛЕДНЕМ слоте k − 1
-    (аналог `slot_last` на holdout-окне);
-  - `padSlot_full` (:765): при n = k generation-окно = `slot k p`, т.е.
-    полное окно generation-пути и holdout-окно train_guarded совпадают.
-- ВЕРДИКТ. Holdout-окно train_guarded покрыто СУЩЕСТВУЮЩИМ `slot` /
-  `slot_last` (idx[p .. p+k−1] — дословно); generation-путь — новая
-  конструкция (левый паддинг), формализована `padSlot` + 3 теоремами.
-  Bridge status: EXACT для порядка слотов. covStarts/step monotone
-  (`covStarts_covers`, CoverageReading.lean:54) — про НАЧАЛА окон
-  (решётка покрытия), а не про порядок внутри окна: инвариант другой,
-  оба выполняются и не пересекаются.
-- HONEST: (1) hagi/unified.py:1010 @bab8aff (HEAD HAGI_v2 134f81b,
-  wave 259) — neural-фолбэк всё ещё читает list(context)[-k:][::-1]
-  и берёт logits(x)[0]: окно РАЗВЁРНУТО относительно trained trunk —
-  кандидат на wave258c, НЕ проверял прогоном; (2) до bab8aff holdout-гейт
-  train_guarded судил шаги на перевёрнутом входе — лог цикла завышал
-  CE на 4..7 nats (commit msg); (3) measured-числа — из commit msg;
-  (4) `_read_all_windows` второго класса (lm.py:1569-1581) и до bab8aff
-  был oldest-first с паддингом 32 — не менялся.
-- Witness (rc=0): k = 4, n = 2, p = 10, pad = 32 →
-  [32, 32, 10, 11]; полное n = k → [10, 11, 12, 13] = slot; последний
-  слот = 11 = p + n − 1. Негатив: slotRev 2 10 ⟨0⟩ = 11 — query-байт
-  в слоте 0 (до фикса).
-- Аксиомы: [propext, Quot.sound] (padSlot*; AllAxiomCheck PASS).
-- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS.
-  Paper: 74 якоря перепинены (repin.py/repin2.py), v1.1, v3.4/14 клозов.
+Код-якорь HAGI_v2 @1ae924e: selfmodel.py:78-180 guarded_optimizer_step.
 
-## C663 chain rule связка: Adam-first ⇒ useful warm-up (honest, линейный носитель)
+| теорема | формулировка | file:line | код-якорь @sha |
+|---|---|---|---|
+| `btScale`, `backtrack_scale_halves`, `backtrack_trials_bounded` | масштаб bt-й пробы (1/2)^bt; btScale 8 = 1/256; ровно 9 проб | Hagi/Theory/RollbackGate.lean:245, :271, :283 | selfmodel.py:133, :174 |
+| `backtrackAccept`, `backtrack_accept_drop` | приём: worst ≤ max_task_regression ∧ wb − wa > total_bound (НЕ Armijo: σ·γ·⟪g,d⟫ нет) ⇒ drop = wb − wa − errBound ≥ 0 | Hagi/Theory/RollbackGate.lean:253, :262 | selfmodel.py:164-169 |
 
-- Beat: C663 = roadmap C661 top-3 — закрыть honest-pin C657 (1):
-  «`a < 0` — гипотеза; chain rule к `⟨g, d⟩` не формализован». Base HEAD
-  4fd95e00, tree clean. Lean-правка: только
-  Hagi/Theory/FunctionPreservingGrowth.lean (+import Hagi.Step.AdamDirection,
-  +1 def `chainGrad`, +2 theorem, пункт (i) в docstring).
-- Код HAGI_v2 (READ-ONLY) @ca52eb4: lm.py:581
-  `h = h + relu(a@W1+b1)@Wo` — при фиксированных скрытых активациях
-  логиты ЛИНЕЙНЫ по Wo (Δz = relu(a@W1)ᵀ ΔWo): градиент CE по Wo идёт
-  через residual-поток (chain rule `∇_Wo (CE ∘ L) = Jᵀ ∇CE(z)`).
-- Носитель: параметры `P → ℝ`, якобиан `J : K → P → ℝ`,
-  `chainGrad J p y i = Σ_v J v i * (y v − p v)` (= `Jᵀ ∇CE`).
-  - **T1 `chain_linear`**: `Σ_v (p v − y v)·(J·d) v
-    = −⟪chainGrad J p y, d⟫` — чистая алгебра (перестановка
-    `Finset.sum_comm`, коммутативность множителей), без анализа/
-    производных.
-  - **T2 `useful_of_adam_first`**: `g = chainGrad J (softmax (L b))
-    (onehot t) ≠ 0`, `d = adamDir g g² ε` (Adam-first), смещение
-    логитов линейно по параметрам (`L (bη η) − L b = η • (J·d)`),
-    `0 < R`, range(J·d) ≤ R, `stepEps < 2⟪g, d⟫²/R²` ⇒
-    `∃ η > 0, CertifiedFiniteStep (CE_t ∘ L) b (bη η) (linDrop (−⟪g,d⟫) R η)`.
-    Вывод: `a = −⟪g, d⟫ < 0` из `adam_first_step_dot_pos` (C655) + T1 ⇒
-    `first_step_useful_certified` (C657).
-- ВЕРДИКТ. Pin C657 (1) ЗАКРЫТ для ЛИНЕЙНОГО носителя (Wo-блок при
-  фиксированных h): гипотеза «a < 0» выведена, а не постулирована.
-  Нелинейный носитель (b1) закрыт C665 (`useful_of_adam_first_relu`,
-  строгое убывание для малого η, без certified-величины); `L` в
-  Lean — абстрактная функция, носитель hlin/hg к коду — code-side.
-- Witness: P = K = Fin 2, J = id, z = (0,0),
-  t = 0, ε = 1 ⇒ g = (1/2, −1/2), d = (1/3, −1/3), ⟪g, d⟫ = 1/3,
-  range = 2/3 < 1, stepEps < 2/9 ⇒ COMMIT; T1 численно (d = (1,2)):
-  ⟨p − y, d⟩ = 1/2 = −⟪g, d⟫. Негатив g = 0 ⇒ `linDrop 0 R η ≤ 0`.
-- Аксиомы: [propext, Classical.choice, Quot.sound] (AllAxiomCheck).
-- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS.
+- Родня: `rollback_state_params` (:105), `rollback_gate_sound` (:100).
+- Honest: h1 для warm-up НЕ закрыт — `_maybe_grow` warm-up (unified.py:423-437
+  @ca52eb4) — голый Adam; guarded_optimizer_step зовётся только из
+  self-test (selfmodel.py:201, :214, :222); obj в предикате — holdout-лосс, не train-obj; лемма
+  adam_inner_nonneg не доказана.
 
-## C660 holdout-гейт ↔ PAC-Bayes: two-way сертификат (honest)
+## Hagi/Theory/GrowTrunkBlock.lean (residual-блок роста из bench `--mode grow`)
 
-- Beat: C660 = roadmap C656 (4) — «holdout-гейт ↔ PAC-Bayes»:
-  что ИЗМЕРЕННЫЙ holdout-гейт роста блока гарантирует о популя-
-  ционном риске (C640/C642 honest-разрыв: «гейт — измерение, не
-  доказательство»). Base HEAD 85c7c670, tree clean.
-  Lean-правка: только новый Hagi/Theory/HoldoutGateTwoWay.lean
-  (+3 theorem) и +1 import в Hagi.lean.
-- Код HAGI_v2 (READ-ONLY) @b3740e0 (= HEAD HAGI_v2; @ca52eb4 те же
-  строки 383-440): unified.py:504 `_maybe_grow`; предикат ТОЧНО:
-  - holdout: unified.py:536-543 — `cut = int(n*0.9)`, окна
-    `_np.arange(cut, n)[:512]`, т.е. ПЕРВЫЕ ≤ 512 окон последнего
-    10% fresh-домена; детерминированный срез, НЕ пересемплируется;
-    loss — mean CE (не [0,1]), одно и то же множество окон для
-    «before» и «after»;
-  - old = trunk + свежий блок сразу после `m.grow` (Wo = 0 ⇒ old
-    ≡ trunk по логитам), new = trunk + блок после warm-up (трени-
-  руются только W1,b1,Wo нового блока, unified.py:556);
-  - PEEKING: unified.py:563-567 — каждые 50 батчей holdout-CE
-    читается и лучшее состояние блока сохраняется (`c < best_ce`)
-    ⇒ holdout используется для ВЫБОРА состояния, не только гейта;
-  - гейт: unified.py:577 `if after >= before - 1e-4: rollback`
-    ⟺ GROW iff holdoutMean(new) < holdoutMean(old) − 1e-4
-    (СТРОГОЕ улучшение с margin 1e-4; отклонение = точный
-    rollback блока).
-- Носитель primes: `holdout_uniform_codebook`
-  (Hagi/Theory/Statistics.lean:293, two-sided Hoeffding, конечное
-  семейство на одной holdout-выборке) + `prodPq_compl`/`prodPq_mono`
-  (Hagi/Probability/CertifiedEstimator.lean). `gibbs_variational`
-  (Hagi/Data/PACBayes.lean) и `anytime_catoni` (Statistics.lean:395)
-  НЕ использованы: anytime_catoni — супермартингал по номеру шага
-  ВЫБОРКИ (пересемплируемый holdout), а код заглядывает много раз
-  в ОДНУ выборку ⇒ peeking по гипотезам, не по размеру; точный
-  носитель — uniform по конечному семейству. Недублирование:
-  `block_admission_sound` (BlockAdmission.lean:315) берёт holdout-
- средние через premise `RiskChannel` и НЕ даёт популяционного вывода;
-  CEHeldout — fixed-codebook fresh-label confidence без гейта.
-- Теоремы (Hagi.Theory.HoldoutGateTwoWay):
-  - `holdout_gate_two_way`: ℓ : Θ → Ω → ℝ, потери ∈ [0,B],
-    выборка k iid uniform, old : Θ, cand : (Fin k → Ω) → Θ
-    (кандидат может зависеть от выборки), margin, ε > 0 ⇒
-    1 − |Θ|·2·exp(−2k(ε/B)²) ≤ P[ holdoutMean(new) ≤
-    holdoutMean(old) − margin → popMean(new) ≤ popMean(old)
-    + 2ε − margin ]. Union bound по Θ покрывает и peeking-выбор
-    состояния блока.
-  - `two_sided_union_budget`: log(2N/δ) ≤ 2kx² ⇒ 2N·exp(−2kx²) ≤ δ.
-  - `holdout_gate_two_way_delta`: |Θ| ≤ N ⇒ 1 − δ ≤ тот же event.
-- Witness: k = 512, δ = 1/20, |Θ| = 2 (нет
-  peeking), B = 1, ε = 1/8: log 80 ≤ 16 = 2·512·(1/8)² ⇒
-  P ≥ 19/20 [гейт принял ⇒ pop_new ≤ pop_old + 1/4]; GOOD-событие
-  ⇒ вывод (witness c660_gate_conclusion, только .tmp). Аксиомы всех 5: [propext,
-  Classical.choice, Quot.sound].
-- СТАТУС. Сертифицировано: при iid-holdout принятый гейт не ухуд-
-  шает популяционный риск больше чем на 2ε (w.p. ≥ 1−δ), где
-  ε/B = sqrt(log(2N/δ)/(2k)). Остаётся честно открытым:
-  (1) iid- holdout — МОДЕЛЬ: код — детерминированный связный срез
-  конца домена (соседние окна перекрываются на k−1 байт; train-
-  окна < cut могут перекрывать holdout-контекст);
-  (2) CE не ограничен [0,B] — нормировка на `ceBound`-аналог
-  (CEHeldout) для кода не формализована;
-  (3) N для кода: 2 + число checkpoint-оценок (≤ ~7 на 300 шагов)
-  — число из кода, не теорема; margin 1e-4 ≪ ε ≈ 0.12 — при
-  k = 512 сертификат практически вакуумный (2ε = 0.25 в единицах
-  B), т.е. honest: гейт полезен статистически только при k ≫ 512
-  или малом B;
-  (4) связь с `gen` CommitGate (GateCert.gen ≥ 2ε замыкает гейт
-  коммита) — НЕ формализована (CommitGate в слое Unified, импорт
-  Theory → Unified не добавлялся).
-- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS; ALLAXIOMS: PASS.
+| теорема | формулировка | file:line |
+|---|---|---|
+| `benchResidualBlock`, `benchResidual_zero` | γ = 0 маскирует любую внутреннюю h (сильнее кода: нулевой гейт vs Wo = 0) | Hagi/Theory/GrowTrunkBlock.lean:86, :95 |
+| `grow_block_bench_sound`, `grow_block_obj_invariant`, `grow_blocks_repeat_sound` | глубина 2 → 3 сохраняет функцию и любой функционал ТОЧНО; повтор ≤ MAX_BLOCKS = 2 | Hagi/Theory/GrowTrunkBlock.lean:124, :135, :149 |
+
+- Код-якорь: lm.py:589-601, unified.py:381 @ca52eb4 (`CertifiedBlock`/
+  `lmTrunk` LMCompose.lean:115, :138). Гейт `_maybe_grow` (сигнал
+  `growthGate` 128·‖G‖²/2L vs c_add, NegativeTransfer.lean:574,
+  `growth_gate_sound` :677) сертифицирует только ветку stay; c_add в коде —
+  эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
+  Adam в него не вписан.
+
+## History (C538–C667)
+
+- Era index: `.omc/analysis/era-index.md` (C591–C667, якоря `#c638-c640`
+  … `#c665-c667`); более ранние per-beat файлы — `git log`. Журнал
+  C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
+  (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
+  `git show b3939aa5:STATUS.md`.
+
