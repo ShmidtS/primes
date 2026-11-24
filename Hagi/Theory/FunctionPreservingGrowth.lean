@@ -6,6 +6,7 @@ import Hagi.Model.LMCompose
 import Hagi.Theory.BlockAdmission
 import Hagi.Theory.RollbackGate
 import Hagi.Step.AdamDirection
+import Hagi.Theory.BlockLipschitz
 
 /-!
 # FunctionPreservingGrowth — функция-сохраняющее расширение (A19.5)
@@ -51,6 +52,20 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
   `chain_linear` (T1: ⟨p − y, J·d⟩ = −⟪g, d⟫, g = Jᵀ(y − p)),
   `useful_of_adam_first` (T2: Adam-first + линейность ⇒ COMMIT —
   гипотеза (h) «a < 0» ВЫВЕДЕНА из C655).
+* (j) Нелинейный носитель: спуск по дифференциалу (C665) —
+  `useful_step_of_fderiv` (N2: `Df(b) d = −c < 0` ⇒ строгое
+  убывание для малого η, любой дифференцируемый носитель),
+  `useful_of_adam_first_fderiv` (T3: Adam-first ⇒ убывание для
+  любого `L` с производной Фреше), `hasFDerivAt_relu` /
+  `hasFDerivAt_reluL` (relu-блок дифференцируем по b1 вне kink),
+  `useful_of_adam_first_relu` (T4: Adam-first на b1-блоке).
+* (j) Нелинейный носитель: спуск по дифференциалу (C665) —
+  `useful_step_of_fderiv` (N2: `Df(b) d = −c < 0` ⇒ строгое
+  убывание для малого η, любой дифференцируемый носитель),
+  `useful_of_adam_first_fderiv` (T3: Adam-first ⇒ убывание для
+  любого `L` с производной Фреше), `hasFDerivAt_relu` /
+  `hasFDerivAt_reluL` (relu-блок дифференцируем по b1 вне kink),
+  `useful_of_adam_first_relu` (T4: Adam-first на b1-блоке).
 * (c) `function_preserving_admissible` — в НЕЙТРАЛЬНОЙ конфигурации
   адмиссии (λM = λR = 0, ε_cert = 0) identity-блок проходит
   `blockAdmissionRule` при любом Δcost: gain = 0 на шаге 0 (точное
@@ -83,7 +98,13 @@ Cycle-соответствие: `scripts/bench_bridge.py --mode grow` испол
   `first_step_strict_improves`). Глобальная достижимость
   (`drop ≥ δ` после многих шагов, non-convex) — по-прежнему не
   доказана; `a < 0` — гипотеза для НЕЛИНЕЙНОГО по параметрам
-  носителя (b1/W1; нужен HasFDerivAt chain rule — не формализован).
+  носителя (b1/W1). Частично закрыто C665 (секция «Нелинейный
+  носитель: спуск по дифференциалу»): вне kink (`w i + b i ≠ 0`)
+  b1-блок дифференцируем и Adam-first даёт СТРОГОЕ убывание CE
+  для малого η (`useful_of_adam_first_relu`) — но без certified-
+  величины drop (range-лемма линейна по η, здесь смещение логитов
+  нелинейно) и без W1 (производная по W1 — через `a`, не
+  формализована).
   Для ЛИНЕЙНОГО носителя (Wo-блок при фиксированных скрытых
   активациях, lm.py:581) гипотеза ЗАКРЫТА (C663, секция «Chain rule
   для линейного носителя»): `chain_linear` даёт
@@ -101,6 +122,7 @@ set_option linter.style.header false
 namespace Hagi.Theory.FunctionPreservingGrowth
 
 open scoped BigOperators
+open Topology
 open Hagi.Model.LMCompose Hagi.Theory.BlockAdmission
 open Hagi.Step (adamDot adamDir)
 
@@ -764,5 +786,211 @@ theorem useful_of_adam_first {P K : Type} [Fintype P] [Fintype K] [Nonempty K] [
       (-adamDot g d) R hlin hR hrange ha hdesc
       (by simpa using hmax)
   exact ⟨η, hη, hcert⟩
+/-! ### Нелинейный носитель: спуск по дифференциалу (C665)
+
+Вопрос C663: `a < 0` выведен только для носителя, ЛИНЕЙНОГО по
+параметрам. Для b1/W1 (lm.py:581 `relu(a@W1+b1)@Wo`) смещение логитов
+нелинейно по η — range-лемма с `r = η·R` и certified-величина drop
+так не выводятся. Минимальный честный вывод для нелинейного носителя —
+СТАНДАРТНАЯ лемма о descent-направлении: если `f = CE_t ∘ L`
+дифференцируема в `b` и `Df(b) d = −c < 0`, то для малых `η > 0`
+`f (b + η • d) < f b` (строгое убывание; БЕЗ certified-величины).
+Носитель — любой `E` (нормированное пространство), `d — направление,
+`fderiv` — производная Фреше. Связка с Adam-first — та же, что T1:
+`Df(b) d = Σ_v (p v − y v)·(DL(b) d) v = −⟪g, d⟫ < 0`. Инстанс relu:
+`reluL w b wo v = Σ_i relu (w i + b i)·wo i v` дифференцируема по
+`b`, когда все pre-активации ненулевые; якобиан `reluJac` — маска
+активных нейронов, умноженная на `wo`. -/
+
+/-- **N2 `useful_step_of_fderiv`**: descent-направление дифференциала
+⇒ строгое убывание для малого шага. `f` дифференцируема в `b`,
+`fderiv ℝ f b d = −c`, `0 < c` ⇒ `∃ η > 0, f (b + η • d) < f b`.
+Определение производной: `f (b + η • d) = f b − η·c + o(η)`. -/
+
+theorem useful_step_of_fderiv {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    (f : E → ℝ) (b d : E) (c : ℝ) (hdiff : DifferentiableAt ℝ f b)
+    (hc : 0 < c) (hdesc : fderiv ℝ f b d = -c) :
+    ∃ η : ℝ, 0 < η ∧ f (b + η • d) < f b := by
+  by_contra hcon
+  push_neg at hcon
+  have hdesc' : fderiv ℝ f b d = -c := hdesc
+  have hf := hdiff.hasFDerivAt
+  rw [hf.fderiv] at hdesc'
+  have hd : d ≠ 0 := fun h0 => by
+    rw [h0] at hdesc'; simp at hdesc'; linarith
+  have hdn : 0 < ‖d‖ := norm_pos_iff.mpr hd
+  -- определение производной вдоль b + η • d
+  have hγ : Filter.Tendsto (fun η : ℝ => b + η • d) (𝓝 (0 : ℝ)) (𝓝 b) := by
+    simpa [zero_smul] using
+      tendsto_const_nhds.add ((Filter.tendsto_id : Filter.Tendsto id (𝓝 (0:ℝ)) (𝓝 (0:ℝ))).smul_const d)
+  have ht : Filter.Tendsto
+    (fun η : ℝ => ‖(b + η • d) - b‖⁻¹ * ‖f (b + η • d) - f b - fderiv ℝ f b ((b + η • d) - b)‖)
+    (𝓝 0) (𝓝 0) :=
+    (hasFDerivAt_iff_tendsto.mp hf).comp hγ
+  simp only [add_sub_cancel_left] at ht
+  have hte : ∀ᶠ η in 𝓝 (0 : ℝ),
+      ‖η • d‖⁻¹ * ‖f (b + η • d) - f b - fderiv ℝ f b (η • d)‖
+        < c / (‖d‖ + 1) :=
+    (tendsto_order.mp ht).2 _ (by positivity)
+  obtain ⟨δ, hδ, hball⟩ := Metric.eventually_nhds_iff_ball (x := (0 : ℝ)) |>.mp hte
+  have hη : 0 < δ / 2 := by linarith
+  set η := δ / 2 with hηdef
+  have hball' := hball η (by
+    show dist η 0 < δ
+    rw [Real.dist_eq, sub_zero, abs_of_pos hη]; linarith)
+  have hA : 0 ≤ f (b + η • d) - f b := sub_nonneg.mpr (hcon _ hη)
+  rw [norm_smul, Real.norm_eq_abs, abs_of_pos hη] at hball'
+  rw [hf.fderiv, map_smul, hdesc] at hball'
+  have hb : ‖f (b + η • d) - f b - η • (-c)‖ = f (b + η • d) - f b + η * c := by
+    rw [smul_neg, sub_neg_eq_add, Real.norm_eq_abs]
+    exact abs_of_nonneg (add_nonneg hA (mul_nonneg hη.le hc.le))
+  rw [hb] at hball'
+  have hmul := mul_lt_mul_of_pos_right hball' (mul_pos hη hdn)
+  have hcancel : (η * ‖d‖)⁻¹ * (f (b + η • d) - f b + η * c) * (η * ‖d‖)
+      = f (b + η • d) - f b + η * c := by
+    field_simp
+  rw [hcancel] at hmul
+  have hle : c / (‖d‖ + 1) * (η * ‖d‖) ≤ η * c := by
+    rw [div_mul_eq_mul_div, div_le_iff₀ (by positivity)]
+    nlinarith
+  linarith
+
+/-- **T3 `useful_of_adam_first_fderiv`**: гипотеза «`a < 0`» выведена
+для ЛЮБОГО дифференцируемого носителя `L : E → K → ℝ` (не только
+линейного): якобиан `DL(b)` по направлению `d` равен `J·d`,
+`g = chainGrad J (softmax (L b)) (onehot t) ≠ 0`, Adam-first ⇒
+`∃ η > 0, CE_t (L (b + η • d)) < CE_t (L b)` (строгое убывание;
+certified-величина drop НЕ выводится — honest). -/
+
+theorem useful_of_adam_first_fderiv {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
+    {K P : Type} [Fintype K] [Nonempty K] [DecidableEq K] [Fintype P] [Nonempty P]
+    (L : E → K → ℝ) (L' : E →L[ℝ] (K → ℝ)) (b d' : E) (J : K → P → ℝ) (t : K)
+    (g d : P → ℝ) {eps : ℝ} (heps : 0 < eps)
+    (hL : HasFDerivAt L L' b) (hJ : ∀ v, L' d' v = ∑ i, J v i * d i)
+    (hg : g = chainGrad J (Hagi.Energy.smax (L b)) (fun v => if v = t then 1 else 0))
+    (hgne : g ≠ 0) (hd : d = adamDir g (fun i => g i ^ 2) eps) :
+    ∃ η : ℝ, 0 < η ∧
+      Hagi.ceOneHot t (L (b + η • d')) < Hagi.ceOneHot t (L b) := by
+  have hdiff : DifferentiableAt ℝ (fun c => Hagi.ceOneHot t (L c)) b :=
+    Hagi.Model.CEGradient.differentiableAt_ceOneHot_comp L b t hL.differentiableAt
+  have hpos : 0 < adamDot g d := hd ▸ Hagi.Step.adam_first_step_dot_pos g hgne heps
+  refine useful_step_of_fderiv (fun c => Hagi.ceOneHot t (L c)) b d' (adamDot g d) hdiff hpos ?_
+  rw [Hagi.Model.CEGradient.fderiv_ceOneHot_comp_apply L L' b d' t hL]
+  have hsoft : ∀ v, Hagi.Prelude.softDef (L b) v = Hagi.Energy.smax (L b) v := fun _ => rfl
+  rw [show (∑ v, (Hagi.Prelude.softDef (L b) v - (if v = t then 1 else 0)) * L' d' v)
+    = ∑ v, (Hagi.Energy.smax (L b) v - (if v = t then 1 else 0)) * (L' d' v) from
+    Finset.sum_congr rfl (fun v _ => by rw [hsoft v])]
+  have h1 := chain_linear J (Hagi.Energy.smax (L b))
+    (fun v => if v = t then 1 else 0) d (fun v => L' d' v) hJ
+  simp only [hJ] at h1
+  simp only [hJ]
+  rw [h1, ← hg]
+
+/-- **Инстанс relu-блока**: `reluL w b wo v = Σ_i relu (w i + b i)·wo i v`
+— logits FNN-блока `relu(a@W1 + b1)@Wo` как функция bias `b` при
+фиксированных `w` (pre-activation `a@W1`) и `wo` (строка `Wo`). -/
+
+noncomputable def reluL {ι K : Type} [Fintype ι] (w b : ι → ℝ) (wo : ι → K → ℝ) : K → ℝ :=
+  fun v => ∑ i, Hagi.Theory.BlockLipschitz.relu (w i + b i) * wo i v
+
+/-- Маска активных pre-активаций: `1`, если `w i + b i > 0`, иначе `0`. -/
+noncomputable def reluMask (x : ℝ) : ℝ := if 0 < x then 1 else 0
+
+/-- Производная `relu` вне kink: `id` при `x > 0`, `0` при `x < 0`. -/
+theorem hasFDerivAt_relu {x : ℝ} (hx : x ≠ 0) :
+    HasFDerivAt Hagi.Theory.BlockLipschitz.relu (if 0 < x then ContinuousLinearMap.id ℝ ℝ else 0) x := by
+  split
+  · next h =>
+    have heq : ∀ᶠ y in 𝓝 x, Hagi.Theory.BlockLipschitz.relu y = y :=
+      (eventually_gt_nhds h).mono fun y hy => if_pos hy.le
+    exact (hasFDerivAt_id x).congr_of_eventuallyEq heq
+  · next h =>
+    have hx' : x < 0 := lt_of_le_of_ne (not_lt.mp h) (fun he => hx (by linarith))
+    have heq : ∀ᶠ y in 𝓝 x, Hagi.Theory.BlockLipschitz.relu y = 0 :=
+      (eventually_lt_nhds hx').mono fun y hy => if_neg (not_le.mpr hy)
+    exact (hasFDerivAt_const (0 : ℝ) x).congr_of_eventuallyEq heq
+
+/-- Якобиан `reluL` по `b`: `(reluJac) d v = Σ_i mask (w i + b i)·d i·wo i v`. -/
+private noncomputable def reluJacLin {ι K : Type} [Fintype ι] (w b : ι → ℝ) (wo : ι → K → ℝ) :
+    (ι → ℝ) →ₗ[ℝ] (K → ℝ) where
+  toFun d v := ∑ i, reluMask (w i + b i) * d i * wo i v
+  map_add' d₁ d₂ := by
+    funext v
+    simp only [Pi.add_apply, add_mul, mul_add, Finset.sum_add_distrib]
+  map_smul' r d := by
+    funext v
+    simp only [Pi.smul_apply, smul_eq_mul, Finset.mul_sum, mul_assoc, RingHom.id_apply]
+    exact Finset.sum_congr rfl fun i _ => by ring_nf
+
+/-- Якобиан `reluL` по `b`: `(reluJac w b wo) d v = Σ_i reluMask (w i + b i)·d i·wo i v`. -/
+noncomputable def reluJac {ι K : Type} [Fintype ι] (w b : ι → ℝ) (wo : ι → K → ℝ) :
+    (ι → ℝ) →L[ℝ] (K → ℝ) :=
+  LinearMap.toContinuousLinearMap (reluJacLin w b wo)
+
+theorem reluJac_apply {ι K : Type} [Fintype ι] (w b : ι → ℝ) (wo : ι → K → ℝ)
+    (d : ι → ℝ) (v : K) :
+    reluJac w b wo d v = ∑ i, reluMask (w i + b i) * d i * wo i v := by
+  simp [reluJac, reluJacLin, mul_assoc]
+
+/-- **`hasFDerivAt_reluL`**: носитель relu-блока дифференцируем по `b`
+вне kink (все pre-активации `w i + b i ≠ 0`), производная — `reluJac`. -/
+theorem hasFDerivAt_reluL {ι K : Type} [Fintype ι] [Fintype K] (w b : ι → ℝ) (wo : ι → K → ℝ)
+    (hact : ∀ i, w i + b i ≠ 0) :
+    HasFDerivAt (reluL w · wo) (reluJac w b wo) b := by
+  have hpre (i : ι) : HasFDerivAt
+      (fun x : ι → ℝ => Hagi.Theory.BlockLipschitz.relu (w i + x i))
+      (reluMask (w i + b i) • (ContinuousLinearMap.proj i : (ι → ℝ) →L[ℝ] ℝ)) b := by
+    have hpa : HasFDerivAt (fun x : ι → ℝ => x i)
+        (ContinuousLinearMap.proj i : (ι → ℝ) →L[ℝ] ℝ) b := hasFDerivAt_apply i b
+    have h1 := (hasFDerivAt_relu (hact i)).comp b (hpa.const_add (w i))
+    simp only [Function.comp_def] at h1
+    have heq : (fun x : ι → ℝ => Hagi.Theory.BlockLipschitz.relu (w i + x i))
+        = (Hagi.Theory.BlockLipschitz.relu ∘ fun x : ι → ℝ => w i + x i) := rfl
+    rw [heq] at h1
+    refine h1.congr_fderiv ?_
+    ext y
+    simp only [ContinuousLinearMap.comp_apply]
+    by_cases h : 0 < w i + b i
+    · simp only [if_pos h, ContinuousLinearMap.id_apply, ContinuousLinearMap.proj_apply,
+        reluMask, one_smul]
+    · simp only [if_neg h, zero_apply, reluMask, zero_smul]
+  have hcoord (v : K) : HasFDerivAt (fun x : ι → ℝ => reluL w x wo v)
+      ((ContinuousLinearMap.proj v : (K → ℝ) →L[ℝ] ℝ).comp (reluJac w b wo)) b := by
+    have hs := HasFDerivAt.sum (u := Finset.univ)
+      (A := fun i (x : ι → ℝ) => Hagi.Theory.BlockLipschitz.relu (w i + x i) * wo i v)
+      (A' := fun i => wo i v • (reluMask (w i + b i) •
+        (ContinuousLinearMap.proj i : (ι → ℝ) →L[ℝ] ℝ)))
+      (fun i _ => by simpa [mul_comm] using (hpre i).const_mul (wo i v))
+    rw [show (∑ i, fun x : ι → ℝ => Hagi.Theory.BlockLipschitz.relu (w i + x i) * wo i v)
+      = fun x => reluL w x wo v from by ext x; simp [reluL]] at hs
+    refine hs.congr_fderiv ?_
+    ext d
+    simp only [ContinuousLinearMap.comp_apply, ContinuousLinearMap.sum_apply]
+    exact Finset.sum_congr rfl fun i _ => by
+      simp only [ContinuousLinearMap.smul_apply, smul_eq_mul, ContinuousLinearMap.proj_apply]
+      ring
+  refine hasFDerivAt_pi'.2 (fun v => ?_)
+  simpa only [Function.comp_def] using hcoord v
+
+/-- **T4 `useful_of_adam_first_relu`**: нелинейный носитель relu-блока
+`reluL w · wo` (b1-блок lm.py:581), все pre-активации ненулевые,
+`g = chainGrad (reluJac w b wo) (softmax z) (onehot t) ≠ 0`, Adam-first
+`d` ⇒ `∃ η > 0, CE_t (reluL w (b + η • d) wo) < CE_t (reluL w b wo)`.
+Закрывает honest-pin C663/C657 для нелинейного носителя на уровне
+СТРОГОГО УБЫВАНИЯ (certified-величина drop — не выводится). -/
+
+theorem useful_of_adam_first_relu {ι K : Type} [Fintype ι] [Nonempty ι] [Fintype K]
+    [Nonempty K] [DecidableEq K] (w b : ι → ℝ) (wo : ι → K → ℝ) (t : K)
+    (g d : ι → ℝ) {eps : ℝ} (heps : 0 < eps)
+    (hact : ∀ i, w i + b i ≠ 0)
+    (hg : g = chainGrad (fun v i => reluMask (w i + b i) * wo i v)
+      (Hagi.Energy.smax (reluL w b wo)) (fun v => if v = t then 1 else 0))
+    (hgne : g ≠ 0) (hd : d = adamDir g (fun i => g i ^ 2) eps) :
+    ∃ η : ℝ, 0 < η ∧
+      Hagi.ceOneHot t (reluL w (b + η • d) wo) < Hagi.ceOneHot t (reluL w b wo) :=
+  useful_of_adam_first_fderiv (reluL w · wo) (reluJac w b wo) b d
+    (fun v i => reluMask (w i + b i) * wo i v) t g d heps (hasFDerivAt_reluL w b wo hact)
+    (fun v => by rw [reluJac_apply w b wo d v]; exact Finset.sum_congr rfl fun i _ => by ring)
+    hg hgne hd
 
 end Hagi.Theory.FunctionPreservingGrowth

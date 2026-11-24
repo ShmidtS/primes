@@ -2938,6 +2938,66 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (overshoot хуже identity); A = 0 ⇒ ¬ COMMIT ∀η. Log:
   .tmp/C657/gates.log.
 
+## C665 нелинейный носитель: спуск по дифференциалу для relu-блока (honest)
+
+- Beat: C665 = roadmap C664 top-2 — закрыть honest-pin C663/C657 для
+  НЕЛИНЕЙНОГО носителя (b1/W1 через relu; lm.py:581
+  `h = h + relu(a@W1+b1)@Wo` @ca52eb4). Base HEAD fc167976, tree
+  clean. Lean-правка: только Hagi/Theory/FunctionPreservingGrowth.lean
+  (+import Hagi.Theory.BlockLipschitz, +open Topology, docstring
+  пункт (j) + правка pin, +3 def, +5 theorem). Скрипты не трогал.
+- Постановка (KISS, 2 уровня; N1 «локальная линеаризация» НЕ делалась):
+  - **N2 `useful_step_of_fderiv`** (E нормированное): `f`
+    дифференцируема в `b`, `fderiv ℝ f b d = -c`, `0 < c` ⇒
+    `∃ η > 0, f (b + η • d) < f b`. Стандартная лемма о
+    descent-направлении: определение производной
+    (hasFDerivAt_iff_tendsto вдоль `η ↦ b + η • d`) даёт
+    `f (b + η • d) = f b − η·c + o(η)`; при `η < δ` — противоречие с
+    неубыванием. БЕЗ certified-величины drop.
+  - **T3 `useful_of_adam_first_fderiv`**: любой носитель
+    `L : E → K → ℝ` с `HasFDerivAt L L' b`, `L' d = J·d`,
+    `g = chainGrad J (softmax (L b)) (onehot t) ≠ 0`,
+    `d = adamDir g g² ε` ⇒ `∃ η > 0, CE_t (L (b + η • d)) < CE_t (L b)`.
+    Вывод: `fderiv (CE_t ∘ L) b d = Σ_v (p v − y v)·(L' d) v`
+    (`Hagi.Model.CEGradient.fderiv_ceOneHot_comp_apply`, C-ранний
+    модуль) = `-⟪g, d⟫` (`chain_linear`, C663) `< 0`
+    (`adam_first_step_dot_pos`, C655) ⇒ N2.
+  - **relu-инстанс**: `reluL w b wo v = Σ_i relu (w i + b i)·wo i v`
+    (b1-блок при фиксированных `a@W1 = w` и строке `Wo = wo`),
+    `reluMask x = if 0 < x then 1 else 0`,
+    `hasFDerivAt_relu` (relu дифференцируема вне kink: `id` при
+    `x > 0`, `0` при `x < 0`; в Mathlib relu-леммы нет — прямое
+    доказательство через `HasFDerivAt.congr_of_eventuallyEq`),
+    `reluJac w b wo d v = Σ_i reluMask (w i + b i)·d i·wo i v`,
+    `hasFDerivAt_reluL` (все `w i + b i ≠ 0` ⇒ `HasFDerivAt (reluL w · wo) (reluJac w b wo) b`;
+    покоординатно: сумма HasFDerivAt.const_mul + hasFDerivAt_pi),
+    **T4 `useful_of_adam_first_relu`**: Adam-first по b1 ⇒ строгое
+    убывание CE для малого η.
+- ВЕРДИКТ. Pin «нелинейный носитель открыт» ЗАКРЫТ на уровне
+  СТРОГОГО УБЫВАНИЯ для малого η (b1-блок, вне kink). Honest-остаток:
+  (1) certified-величина drop для нелинейного носителя — НЕ выведена
+  (range-лемма C646 линейна по η; здесь смещение логитов
+  `Σ_i (relu (w i + η d i) − relu (w i))·wo i v` нелинейно) —
+  COMMIT-контракт `CertifiedFiniteStep` по-прежнему только для
+  линейного носителя (C663); (2) W1 — производная по W1 идёт через
+  вход `a` (нужен ещё один chain rule через `a @ ·`) — не
+  формализована, `w` входит как константа; (3) на kink
+  (`w i + b i = 0`) relu недифференцируема — носитель выпадает из
+  посылки T4 (в коде kink вероятность 0, но формально не доказано);
+  (4) `L`-носитель к коду lm.py:581 — code-side, не теорема.
+- Witness .tmp/C665/traj.lean (rc=0): Fin 1 → Fin 2, w = 10, b1 = 0,
+  Wo = (1, 0), t = 0, eps = 1/8 ⇒ z = (10, 0), g 0 = 1 − p 0 = p 1 > 0
+  (доказано из `softDef_sum_one` + `smax_pos`), g ≠ 0, T4 даёт
+  ∃ η > 0 с CE (reluL w (b1 + η • adamDir g …) wo) < CE (reluL w b1 wo).
+  Числа (python, measured не заявляется, иллюстрация): p 1 ≈ 4.5e-5,
+  Adam-first d ≈ g/(|g|+1e-8) ≈ 1.0, шаг η = 1: CE 4.54e-5 → 1.67e-5.
+  Негатив: g = 0 ⇒ `fderiv (CE ∘ L) b d = 0` — N2 неприменим
+  (нет `c > 0`); для линейного носителя — `no_signal_no_drop` (C657).
+- Аксиомы: [propext, Classical.choice, Quot.sound] —
+  useful_step_of_fderiv / useful_of_adam_first_fderiv /
+  useful_of_adam_first_relu / hasFDerivAt_reluL (AllAxiomCheck).
+- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (8977 = 8967 + 10, вкл. private reluJacLin).
+
 ## C664 wave258b-мост: generation-путь и train_guarded holdout — порядок окон (exact для порядка)
 
 - Beat: C664 = HAGI_v2 wave 258b, коммит bab8aff «fix(wave258b):
