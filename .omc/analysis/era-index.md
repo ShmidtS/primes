@@ -1,4 +1,4 @@
-# Era index — C591–C655 (2026-11-22/24)
+# Era index — C591–C660 (2026-11-22/24)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat разбор удалённых
@@ -226,3 +226,22 @@
 - Фронтир: paper v1.0 candidate; Card 15–16 + PALOMAR recheck; полезный
   блок; holdout ↔ PAC-Bayes (носитель в primes есть); external push.
   Разбор: `period-c653-655-analysis.md`.
+
+<a id="c657-c660"></a>
+## C657–C660 — эра «release v1.0»: useful-first-step, holdout two-way (freeze 8948→8959)
+
+- Коммиты: 65d9f11e (C657 useful first warmup step, U2 honest),
+  4e4ef126 (C658 Cards 15–17, niche 1331/0), 85c7c670 (C659 paper
+  v1.0: §0 23 моста / 7 слоёв, 173 якоря), 4408912f (C660
+  `HoldoutGateTwoWay.lean` +3 theorem).
+- Доказано: `useful_first_step` — drop(η*) = 2a²/R² при η* = 4|a|/R²,
+  `exists_useful_eta`, `first_step_useful_certified`,
+  `first_step_strict_improves`; негатив `no_signal_no_drop` (a = 0 ⇒
+  COMMIT невозможен); `holdout_gate_two_way(_delta)` — union bound по Θ
+  покрывает peeking, принятый гейт ⇒ pop_new ≤ pop_old + 2ε − margin.
+- Honest: U2 открыт; a < 0 и линейность по η — гипотезы (chain rule к
+  `adam_first_step_dot_pos` не формализован); iid-holdout — модель;
+  при k = 512 сертификат почти вакуумный (2ε ≈ 0.25B).
+- Фронтир: метатеория v3.4 (+3 клоза); PROPOSAL-holdout-size (k ≥ 1199
+  для ε = 0.05B, δ = 0.05, |Θ| = 10); paper §0 без строки C660.
+  Разбор: `period-c657-660-analysis.md`.
