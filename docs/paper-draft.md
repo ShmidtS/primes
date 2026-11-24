@@ -83,6 +83,7 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | probability | `paired_lcb_false_grow_bound` (Hagi/Theory/NadyaOptimal.lean:270) | LCB gate, Надя.txt:109-112/:884-890 | conditional (deterministic radius r; code uses z·σ̂/√n) | C666 |
 | compression | `bypass_reaches_compression_limit` (Hagi/Theory/NadyaOptimal.lean:304); `ce_covered_zero` (Hagi/Theory/ExactBypass.lean:70) | EXACT_BYPASS, Надя.txt:695-750 | exact for the ideal coder (q = 1 on the support) | C666 |
 | growth | `wlogits_width_preserved` (Hagi/Theory/WidthGrowth.lean:597); `attn_score_scale_preserved` (:329); `rotary_old_pairs_unchanged` (:266) | `grow_width`, Надя.txt (function name) | exact for nh = 1, even width; honest gap: nh > 1, odd width, clip are hypotheses `WGrowth` | C667 |
+| step | `batch_directional_derivative` (Hagi/Theory/BatchRankOne.lean:65); `sgd_step_attains` (:136); `rank_one_best_v` (:209) | Muon step on `W1`, hagi/core.py:1755/:1350 @ca52eb4 | honest gap: Frobenius ball and rank-one family proved; spectral-norm optimum and the link to the lm.py:586 layer open | C669 |
 | step | `hasFDerivAt_w1L` (Hagi/Theory/FirstLayerGrad.lean:87); `w1_grad_rank_one` (:123); `useful_of_adam_first_w1` (:167) | first layer `W1`, hagi/lm.py:586/:594 @ca52eb4 | strict descent only (no certified drop; single input) | C668 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
 
@@ -970,11 +971,12 @@ global only probabilistically. Across the era the weak link moved from
 Axioms of every new theorem: propext, Classical.choice, Quot.sound.
 
 
-### 3.20 Later bridges (C651–C668): deltas on the §0 map
+### 3.20 Later bridges (C651–C669): deltas on the §0 map
 
 Rows: §0 (repair, archiver, Adam, useful first step, chain rule,
 holdout gate, window order; C666–C667: BitAlloc, schedule, LCB gate,
-bypass, width growth; C668: first-layer W1 derivative). Code anchors are `git show`-verified at @e9a96fc
+bypass, width growth; C668: first-layer W1 derivative; C669: batch
+gradient and Frobenius-optimal step). Code anchors are `git show`-verified at @e9a96fc
 (wave 256–257), @b3740e0 (wave 258) and @bab8aff (wave 258b); the
 Nadya.txt anchors are a 2026-11-24 snapshot.
 <!-- source: STATUS.md cards C651, C653–C655, C657, C660, C663, C664, C666, C667;
@@ -1025,7 +1027,25 @@ descent for small η (`useful_of_adam_first_w1`), and the rank-one update
 (`w1_rank_one_step_eq_bias`). Witness .tmp/C668/traj.lean, rc = 0
 (d = 3, d_ff = 4, one dead unit). Code: `_block_add`, lm.py:586 and the
 `W1` parameter, lm.py:594 @ca52eb4. Still open: certified drop on W1,
-batch inputs (Σ_t g_t ⊗ a_t), Frobenius-norm optimality of the update.
+**(iv-c) Batch gradient and the optimal step (C669).** Over a batch of
+inputs x_t the pairing is `Σ_t⟨p_t − y_t, J_t·Δ⟩ = −Σ_{ij} G i j·Δ i j`
+with the batch gradient `G i j = Σ_t g_t i · x_t j`, i.e. `Σ_t g_t ⊗ x_t`
+(`batch_directional_derivative`). By Cauchy–Schwarz in the Frobenius
+form, `⟨G, Δ⟩ ≥ −R·‖G‖_F` for every `Δ` with `‖Δ‖²_F ≤ R²`
+(`frob_step_le`), and `Δ = −(R/‖G‖_F)·G` is admissible and attains the
+bound (`sgd_step_attains`): the SGD direction is the steepest descent in
+the Frobenius ball. Inside the rank-one family `Δ = u ⊗ v` (fixed u) the
+pairing is `⟨v, Gᵀu⟩` (`rank_one_inner`), it is at most `‖v‖·‖Gᵀu‖ ≤
+‖v‖·‖u‖·‖G‖_F` (`rank_one_le`), and `v = Gᵀu/‖Gᵀu‖` attains `‖Gᵀu‖`
+(`rank_one_best_v`). Code: the consumer's Muon step on `W1`,
+`W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)`,
+hagi/core.py:1755 with `newton_schulz_orthogonalize` at core.py:1350
+@ca52eb4; the loss is the batch `cross_entropy` (lm.py:688 @ca52eb4).
+Honest gap: the spectral-norm statement behind Muon (max `⟨G, Δ⟩` over
+`‖Δ‖₂ ≤ 1` is `σ_max`, attained at `U Vᵀ`) is not proved — it needs the
+spectral/nuclear duality — and the code's `W1` at core.py:1755 is not
+the growth-block layer of lm.py:586 (bridge to be made). Witness
+.tmp/C669/traj.lean, rc = 0 (batch of 2 inputs).
 
 **(v) Window order (C651 → C664).** After wave 258 the context is
 `idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;

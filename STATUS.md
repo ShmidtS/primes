@@ -2131,7 +2131,51 @@ Freeze 9043 → 9054 (+11: `w1Pre`, `w1L`, `w1PreCLM`, `w1Jac`, `w1Jac_apply`,
   формализована); оптимум `ΔW1` по норме Фробениуса (вариант B/C:
   `η* = 4|a|/R²`, минимальность rank-one) — не формализован; kink
   (`w i + b i = 0`) вне носителя.
+  (Батч `Σ_t g_t ⊗ x_t` и оптимум в шаре Фробениуса → закрыты C669,
+  `Hagi/Theory/BatchRankOne.lean`.)
 
+
+## Hagi/Theory/BatchRankOne.lean (батч-градиент по W1 и оптимальный шаг, C669)
+
+Код-якорь HAGI_v2: `W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1,
+iters=3)` core.py:1755 @ca52eb4 — Muon-шаг (Newton–Schulz-ортогонализация,
+функция newton_schulz_orthogonalize, core.py:1350 @ca52eb4) по матрице `W1`; лосс —
+cross_entropy по батчу (среднее, lm.py:688 @ca52eb4). Носитель: батч
+`x : τ → δ → ℝ`, `batchGrad g x i j = Σ_t g t i · x t j` (= `Σ_t g_t ⊗ x_t`,
+сумма rank-one), `fdot G Δ = Σ_{ij} G i j·Δ i j`, `frobSq A = Σ_{ij} A i j²`.
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `batchGrad`, `fdot`, `frobSq`, `rowGrad`, `r1`, `colComb` | батч-градиент `Σ_t g_t ⊗ x_t`; Frobenius-спаривание и квадрат нормы; строка градиента `g t i` (`chainGrad` для входа `x t`); rank-one `u ⊗ v`; `Gᵀ u` | Hagi/Theory/BatchRankOne.lean:48, :52, :55, :58, :166, :170 | — |
+| `batch_directional_derivative` | T1: `Σ_t⟨p_t − y_t, J_t·Δ⟩ = −Σ_{ij} (batchGrad g x i j)·Δ i j` — directional derivative по батчу = Frobenius-спаривание батч-градиента с `Δ` (сумма `w1_directional_derivative` по `t`) | Hagi/Theory/BatchRankOne.lean:65 | — |
+| `frobSq_nonneg`, `fdot_sq_le`, `frob_inner_abs_le`, `frob_inner_le` | Коши–Шварц: `⟨G,Δ⟩² ≤ ‖G‖²_F·‖Δ‖²_F`, `|⟨G,Δ⟩| ≤ ‖G‖_F·‖Δ‖_F` (`Finset.sum_mul_sq_le_sq_mul_sq` на `ι × δ`) | Hagi/Theory/BatchRankOne.lean:93, :99, :107, :114 | — |
+| `frob_step_le` | T2 (граница): `frobSq Δ ≤ R²`, `R ≥ 0` ⇒ `−R·‖G‖_F ≤ ⟨G, Δ⟩` — в шаре Фробениуса спуск не лучше `R·‖G‖_F` | Hagi/Theory/BatchRankOne.lean:120 | — |
+| `sgd_step_attains` | T2 (достижимость): `G ≠ 0` ⇒ `Δ = −(R/‖G‖_F)•G` допустим (`frobSq Δ = R²`) и `⟨G, Δ⟩ = −R·‖G‖_F` — SGD-направление оптимально | Hagi/Theory/BatchRankOne.lean:136 | — |
+| `rank_one_inner` | `⟨G, u ⊗ v⟩ = ⟨v, Gᵀu⟩` — спаривание с rank-one шагом зависит от `G` только через `Gᵀu` | Hagi/Theory/BatchRankOne.lean:176 | — |
+| `rank_one_le` | T3'' (граница): `⟨G, u ⊗ v⟩ ≤ ‖v‖·‖Gᵀu‖` и `‖Gᵀu‖² ≤ ‖u‖²·‖G‖²_F` | Hagi/Theory/BatchRankOne.lean:184 | — |
+| `rank_one_best_v` | T3'' (достижимость): `Gᵀu ≠ 0` ⇒ `v = Gᵀu/‖Gᵀu‖` единично и `⟨G, u ⊗ v⟩ = ‖Gᵀu‖` — оптимум внутри rank-one-семейства при фикс. `u` | Hagi/Theory/BatchRankOne.lean:209 | — |
+
+Witness: `.tmp/C669/traj.lean` (d = 3, d_ff = 4, 2 класса, батч из 2 входов
+`x₀ = (2,−1,3)`, `x₁ = (1,5,1)`; мёртвый нейрон 2): `Σ_t⟨p_t − y_t, J_t·Δ⟩`
+= −4 = `−⟨G, Δ⟩`, `G = Σ_t g_t ⊗ x_t` со строками `(−1,2)`, `(0,1)`, `0`,
+`(2,−1)` (элементы `G 0 1 = 11`, `G 3 1 = −7`); T2: `G = [[2,4],[6,1]]`,
+`frobSq G = 57`, `R = 1` ⇒ SGD-шаг `frobSq = 1`, `⟨G, Δ⟩ = −√57`; T3'':
+`u = e₁` ⇒ `Gᵀu = (6,1)`, `v = (6,1)/√37` даёт `⟨G, u⊗v⟩ = √37`, `‖v‖² = 1`;
+rc = 0. Freeze 9054 → 9070 (+16: `batchGrad`, `fdot`, `frobSq`, `rowGrad`,
+`batch_directional_derivative`, `frobSq_nonneg`, `fdot_sq_le`,
+`frob_inner_abs_le`, `frob_inner_le`, `frob_step_le`, `sgd_step_attains`,
+`r1`, `colComb`, `rank_one_inner`, `rank_one_le`, `rank_one_best_v`).
+
+- Honest-остаток (down-scope C669): спектральный аналог T2 — max `⟨G,Δ⟩` при
+  `‖Δ‖_2 ≤ 1` равен `σ_max(G)` и достигается на `U Vᵀ` (ядро Muon) — НЕ
+  доказан: нужна дуальность спектральной/ядерной нормы (hbridge, см.
+  `Hagi/Step/FrobeniusLMO.lean`; в репо есть только диагональное ядро
+  `muon_alignment_optimal` и `spectral_norm_le_frobenius_norm`). Доказан
+  rank-one срез (T3''). Сравнение с Adam-sign (`‖G‖₁ ≥ ‖G‖_F ≥ σ_max`) не
+  формализовано. Батч здесь — сумма по `τ` без деления на размер (код:
+  cross_entropy со средним — множитель `1/|τ|` на градиент). Muon-шаг кода
+  (core.py:1755) относится к другой `W1`, чем слой `_block_add` (lm.py:586)
+  — bridge to be made.
 ## Hagi/Theory/NadyaOptimal.lean («Надя.txt» HAGI v2 Optimal: BitAlloc, Schedules, LCB, Bypass)
 
 Источник: `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY, 961 строк Python).
@@ -2354,10 +2398,10 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.
 
-## History (C538–C668)
+## History (C538–C669)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C668, якоря `#c638-c640`
-  … `#c665-c667`, `#c668`); более ранние per-beat файлы — `git log`. Журнал
+- Era index: `.omc/analysis/era-index.md` (C591–C669, якоря `#c638-c640`
+  … `#c665-c667`, `#c668`, `#c669`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
   (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
   `git show b3939aa5:STATUS.md`.

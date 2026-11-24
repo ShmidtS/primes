@@ -1,4 +1,4 @@
-# Era index — C591–C668 (2026-11-22/25)
+# Era index — C591–C669 (2026-11-22/25)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat-файлы
@@ -278,3 +278,27 @@
 - Honest: certified drop по W1 не выведен; один вход (батч = Σ_t g_t ⊗ a_t
   не формализован); оптимум по норме Фробениуса не формализован;
   U2 открыт.
+
+<a id="c669"></a>
+## C669 — батч-градиент по W1 и оптимальность шага (freeze 9054→9070)
+
+- Коммит: `feat: batch gradient frobenius optimal step and rank one
+  optimality` (sha — в receipt `.tmp/C669/receipt.md`).
+- Исследование: пин C668 «батч = Σ_t g_t ⊗ a_t; оптимум по норме
+  Фробениуса не формализован». Код: `W1 -= (cos_lr * 0.7) *
+  newton_schulz_orthogonalize(m1, iters=3)` core.py:1755 @ca52eb4 (Muon-шаг
+  по `W1`), `newton_schulz_orthogonalize` core.py:1350 @ca52eb4; лосс —
+  `cross_entropy` по батчу lm.py:688 @ca52eb4. Источники: Chen, Li, Liu
+  «Muon Optimizes Under Spectral Norm Constraints» (arXiv 2506.15054),
+  Li–Hong «A Note on the Convergence of Muon» (arXiv 2502.02900) — через
+  ask.sciencemadereadable.com; формулировки T1–T3 взяты из них, доказательства
+  элементарные. Реестр Palomar: `/api/cards?q=` отдаёт 404, готовой карты
+  по spectral-norm дуальности не найдено.
+- Результат: `Hagi/Theory/BatchRankOne.lean` — `batch_directional_derivative`
+  (T1), `frob_step_le` + `sgd_step_attains` (T2: SGD-направление оптимально
+  в шаре Фробениуса, Коши–Шварц), `rank_one_inner` + `rank_one_le` +
+  `rank_one_best_v` (T3'': оптимум внутри rank-one-семейства при фикс. `u`).
+- Honest (down-scope): спектральный аналог (max ⟨G,Δ⟩ при ‖Δ‖₂ ≤ 1 = σ_max,
+  шаг `U Vᵀ`) не доказан — нужна дуальность спектральной/ядерной нормы
+  (hbridge); сравнение с Adam-sign не формализовано; Muon-шаг кода
+  (core.py:1755) относится к другой `W1`, чем слой `_block_add` (lm.py:586).

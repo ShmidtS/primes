@@ -451,6 +451,7 @@ import Hagi.Theory.BlockAdmission
 import Hagi.Theory.BlockLipschitz
 import Hagi.Theory.FunctionPreservingGrowth
 import Hagi.Theory.FirstLayerGrad
+import Hagi.Theory.BatchRankOne
 import Hagi.Theory.HoldoutGateTwoWay
 import Hagi.Theory.GrowTrunkBlock
 import Hagi.Theory.GrowSnap
