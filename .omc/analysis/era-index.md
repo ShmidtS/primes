@@ -1,4 +1,4 @@
-# Era index — C591–C651 (2026-11-22/24)
+# Era index — C591–C655 (2026-11-22/24)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat разбор удалённых
@@ -209,3 +209,20 @@
 - Фронтир: archiver statement-кандидат (codelength ↔ CE/H; entropy-модуля
   в Mathlib нет); Adam EMA; certified-warmup-sim; target-смежность
   `_windows` (баг b3740e0). Разбор: `period-c650-651-analysis.md`.
+
+<a id="c653-c655"></a>
+## C653–C655 — эра «компрессия + Adam-вердикт» (freeze 8921→8948)
+
+- Коммиты: 08405376 (C653 `Theory/ArchiverCodeLength.lean`), 0ccaa34f
+  (C654 `scripts/bench_bridge.py` certified-warmup-sim, freeze identity),
+  fbc8cfcd (C655 `Step/AdamDirection.lean`).
+- Доказано: ideal coder — E_p[len] ≤ CE+1, CE = H+KL/log₂, p̂=p ⇒ H ≤
+  E[len] ≤ H+1 (Kraft/McMillan); Adam first-step ⟨g,d⟩>0, sign-flip на
+  шаге 2 (β=0.9) ⇒ не descent, `backtrackAccept` обязателен.
+- Симуляция: 600 COMMIT/0 HOLD, obj 3.76→2.78, identity бит-в-бит; plain
+  Adam тоже ↓ без сертификата.
+- Honest: range-coder round-trip (≥400 строк), WOR, независимость
+  раундов, block-only JVP, holdout-гейт, существование полезного блока.
+- Фронтир: paper v1.0 candidate; Card 15–16 + PALOMAR recheck; полезный
+  блок; holdout ↔ PAC-Bayes (носитель в primes есть); external push.
+  Разбор: `period-c653-655-analysis.md`.
