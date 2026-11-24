@@ -27,7 +27,7 @@ statements byte-identical. Definitions live in `Hagi.Math.Info.InfoCore`.
 Закрытие открытого пункта STATUS «полная Fannes-граница»:
 безусловная дискретная refined-Fannes для весовых векторов,
 без hbridge-гипотезы (entropy диагонали = Shannon —
-сортированные корни диагонали отсутствуют в Mathlib v4.34.1).
+сортированные корни диагонали отсутствуют в Mathlib на момент пина v4.36.0).
 
 Ядро — чисто вещественная KL-иерархия:
 

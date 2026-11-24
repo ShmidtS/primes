@@ -1,6 +1,5 @@
 import Mathlib.Tactic
 import Hagi.Math.Foundations.Recurrence
-import Mathlib.Tactic
 
 /-!
 # OptimizerVariants — одношаговые правила обновления оптимизатора

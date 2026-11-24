@@ -5,7 +5,6 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib.Analysis.Convex.SpecificFunctions.Basic
 import Mathlib.Analysis.MeanInequalities
 import Mathlib.Tactic
-import Mathlib.Tactic
 
 /-!
 # Audit: exact budget and exactness certificates
