@@ -735,4 +735,35 @@ theorem slotRev_first {k p : ℕ} (hk : 0 < k) :
     slotRev k p ⟨0, by omega⟩ = p + k - 1 := by
   simp only [slotRev]; omega
 
+/-- Слот-функция окна generation-пути (hagi/lm.py:1041-1054
+@bab8aff, wave 258b): хвост промпта длины `n ≤ k` дополнен СЛЕВА
+`k − n` паддингами до одной ширины `k`; слоты старше паддинга держат
+позиции `p + (j − (k − n))`. До bab8aff — `ctx[j:i][::-1]`, т.е.
+`slotRev`. -/
+def padSlot (k n p pad : ℕ) : Fin k → ℕ :=
+  fun j => if j.val < k - n then pad else p + (j.val - (k - n))
+
+/-- За пределами паддинга слоты generation-окна — в точности слоты
+oldest-first `slot n p` (со сдвигом на ширину паддинга). -/
+theorem padSlot_tail {k n p pad : ℕ} (j : Fin k)
+    (hj : k - n ≤ j.val) :
+    padSlot k n p pad j = slot n p ⟨j.val - (k - n), by omega⟩ := by
+  have h1 : ¬ j.val < k - n := by omega
+  simp only [padSlot, h1, ↓reduceIte, slot]
+
+/-- Query-байт generation-окна — в ПОСЛЕДНЕМ слоте (как `slot_last` у
+holdout-окна train_guarded, hagi/lm.py:905-907 @bab8aff). -/
+theorem padSlot_last {k n p pad : ℕ} (hn : 0 < n) (hkn : n ≤ k) :
+    padSlot k n p pad ⟨k - 1, by omega⟩ = p + n - 1 := by
+  have h1 : k - n ≤ k - 1 := by omega
+  rw [padSlot_tail _ h1]
+  simp only [slot]
+  omega
+
+/-- Полное окно (n = k) generation-пути — то же `slot k p`, что и у
+holdout-окна: паддинга нет, порядок общий. -/
+theorem padSlot_full {k p pad : ℕ} : padSlot k k p pad = slot k p := by
+  funext j
+  simp [padSlot, slot]
+
 end Hagi.Theory.WindowOrder

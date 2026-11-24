@@ -2938,6 +2938,60 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (overshoot хуже identity); A = 0 ⇒ ¬ COMMIT ∀η. Log:
   .tmp/C657/gates.log.
 
+## C664 wave258b-мост: generation-путь и train_guarded holdout — порядок окон (exact для порядка)
+
+- Beat: C664 = HAGI_v2 wave 258b, коммит bab8aff «fix(wave258b):
+  remaining reversed windows — generation path and the train_guarded
+  holdout» (READ-ONLY через git show). Base HEAD 0ce30c0d, tree clean.
+  Расширение WindowOrder-инварианта C651 (CoverageReading.lean:700):
+  слот k − 1 = самый новый байт = query (`slot_last`, :722).
+- Что чинил wave258b: тот же баг, что `Unified._windows` (b3740e0),
+  ещё в ТРЁХ потребителях oldest-first trunk (hagi/lm.py @bab8aff):
+  - RopeAttentionByteLM._read_all_windows, lm.py:1041-1054 (вызов
+    generate_auto, :1069): окна покрытия строились ctx[j:i][::-1]
+    (newest-first, переменная длина хвоста) → ctx[j:i] + ЛЕВЫЙ паддинг
+    [32]*(k − len) до одной ширины k;
+  - holdout-оценка train_guarded, lm.py:905-907: срез idx[p+k−1 .. p]
+    развёрнут → idx[p .. p+k−1] (дословно слоты `slot`);
+  - generate, lm.py:1126-1127 (WAVE 258c): ctx[::-1] → ctx[-k:].
+  Числа commit msg (НЕ перемеряно): holdout CE 3.59..4.23 nats (было
+  8.13..11.56), generation-путь 2.25 (было 3.64) на 31 полном окне.
+- Опора: gather_all (lm.py:738-755 @bab8aff) — base = pos − 1 − (len − 1)
+  + j при j ≥ pad − len ⇒ тоже ЛЕВЫЙ паддинг (байт 0) + oldest-first;
+  train_guarded и generation после bab8aff строят окна ОДИНАКОВО.
+- Мост (Hagi/Theory/CoverageReading.lean, ns Hagi.Theory.WindowOrder,
+  +1 def `padSlot`, +3 theorem):
+  - `padSlot` (:743) k n p pad : Fin k → ℕ — слот-функция окна
+    generation-пути: j < k − n ⇒ паддинг, иначе p + (j − (k − n));
+  - `padSlot_tail` (:748): за пределами паддинга слоты = `slot n p`
+    со сдвигом на ширину паддинга;
+  - `padSlot_last` (:756): query-байт p + n − 1 в ПОСЛЕДНЕМ слоте k − 1
+    (аналог `slot_last` на holdout-окне);
+  - `padSlot_full` (:765): при n = k generation-окно = `slot k p`, т.е.
+    полное окно generation-пути и holdout-окно train_guarded совпадают.
+- ВЕРДИКТ. Holdout-окно train_guarded покрыто СУЩЕСТВУЮЩИМ `slot` /
+  `slot_last` (idx[p .. p+k−1] — дословно); generation-путь — новая
+  конструкция (левый паддинг), формализована `padSlot` + 3 теоремами.
+  Bridge status: EXACT для порядка слотов. covStarts/step monotone
+  (`covStarts_covers`, CoverageReading.lean:54) — про НАЧАЛА окон
+  (решётка покрытия), а не про порядок внутри окна: инвариант другой,
+  оба выполняются и не пересекаются.
+- HONEST: (1) hagi/unified.py:1010 @bab8aff (HEAD HAGI_v2 134f81b,
+  wave 259) — neural-фолбэк всё ещё читает list(context)[-k:][::-1]
+  и берёт logits(x)[0]: окно РАЗВЁРНУТО относительно trained trunk —
+  кандидат на wave258c, НЕ проверял прогоном; (2) до bab8aff holdout-гейт
+  train_guarded судил шаги на перевёрнутом входе — лог цикла завышал
+  CE на 4..7 nats (commit msg); (3) measured-числа — из commit msg;
+  (4) `_read_all_windows` второго класса (lm.py:1569-1581) и до bab8aff
+  был oldest-first с паддингом 32 — не менялся.
+- Witness .tmp/C664/traj.lean (rc=0): k = 4, n = 2, p = 10, pad = 32 →
+  [32, 32, 10, 11]; полное n = k → [10, 11, 12, 13] = slot; последний
+  слот = 11 = p + n − 1. Негатив: slotRev 2 10 ⟨0⟩ = 11 — query-байт
+  в слоте 0 (до фикса).
+- Аксиомы: [propext, Quot.sound] (padSlot*; AllAxiomCheck PASS).
+- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (8967 = 8963 + 4).
+  Paper: 74 якоря перепинены (repin.py/repin2.py), v1.1, v3.4/14 клозов.
+
 ## C663 chain rule связка: Adam-first ⇒ useful warm-up (honest, линейный носитель)
 
 - Beat: C663 = roadmap C661 top-3 — закрыть honest-pin C657 (1):

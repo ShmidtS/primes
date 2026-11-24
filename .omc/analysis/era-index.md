@@ -1,4 +1,4 @@
-# Era index — C591–C660 (2026-11-22/24)
+# Era index — C591–C664 (2026-11-22/24)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat разбор удалённых
@@ -245,3 +245,21 @@
 - Фронтир: метатеория v3.4 (+3 клоза); PROPOSAL-holdout-size (k ≥ 1199
   для ε = 0.05B, δ = 0.05, |Θ| = 10); paper §0 без строки C660.
   Разбор: `period-c657-660-analysis.md`.
+
+<a id="c662-c664"></a>
+## C662–C664 — эра «v3.4 + wave258b»: 14 клозов, chain rule, порядок окон (freeze 8959→8967)
+
+- Коммиты: 6f9837d3 (C661 разбор c657–c660), 4fd95e00 (C662
+  `hagi_master_v34` + PROPOSAL-holdout-size), 0ce30c0d (C663 chain
+  rule Adam-first ⇒ useful warm-up), C664 (wave258b `padSlot` + разбор).
+- Доказано: v3.4 = v3.3 + (12) strict first step, (13) Adam-first
+  descent, (14) holdout two-way; `chain_linear`, `useful_of_adam_first`
+  (a < 0 выведен для линейного носителя); `padSlot_tail/_last/_full` —
+  generation-окно (левый паддинг) и holdout-окно — один порядок, query в
+  последнем слоте.
+- Honest: нелинейный chain rule (relu-блок) открыт; U2 открыт; iid-holdout
+  — модель, k = 512 вакуумно; hagi/unified.py:1010 @bab8aff ещё `[::-1]`.
+- HAGI_v2: HEAD 134f81b (wave 259: потеря production-чекпоинта тестами),
+  worktree dirty — чтение только через git show.
+- Фронтир: unified.py:1010 → push; HasFDerivAt chain rule; U2; решение по
+  k ≥ 1199. Разбор: `period-c662-664-analysis.md`.
