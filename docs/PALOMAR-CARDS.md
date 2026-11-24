@@ -12,7 +12,7 @@ comparator.json, formalization.yaml (arXiv-категории, MSC2020,
 редакционный вердикт («no blocking problem»). Реестр не
 ранжирует и не одобряет результаты.
 
-Этот файл — подготовительные карточки (draft entries) тринадцати
+Этот файл — подготовительные карточки (draft entries) семнадцати
 machine-checked результатов C5XX-витков: самодостаточные
 математические формулировки без контекстной терминологии,
 точные FQN-якоря и честный статус. Все доказательства
@@ -437,6 +437,152 @@ width-independent
 
 ---
 
+## Card 15 — Adam's first step is a descent step; later steps
+need not be
+
+- **Statement.** Для конечного индексного множества `ι`, градиента
+  `g : ι → ℝ` и `eps > 0` на первом шаге Adam (`m̂ = g`, `v̂ = g²`)
+  скалярное произведение с градиентом строго положительно, если
+  градиент ненулевой — Lean дословно:
+
+  `theorem adam_first_step_dot_pos {ι : Type*} [Fintype ι] [Nonempty ι]`
+  `(g : ι → ℝ) (hg : g ≠ 0) {eps : ℝ} (heps : 0 < eps) :`
+  `0 < adamDot g (adamDir g (fun i => g i ^ 2) eps)`
+
+  (координатно `⟨g, d⟩ = Σ g i ^ 2 / (|g i| + eps)`; при `0 ≤ eps` —
+  `adam_first_step_dot_nonneg` :74). На шаге 2 это ломается:
+  контрпример `ema_sign_flip_negative` (:125) при `β₁ = 9/10`,
+  `β₂ = 999/1000`, `g₁ = 1`, `g₂ = −1/10` — после коррекции
+  смещения `m̂₂ > 0`, поэтому
+
+  `adamDot (fun _ : Fin 1 => (-1 : ℝ) / 10) (adamDir m̂₂ v̂₂ eps) < 0`
+
+  — направление шага Adam образует с текущим градиентом тупой угол
+  (`eps ≥ 0`). Скалярный вариант: `adam_step_not_always_descent`
+  (:116).
+- **Наглядность.** Adam спускается только на первом шаге:
+  там направление совпадает с градиентом. Со второго шага
+  направление — знак момента, а не градиента, и при смене знака
+  градиента шаг может быть подъёмом; нужен явный приём шага
+  (descent-проверка/backtracking), а не доверие оптимизатору.
+- **Anchor.**
+  `Hagi.Step.adam_first_step_dot_pos`
+  (Hagi/Step/AdamDirection.lean:85);
+  `adam_first_step_dot_nonneg` (:74);
+  `ema_sign_flip_negative` (:125);
+  `adam_step_not_always_descent` (:116); определения `ema` (:44),
+  `adamCoord` (:49), `adamDir` (:53), `adamDot` (:57).
+- **Dependencies.** Mathlib (Fintype, Real.sqrt, Finset.sum);
+  внутренние определения модуля. Все константы конкретны
+  (rationals, `norm_num`), без неконструктивных посылок.
+- **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
+  три Lean. Honest pins: β₁ = 0.9, β₂ = 0.999 — torch defaults,
+  контрпример на скалярной координате (Fin 1); теорема о первом
+  шаге — без коррекции смещения (m̂ = g, v̂ = g²), statement не
+  утверждает ничего о шагах ≥ 2.
+- **Category.** Optimization / machine learning (arXiv cs.LG,
+  math.OC); MSC2020 90C25, 68T07.
+
+## Card 16 — Codelength ↔ cross-entropy via Kraft
+
+- **Statement.** Для конечного `X`, распределения `p` и
+  однозначно декодируемого кода `enc : X → List Bool`:
+
+  `theorem codelength_ge_entropy_of_uniquelyDecodable`
+  `(p : X → ℝ) (enc : X → List Bool) [Nonempty X]`
+  `(henc : Function.Injective enc)`
+  `(hud : InformationTheory.IsUniquelyDecodable (Set.range enc))`
+  `(hp : ∀ x, 0 ≤ p x) (hsum_p : ∑ x, p x = 1) :`
+  `entBits p ≤ expLen p (fun x => (enc x).length)`
+
+  — ожидаемая длина любого UD-кода не меньше H(p) в битах
+  (через Kraft–McMillan из Mathlib). Для идеального кодера
+  `idealLen q x = ⌈−log₂ (q x)⌉₊` (`:129`) с моделью `q`:
+
+  `theorem idealLen_le_ce_add_one (p q : X → ℝ)`
+  `(hp : ∀ x, 0 ≤ p x) (hsum_p : ∑ x, p x = 1)`
+  `(hq : ∀ x, 0 < q x) (hq1 : ∀ x, q x ≤ 1) :`
+  `expLen p (idealLen q) ≤ ceBits p q + 1`
+
+  и разложение
+
+  `theorem ceBits_eq_entBits_add_kl (p q : X → ℝ)`
+  `(hp : ∀ x, 0 ≤ p x) (hpq : ∀ x, 0 < p x → 0 < q x) :`
+  `ceBits p q = entBits p + klDef p q / Real.log 2`
+
+  Частный случай `q = p` (`idealLen_self_bounds` :208):
+  `H(p) ≤ E_p[⌈−log₂ p⌉₊] ≤ H(p) + 1`.
+- **Наглядность.** Отношение сжатия модели равно её
+  cross-entropy на данных (в битах/символ), плюс-минус один бит на
+  символ из округления длин кодовых слов вверх; разница с идеалом —
+  KL-расхождение модели от данных. Хорошая модель = хороший архиватор.
+- **Anchor.**
+  `Hagi.Theory.ArchiverCodeLength.codelength_ge_entropy_of_uniquelyDecodable`
+  (Hagi/Theory/ArchiverCodeLength.lean:106);
+  `idealLen_le_ce_add_one` (:164); `ceBits_eq_entBits_add_kl` (:194);
+  `idealLen_self_bounds` (:208); определения `expLen` (:35),
+  `entBits` (:38), `ceBits` (:41), `log2` (:126), `idealLen` (:129).
+- **Dependencies.** Mathlib (`InformationTheory.IsUniquelyDecodable`,
+  Kraft–McMillan); внутренние `ceDef`/`entDef`/`klDef` (KL =
+  CE − H, `klDef_eq_ceDef_sub_of_support`).
+- **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
+  три Lean. Honest pins: классическая теория (Shannon/McMillan),
+  ценность — формальный мост к архиватору; round-trip к реальному
+  архиватору (L1: mixed/bitmask-код как UD-код) — только оценка
+  (≥400 строк Lean), не формализован; `+1` — худший случай
+  округления, не измеренное сжатие.
+- **Category.** Information theory (arXiv cs.IT / math.IT);
+  MSC2020 94A17, 94A24, 68P30.
+
+## Card 17 — Useful first warm-up step: a new block pays from step
+one iff there is residual signal
+
+- **Statement.** Пусть `a < 0` — linear descent-сигнал нового
+  блока, `R > 0` — range-константа направления, и drop
+  `linDrop a R η = −(η·a + η²·R²/8)` (`stepEps = 1e-12`). Тогда:
+
+  `theorem useful_eta_le {a R η : ℝ} (hR : R ≠ 0) :`
+  `linDrop a R η ≤ 2 * a ^ 2 / R ^ 2`
+  `∧ (linDrop a R η = 2 * a ^ 2 / R ^ 2 → η = -4 * a / R ^ 2)`
+
+  `theorem exists_useful_eta {a R : ℝ} (ha : a < 0) (hR : 0 < R)`
+  `(hmax : stepEps < 2 * a ^ 2 / R ^ 2) :`
+  `∃ η : ℝ, 0 < η ∧ stepEps < linDrop a R η`
+
+  и на носителе блока (`hlin : L (bη η) u − L b u = η·D u`,
+  `hrange : ∀ u v, D u − D v ≤ R`, `a = Σ smax (L b) v · D v − D t`):
+
+  `theorem first_step_strict_improves ... (hdesc : a < 0)`
+  `(hmax : stepEps < 2 * a ^ 2 / R ^ 2) (h0 : Hagi.ceOneHot t (L b) = fOld) :`
+  `∃ η : ℝ, 0 < η ∧ Hagi.ceOneHot t (L (bη η)) < fOld`
+
+  Т.е. `η* = 4|a|/R²`, `drop_max = 2a²/R²`, максимум единственный; при
+  `a = 0` drop `≤ 0` при любом η (`no_signal_no_drop`).
+- **Наглядность.** Новый блок выгоден с первого шага тогда и только
+  тогда, когда есть residual-сигнал: без него (`a = 0`) никакой шаг
+  не даёт улучшения; при `a < 0` и `2a²/R² > stepEps` существует
+  `η > 0` с сертифицированным строгим уменьшением CE — COMMIT
+  первого шага тёплого блока (function-preserving старт: блок =
+  identity, `CE = fOld`).
+- **Anchor.**
+  `Hagi.Theory.FunctionPreservingGrowth.useful_eta_le`
+  (Hagi/Theory/FunctionPreservingGrowth.lean:565);
+  `exists_useful_eta` (:588); `first_step_strict_improves` (:644);
+  `first_step_useful_certified` (:609); `useful_first_step_pos` (:558);
+  `no_signal_no_drop` (:597); определения `linDrop` (:547), `stepEps` (:364).
+- **Dependencies.** Mathlib (softmax через `Hagi.Energy.smax`,
+  CE `Hagi.ceOneHot`); контракт `CertifiedFiniteStep` и
+  `block_step_commit_of_range_bound` модуля.
+- **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
+  три Lean. Witness (receipt C657): `a = −1`, `R = 2` → `η* = 1`,
+  `drop_max = 1/2`; `a = 0` → COMMIT нет. Honest pin: U2
+  (глобальная достижимость в невыпуклом случае) — OPEN, не
+  доказано; statement — локальный первый шаг.
+- **Category.** Learning theory / optimization (arXiv cs.LG,
+  math.OC); MSC2020 68T05, 90C25.
+
+---
+
 ## Submission requirements (что нужно для реальной отправки)
 
 По /how-to-submit реестра, для каждой карточки требуется
@@ -506,3 +652,59 @@ Cards 9–13 чтение-эры), два независимых метода п
 уникальны; отправка остаётся user-шагом. Артефакты:
 `.tmp/C630/api/` (results.json, all_entries.json — 1298 записей,
 query_summary.json, llms.txt), `.tmp/C630/research.md`.
+
+
+---
+
+## Niche-recheck C658 (24.11.2026)
+
+Повторение внешней проверки C630 против тем Cards 15–17 (Adam
+first step / sign-flip momentum, Kraft codelength ↔ cross-entropy,
+useful first warm-up step function-preserving growth) плюс прежние
+24 темы C630.
+
+Метод: полный обход `data.palomar-registry.org/api/v1/results`
+(curl --http1.1; urllib на этой машине рвёт TLS — WinError 10054)
+по opaque-курсорам `next` → 54 страницы, 1331 results / 1011
+projects, revision 1167 (C630: 1298 / 987, revision 1129; +33
+новых). Три независимых прохода: (1) API `q=` по 24 фразам
+(многословные — AND-семантика, все 7 новых фраз → 0 hits);
+(2) API `q=` по 10 одиночным терминам (adam, momentum, kraft,
+entropy, codelength, decodable, descent, warm, preserving,
+optimizer); (3) локальный word-boundary substring-скан полного
+дампа (title + abstract + preview + path + theorem_names) по 24
+фразам карточек.
+
+| Тема | q= фраза | Локальный скан | Вердикт |
+| --- | --- | --- | --- |
+| Adam first step descent | 0 | adam 0 (word) | нет |
+| sign flip momentum | 0 | sign flip 0; momentum 3 | нет |
+| Kraft entropy codelength | 0 | kraft 0, mcmillan 0, entropy 16 | нет |
+| cross entropy arithmetic coding | 0 | cross entropy 0, arithmetic coding 0 | нет |
+| warm start new block | 0 | warm start / warm-up / warmup 0 | нет |
+| function preserving growth | 0 | function preserving 0, net2net 0 | нет |
+| first step improvement | 0 | first step 3 | нет |
+| прежние 17 тем C630 | 3 размытых (gamma star, negative transfer, mixed cost) | — | нет (как в C630) |
+
+Размытые срабатывания прочитаны (abstract) и нерелевантны:
+"adam" (API, 5) — substring в чужих текстах (Schur/Rademacher),
+word-boundary 0; "momentum" (3) — угловой момент в PONTRYAGIN /
+электродинамика / радиальные harmonic functions; "entropy" (16–17)
+— топологическая/Rényi/Latin squares/spin glass, ни одного про
+codelength; "descent" (18) — infinite descent в теории чисел,
+Collatz, Галуа; ближайшие к теме — PALOMAR-2026-10-12-000006
+(last-iterate bounds constant-step GD) и PALOMAR-2026-11-14-000001
+(SGD last-iterate WR/WOR): bounds на последний итерат для convex
+smooth, не про направление Adam и не про первый шаг блока —
+нерелевантны; "optimizer" (3–4) — optimizers в геометрии /
+экономике; "first step" (3) — первый шаг доказательства (Selmer,
+Bogolyubov–Ruzsa), MCS ordering; "warm" (1) — "warm pump-to-hard-OA
+composition" (MIP: warm start без reinitialization), не ML-block;
+"preserving" (25) — diameter/measure/value-preserving, не
+function-preserving рост сетей.
+
+Результат: 0 тематических пересечений — ниша всех 17 карточек
+подтверждена; отправка остаётся user-шагом. Артефакты:
+`.tmp/C658/api/` (all_entries.json — 1331 записей,
+query_summary.json, api_terms.json, local_phrase_scan.json,
+fetch.py).
