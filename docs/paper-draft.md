@@ -933,8 +933,8 @@ premises are the code's own predicates, anchored to exact python lines
 code's statement is literally an instance of the theorem at the cited
 lines), **conditional** (the theorem holds under a model hypothesis the
 code does not check), or **honest gap** (what the code does is outside
-the bridge and is said so).<!-- source: .omc/analysis/period-c638-c640-analysis.md, period-c642-c644-analysis.md,
-     period-c646-648-analysis.md; receipts .tmp/C638–C648 -->
+the bridge and is said so).<!-- source: era-index #c638-c640–#c646-c648; receipts .tmp/C638–C648 -->
+
 
 Code anchors of this section are `hagi/lm.py`, `hagi/unified.py`,
 `hagi/selfmodel.py` of C:/HAGI_v2 **@ca52eb4 (wave 255)** unless a
@@ -1601,7 +1601,7 @@ bridge only for the IDEAL coder: `codelength_ge_entropy_of_kraft` (Hagi/Theory/A
 KL(p‖p̂)/log 2 + 1 for len = ⌈−log₂ p̂⌉₊ via Kraft–McMillan + Gibbs.
 primes still models no range coder (`trit_roundtrip` is a positional
 pack); losslessness of archiver.py is tests + measured 11/11 only.
-<!-- source: STATUS.md cards C638–C648; .omc/analysis/period-c646-648-analysis.md
+<!-- source: STATUS.md cards C638–C648; era-index #c646-c648
      («8 мостов — сумма по карточкам, не machine-checked»); all file:line re-verified by .tmp/C659/audit.py + .tmp/C664/repin.py, C664 HEAD -->
 
 ## 5. Honest limitations (pins)
@@ -1790,8 +1790,8 @@ pack); losslessness of archiver.py is tests + measured 11/11 only.
    construction, and plain Adam also lowered obj in both runs. The
    holdout gate that would accept such a block in the code remains the
    measured test of pin 25 (C654).
-<!-- source: STATUS.md cards C638–C657 (pins 22–29: C638–C648; 30–34: C651–C657); .omc/analysis/period-c638-c640 / c642-c644 /
-     c646-648 analyses -->
+<!-- source: STATUS.md cards C638–C657 (pins 22–29: C638–C648; 30–34: C651–C657); era-index
+     #c638-c640 / #c642-c644 / #c646-c648 -->
 
 ## 6. Experiment plan (to strengthen before submission)
 

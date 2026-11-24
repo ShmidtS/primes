@@ -118,7 +118,7 @@ CHANGED только в D1 (если решено) — отдельным ком
 | --- | --- | --- | --- | --- |
 | X1 | Ложное, docs-only: F1–F4 (статусы honest-карточек), F5–F7, F9–F11, F13–F16, F22, F26 | identity | −~120; 0 ложных статусов | низкий |
 | X2 | STATUS 2060–3316 → карточки по файлу (M1), F19, F25 | identity | −800…−1 000 | средний: StatusLint baseline до/после |
-| X3 | Удалить 7 period-файлов, era-index +C665–C667, −дубль C648 (M5); PROPOSAL-status (F24) | identity | −~690 | низкий: сначала `rg period-c6` (ссылки) |
+| X3 | Удалить 7 period-файлов, era-index +C665–C667, −дубль C648 (M5); PROPOSAL-status (F24) | identity | −~690 | низкий: сначала ссылки на period-файлы (rg) |
 | X4 | paper: §0 полная карта, §3.20/3.21 → дельты, §4.8 удалить, §3.19 (M4, F8); README F9; cards F10; ALGORITHMS §27 | identity | −~200 paper | низкий |
 | X5 | Nadya WidthGrowth (217–1056, 840) → `Hagi/Theory/WidthGrowth.lean`, ns сохранён (M3) | identity | 0 строк; 2 темы в 2 файлах | низкий: 0 импортеров кроме Hagi.lean; lake build + ci.sh |
 | X6 | Lean docstrings: F20 + C-метки в заголовках 12 файлов; карты клозов v3 → одна + дельты | identity | −~60 | низкий: DocLint |

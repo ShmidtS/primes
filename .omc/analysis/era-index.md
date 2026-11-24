@@ -1,8 +1,9 @@
 # Era index — C591–C667 (2026-11-22/24)
 
 Навигация по эрам: период | главные коммиты | доказанные
-результаты | фронтир на конец эры. Per-beat разбор удалённых
-`period-*-analysis.md` — `git log` / `git show <sha>`. Имена —
+результаты | фронтир на конец эры. Per-beat-файлы
+(`period-c*-analysis.md`, C244–C664) не tracked: история — `git log` /
+`git show <sha>`; живой носитель — этот индекс и карточки STATUS. Имена —
 по состоянию на HEAD (модули v7-слияний: `GrowthGate`,
 `WindowTradeoff`, лестница `MasterTheoremV31..V33` →
 `Hagi/Theory/{NegativeTransfer,CoverageReading,MasterTheoremV3}.lean`).
@@ -128,7 +129,6 @@
   иначе 2ε), рост wave255 ⊂ `benchResidualBlock` / `identityBlock`.
 - Фронтир: post-warm-up сертификат роста; Armijo-мост Adam
   backtracking; JVP-остаток range-ветки; per-task gate ↔ C601.
-- Полный разбор: `period-c638-c640-analysis.md`.
 
 <a id="c642-c644"></a>
 ## C642–C644 — эра «сертификация роста» (freeze 8869→8887)
@@ -182,20 +182,6 @@
   WOR-консервативность не формализована (Mathlib леммы нет); код не
   считает b/sig и не делит α по раундам.
 
-<a id="c646-c648"></a>
-## C646–C648 — эра «рост + вероятность» (freeze 8887→8907)
-
-- Коммиты: e84eac25 (C646 certified-шаг на блоке), 2a554dc7 (C647
-  `Contracts/BatchGlobalTelescope.lean`, уровни A/B/C), eaee5ea2 (C648).
-- Доказано: `certified_step_block_of_range` (range-лемма на логитах
-  носитель-независима), `batch_drop_generalizes` (через EB),
-  `certified_rounds_union` (k раундов, slack k·ebGap(α/k)).
-- Honest: iid/независимость раундов — модель, не код; код не считает
-  b/sig; WOR-консервативность не формализована; JVP — реализация.
-- Фронтир: paper v0.9 (8 мостов C638–C648); Adam EMA-лемма;
-  bench certified-warmup-sim; WOR; external push proposal.
-  Разбор: `period-c646-648-analysis.md`.
-
 <a id="c650-c651"></a>
 ## C650–C651 — paper v0.9; repair + archiver (freeze 8907→8921)
 
@@ -208,7 +194,7 @@
   h1 warm-up; WOR; Adam EMA.
 - Фронтир: archiver statement-кандидат (codelength ↔ CE/H; entropy-модуля
   в Mathlib нет); Adam EMA; certified-warmup-sim; target-смежность
-  `_windows` (баг b3740e0). Разбор: `period-c650-651-analysis.md`.
+  `_windows` (баг b3740e0).
 
 <a id="c653-c655"></a>
 ## C653–C655 — эра «компрессия + Adam-вердикт» (freeze 8921→8948)
@@ -225,7 +211,6 @@
   раундов, block-only JVP, holdout-гейт, существование полезного блока.
 - Фронтир: paper v1.0 candidate; Card 15–16 + PALOMAR recheck; полезный
   блок; holdout ↔ PAC-Bayes (носитель в primes есть); external push.
-  Разбор: `period-c653-655-analysis.md`.
 
 <a id="c657-c660"></a>
 ## C657–C660 — эра «release v1.0»: useful-first-step, holdout two-way (freeze 8948→8959)
@@ -244,7 +229,6 @@
   при k = 512 сертификат почти вакуумный (2ε ≈ 0.25B).
 - Фронтир: метатеория v3.4 (+3 клоза); PROPOSAL-holdout-size (k ≥ 1199
   для ε = 0.05B, δ = 0.05, |Θ| = 10); paper §0 без строки C660.
-  Разбор: `period-c657-660-analysis.md`.
 
 <a id="c662-c664"></a>
 ## C662–C664 — эра «v3.4 + wave258b»: 14 клозов, chain rule, порядок окон (freeze 8959→8967)
@@ -262,7 +246,7 @@
 - HAGI_v2: HEAD 134f81b (wave 259: потеря production-чекпоинта тестами),
   worktree dirty — чтение только через git show.
 - Фронтир: unified.py:1010 → push; HasFDerivAt chain rule; U2; решение по
-  k ≥ 1199. Разбор: `period-c662-664-analysis.md`.
+  k ≥ 1199.
 
 <a id="c665-c667"></a>
 ## C665–C667 — эра «нелинейный носитель + Надя + width-рост» (freeze 8967→9043)
