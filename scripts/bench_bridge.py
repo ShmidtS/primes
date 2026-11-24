@@ -13314,6 +13314,13 @@ def cw_ce(z, y):
     return m + math.log(sum(math.exp(v - m) for v in z)) - z[y]
 
 
+def cw_ce_grad(z, y):
+    """softmax(z) - onehot(y): the logit gradient of cw_ce (python
+    double)."""
+    p = cw_softmax(z)
+    return [p[k] - (1.0 if k == y else 0.0) for k in range(len(z))]
+
+
 def finite_displacement_ce_upper(z0, z1, y):
     """python double of HAGI_v2 hagi/lm.py:235
     `finite_displacement_ce_upper` (mean over the batch):
@@ -13323,9 +13330,7 @@ def finite_displacement_ce_upper(z0, z1, y):
     tot = 0.0
     for a, b, t in zip(z0, z1, y):
         d = [b[k] - a[k] for k in range(len(a))]
-        p = cw_softmax(a)
-        first = sum((p[k] - (1.0 if k == t else 0.0)) * d[k]
-                    for k in range(len(a)))
+        first = sum(g * d for g, d in zip(cw_ce_grad(a, t), d))
         tot += first + (max(d) - min(d)) ** 2 / 8.0
     return tot / len(z0)
 
@@ -13445,9 +13450,7 @@ def certified_warmup_sim_run(ledger_path):
             for n, ((z, h, act), (f, c)) in enumerate(zip(fw[t], tk)):
                 if sel is not None and (t, n) not in sel:
                     continue
-                pz = cw_softmax(z)
-                dz = [pz[k] - (1.0 if k == c else 0.0)
-                      for k in range(K)]
+                dz = cw_ce_grad(z, c)
                 dh = [sum(Wo[k][j] * dz[k] for k in range(K))
                       for j in range(H)]
                 for j in range(H):
