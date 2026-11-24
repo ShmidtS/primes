@@ -6,8 +6,7 @@ Draft v1.1 (release). Все утверждения — либо Lean-якорь
 Якоря кода HAGI_v2 (python `file:line@sha`) сверены `git show` на
 указанном sha (мосты C638–C648: @1ae924e / @ca52eb4, волны 254–255;
 мосты C651–C657: @e9a96fc / @b3740e0, волны 256–258; мост C664:
-@bab8aff, волна 258b). Карта «слой машины ↔ теорема ↔ код» — §0;
-мосты C651–C664 — §3.20.
+@bab8aff, волна 258b). Карта «слой машины ↔ теорема ↔ код» — единственная, §0.
 Никаких недоказанных клеймов. Теоремный счётчик abstract остаётся от
 e40aa426: новый индекс не генерировался.
 
@@ -31,8 +30,8 @@ and a 2-level hierarchy cuts the peak window budget 127 → 63 at n = 8128
 the optimal snap grid k* = ⌈log₂(L·d/ε)⌉ − 1, the useful first warm-up
 step **η* = 4|a|/R² with drop_max = 2a²/R²**, and the codelength sandwich
 **H(p) ≤ E[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1** via Kraft–McMillan.
-Release feature: **17 PALOMAR cards** and a **§0 map of ≥17 code
-bridges** (C572–C664) in which the consumer's own code (HAGI_v2, python
+Release feature: **17 PALOMAR cards** and a **§0 map of 31 code
+bridges** (C521–C667) in which the consumer's own code (HAGI_v2, python
 `file:line@sha`) is checked against the canon and labelled exact,
 conditional or honest-gap. We state the open hypotheses as pins (§5,
 pins 30–34): U2 global reachability, the chain rule behind a < 0 (closed
@@ -79,6 +78,11 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | probability | `certified_rounds_union` (Hagi/Contracts/BatchGlobalTelescope.lean:366) | 8-round loop, hagi/lm.py:978-1008 @ca52eb4 | conditional (independent rounds; WOR open) | C648 |
 | rollback | `rollback_gate_sound` (Hagi/Theory/RollbackGate.lean:100); `backtrack_accept_drop` (:262) | `guarded_optimizer_step`, hagi/selfmodel.py:78-180 @ca52eb4 | exact as a predicate | C530/C643 |
 | rollback | `repair_sound` (Hagi/Theory/RepairForgetting.lean:105); `repair_drop_bound` (:78) | `_repair_forgetting`, hagi/unified.py:408-454 @e9a96fc | exact for control flow; linear bound only | C651 |
+| compression | `trit5_roundtrip` (Hagi/Theory/NadyaOptimal.lean:86); `int4_roundtrip` (:105); `exists_best_mse_scale` (:133) | `trit5Pack`/`_pack_int4`/`_best_mse_ternary`, Надя.txt:390-440 (snapshot 2026-11-24) | exact for the pack; honest gap: list-level int4 padding, candidate list | C666 |
+| step | `cosine_sched_bounds` (Hagi/Theory/NadyaOptimal.lean:150); `muon_step_norm_bound` (:208) | HybridMuon schedule, Надя.txt:120-152 | conditional (polar norm c is a hypothesis; momentum and weight decay outside) | C666 |
+| probability | `paired_lcb_false_grow_bound` (Hagi/Theory/NadyaOptimal.lean:1117) | LCB gate, Надя.txt:109-112/:884-890 | conditional (deterministic radius r; code uses z·σ̂/√n) | C666 |
+| compression | `bypass_reaches_compression_limit` (Hagi/Theory/NadyaOptimal.lean:1151); `ce_covered_zero` (Hagi/Theory/ExactBypass.lean:70) | EXACT_BYPASS, Надя.txt:695-750 | exact for the ideal coder (q = 1 on the support) | C666 |
+| growth | `wlogits_width_preserved` (Hagi/Theory/NadyaOptimal.lean:782); `attn_score_scale_preserved` (:514); `rotary_old_pairs_unchanged` (:451) | `grow_width`, Надя.txt (function name) | exact for nh = 1, even width; honest gap: nh > 1, odd width, clip are hypotheses `WGrowth` | C667 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:354) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
 
 **What is proved end to end.** Inside Lean, with no code hypothesis:
@@ -87,20 +91,14 @@ Hagi/Theory/CertifyThenCommit.lean:332) and its fourteen-clause
 consolidation (`hagi_master_v34`, Hagi/Theory/MasterTheoremV3.lean:365)
 — budget, zero-forgetting under a frozen task, objective telescoping,
 coverage monotonicity, the exact transfer iff, the minimal snap grid,
-the coverage floor and peak window budget. **What is proved end to end.** Inside Lean, with no code hypothesis:
-the cycle theorem (`certify_then_commit_sound`,
-Hagi/Theory/CertifyThenCommit.lean:332) and its fourteen-clause
-consolidation (`hagi_master_v34`, Hagi/Theory/MasterTheoremV3.lean:365)
-— budget, zero-forgetting under a frozen task, objective telescoping,
-coverage monotonicity, the exact transfer iff, the minimal snap grid,
-the coverage floor and peak window budget. Against the consumer's code,
+the coverage floor and peak window budget. the coverage floor and peak window budget. Against the consumer's code,
 the exact bridges are the range branch of the certified step, identity
 growth of the trunk, the MGDA direction at ε = 0, and three control-flow
 predicates (backtracking, repair, window order) — repair with a linear,
 not geometric, bound. Two rows are exact only as *verdicts*: the
 wave-258 window fix leaves a k-byte gap between context and target, and
 Adam is a descent step only at t = 1.
-<!-- source: STATUS.md cards C638–C658; §3.19 (i)–(ix); §3.20; §4.8 -->
+<!-- source: STATUS.md cards C638–C667; §3.19/§3.20 carry only deltas -->
 
 **What remains a hypothesis or a model.** (1) h1 for the real warm-up:
 the code warms the block with bare Adam and never calls the certified
@@ -500,8 +498,8 @@ spectrum to exactly 1.
 
 **Adapter continual isolation (C544).** Composing adapters with
 the continual line: per-task adapters give zero forgetting
-STRUCTURALLY — `adapter_isolation_zero_forgetting` (:567) and
-`adapter_per_task_sound` (:582) need no projections or budgets.
+STRUCTURALLY — `adapter_isolation_zero_forgetting` (AdapterGrowth.lean:567) and
+`adapter_per_task_sound` (AdapterGrowth.lean:582) need no projections or budgets.
 Measured head-to-head (conflict-pinned task B, same
 trunk/data/eta/grid): ISO forgetA = 0 EXACT (bit-exact assert)
 vs SHARED +0.2331 vs naive-trunk +5.5757 (the scenario of
@@ -921,402 +919,132 @@ regime (ii), the counter-intuitive regime got its own card
 (iii), the last grey element became a theorem (iv), and the
 bench consumes all of it fail-closed (v).
 
-### 3.19 Code bridges: the consumer's code checked against the canon (C638–C648)
+### 3.19 The code-bridge era (C638–C648): what the consumer's code inherits
 
-**(0) The era.** Until C637 the flow was one-directional: primes
-supplied theory, HAGI_v2 (python) consumed it. From wave 252 the
-consumer checks itself against the Lean canon (its commit 4c70f7a is
-titled "three certificate defects, found by checking it against
-Lean"), and primes answers with **code bridges**: Lean theorems whose
-premises are the code's own predicates, anchored to exact python lines
-`file:line@sha`. A bridge has one of three statuses — **exact** (the
-code's statement is literally an instance of the theorem at the cited
-lines), **conditional** (the theorem holds under a model hypothesis the
-code does not check), or **honest gap** (what the code does is outside
-the bridge and is said so).<!-- source: era-index #c638-c640–#c646-c648; receipts .tmp/C638–C648 -->
+The full map — layer, canon, python `file:line@sha`, status — is the
+single table in **§0**; the statements live in the STATUS cards. This
+section adds only what a table cannot carry: how the era turned, and
+the measured numbers behind the honest-gap cells.
+<!-- source: STATUS.md cards C638–C648; era-index #c638-c640, #c642-c644,
+     #c646-c648, #c647, #c648; receipts .tmp/C638–C648 -->
+
+**The turn.** Until C637 primes supplied theory and HAGI_v2 consumed it.
+From wave 252 the consumer checks itself against the Lean canon (its
+commit 4c70f7a: "three certificate defects, found by checking it
+against Lean"), and primes answers with **code bridges**: theorems
+whose premises are the code's own predicates, anchored to python lines
+`file:line@sha` (wave 254 = 1ae924e, wave 255 = ca52eb4; no wave 256+
+claim is bridged in this section). Statuses — exact, conditional,
+honest gap — are defined in §0.
+
+**Deltas of the era, by step.** (i) Adaptive step: the clamped
+multiplier equals the exact kappa only on the window (1e-5, 50]; the
+old claim was computed for the unscaled step and was **400/39 ≈
+10.26×** too large at lr_scale 0.05 (defect 2 of wave 252). (ii) MGDA:
+the code minimizes over NORMALIZED gradients, the canon over raw ones —
+literally the same point only at ε = 0 with equal ‖g_j‖; otherwise 2ε
+or a different problem, and the Frank-Wolfe rate is not formalized.
+(iii) Trunk growth: both Lean files are native to primes, not a port —
+a class-(a) verdict, 0 new theorems. (iv) Warm-up: after step 0 Wo ≠ 0,
+"function preserved after training" is false and cannot be a theorem;
+what is proved is conditional on h1, and in the code h1 is NOT a fact
+(warm-up is bare Adam on (W1, b1, Wo), the certified step writes to the
+trunk and certifies batch CE). (v) The backtrack predicate is the
+code's own (β = 1/2, exactly 9 trials, no σ·γ·⟪g,d⟫ term — "Armijo" did
+not survive reading the code). (vi) The CE range lemma is about a shift
+of LOGITS, so the certificate does not depend on which parameters carry
+the step; the block-only JVP that would feed it is absent from the code.
+(vii)–(viii) Batch → global holds deterministically for a fixed batch
+and only under an iid / independent-rounds model otherwise; the slack
+is k·ebGap(α/k), which the code never evaluates (no b, sig, α/k).
+
+**Measured, behind the honest-gap cells.** On the wave-252 test config
+(dim 32, hidden 64, seed 0, 12 steps) the adaptive branch is NEVER taken
+(eta* ≈ 203–260 > 1): the certificate of the real code is
+`ce_range_code_drop`, 12/12 claim ≤ realised drop (e.g. claim
+0.07396868055108989 ≤ 0.07546329498291016). The code builds the
+majorizer on the JVP displacement, the theorem is about the exact one:
+in a nonlinear LM (dim 16, hidden 32, 5 steps) rollback fired 2/5
+(realised drop 0 < claim 0.083/0.095). MGDA stop: float32 gap 0.0 on
+all 6 probe cases. Adam is not a certified descent from t = 2, so the
+backtracking gate is mandatory.
+
+**The chain in one line.** identity start (literal) → certified step
+on the block ⇒ h1 ⇒ obj ≤ fOld under both gate verdicts → batch →
+global only probabilistically. Across the era the weak link moved from
+"the step is not certified" to "the batch/round model is a hypothesis".
+Axioms of every new theorem: propext, Classical.choice, Quot.sound.
 
 
-Code anchors of this section are `hagi/lm.py`, `hagi/unified.py`,
-`hagi/selfmodel.py` of C:/HAGI_v2 **@ca52eb4 (wave 255)** unless a
-different sha is written; the adaptive-step anchors are **@1ae924e
-(wave 254)**, where the lines of the C638 card were taken. At HAGI_v2
-HEAD b3740e0 (wave 258) the same constructs moved (`_certified_finite_step`
-lm.py:826 → :831, the refine loop :999 → :1007, `MAX_BLOCKS` 2 → 4,
-warm-up lr 3e-3 → 1e-3); no wave 256–258 claim is bridged here.
-<!-- source: git show ca52eb4|1ae924e|HEAD:hagi/*.py, rg line check
-     2026-11-24 -->
+### 3.20 Later bridges (C651–C667): deltas on the §0 map
 
-**(i) Adaptive certified step (C638) — exact on the range branch,
-honest gap on the adaptive branch.** The code's `_adaptive_step`
-(lm.py:1261 @1ae924e) builds a majorizer on the directional logit
-displacement: `R = max` per-sample range (:1293), curvature
-`C = kappa(R)·Var` with kappa clamped to 1/2 below 1e-5 and capped at
-R = 50 (:1298-1300), step `eta = A/(2C)` or the range step `4A/R²`
-(:1313), claim `A·eta − C·eta²` or `A·eta − (R²/8)·eta²` (:1323-1324).
-- `ce_direction_range` (AdaptiveMajorizer.lean:1223) and `kappaClamp`
-  (:1440): on the window (1e-5, 50] the clamped multiplier EQUALS the
-  exact kappa (`kappaClamp_eq_kappa` :1458). Outside it the code's C is
-  BELOW the canon and the claim is not certified by the bridge — the
-code relies on its post-step rollback there.
-- `ce_adaptive_code_drop` (:1474): for eta ∈ [0,1], CE after the step ≤
-  CE before − (eta·A − eta²·C) with the code's C. Bound to the eta
-  ACTUALLY taken — this is defect 2 of wave 252 (the claim was computed
-  for the unscaled eta*). Pure algebra: `adaptive_claim_scaled` (:1514)
-  and `adaptive_claim_scaled_bounds` (:1526) — at s = 0.05 the claim is
-  (2s − s²)·A²/(4C) = **39/400** of A²/(4C), i.e. the old claim was
-  **400/39 ≈ 10.26×** too large (measured in 4c70f7a as "~10x").
-- `ce_range_code_drop` (:1498): for every eta ≥ 0 the range-branch claim
-  `eta·A − eta²·R²/8` is certified with NO unit cap (majorizer
-  `Hagi.Model.ceOneHot_next_le` on [0,∞)).
-- Honest gap: instrumented run of the real code on the wave-252 test
-  config (dim 32, hidden 64, seed 0, lr_scale 0.05, 12 steps) — the
-  adaptive branch is NEVER taken (eta* ≈ 203–260 > 1); all 12 steps go
-  through the range branch, 12/12 claim ≤ realised drop (e.g.
-  A = 0.14199921488761902, R = 0.23055753111839294, eta =
-  0.5342657242561132, claim 0.07396868055108989 ≤ 0.07546329498291016).
-  **The certificate of the real code is `ce_range_code_drop`, not
-  `ce_adaptive_code_drop`.** The code builds the majorizer on the JVP
-  displacement, the theorem is about the exact one: in a nonlinear LM
-  (dim 16, hidden 32, 5 steps) rollback fired 2/5 (realised drop 0 <
-  claim 0.083/0.095) — outside the bridge. Clamp negatives:
-  kappa(1e-8) = −0.607747, kappa(1e-9) = 82.740371.
-<!-- source: STATUS.md cards C638 (witness .tmp/C638/traj.lean rc=0);
-     Hagi/Theory/AdaptiveMajorizer.lean:1223/:1440/:1474/:1498/:1514/:1526
-     (rg, HEAD 551c8025); hagi/lm.py:1261/:1293/:1298-1300/:1313/:1323-1324 @1ae924e -->
+Rows: §0 (repair, archiver, Adam, useful first step, chain rule,
+holdout gate, window order; C666–C667: BitAlloc, schedule, LCB gate,
+bypass, width growth). Code anchors are `git show`-verified at @e9a96fc
+(wave 256–257), @b3740e0 (wave 258) and @bab8aff (wave 258b); the
+Nadya.txt anchors are a 2026-11-24 snapshot.
+<!-- source: STATUS.md cards C651, C653–C655, C657, C660, C663, C664, C666, C667;
+     era-index #c650-c651 .. #c665-c667; receipts .tmp/C651–C667 -->
 
-**(ii) MGDA direction (C639) — exact at ε = 0 and equal norms,
-otherwise a different problem.** `mgda_weights` (selfmodel.py:35-60
-@ca52eb4) is Frank-Wolfe on the simplex over NORMALIZED gradients
-`G = g/(‖g‖+1e-12)` (:44), uniform start (:45), step 2/(2+t) (:52),
-at most 200 iterations (:35), stop when `min_j ⟨G_j,d⟩ ≥ ‖d‖² − 1e-16`
-(:48-50). The canon `batchGradientMinimizer`
-(Hagi/Model/BatchCEDescent.lean:368-402) is the exact min-norm point
-of the convex hull of RAW `batchResidualGradient`.
-- `MgdaStationary` (BatchCEDescentMgdaCode.lean:54) IS the stop test;
-  `mgdaCodeDirection` (:44) IS the code's `d = alpha @ G`; `SimplexWeights`
-  (:49) is the clamp/renormalize contract (:55-60).
-- `mgda_eq_of_stationary` (:126): at ε = 0 the code's mixture EQUALS the
-  min-norm point; `mgda_norm_sq_le_of_stationary` (:102): at ε > 0 only
-  `‖d‖² − 2ε ≤ ‖c‖²` (Young); `batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary`
-  (:146) instantiates it on the canon.
-- Three verdicts: EXACT at the stop (float32 gap 0.0 on all 6 probe
-cases, `1e-16` < eps(f32) ≈ 1.2e-7); APPROXIMATE with tolerance 2ε;
-  DIFFERENT PROBLEM under normalization — with unequal ‖g_j‖ the code
-  minimizes the norm over the hull of normalized gradients, which is not
-  the raw hull (the code knows: selfmodel.py:114-120, "WAVE 254 (bug)").
-  Frank-Wolfe rate is NOT formalized; the 200-iteration exit without the
-  stop test yields only a simplex point, no certificate.
-<!-- source: STATUS.md card C639 (witness rc=0, probe 6 cases);
-     Hagi/Model/BatchCEDescentMgdaCode.lean:44/:49/:54/:102/:126/:146 (rg) -->
+**(i) Repair (C651) — linear, not geometric.** The loop accepts any
+improvement > 1e-4 (no contraction factor ρ), so the theorem gives
+z ≤ v − tol·(accepted rounds) and the gate may end above its pre value;
+post may remain above pre, the gate is a sample estimate (≤ 8 domains ×
+256 positions), and clause (2) of `master_theorem_v3` is not
+instantiated (repair writes the shared trunk). Commit-message numbers,
+not re-measured: +0.553 → +0.036, 20/89 rounds hit rollback.
 
-**(iii) Function-preserving trunk growth, wave 255 (C640) — exact
-("code statement ⊂ canon").** `_block_add` (lm.py:581-587 @ca52eb4)
-computes `h = h + relu(a @ W1 + b1) @ Wo`; a fresh block `grow()`
-(:589-601) has random W1 (:594), b1 = 0 (:595), Wo = 0 (:596). This is
-`benchResidualBlock` (GrowTrunkBlock.lean:86) with γ = 0:
-`benchResidual_zero` (:95) masks ANY inner function; `grow_block_bench_sound`
-(:124) and `grow_block_obj_invariant` (:135) — depth 2 → 3 preserves the
-trunk function and ANY functional (logits, CE) EXACTLY = the code's
-"logits preserved EXACTLY, max|diff| = 0.0"; `grow_blocks_repeat_sound`
-(:149) = `MAX_BLOCKS = 2` (unified.py:381). LM carrier:
-`identityBlock` (FunctionPreservingGrowth.lean:139), `trunk_function_preserving`
-(:135), `lmLogits_grow_identity` (:145 — the very name in the code
-comment, lm.py:568), `function_preserving_growth` (:169). Verdict class (a):
-0 new theorems, one correspondence card. Both Lean files are native to
-primes (merge-islands era), not a port — HAGI_v2 has 0 `.lean` files.
-<!-- source: STATUS.md card C640; Hagi/Theory/GrowTrunkBlock.lean:86/:95/:124/:135/:149,
-     Hagi/Theory/FunctionPreservingGrowth.lean:139/:146/:156/:180 (rg) -->
+**(ii) Archiver (C653) — the ideal coder only.** The code's claim
+(archiver.py:1-4 @b3740e0) is "size within o(1) of −log₂ P(data), the
+ratio IS the model's CE". Proved for len = ⌈−log₂ p̂⌉₊:
+**H(p) ≤ E_p[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1** (Kraft–McMillan +
+`ceBits p q = entBits p + klDef p q / log 2`); at p̂ = p: H ≤ E[len] ≤
+H + 1. The model is the IDEAL coder; p̂ is the 16-bit CDF
+(freq = max(1, round(P·65200))); the round-trip is tests plus a measured
+11/11 (5.16 bit/byte vs zlib 2.40).
 
-**(iv) Warm-up certificate (C642, C644) — conditional on h1.** The
-code warms the new block by bare Adam on (W1, b1, Wo) with the trunk
-frozen (unified.py:423-433 @ca52eb4) and keeps it iff holdout CE did
-not worsen, else `blocks.pop()` (:435-437). After step 0, Wo ≠ 0:
-"function preserved after training" is FALSE and cannot be a theorem.
-What IS proved (FunctionPreservingGrowth.lean, section WarmUp; carrier
-`obj : B → ℝ` is the TRAIN objective, abstract):
-- `warmup_telescope` (:257): obj(θ n) ≤ obj(θ 0) − Σ drop.
-- `warmup_safe` (:272): (h0) obj(θ 0) = fOld — the identity start, the
-  one link where code and theorem coincide literally — and (h1)
-  ∀t, obj(θ(t+1)) ≤ obj(θ t) − drop t ⇒ obj(θ n) ≤ fOld, for ANY
-  number of steps. `warmup_strict` (:287) adds − n·dMin.
-- `post_warmup_growth_safe` (:321): composed with the rollback gate,
-  under BOTH verdicts obj ≤ fOld (REJECT = exact `rollback_state_params`);
-  `_of_certified` derives the ACCEPT premise from `warmup_safe`.
-- `CertifiedFiniteStep` (:359, `stepEps` = 1e-12 :352) is the abstract
-  contract of the code's `_certified_finite_step` (lm.py:826-879
-  @ca52eb4): COMMIT (drop > 1e-12 ∧ obj θ' ≤ obj θ − drop) ∨ HOLD (θ' = θ
-  ∧ drop = 0). `warmup_h1_of_certified_steps` (:379): every step by the
-  contract ⇒ h1; `warmup_safe_of_certified_steps` (:395) and
-  `post_warmup_growth_safe_of_certified_steps` (:406) follow.
-- Negatives: `uncertified_step_can_worsen` (:304) — without h1 one
-  step can raise obj from 0 to 1; `uncertified_step_not_certified`;
-  `batch_drop_not_global` (:433) — a certified drop of 1/2 on a
-  batch objective coexists with +1 on another functional.
-- Honest gap: in the CODE, h1 is NOT a code fact — warm-up never calls
-  `_certified_finite_step`, and that step writes to the TRUNK, not the
-  block, certifying its minibatch's CE. The holdout gate is MEASURED,
-  not proved (train ≠ holdout). The chain identity → warm-up → gate is
-  conditional on the trajectory consisting of contract steps on ONE
-  and the same objective. Closing it on the HAGI_v2 side is the subject
-  of `docs/PROPOSAL-certified-warmup.md` (C644, external push;
-  numbers not measured).
-<!-- source: STATUS.md cards C642, C644; Hagi/Theory/FunctionPreservingGrowth.lean:290/:283/:298/:315/:332/:375/:382/:390/:406/:417/:444 (rg);
-     hagi/lm.py:826 @ca52eb4; hagi/unified.py:423-437 @ca52eb4 -->
+**(iii) Adam (C655) — a verdict.** ⟨g, d⟩ > 0 is a code fact only at
+t = 1; at β₁ = 9/10, β₂ = 999/1000, g₁ = 1, g₂ = −1/10 the second step
+has ⟨g, d⟩ < 0. So the Adam step is accepted only by the measured
+`backtrackAccept` (selfmodel.py:134-169 @b3740e0), and pin 26's open
+lemma closes as a NEGATIVE verdict.
 
-**(v) Adam backtracking, wave 254 (C643) — exact bridge, not Armijo.**
-`guarded_optimizer_step` (selfmodel.py:78-180 @ca52eb4) accepts a trial
-iff `worst ≤ max_task_regression ∧ wb − wa > total_bound` (:164-169;
-wb/wa = weighted holdout before/after, total_bound = e_gen + e_quant
-+ e_route + m_safety); `scale *= 0.5` (:133, :174); `max_backtracks = 8`
-(:78) → `range(9)`, exactly 9 trials. There is NO σ·γ·⟪g,d⟫ term — the
-task's "Armijo" premise did not survive reading the code, and the ACTUAL
-predicate was formalized (RollbackGate.lean): `btScale` (:245) =
-(1/2)^bt; `backtrackAccept` (:253); `backtrack_accept_drop` (:262): an
-accepted trial gives wa ≤ wb − drop with drop = wb − wa − errBound ≥ 0
-(h1-form); `backtrack_scale_halves` (:271); `backtrack_trials_bounded`
-(:283) — btScale 8 = 1/256. Termination is a bounded loop, not a γ_min
-threshold (none in the code). Honest gap: this does NOT close h1 for
-warm-up — `guarded_optimizer_step` is called only from the self-test
-(selfmodel.py:201, :214, :222); the objective in it is holdout loss,
-not train obj. The lemma `adam_inner_nonneg` is neither proved nor
-included: ⟨g, d⟩ ≤ 0 for the EMA direction m̂/√v̂ is not a code fact.
-<!-- source: STATUS.md card C643 (witness rc=0); Hagi/Theory/RollbackGate.lean:245/:253/:262/:271/:283 (rg);
-     hagi/selfmodel.py:78/:133/:164-169/:174/:201 @ca52eb4 -->
+**(iv) Useful first step (C657) — the formula hit.** On a linear logit
+carrier, **η* = 4|a|/R² and drop_max = 2a²/R²**: the first step is
+certifiably useful iff the residual signal a ≠ 0 and 2a²/R² > stepEps;
+at a = 0 nothing commits. Witness (.tmp/C657/traj.lean, rc=0): a = −1,
+R = 2 ⇒ η* = 1, drop_max = 1/2. Pin 31 (chain rule a < 0) closed for a
+LINEAR carrier in C663 (`chain_linear`, `useful_of_adam_first`) and
+for the relu block only as strict descent for small η (C665); the
+nonlinear certified drop is open.
 
-**(vi) Certified step on BLOCK parameters (C646) — the carrier does
-not matter.** Question: does the CE range lemma
-(`finite_displacement_ce_upper`, lm.py:235 @ca52eb4:
-CE(z+d) − CE(z) ≤ ⟨softmax z − onehot, d⟩ + range(d)²/8) depend on
-WHICH parameters carry the step? No — `d` is a shift of LOGITS, and in
-the canon that is `lse_shift_upper` (Hagi/Energy/PoEBound.lean:168) over
-abstract `x y : V → ℝ`. Hence:
-- `certified_step_block_of_range` (:460): for any logit map
-  `L : B → K → ℝ` (in particular `L b = lmLogits` of the model with block
-  `b` and frozen trunk) and `d = L b' − L b`, the same bound holds —
-  carrier-independence of the certificate.
-- `block_step_certified_of_range_bound` (:476): range ≤ r ⇒ obj_b b' ≤
-  obj_b b − drop; `block_step_commit_of_range_bound` (:490): drop >
-  stepEps ⇒ the COMMIT branch of `CertifiedFiniteStep` ⇒
-  `warmup_h1_of_certified_steps` applies to the block.
-- Negative `block_range_bound_violated_not_certified` (:505): with the
-  range bound violated and the objective rising, there is no certificate
-  at any drop.
-- Left to the code (implementation, not theorem): compute range(Δz)
-  via a block-only JVP with frozen trunk and a block-parameter variant
-  of `_certified_finite_step`. Functional logits of the block do not
-  exist in the code today.
-<!-- source: STATUS.md card C646 (witness rc=0); Hagi/Theory/FunctionPreservingGrowth.lean:493/:487/:501/:516;
-     Hagi/Energy/PoEBound.lean:168 (rg); hagi/lm.py:235 @ca52eb4 -->
+**(v) Window order (C651 → C664).** After wave 258 the context is
+`idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;
+measured CE 7.307 against 0.181 with the adjacent target
+(.tmp/C651/logs/windows_probe.log). Wave 258b fixed the same bug in
+three more oldest-first
+consumers (`_read_all_windows` left pad, the train_guarded holdout
+window, `generate`); commit-message numbers, not re-measured: holdout
+CE 3.59..4.23 nats (was 8.13..11.56), generation path 2.25 (was 3.64).
+Still open in the code: hagi/unified.py:1010 @bab8aff reads `[::-1]`
+with `logits(x)[0]`.
 
-**(vii) Batch → global telescoping (C647) — three levels.** Code fact
-(lm.py:978-1008 @ca52eb4): up to 64 positions by
-`rng.choice(..., replace=False)`, 8 rounds of `rng.permutation`, slices
-of 32, `_certified_finite_step` per batch (:999), ANY d > 0 accepted,
-ledger "per-batch-sum, no telescoping guarantee" (:1008). Levels:
-- (A) batch = whole dataset: the batch objective IS the global one; the
-  telescope already exists (`master_theorem_v3` clause 3,
-  `fixedBatchObjective_sum_certifiedDrop_le_telescope`).
-- (B) FIXED batch — proved deterministically: `batch_telescope_fixed`
-  (BatchGlobalTelescope.lean:45), `fixedBatch_telescope` (:61).
-- (C) RANDOM batch per step — proved only under an iid model:
-  `batch_drop_generalizes` (:121): δ = per-sample loss increment, iid
-  sample of n ⇒ 1 − α ≤ P[mean_sample δ < Σ q δ + ebGap] via
-  `empirical_bernstein_mean_bound` (Hagi/Probability/EmpiricalBernstein.lean:286),
-  premises: range b, weighted variance ≤ sig, sig > 0;
-  `certified_batch_drop_global` (:177): on the sample where the
-  certified dropB ≤ the realized sample drop, obj_G θ' ≤ obj_G θ −
-  dropB + ebGap with probability ≥ 1 − α. `ebGap` (:75) =
-  √(2·sig·ln(2/α)/n) + 2·b·ln(2/α)/n.
-- Honest gap: the code samples WITHOUT replacement — iid is a
-  conservative idealization, not formalized; the code measures drop on
-  a batch of 32 but does not compute b and sig for the per-sample
-  increments, so ebGap is never evaluated.
-<!-- source: STATUS.md card C647 (witness rc=0); Hagi/Contracts/BatchGlobalTelescope.lean:45/:61/:75/:121/:177;
-     Hagi/Probability/EmpiricalBernstein.lean:286 (rg); hagi/lm.py:978-1008 @ca52eb4 -->
-
-**(viii) Union bound over rounds (C648) — conditional on round
-independence.** MODEL (hypothesis, not code fact): rounds are
-independent — `Fin k → Fin n → V` with the product measure `roundP`
-(:233; round density `roundDens` :228 = iid sample from q;
-`roundP_isProb` :236, `round_marginal` :251).
-- `rounds_union` (:299): `1 − Σ eps i ≤ P[∀ i, A i]` via
-  `prodPq_union_finset` and `round_marginal`.
-- `rounds_telescope` (:340): obj(i+1) ≤ obj i − dropB i + g ⇒ obj k ≤
-  obj 0 − Σ dropB + k·g.
-- `certified_rounds_union` (:366), the T1 of the era: with EB
-  premises per round (b, sig on per-sample increments),
-  **1 − α ≤ P[ (∀ i, roundGood … (ebGap b sig n (α/k)) i) ∧
-  (certified ≤ realized drop in every round ⇒ Σ q·loss k ≤ Σ q·loss 0
-  − Σ dropB + k·ebGap(α/k)) ]**. Real reading for the code: the
-  8-round certified drop weakens by 8·ebGap(α/8); at α = 1/10 the
-  per-round level is α/k = **1/80** (witness: ebGap 1 1 4 (1/80) =
-  √(2·ln 160/4) + 2·ln 160/4, slack 8·ebGap > 0).
-- Honest gap: for the code the rounds are DEPENDENT through the θ
-  update between them — the bound is conditional on the model.
-  WOR conservativity (FCP (N−n)/(N−1) ≤ 1) is intuition: Mathlib has
-  no such lemma (rg: nothing usable), the price is an
-  order-statistics/FCP lemma. The code neither computes b/sig nor
-  splits α over rounds.
-<!-- source: STATUS.md card C648 (witness rc=0); Hagi/Contracts/BatchGlobalTelescope.lean:228/:233/:236/:251/:299/:340/:366 (rg) -->
-
-**(ix) The chain in one line.** identity start (h0, literal) →
-certified step on the block (vi, carrier-free) ⇒ h1 (iv) ⇒ obj ≤ fOld
-under both gate verdicts → batch → global only probabilistically (vii,
-viii) under the iid/independence model. Across the era the weak link
-moved from "the step is not certified" to "the batch/round model is a
-hypothesis". Axioms of every new theorem: propext, Classical.choice,
-Quot.sound. Of the 8 bridges (§4.8), 4 are exact at their cited
-lines — (i) range branch, (ii) at ε = 0, (iii), (v) as a predicate —
-and 4 are conditional — (iv), (vii), (viii), plus the carrier lemma
-(vi) that feeds (iv).
-
-### 3.20 Later bridges (C651–C657): repair, archiver, Adam, the useful first step
-
-The code-bridge era continues past wave 255. Code anchors are
-`git show`-verified at **@e9a96fc (wave 256–257)** and **@b3740e0
-(wave 258, HAGI_v2 HEAD)**; Lean anchors are rg-verified at HEAD
-of HEAD e160b7ec.
-<!-- source: STATUS.md cards C651, C653, C654, C655, C657; receipts
-     .tmp/C651–C657 -->
-
-**(i) Repair of forgetting (C651) — exact control flow, linear bound.**
-`_repair_forgetting` (unified.py:408-454 @e9a96fc; call :256) runs,
-while the paired gate `_old_domains_ce` (:635-660) is above pre:
-snapshot → `train_certified` on OLD bytes (:436-437) → measure → on no
-improvement `new ≥ post − 1e-4` an exact rollback `q.copy_(s0)`
-(:450-452) and STOP, else the next round; budget `REPAIR_ROUNDS = 6`
-(:403). The canon `Hagi/Theory/RepairForgetting.lean`: `RepairRun`
-(:61) is an inductive relation with the code's three branches (done /
-retrain when `w < v − tol` / rollback otherwise, value preserved
-exactly), and
-
-> **Theorem (`repair_sound`, :105).** `0 ≤ tol` and
-> `run : RepairRun tol r v z` imply `z ≤ v − tol·(acceptedCount run)`
-> ∧ `z ≤ v` ∧ `acceptedCount run ≤ r`.
-
-The bound is LINEAR because the code accepts any improvement > 1e-4
-(no contraction factor ρ) and stops at the first non-improvement; post
-may remain above pre. The gate is a sample estimate (≤ 8 domains × 256
-positions). Clause (2) zero-forgetting of `master_theorem_v3`
-(Hagi/Theory/MasterTheoremV3.lean:92) is NOT instantiated: repair
-writes the shared trunk. Measured numbers are the commit message's
-(+0.553 → +0.036; 20/89 rounds hit rollback), not re-measured.
-Window order (same card, wave 258): `slot_last`
-(Hagi/Theory/CoverageReading.lean:722) — the query slot k−1 is the
-newest byte p+k−1; `slotRev_first` (:734). Finding: after the fix the
-context is `idx[p−n .. p)` (:314) but the target is `idx[pos + k]`
-(:315) — a k-byte gap for p ≥ k; measured CE 7.307 against 0.181 with
-the adjacent target (.tmp/C651/logs/windows_probe.log).
-
-Wave 258b (HAGI_v2 @bab8aff, C664) — the same bug in three more
-consumers of the oldest-first trunk: `RopeAttentionByteLM._read_all_windows`
-(hagi/lm.py:1041-1054) built its coverage windows with `ctx[j:i][::-1]`
-and now emits `[32]*(k−len) + w` (left pad, one width); the
-train_guarded holdout eval (hagi/lm.py:905-907) read `idx[p+k−1 .. p]`
-and now reads `idx[p .. p+k-1]`; `generate` (hagi/lm.py:1126-1127,
-"WAVE 258c") dropped `ctx[::-1]`. Bridge: the holdout window is
-`slot k p` itself (`slot_last`, Hagi/Theory/CoverageReading.lean:722);
-the generation window is `padSlot` (:743): beyond the pad its slots
-are exactly `slot n p` shifted by the pad width (`padSlot_tail`, :748),
-the query byte stays in the last slot (`padSlot_last`, :756) and a full
-window is `slot k p` (`padSlot_full`, :765). Commit-message numbers,
-not re-measured: holdout CE 3.59..4.23 nats (was 8.13..11.56),
-generation path 2.25 (was 3.64). Honest gap: hagi/unified.py:1010
-@bab8aff still reads `list(context)[-k:][::-1]` with `logits(x)[0]`.
-<!-- source: STATUS.md card C651; hagi/unified.py:256/:403/:408-454/:635-660 @e9a96fc,
-     :297-316 @b3740e0 (git show); Hagi/Theory/RepairForgetting.lean:61/:105,
-     Hagi/Theory/CoverageReading.lean:722/:734 (rg) -->
-
-**(ii) Archiver codelength (C653) — conditional on the ideal coder.**
-The code claims (archiver.py:1-4 @b3740e0): "archive size is within
-o(1) of −log2 P(data), so the compression ratio IS the model's CE".
-The codec is a 32-bit range coder with a 16-bit CDF, `probs_to_cdf`
-(:33-39), `encode_step` (:52-70), `decode_step` (:96-118). What is
-proved (`Hagi/Theory/ArchiverCodeLength.lean`, for `len = ⌈−log₂ p̂⌉₊`):
-
-> **Theorem (`codelength_ge_entropy_of_kraft`, :55).** If
-> `∑ x, 2^{−len x} ≤ 1` then `entBits p ≤ expLen p len`.
-> **(`idealLen_le_ce_add_one`, :164).** `expLen p (idealLen q) ≤
-> ceBits p q + 1`. **(`ceBits_eq_entBits_add_kl`, :194).**
-> `ceBits p q = entBits p + klDef p q / log 2`.
-
-Together: **H(p) ≤ E_p[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1**; at p̂ = p
-(`idealLen_self_bounds`, :208) KL = 0 and `H ≤ E[len] ≤ H + 1`. The
-Kraft hypothesis is discharged from Mathlib's Kraft–McMillan
-(`codelength_ge_entropy_of_uniquelyDecodable`, :106). Honest gaps: the
-model is the IDEAL coder, not the range coder (o(1) per stream there);
-p̂ is the quantized CDF (freq = max(1, round(P·65200))); the round-trip
-is tests + measured 11/11 (5.16 bit/byte vs zlib 2.40), not a theorem —
-`trit_roundtrip` (Hagi/Theory/TritCodec.lean:117) is a positional pack.
-<!-- source: STATUS.md card C653; hagi/archiver.py:1-4/:33-39/:52-70/:96-118 @b3740e0 (git show);
-     Hagi/Theory/ArchiverCodeLength.lean:55/:106/:164/:194/:208 (rg) -->
-
-**(iii) Adam direction (C655) — a verdict, not a bridge.** The code
-calls `torch.optim.Adam` with defaults β₁ = 0.9, β₂ = 0.999, eps =
-1e-8 (lm.py:349, :403; unified.py:473, :548 @b3740e0). In
-`Hagi/Step/AdamDirection.lean`:
-
-> **Theorem (`adam_first_step_dot_pos`, :85).** `g ≠ 0` and `0 < eps`
-> imply `0 < adamDot g (adamDir g (fun i => g i ^ 2) eps)`.
-> **(`ema_sign_flip_negative`, :125).** At β₁ = 9/10, β₂ = 999/1000,
-> g₁ = 1, g₂ = −1/10 the second Adam step has `adamDot g d < 0`.
-
-So ⟨g, d⟩ > 0 is a code fact ONLY at t = 1; from t = 2 Adam is not a
-certified descent (`adam_step_not_always_descent`, :116). The code
-never relies on it: the Adam step is accepted only by the measured
-`backtrackAccept` (selfmodel.py:134-169 @b3740e0), and `min_dot ≥
-−conflict_tol` (:121-126) is computed for the MGDA direction before
-Adam. Chain C642 → C643 → C655 closes: h1 for an Adam step needs the
-backtracking gate. This settles pin 26's open lemma as a NEGATIVE
-verdict.
-<!-- source: STATUS.md card C655; hagi/lm.py:349/:403, hagi/unified.py:473/:548,
-     hagi/selfmodel.py:121-126/:134-169 @b3740e0 (git show);
-     Hagi/Step/AdamDirection.lean:85/:116/:125 (rg) -->
-
-**(iv) Useful first warm-up step (C657) — the formula hit.** Carrier:
-a family `bη : ℝ → B` with linear logit displacement
-`L (bη η) u − L b u = η·D u` (the step on `Wo` at `Wo = 0`), range
-constant `R` (`D u − D v ≤ R`), and `a = ⟨softmax (L b) − onehot_t, D⟩`.
-Certificate `linDrop a R η = −(η·a + η²·R²/8)` (:547).
-
-> **Theorem (`useful_first_step`, :552).** `R ≠ 0` ⇒
-> `linDrop a R (−4a/R²) = 2a²/R²`.
-> **(`useful_eta_le`, :565).** `linDrop a R η ≤ 2a²/R²`, with equality
-> only at `η = −4a/R²`. **(`exists_useful_eta`, :588).** `a < 0`,
-> `0 < R`, `stepEps < 2a²/R²` ⇒ `∃ η > 0, stepEps < linDrop a R η`.
-> **(`first_step_useful_certified`, :609).** The same on the block
-> carrier: `∃ η > 0` with `CertifiedFiniteStep (CE_t ∘ L) b (bη η)
-> (linDrop a R η)`. **(`first_step_strict_improves`, :644).** With
-> identity start `CE_t (L b) = fOld`: `∃ η > 0, CE_t (L (bη η)) < fOld`.
-
-That is, **η* = 4|a|/R² and drop_max = 2a²/R²**: the first step is
-certifiably useful iff the residual signal a is nonzero and
-2a²/R² > stepEps; with a = 0 no step commits (`no_signal_no_drop`,
-:597). Witness (.tmp/C657/traj.lean, rc=0): a = −1, R = 2 ⇒ η* = 1,
-drop_max = 1/2. Honest pins: a < 0 is a hypothesis (its chain-rule link
-to C655 is not formalized, pin 31), hlin is a code-side JVP fact, η* is
-the certificate optimum and not the code's fixed lr, and the global
-statement U2 is open (pin 30).
-<!-- source: STATUS.md card C657; Hagi/Theory/FunctionPreservingGrowth.lean:591/:563/:576/:599/:608/:620/:655 (rg);
-     witness .tmp/C657/traj.lean, gates .tmp/C657/gates.log -->
-
-**(v) The certified warm-up, simulated (C654).** Bench mode
+**(vi) The certified warm-up, simulated (C654).** Bench mode
 `certified-warmup-sim` (scripts/bench_bridge.py) compares a certified
-arm (python twin of `_certified_finite_step` on the real finite logit
-displacement, COMMIT iff drop > 1e-12, ≤ 600 steps) with the plain Adam
-arm of unified.py (lr 1e-3, 2 epochs, no check, no rollback), on the
-bench carrier with the trunk frozen — a simulation, not a HAGI_v2 run.
+arm (python twin of `_certified_finite_step`, COMMIT iff drop > 1e-12,
+<= 600 steps) with the plain Adam arm of unified.py on the bench
+carrier with the trunk frozen - a simulation, not a HAGI_v2 run.
 
 | corpus | fOld | certified | plain Adam (steps) | verdict |
 |---|---|---|---|---|
 | snapshot (34 pts, T=2, n_params=66) | 3.761650 | 2.783855 (600 COMMIT, 0 HOLD, 0 halvings, sum_drop 0.561600) | 3.583951 (2) | PASS |
 | --live-corpus (C610 fallback, T=2, n_params=102) | 4.811144 | 3.394217 (600 COMMIT, 0 HOLD, 0 halvings, sum_drop 0.780696) | 4.444299 (4) | PASS |
 
-The honest fact: plain Adam ALSO lowered the objective in both runs —
-but without a certificate; the certified arm guarantees obj_final ≤
-fOld by construction (every COMMIT is asserted `obj' ≤ obj − drop`).
-The certificate is a batch mean over all points, not a task mean.
-<!-- source: STATUS.md card C654; .tmp/C654/receipt.md, snap.out, live2.out (C654) -->
+The honest fact: plain Adam ALSO lowered the objective - without a
+certificate. The certificate is a batch mean over all points, not a
+task mean.
+<!-- source: .tmp/C654/receipt.md, snap.out, live2.out (C654) -->
+
 
 ## 4. Benchmarks (measured only)
 
@@ -1567,43 +1295,6 @@ AM-GM optimum w* = √(a/c) and the lower bound
 §3.18 (iv)); general α > 1 remains a Real-arithmetic sketch,
 not a Lean clause.
 
-### 4.8 The code-bridge table: code anchor ↔ theorem ↔ status
-
-Eight bridges of the code-bridge era (C638–C648). Code anchors are
-HAGI_v2 python `file:line@sha` (wave 254 = 1ae924e, wave 255 =
-ca52eb4), Lean anchors are at HEAD e160b7ec (FunctionPreservingGrowth.lean
-rows +22 since the C664 cycle). Status:
-**exact** = the code's statement at the cited lines is an instance of
-the theorem; **conditional** = holds under a hypothesis the code does
-not check; the honest-gap column says what is outside the bridge.
-
-| # | Code anchor (HAGI_v2 @sha) | primes theorem (file:line) | Status | Honest gap |
-|---|---|---|---|---|
-| 1 | `_adaptive_step` range branch, hagi/lm.py:1313-1324 @1ae924e | `ce_range_code_drop` (Hagi/Theory/AdaptiveMajorizer.lean:1498); `ce_adaptive_code_drop` (:1474); `adaptive_claim_scaled` (:1514) | exact (range branch, eta ≥ 0); adaptive branch exact only on the window (1e-5, 50] (`kappaClamp_eq_kappa` :1458) | adaptive branch never taken in 12/12 instrumented steps; JVP vs exact displacement (rollback 2/5 in the nonlinear LM); outside the window C is understated |
-| 2 | `mgda_weights`, hagi/selfmodel.py:35-60 @ca52eb4 | `mgda_eq_of_stationary` (Hagi/Model/BatchCEDescentMgdaCode.lean:126); `mgda_norm_sq_le_of_stationary` (:102) | exact at ε = 0 (and equal ‖g_j‖); 2ε-approximate at ε > 0; different problem under normalization | unequal norms → hull of normalized, not raw gradients; FW rate and the 200-iteration exit not formalized |
-| 3 | `_block_add` / `grow`, hagi/lm.py:581-601 @ca52eb4 | `grow_block_bench_sound` (Hagi/Theory/GrowTrunkBlock.lean:124); `function_preserving_growth` (Hagi/Theory/FunctionPreservingGrowth.lean:202) | exact (code statement ⊂ canon) | growth gate `_maybe_grow` (unified.py:383-440): signal 128·‖G‖²/(2L) vs heuristic c_add, not the canonical `growthGate` (NegativeTransfer.lean:574); no "function preserved after step 0" |
-| 4 | warm-up, hagi/unified.py:423-437 @ca52eb4 | `warmup_safe` (FunctionPreservingGrowth.lean:305); `post_warmup_growth_safe` (:321) | conditional (h1: every step certified) | warm-up is bare Adam, never calls the certified step; holdout gate measured, not proved |
-| 5 | `_certified_finite_step`, hagi/lm.py:826-879 @ca52eb4 | `CertifiedFiniteStep` (FunctionPreservingGrowth.lean:452); `warmup_h1_of_certified_steps` (:379); `batch_drop_not_global` (:433) | conditional (steps must be on ONE objective) | the code's step writes to the trunk, certifies batch CE; batch drop does not telescope to global |
-| 6 | `guarded_optimizer_step`, hagi/selfmodel.py:78-180 @ca52eb4 | `backtrack_accept_drop` (Hagi/Theory/RollbackGate.lean:262); `backtrack_trials_bounded` (:283) | exact as a predicate (the code's own, β = 1/2, 9 trials) | NOT Armijo (no σ·γ·⟪g,d⟫); called only from self-test; objective is holdout loss; `adam_inner_nonneg` unproved |
-| 7 | block step: JVP range of Δz (not in code), lemma hagi/lm.py:235 @ca52eb4 | `certified_step_block_of_range` (FunctionPreservingGrowth.lean:493); `block_step_commit_of_range_bound` (:490) | conditional (range bound supplied) | block-only JVP and a block variant of the certified step are implementation, absent today |
-| 8 | refine loop, hagi/lm.py:978-1008 @ca52eb4 | `batch_drop_generalizes` (Hagi/Contracts/BatchGlobalTelescope.lean:121); `certified_rounds_union` (:366) | conditional (iid batch; independent rounds; k·ebGap(α/k)) | sampling without replacement, rounds dependent through θ; code computes neither b/sig nor α/8; WOR conservativity not formalized |
-
-The count of this era is the 8 table rows, a sum over the cards
-C638–C648, not a machine-checked number. Later bridges (C651–C657,
-§3.20; full map §0), not table rows:
-the iterative repair of forgetting (`Unified._repair_forgetting`,
-unified.py:408-454 @e9a96fc) is bridged by `RepairRun` (Hagi/Theory/RepairForgetting.lean:61) / `repair_sound` (:105) — exact
-for the control flow, with a LINEAR bound (gate falls by ≥ `tol` per
-accepted round), not a geometric one, and no clause (2)
-zero-forgetting instance (the code writes the shared trunk). The
-lossless archiver (hagi/archiver.py @b3740e0) has a codelength
-bridge only for the IDEAL coder: `codelength_ge_entropy_of_kraft` (Hagi/Theory/ArchiverCodeLength.lean:55) / `idealLen_le_ce_add_one` (:164) / `idealLen_self_bounds` (:208) prove H(p) ≤ E[len] ≤ H(p) +
-KL(p‖p̂)/log 2 + 1 for len = ⌈−log₂ p̂⌉₊ via Kraft–McMillan + Gibbs.
-primes still models no range coder (`trit_roundtrip` is a positional
-pack); losslessness of archiver.py is tests + measured 11/11 only.
-<!-- source: STATUS.md cards C638–C648; era-index #c646-c648
-     («8 мостов — сумма по карточкам, не machine-checked»); all file:line re-verified by .tmp/C659/audit.py + .tmp/C664/repin.py, C664 HEAD -->
-
 ## 5. Honest limitations (pins)
 
 1. **Measurement premise.** Certified prediction is conditional
@@ -1713,12 +1404,12 @@ pack); losslessness of archiver.py is tests + measured 11/11 only.
    claims in §4.5 use the C597 fixture run (20 keys) and the C601
    gate_check witnesses.
 22. **Code bridges are pinned to a sha, and the code drifts.**
-   Every code anchor of §3.19/§4.8 is `file:line@sha` (wave 254
+   Every code anchor of §0 is `file:line@sha` (wave 254
    1ae924e, wave 255 ca52eb4). At HAGI_v2 HEAD b3740e0 (wave 258)
    the lines moved (`_certified_finite_step` lm.py:826 → :831, refine
    loop :999 → :1007, `MAX_BLOCKS` 2 → 4, warm-up lr 3e-3 → 1e-3);
-   waves 256–258 are bridged only in §3.20 (C651, C653, C655, C657) at
-   @e9a96fc / @b3740e0. The tree was read-only for primes.
+   waves 256–258b are bridged at @e9a96fc / @b3740e0 / @bab8aff; the
+   Nadya.txt anchors are a 2026-11-24 snapshot, not a git sha. The tree was read-only for primes.
 23. **The real certificate is the range branch.** On the wave-252
    test config the adaptive branch of `_adaptive_step` is never taken
    (eta* ≈ 203–260 > 1); `ce_adaptive_code_drop` is a bridge to a
@@ -1740,7 +1431,7 @@ pack); losslessness of archiver.py is tests + measured 11/11 only.
    the code's own accept test, which is called only from the self-test
    (C643). "Adam EMA descent" ⟨g, m̂/√v̂⟩ ≤ 0 is NOT a code fact;
    `adam_inner_nonneg` is unproved and not included. VERDICT (C655,
-   §3.20 iii): ⟨g, d⟩ > 0 holds only at t = 1; from t = 2 Adam
+   §3.20 (iii)): ⟨g, d⟩ > 0 holds only at t = 1; from t = 2 Adam
    is not a certified descent — the lemma is false as stated.
 27. **Block-only JVP is implementation.** `certified_step_block_of_range`
    is carrier-free because the range lemma is about logits; the
@@ -1936,7 +1627,7 @@ pack); losslessness of archiver.py is tests + measured 11/11 only.
 | adam_coord_sign_flip_neg | Hagi/Step/AdamDirection.lean:106 | C655 |
 | adam_step_not_always_descent | Hagi/Step/AdamDirection.lean:116 | C655 |
 | ema_sign_flip_negative | Hagi/Step/AdamDirection.lean:125 | C655 |
-| linDrop | Hagi/Theory/FunctionPreservingGrowth.lean:591 | C657 |
+| linDrop | Hagi/Theory/FunctionPreservingGrowth.lean:580 | C657 |
 | useful_first_step | Hagi/Theory/FunctionPreservingGrowth.lean:585 | C657 |
 | useful_first_step_pos | Hagi/Theory/FunctionPreservingGrowth.lean:591 | C657 |
 | useful_eta_le | Hagi/Theory/FunctionPreservingGrowth.lean:598 | C657 |
