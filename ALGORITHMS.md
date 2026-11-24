@@ -1957,6 +1957,10 @@ jointEnergy_le_ceLinear_logitRange             : jointEnergy ≤ E − η·⟪g,
 
 Посылка `0 < batchLogitRangeSquare` в мостах несущая: мосты
 `drop ≤ drop'` доказаны только при ней (вырождение `R' = 0` — §3.8).
+Batch-зеркало вырождения: `batchAlignment_pos_of_logitRangeSquare_pos`
+(`Hagi/Model/BatchCEDescentLogitRange.lean`) — `0 < R' ⇒ 0 < A`
+без посылок; случай «`R' = 0` при `A > 0`» теоремой не выделен и
+мостами не используется.
 
 ## 16. Исполняемый путь против spec-селекторов
 

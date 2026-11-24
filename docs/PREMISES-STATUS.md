@@ -96,7 +96,7 @@ hybrid_stack_transfer_descent(_strict)`. Доказательство = серт
    конечных выпуклых комбинаций (lse_weighted_le,
    merge_energy_bridgeW / h_emp_merge_of_bridgeW). Следующий
    уровень — merge-закон для блочно-диагональных /
-   Hadamard-операторов (см. Nonvacuity:258).
+   Hadamard-операторов (см. Nonvacuity.lean:267).
 3. Runtime-PPT: инициализация/смешивание цепи → разрядка
    h_emp_fiber/h_emp_dist до уровня canonical.
 4. `h_emp_quad`: PSD-мажоризация F (dL ≤ ⟪dW, F dW⟫) — готового

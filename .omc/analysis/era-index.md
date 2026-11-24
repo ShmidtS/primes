@@ -8,8 +8,8 @@
 `WindowTradeoff`, лестница `MasterTheoremV31..V33` →
 `Hagi/Theory/{NegativeTransfer,CoverageReading,MasterTheoremV3}.lean`).
 Числа freeze — рост только на новые Lean-декларации; docs-витки
-— identity. Планы рефакторинга: `refactor-master-plan-v7.md`,
-`refactor-master-plan-v7-cycle2.md` (этот каталог).
+— identity. Планы рефакторинга: `refactor-master-plan-v8.md` (этот
+каталог); v7, v7-cycle2, cycle3-survey — `archive/`.
 
 <a id="c591-c593"></a>
 ## C591–C593 — фронтир: certified-оптимумы параметров (freeze 8775→8803)
@@ -144,7 +144,7 @@
 - Honest: в коде warm-up — голый Adam (h1 условна); certified-шаг пишет в
   trunk по batch-CE, не в блок; batch-drop не телескопирует в global.
 - Фронтир: `certified_step_block`, телескоп batch→global, Adam EMA-лемма,
-  paper v0.9, external push proposal. Разбор: `period-c642-c644-analysis.md`.
+  paper v0.9, external push proposal.
 
 <a id="c645-c646"></a>
 ## C645–C646 — certified-шаг на параметрах блока (freeze 8887→8891)

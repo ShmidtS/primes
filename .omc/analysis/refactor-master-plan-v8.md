@@ -160,3 +160,59 @@ STOP, откат, запись в план. Коммит `refactor(v8 Xn): <summ
   Рекомендация: пометить (история предложений — смысл).
 - **D5 — F3 (C665 pin (2), W1-производная):** статус не проверен
   против C666/C667 — аудит в X1, не факт.
+
+---
+
+# CLOSEOUT — v8 LANDED (X1–X11)
+
+Статус: **v8 LANDED X1–X11**. Freeze identity 9043 во всех волнах
+(ни одна волна не меняла statement ни одной декларации; `lake build`,
+Freeze, ci.sh — PASS на каждой волне). Базовые цифры survey (§0)
+исторические — сверху.
+
+## Итоги по коммитам (base 3ba95ac3)
+
+| Волна | commit | +/− | Что |
+| --- | --- | ---: | --- |
+| X1 | 555ff987 | +138/−163 | ложные статусы honest-карточек (F1–F4), счётчики (F5–F7, F9–F11, F13–F16, F22, F26) |
+| X2 | 36850ac1 | +251/−1214 | STATUS-журнал → канон-карточки по файлу (M1, F19, F25) |
+| X3 | 3da082ec | +11/−718 | era-index вместо 7 period-файлов (M5), статусы PROPOSAL (F24) |
+| X4 | 60fe47a4 | +137/−446 | paper: одна карта мостов в §0, §3.20 → дельты, §4.8 удалён (M4, F8) |
+| X5 | 238813a9 | +903/−866 | Nadya WidthGrowth → `Hagi/Theory/WidthGrowth.lean` (M3; identity) |
+| X8 | 1a33035e | +9/−6 | bench `cw_*` → существующие lse/CE-хелперы (F23) |
+| X6 | 4d7bf131 | +62/−109 | Lean docstrings: событийные метки, карты клозов (F20) |
+| X6b | 7d971508 | +59/−59 | перепин FPG/MasterTheoremV3 после X6 |
+| X9 | b5e1b506 | +44/−92 | `Hagi.Research` вне defaultTargets; ci.sh строит явно |
+| X10 | f9bda399 | +116/−155 | ALGORITHMS-канон, repo-wide ложь, README/RELATED/GAPS |
+| X11 | (этот коммит) | — | финальное прочтение, archive v7-планов, закрытие v8 |
+
+`git diff --shortstat 3ba95ac3..f9bda399` = **−1936 строк** (35 файлов);
+прогноз был −1900…−2100 — выполнен. Tracked total: 241 848 → 239 912.
+
+## DECISION-решения
+
+- **D1 (v31–v33)** — honest-noop: лестница v34→v33→v32→v31 — структура
+  доказательства (`hV33` в V3.lean:434), не дубль. X7 отменён.
+- **D2 (period-файлы)** — удалены (X3), era-index покрывает C591–C667.
+- **D3 (Research в defaultTargets)** — исключён; ci.sh `lake build
+  Hagi.Research` явно (Freeze inventory импортирует его) (X9).
+- **D4 (PROPOSAL-certified-warmup / holdout-size)** — помечены «theory
+  implemented in primes; code-side pending in HAGI_v2» (X3).
+- **D5 (F3, C665 pin W1-производная)** — остаётся открытым: X665
+  доказал только strict descent по b1 (`useful_of_adam_first_relu`);
+  производная по W1 и certified-величина drop нелинейного носителя
+  не формализованы (STATUS FPG Honest-остаток — истинен).
+
+## Честная граница v8 (не провал — граница)
+
+- Построчно в v8 перечитаны: докстринги эры C638–C667 (X6), STATUS,
+  PALOMAR-CARDS, paper-draft, PROPOSAL-*, PREMISES-STATUS,
+  CONSOLIDATION-GAPS, ALGORITHMS, README, RELATED, era-index.
+- Остальной Lean (≈206k строк / 560 файлов, минус перечитанные
+  докстринги) построчно НЕ перечитывался; покрытие — v7 (T3, TrivialLint)
+  и автоматические гейты (DocLint/Freeze/AllAxiomCheck). Кандидаты v9:
+  `Hagi/Probability/Freedman.lean` 4490, `Hagi/Contracts/BatchCEGrowth.lean`
+  2920, `BatchCEBudgetGuard.lean` 2395, `Hagi/Model/` целиком (89 файлов,
+  35 075), `Hagi/Contracts/BatchCETrajectory/` (≈2.7k).
+- `scripts/bench_bridge.py` (14 971) — монолит, X8 только дедуп хелперов.
+- v7/cycle2/cycle3-планы — `.omc/analysis/archive/` (Chesterton).

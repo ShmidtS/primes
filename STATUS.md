@@ -1141,7 +1141,8 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 - Частные результаты показывают, что фильтрованный выбор реально является
   `List.argmin` по memory-first стоимости среди допущенных элементов списка.
-### Hagi.Unified.ExecutableSelection — merged into ParetoExecution
+
+**Hagi.Unified.ExecutableSelection** — merged into ParetoExecution
 
 ## Hagi/Training/ExecutedCert.lean
 
@@ -1192,7 +1193,8 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   создаёт `CertStep` с `drop = (1−(1−eta)²)growthQuad S.weights`.
   Его поля `CertStep.drop_pos` и `CertStep.actual` содержат доказательства положительности
   и фактического неравенства, но не являются отдельными top-level теоремами.
-### Hagi.Unified.GuardedRobustLogit — merged into ParetoExecution
+
+**Hagi.Unified.GuardedRobustLogit** — merged into ParetoExecution
 
 ## Hagi/Unified/HonestTransition.lean
 
@@ -1886,11 +1888,11 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
 
 ## Hagi/Theory/MasterTheoremV3.lean (метатеорема v3 → v3.4)
 
-- `master_theorem_v3` (Hagi/Theory/MasterTheoremV3.lean:81): 5 гарантий
+- `master_theorem_v3` (Hagi/Theory/MasterTheoremV3.lean:83): 5 гарантий
   машины v3 (params-бюджет, zero-forgetting, coverage-монотонность,
   obj-телескоп, transfer-граница) — конъюнкция делегатов без
   ослабления; не дублирует MasterTheorem.lean.
-- `hagi_master_v33` (Hagi/Theory/MasterTheoremV3.lean:247) — certified-
+- `hagi_master_v33` (Hagi/Theory/MasterTheoremV3.lean:252) — certified-
   машина v3.3 ОДНОЙ теоремой; каждый клоз — делегат к доказанной
   теореме, гипотезы дословно, ноль новых доказательств:
 
@@ -1908,8 +1910,8 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
 | (10) | hierarchical coverage: любой i < nB покрыт окном `hierStarts` решётки при 0 < B, 0 < s' ≤ w — ЛЮБОЕ n | `hier_covers_any_n` | v3.2 |
 | (11) | reading floor: (hierStarts nB B w w).length = ⌈nB/w⌉ (0 < w, w ∣ B) = floor любого покрытия | `hier_optimal` | v3.3 (C622) |
 
-- v3.1 `hagi_master_v31` (:135) = (1)–(8); v3.2 `hagi_master_v32`
-  (:202) = v3.1 + (9)(10); v3.3 `hagi_master_v33` (:273) = v3.2 + (11).
+- v3.1 `hagi_master_v31` (:128) = (1)–(8); v3.2 `hagi_master_v32`
+  (:187) = v3.1 + (9)(10); v3.3 `hagi_master_v33` (:252) = v3.2 + (11).
   Witness: C600 trajMT31 (#check 8 клозов), C614 trajMT32 (клоз (9):
   L=2, G=1 → drop 1/4; (10): n=8128, B=4032), C622 trajMT33 (клоз
   (11): total 127 = ⌈8128/64⌉). Axioms: propext, Classical.choice,
@@ -1924,7 +1926,7 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
 | (13) | Adam first step: g≠0, eps>0 ⇒ ⟨g, adamDir g g² eps⟩ > 0 | `adam_first_step_dot_pos` | v3.4 (C662) |
 | (14) | holdout two-way: |Θ|≤N, ln(2N/δ) ≤ 2k(ε/B)² ⇒ P≥1−δ [гейт принял ⇒ pop_new ≤ pop_old + 2ε − margin] | `holdout_gate_two_way_delta` | v3.4 (C662) |
 
-  v3.4 `hagi_master_v34` (:365) = v3.3 + (12)(13)(14); клозы (1)–(11)
+  v3.4 `hagi_master_v34` (:323) = v3.3 + (12)(13)(14); клозы (1)–(11)
   одним делегатом `hagi_master_v33` (деструкцией конъюнкции). Cycle-аудит C662:
   MasterTheoremV3 импортирует только Hagi.lean; транзитивные импорты
   FunctionPreservingGrowth (70 модулей) / AdamDirection (1) /
@@ -2078,16 +2080,16 @@ unified.py:383-440 @ca52eb4; `_certified_finite_step` lm.py:826 @ca52eb4.
 
 | теорема | формулировка | file:line | bench |
 |---|---|---|---|
-| `identityBlock`, `trunk_function_preserving`, `lmLogits_grow_identity` (→ `lmLogits` LMCompose.lean:217), `function_preserving_growth` | trunk ++ [identity-блок] = старый trunk ⇒ те же логиты (только шаг 0). Родня: `zero_init_identity` (NonlinearStep0.lean:104), `adapter_neutral_B` (AdapterGrowth.lean:103) | Hagi/Theory/FunctionPreservingGrowth.lean:133, :168, :178, :202 | `--mode grow` (C444, `blockAdmissionRule`) |
-| `warmup_telescope`, `warmup_safe`, `warmup_strict` | h0 (старт = fOld) + h1 (каждый шаг obj' ≤ obj − drop) ⇒ obj n ≤ fOld − Σ drop | Hagi/Theory/FunctionPreservingGrowth.lean:284, :305, :320 | `certified-warmup-sim` (C654) |
+| `identityBlock`, `trunk_function_preserving`, `lmLogits_grow_identity` (→ `lmLogits` LMCompose.lean:217), `function_preserving_growth` | trunk ++ [identity-блок] = старый trunk ⇒ те же логиты (только шаг 0). Родня: `zero_init_identity` (NonlinearStep0.lean:104), `adapter_neutral_B` (AdapterGrowth.lean:103) | Hagi/Theory/FunctionPreservingGrowth.lean:133, :162, :172, :196 | `--mode grow` (C444, `blockAdmissionRule`) |
+| `warmup_telescope`, `warmup_safe`, `warmup_strict` | h0 (старт = fOld) + h1 (каждый шаг obj' ≤ obj − drop) ⇒ obj n ≤ fOld − Σ drop | Hagi/Theory/FunctionPreservingGrowth.lean:284, :299, :314 | `certified-warmup-sim` (C654) |
 | `uncertified_step_can_worsen` | без h1 один шаг растёт obj — негатив | Hagi/Theory/FunctionPreservingGrowth.lean:331 | — |
-| `post_warmup_growth_safe`, `post_warmup_growth_safe_of_certified` | + rollback-гейт (`guardedStep` RollbackGate.lean:87): при любом вердикте obj ≤ fOld | Hagi/Theory/FunctionPreservingGrowth.lean:348, :373 | — |
-| `stepEps`, `CertifiedFiniteStep`, `warmup_h1_of_certified_steps`, `warmup_safe_of_certified_steps`, `post_warmup_growth_safe_of_certified_steps` | контракт COMMIT (drop > 1e-12 ∧ obj' ≤ obj − drop) ∨ HOLD ⇒ h1 ⇒ warmup_safe и rollback-композиция | Hagi/Theory/FunctionPreservingGrowth.lean:391, :404, :412, :428, :439 | `certified-warmup-sim` (C654) |
-| `uncertified_step_not_certified`, `batch_drop_not_global` | негативы: растущий шаг не проходит контракт; drop на batch ≠ drop на другом functional | Hagi/Theory/FunctionPreservingGrowth.lean:446, :466 | — |
-| `certified_step_block_of_range`, `block_step_certified_of_range_bound`, `block_step_commit_of_range_bound`, `block_range_bound_violated_not_certified` | range-лемма о логитах (`lse_shift_upper` PoEBound.lean:168) не зависит от носителя ⇒ шаг по параметрам блока certified при range ≤ r | Hagi/Theory/FunctionPreservingGrowth.lean:487, :509, :523, :538 | — |
-| `linDrop`, `useful_first_step`, `useful_first_step_pos`, `useful_eta_le`, `exists_useful_eta`, `first_step_useful_certified`, `first_step_strict_improves`, `no_signal_no_drop` | линейный по η шаг: drop_max = 2a²/R² при η* = −4a/R²; a < 0 ∧ 2a²/R² > stepEps ⇒ COMMIT и CE < fOld; a = 0 ⇒ drop ≤ 0 ∀η | Hagi/Theory/FunctionPreservingGrowth.lean:575, :585, :591, :598, :621, :630, :642, :677 | — |
-| `chainGrad`, `chain_linear`, `useful_of_adam_first` | ∇(CE∘L) = Jᵀ∇CE (алгебра); Adam-first g ≠ 0 ⇒ a < 0 ⇒ certified COMMIT на линейном носителе (Wo при фиксированном h) | Hagi/Theory/FunctionPreservingGrowth.lean:708, :721, :746 | — |
-| `useful_step_of_fderiv`, `useful_of_adam_first_fderiv`, `reluL`, `reluMask`, `reluJacLin`, `reluJac`, `hasFDerivAt_relu`, `hasFDerivAt_reluL`, `useful_of_adam_first_relu` | fderiv d = −c < 0 ⇒ ∃ η > 0 строгого убывания (`fderiv_ceOneHot_comp_apply` CEGradient.lean:170; `smax_pos` PoEBond.lean:108, `softDef_sum_one` InfoCore.lean:118); инстанс Adam-first по b1 relu-блока вне kink (БЕЗ certified-величины drop) | Hagi/Theory/FunctionPreservingGrowth.lean:805, :865, :893, :897, :914, :926, :900, :937, :982 | — |
+| `post_warmup_growth_safe`, `post_warmup_growth_safe_of_certified` | + rollback-гейт (`guardedStep` RollbackGate.lean:87): при любом вердикте obj ≤ fOld | Hagi/Theory/FunctionPreservingGrowth.lean:348, :367 | — |
+| `stepEps`, `CertifiedFiniteStep`, `warmup_h1_of_certified_steps`, `warmup_safe_of_certified_steps`, `post_warmup_growth_safe_of_certified_steps` | контракт COMMIT (drop > 1e-12 ∧ obj' ≤ obj − drop) ∨ HOLD ⇒ h1 ⇒ warmup_safe и rollback-композиция | Hagi/Theory/FunctionPreservingGrowth.lean:391, :398, :406, :422, :433 | `certified-warmup-sim` (C654) |
+| `uncertified_step_not_certified`, `batch_drop_not_global` | негативы: растущий шаг не проходит контракт; drop на batch ≠ drop на другом functional | Hagi/Theory/FunctionPreservingGrowth.lean:446, :460 | — |
+| `certified_step_block_of_range`, `block_step_certified_of_range_bound`, `block_step_commit_of_range_bound`, `block_range_bound_violated_not_certified` | range-лемма о логитах (`lse_shift_upper` PoEBound.lean:168) не зависит от носителя ⇒ шаг по параметрам блока certified при range ≤ r | Hagi/Theory/FunctionPreservingGrowth.lean:487, :503, :517, :532 | — |
+| `linDrop`, `useful_first_step`, `useful_first_step_pos`, `useful_eta_le`, `exists_useful_eta`, `first_step_useful_certified`, `first_step_strict_improves`, `no_signal_no_drop` | линейный по η шаг: drop_max = 2a²/R² при η* = −4a/R²; a < 0 ∧ 2a²/R² > stepEps ⇒ COMMIT и CE < fOld; a = 0 ⇒ drop ≤ 0 ∀η | Hagi/Theory/FunctionPreservingGrowth.lean:575, :580, :586, :593, :616, :637, :672, :625 | — |
+| `chainGrad`, `chain_linear`, `useful_of_adam_first` | ∇(CE∘L) = Jᵀ∇CE (алгебра); Adam-first g ≠ 0 ⇒ a < 0 ⇒ certified COMMIT на линейном носителе (Wo при фиксированном h) | Hagi/Theory/FunctionPreservingGrowth.lean:708, :716, :741 | — |
+| `useful_step_of_fderiv`, `useful_of_adam_first_fderiv`, `reluL`, `reluMask`, `reluJacLin`, `reluJac`, `hasFDerivAt_relu`, `hasFDerivAt_reluL`, `useful_of_adam_first_relu` | fderiv d = −c < 0 ⇒ ∃ η > 0 строгого убывания (`fderiv_ceOneHot_comp_apply` CEGradient.lean:170; `smax_pos` PoEBound.lean:108, `softDef_sum_one` InfoCore.lean:118); инстанс Adam-first по b1 relu-блока вне kink (БЕЗ certified-величины drop) | Hagi/Theory/FunctionPreservingGrowth.lean:805, :860, :888, :892, :909, :921, :895, :932, :977 | — |
 
 - Honest-остаток: (F3) производная по W1 не формализована; (U2) global
   reachability «expressive блок ⇒ drop ≥ δ» открыт (non-convex + UAT);
@@ -2102,8 +2104,8 @@ unified.py:383-440 @ca52eb4; `_certified_finite_step` lm.py:826 @ca52eb4.
 
 | теорема | формулировка | file:line | Надя.txt @снимок 2026-11-24 |
 |---|---|---|---|
-| `trit5_unshift`, `trit5_roundtrip`, `trit5Pack_lt_243`, `int4_roundtrip`, `exists_best_mse_scale` | BitAlloc: unpack ∘ pack = id (5 тритов < 243; int4-пара < 256); ∃ минимизатор MSE на конечном списке. Родитель pack — `trit_roundtrip`/`tritPack_injective` TritCodec.lean:117, :132 | Hagi/Theory/NadyaOptimal.lean:65, :79, :87, :98, :126 | :390-440 |
-| `cosine_sched_bounds`, `cosine_sched_start`, `cosine_sched_end`, `cosine_sched_mono`, `muon_step_norm_bound` | HybridMuon: 3/20 ≤ sched ≤ 1, sched 0 = 1, sched T = 3/20, монотонно; ‖шаг Muon‖ ≤ a·c при ‖orth‖ ≤ c | Hagi/Theory/NadyaOptimal.lean:136, :151, :157, :166, :201 | :120-152 |
+| `trit5_unshift`, `trit5_roundtrip`, `trit5Pack_lt_243`, `int4_roundtrip`, `exists_best_mse_scale` | BitAlloc: unpack ∘ pack = id (5 тритов < 243; int4-пара < 256); ∃ минимизатор MSE на конечном списке. Родитель pack — `trit_roundtrip`/`tritPack_injective` TritCodec.lean:117, :132 | Hagi/Theory/NadyaOptimal.lean:72, :79, :87, :98, :126 | :390-440 |
+| `cosine_sched_bounds`, `cosine_sched_start`, `cosine_sched_end`, `cosine_sched_mono`, `muon_step_norm_bound` | HybridMuon: 3/20 ≤ sched ≤ 1, sched 0 = 1, sched T = 3/20, монотонно; ‖шаг Muon‖ ≤ a·c при ‖orth‖ ≤ c | Hagi/Theory/NadyaOptimal.lean:143, :151, :157, :166, :201 | :120-152 |
 | `paired_mean_dev_bound`, `paired_lcb_false_grow_bound` | LCB-гейт: paired Hoeffding через `holdout_concentration` Statistics.lean:178; P[ложный GROW] ≤ 2·exp(−2k(r/2B)²) при popMean d ≤ 0 | Hagi/Theory/NadyaOptimal.lean:221, :270 | :109-112, :884-890 |
 | `idealLen_eq_zero_of_prob_one`, `bypass_reaches_compression_limit` | EXACT_BYPASS: q = 1 на носителе p ⇒ ceBits = expLen = entBits = 0 (мост `ce_covered_zero` ExactBypass.lean:70 ↔ `idealLen_self_bounds` ArchiverCodeLength.lean:208) | Hagi/Theory/NadyaOptimal.lean:294, :304 | :695-750 |
 

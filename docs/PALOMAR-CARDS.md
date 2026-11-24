@@ -17,7 +17,8 @@ machine-checked результатов C5XX–C6XX-витков: самодос�
 математические формулировки без контекстной терминологии,
 точные FQN-якоря и честный статус. Все доказательства
 проверены Lean 4.36 (pinned Mathlib, см. lake-manifest.json);
-гейт `testallax` подтверждает: только стандартные три аксиомы
+гейт `scripts/AllAxiomCheck.lean` (`ALLAXIOMS: PASS` в ci.sh)
+подтверждает: только стандартные три аксиомы
 Lean (`propext`, `Classical.choice`, `Quot.sound`), без
 `sorryAx` и `Lean.ofReduceBool`.
 
@@ -95,7 +96,7 @@ Lean (`propext`, `Classical.choice`, `Quot.sound`), без
   ошибку кросс-энтропии.
 - **Anchor.** `Hagi.Theory.ExactBypass.ce_covered_zero`
   (Hagi/Theory/ExactBypass.lean:72); строится на
-  `ce_pointwise_of_prob_one` (:66).
+  `ce_pointwise_of_prob_one` (:64).
 - **Dependencies.** Mathlib (Real.log, List.sum); без внешних
   теорий.
 - **Status.** Machine-checked; аксиомы: стандартные три Lean.
@@ -179,9 +180,9 @@ Lean (`propext`, `Classical.choice`, `Quot.sound`), без
 
   Явный счёт: `card(A) + card(B) = 2·|r|·|d|`.
 - **Anchor.** `Hagi.Theory.AdapterGrowth.adapter_param_count_le_block`
-  (Hagi/Theory/AdapterGrowth.lean:142); `adapter_param_count`
-  (:122), `block_param_count` (:134),
-  `adapter_param_count_lt_block` (:149).
+  (Hagi/Theory/AdapterGrowth.lean:160); `adapter_param_count`
+  (:140), `block_param_count` (:152),
+  `adapter_param_count_lt_block` (:167).
 - **Dependencies.** Mathlib (Fintype, Finset.card); без внешних
   теорий.
 - **Status.** Machine-checked; аксиомы: стандартные три Lean.
@@ -233,8 +234,8 @@ bounded peak
   блоков ⌈n/B⌉ — честное peak ≠ total).
 - **Anchor.** `Hagi.Theory.CoverageReading.hier_covers_any_n`
   (Hagi/Theory/CoverageReading.lean:283);
-  `hier_peak_window_budget` (:317); определения `hierBlockLen`
-  (:270), `hierStarts` (:275).
+  `hier_peak_window_budget` (:315); определения `hierBlockLen`
+  (:268), `hierStarts` (:273).
 - **Dependencies.** Та же Mathlib-база; сведение поблочно к
   `covStartsStep_covers` (Card 11). Числа-инстансы (C613,
   w = m = 64, B = 4032, s = 64): n = 100000 → 25 блоков
@@ -270,8 +271,8 @@ and budget
 - **Anchor.**
   `Hagi.Theory.CoverageReading.covStartsStep_covers`
   (Hagi/Theory/CoverageReading.lean:184);
-  `covStartsStep_len_le` (:219);
-  `covStartsStep_adaptive_covers` (:232).
+  `covStartsStep_len_le` (:220);
+  `covStartsStep_adaptive_covers` (:233).
 - **Dependencies.** Mathlib (List, Nat.div); без внешних
   теорий. Bench-числа (C602/C611): n = 540 → s = 8, 61 окно,
   covered; n = 4032 → s = 64 (граница), covered; n = 8128 →
@@ -296,13 +297,13 @@ with width-w windows
   `n ≤ L.length * w`
 
   и иерархия из Card 10 при s = w, w ∣ B достигает floor
-  (`hier_total_min` :468):
+  (`hier_total_min` :462):
 
   `theorem hier_total_min (n B w : ℕ) (hw : 0 < w) (hB : 0 < B)`
   `(hdiv : w ∣ B) :`
   `(hierStarts n B w w).length = (n + w - 1) / w`
 
-  замыкая оптимум (`hier_optimal` :539): total иерархии = ⌈n/w⌉
+  замыкая оптимум (`hier_optimal` :533): total иерархии = ⌈n/w⌉
   ∧ ∀ L-покрытие: `(n + w - 1) / w ≤ L.length`.
 - **Наглядность.** Никакая иерархия не прочитает n байт окнами
   ширины w меньше чем ⌈n/w⌉ чтениями — это геометрия, а не
@@ -314,10 +315,10 @@ with width-w windows
 - **Anchor.**
   `Hagi.Theory.CoverageReading.hier_total_floor`
   (Hagi/Theory/CoverageReading.lean:496);
-  `hier_total_min` (:468); `hier_optimal` (:539);
-  `hier_total_formula` (:446); `hier_blocks_sum_tiling` (:395);
-  `covStartsStep_len_tiling` (:360); определения `hierBlockLen`
-  (:270), `hierStarts` (:275).
+  `hier_total_min` (:462); `hier_optimal` (:533);
+  `hier_total_formula` (:440); `hier_blocks_sum_tiling` (:389);
+  `covStartsStep_len_tiling` (:354); определения `hierBlockLen`
+  (:268), `hierStarts` (:273).
 - **Dependencies.** Mathlib (Finset.card_le_card_of_injOn,
   List, Nat.div); без внешних теорий. Числа-инстансы (receipt
   C618): n = 100000, w = m = 64 → total 1563 = ⌈100000/64⌉ для
@@ -343,12 +344,12 @@ width-independent
   `w1 * ((n + w1 - 1) / w1) ≤ w2 * ((n + w2 - 1) / w2) + (w1 - 1)`
 
   т.е. totalCost(w1) ≤ totalCost(w2) + c·(w1 − 1) и симметрично
-  (обе границы `windowCost_linear_bounds` :86: n ≤ w·⌈n/w⌉ ≤
+  (обе границы `windowCost_linear_bounds` :586: n ≤ w·⌈n/w⌉ ≤
   n + w − 1 — total зажат в [c·n, c·(n+w))). Контраст — режим
-  (a) фиксированной стоимости `windowCost_fixed_mono` :77: при
+  (a) фиксированной стоимости `windowCost_fixed_mono` :577: при
   c(w) = c totalCost(w) = c·⌈n/w⌉ монотонно невозрастает по w
-  (ядро `ceil_div_anti` :55) — оптимально w = w_max. Мост к
-  иерархии C618: `windowCost_hier` :113 (total = ⌈n/w⌉ при
+  (ядро `ceil_div_anti` :555) — оптимально w = w_max. Мост к
+  иерархии C618: `windowCost_hier` :613 (total = ⌈n/w⌉ при
   w ∣ B).
 - **Наглядность.** При линейной стоимости окна ширина почти
   не влияет на общий бюджет — выбирай по точности, не по
@@ -361,9 +362,9 @@ width-independent
 - **Anchor.**
   `Hagi.Theory.WindowTradeoff.windowCost_linear_near_const`
   (Hagi/Theory/CoverageReading.lean:594);
-  `windowCost_linear_bounds` (:581);
-  `windowCost_fixed_mono` (:572); `ceil_div_anti` (:550);
-  `windowCost_hier` (:608).
+  `windowCost_linear_bounds` (:586);
+  `windowCost_fixed_mono` (:577); `ceil_div_anti` (:555);
+  `windowCost_hier` (:613).
 - **Dependencies.** Без Mathlib-теорий (Nat.div_add_mod,
   Nat.mod_lt, omega); числа-инстансы (receipt C623): n =
   100000, w ∈ {16, 64, 256} → чтения {6250, 1563, 391}, а
@@ -389,8 +390,8 @@ width-independent
   `decide (cAdd < potentialBound)`
 
   grow ⟺ potentialBound > c_add, равенство → stay
-  (`growth_gate_stay_char` :81: `growthGate pb c = false ↔ pb ≤ c`).
-  MAIN (`growth_gate_sound` :178, CERTIFIED-STAY): если потолок
+  (`growth_gate_stay_char` :580: `growthGate pb c = false ↔ pb ≤ c`).
+  MAIN (`growth_gate_sound` :677, CERTIFIED-STAY): если потолок
   возможного выигрыша n-шагового дообучения
 
   `theorem growth_gate_sound ... (hc : n * (G ^ 2 / (2 * L)) ≤ cAdd) :`
@@ -399,8 +400,8 @@ width-independent
   т.е. при `n·G²/(2L) ≤ c_add` ЛЮБОЕ n-шаговое дообучение (в т.ч.
   с добавленной ёмкостью) уменьшает objective не более чем на
   `c_add` — рост НЕ может окупиться за n шагов. Ядро:
-  `nl_drop_total` :121 — телескоп-индукция, drop за n шагов ≤
-  `n·G²/(2L)` (per-step `nl_drop_step_eq` :109 = C606
+  `nl_drop_total` :620 — телескоп-индукция, drop за n шагов ≤
+  `n·G²/(2L)` (per-step `nl_drop_step_eq` :608 = C606
   `nl_drop_optimal` при γ* = 1/L).
 - **Наглядность.** Certified-совет «не расти»: потолок выигрыша
   ≤ стоимости ёмкости. Гейт сравнивает два числа — гарантированный
@@ -420,8 +421,7 @@ width-independent
   (Hagi/Theory/NegativeTransfer.lean:574, namespace внутри модуля);
   `growth_gate_stay_char` (:580); `nl_drop_step_eq` (:608);
   `nl_drop_total` (:620); `growth_gate_sound` (:677).
-  Потребители: `Hagi.Budget.WaterFilling` (WaterFilling.lean:366),
-  `Hagi.Probability.GibbsCore` (GibbsCore.lean:1416).
+  Потребитель: bench `--mode grow-snap` / `adapter-grow`.
 - **Dependencies.** Без Mathlib-теорий (field_simp, ring,
   nlinarith, induction-телескоп); NegativeTransfer-прологи
   (`nlDrop`, `nlStep`, `nlRun`, C606 `nl_drop_optimal`).
@@ -566,10 +566,10 @@ one iff there is residual signal
   identity, `CE = fOld`).
 - **Anchor.**
   `Hagi.Theory.FunctionPreservingGrowth.useful_eta_le`
-  (Hagi/Theory/FunctionPreservingGrowth.lean:559);
-  `exists_useful_eta` (:588); `first_step_strict_improves` (:644);
-  `first_step_useful_certified` (:609); `useful_first_step_pos` (:558);
-  `no_signal_no_drop` (:597); определения `linDrop` (:547), `stepEps` (:364).
+  (Hagi/Theory/FunctionPreservingGrowth.lean:593);
+  `exists_useful_eta` (:616); `first_step_strict_improves` (:672);
+  `first_step_useful_certified` (:637); `useful_first_step_pos` (:586);
+  `no_signal_no_drop` (:625); определения `linDrop` (:575), `stepEps` (:391).
 - **Dependencies.** Mathlib (softmax через `Hagi.Energy.smax`,
   CE `Hagi.ceOneHot`); контракт `CertifiedFiniteStep` и
   `block_step_commit_of_range_bound` модуля.

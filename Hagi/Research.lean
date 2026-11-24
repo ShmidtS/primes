@@ -29,5 +29,6 @@ root closure cites them), remain buildable and tracked by Freeze via the
 root census / NamePool surface. Original namespaces (Hagi.Omni,
 Hagi.Percolation, Hagi.Discovery, Hagi.Optimization.Schelling*,
 Hagi.Optimization.MarkovPercolation, Hagi.Contracts.Schelling*) are kept,
-so all public FQNs are unchanged.
+so all public FQNs are unchanged. Quarantine: outside default build targets
+(X9); built explicitly in ci.sh because Freeze inventory imports it.
 -/

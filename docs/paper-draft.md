@@ -78,8 +78,8 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | probability | `certified_rounds_union` (Hagi/Contracts/BatchGlobalTelescope.lean:366) | 8-round loop, hagi/lm.py:978-1008 @ca52eb4 | conditional (independent rounds; WOR open) | C648 |
 | rollback | `rollback_gate_sound` (Hagi/Theory/RollbackGate.lean:100); `backtrack_accept_drop` (:262) | `guarded_optimizer_step`, hagi/selfmodel.py:78-180 @ca52eb4 | exact as a predicate | C530/C643 |
 | rollback | `repair_sound` (Hagi/Theory/RepairForgetting.lean:105); `repair_drop_bound` (:78) | `_repair_forgetting`, hagi/unified.py:408-454 @e9a96fc | exact for control flow; linear bound only | C651 |
-| compression | `trit5_roundtrip` (Hagi/Theory/NadyaOptimal.lean:72); `int4_roundtrip` (:98); `exists_best_mse_scale` (:126) | `trit5Pack`/`_pack_int4`/`_best_mse_ternary`, Надя.txt:390-440 (snapshot 2026-11-24) | exact for the pack; honest gap: list-level int4 padding, candidate list | C666 |
-| step | `cosine_sched_bounds` (Hagi/Theory/NadyaOptimal.lean:136); `muon_step_norm_bound` (:201) | HybridMuon schedule, Надя.txt:120-152 | conditional (polar norm c is a hypothesis; momentum and weight decay outside) | C666 |
+| compression | `trit5_roundtrip` (Hagi/Theory/NadyaOptimal.lean:79); `int4_roundtrip` (:98); `exists_best_mse_scale` (:126) | `trit5Pack`/`_pack_int4`/`_best_mse_ternary`, Надя.txt:390-440 (snapshot 2026-11-24) | exact for the pack; honest gap: list-level int4 padding, candidate list | C666 |
+| step | `cosine_sched_bounds` (Hagi/Theory/NadyaOptimal.lean:143); `muon_step_norm_bound` (:201) | HybridMuon schedule, Надя.txt:120-152 | conditional (polar norm c is a hypothesis; momentum and weight decay outside) | C666 |
 | probability | `paired_lcb_false_grow_bound` (Hagi/Theory/NadyaOptimal.lean:270) | LCB gate, Надя.txt:109-112/:884-890 | conditional (deterministic radius r; code uses z·σ̂/√n) | C666 |
 | compression | `bypass_reaches_compression_limit` (Hagi/Theory/NadyaOptimal.lean:304); `ce_covered_zero` (Hagi/Theory/ExactBypass.lean:70) | EXACT_BYPASS, Надя.txt:695-750 | exact for the ideal coder (q = 1 on the support) | C666 |
 | growth | `wlogits_width_preserved` (Hagi/Theory/WidthGrowth.lean:597); `attn_score_scale_preserved` (:329); `rotary_old_pairs_unchanged` (:266) | `grow_width`, Надя.txt (function name) | exact for nh = 1, even width; honest gap: nh > 1, odd width, clip are hypotheses `WGrowth` | C667 |
@@ -91,7 +91,7 @@ Hagi/Theory/CertifyThenCommit.lean:332) and its fourteen-clause
 consolidation (`hagi_master_v34`, Hagi/Theory/MasterTheoremV3.lean:323)
 — budget, zero-forgetting under a frozen task, objective telescoping,
 coverage monotonicity, the exact transfer iff, the minimal snap grid,
-the coverage floor and peak window budget. the coverage floor and peak window budget. Against the consumer's code,
+the coverage floor and peak window budget. Against the consumer's code,
 the exact bridges are the range branch of the certified step, identity
 growth of the trunk, the MGDA direction at ε = 0, and three control-flow
 predicates (backtracking, repair, window order) — repair with a linear,
@@ -177,7 +177,6 @@ source: C399 `adaptive_anytime_valid`, C446 `false_stop_bound`.
 
 ### 3.1 Adaptive majorizer with tight κ
 
-.
 > **Theorem (adaptive_descent).**
 > `Hagi/Theory/AdaptiveMajorizer.lean:714`.
 > If `next η ≤ L − η·A + η²·C` for all η ∈ [0,1] with A ≥ 0,
@@ -191,7 +190,6 @@ pessimism by e^R/κ(R).
 
 ### 3.2 Fisher-quantized updates
 
-.
 > **Theorem (fisher_quant_loss_bound).**
 > `Hagi/Theory/MergeQuant.lean:204`.
 > If the loss has coordinatewise-bounded second-order curvature
@@ -206,7 +204,6 @@ dominate uniform ones (`fisher_beats_lipschitz`, :316;
 
 ### 3.3 GPM-relaxed with σ_tail
 
-.
 > **Theorem (rank_trunc_forgetting_bound).**
 > `Hagi/Theory/Continual.lean:239`.
 > A rank-truncated GPM step changes the response on an old input
@@ -227,7 +224,6 @@ phenomenon (`gpm_hold_when_covered`, :370).
 
 ### 3.4 Sandwich-softmax certified prediction
 
-.
 > **Theorem (cert_pred_adaptive).**
 > `Hagi/Theory/Softmax.lean:813`.
 > If every class's certified band around the softmax is at most
@@ -369,7 +365,6 @@ objective.
 
 ### 3.9 Rank-truncation escape
 
-.
 In the mini-HAGI gpm2 phase, full-GPM honestly HOLDs (4 HOLD
 rounds, first delta exactly zero on the 1/10000 grid — exact
 replica of the C494 phenomenon), and the relaxed rank-truncated
@@ -746,7 +741,6 @@ clusters before distillation).
 
 ### 3.17 The consolidated statement: clause map of the certified machine
 
-.
 C600 (v3.1), C614 (v3.2), C622 (v3.3). The consolidation era closes
 with ONE statement covering the whole certified machine:
 `hagi_master_v33` (`Hagi/Theory/MasterTheoremV3.lean:252`), a
@@ -773,8 +767,8 @@ the hier block (`nB B w s'`, `0 < B`, `0 < s'`, `s' ≤ w`), plus
 | (11) | `(hierStarts nB B w w).length = (nB + w - 1) / w ∧ ∀ Ll : List ℕ, (∀ ib < nB, ∃ t ∈ Ll, t ≤ ib ∧ ib < t + w) → (nB + w - 1) / w ≤ Ll.length` — the machine's total at s = w EQUALS ⌈n/w⌉, and no covering list of width-w windows is shorter | `hier_optimal` | Hagi/Theory/CoverageReading.lean:533 | v3.3 (C622) |
 
 Version deltas: `hagi_master_v31` (`MasterTheoremV3.lean:128`) =
-(1)–(8); `hagi_master_v32` (`:202`) = v3.1 + (9)(10); `hagi_master_v33`
-(`:273`) = v3.2 + (11); `hagi_master_v34` (`:365`) = v3.3 + (12)(13)(14)
+(1)–(8); `hagi_master_v32` (`:187`) = v3.1 + (9)(10); `hagi_master_v33`
+(`:252`) = v3.2 + (11); `hagi_master_v34` (`:323`) = v3.3 + (12)(13)(14)
 (C662): the useful first growth step (`first_step_strict_improves`,
 Hagi/Theory/FunctionPreservingGrowth.lean:672), the Adam first step
 (`adam_first_step_dot_pos`, Hagi/Step/AdamDirection.lean:85) and the
@@ -797,7 +791,7 @@ an arbitrary covering list L); all rc = 0.
 ### 3.18 The reading era: floor → hierarchy → w-rule → near-const → mixed-w*
 
 C618–C628.
-<!-- source: receipt C618, C623, C626, C628; якоря rg 2d619fc8:
+<!-- source: receipt C618, C623, C626, C628;
      CoverageReading.lean (ns WindowTradeoff слит сюда) -->
 
 The formula era made every operating parameter a formula; the
@@ -833,7 +827,7 @@ total is 127 = ⌈8128/64⌉.
 **(ii) Three cost regimes and the w-rule (C623).** With a
 per-read window cost c(w), totalCost(w) = ⌈n/w⌉·c(w), and the
 certified w-rule has three regimes (Hagi/Theory/
-CoverageReading.lean, freeze 8841):
+CoverageReading.lean):
 
 - **(a) fixed cost c(w) = c:** totalCost = c·⌈n/w⌉ is
   monotonically non-increasing in w (`windowCost_fixed_mono`,
@@ -866,8 +860,7 @@ w, the gap is < c·w, while the read count ⌈n/w⌉ moves by
 orders of magnitude.
 
 **(iv) mixed-w* becomes a theorem (C628).** For the bench
-default α = 2 the sketch is now certified (CoverageReading.lean,
-freeze 8841 → 8844), three clauses, Lean-verbatim:
+default α = 2 the sketch is now certified (CoverageReading.lean), three clauses, Lean-verbatim:
 
 > `theorem mixedCost_relax_min {a c w : ℝ} (ha : 0 < a)`
 > `(hc : 0 < c) (hw : 0 < w) :`
@@ -896,7 +889,7 @@ w ∣ n and w = √(a/c) simultaneously, and general α > 1 remains
 Real-calculus outside the Nat model of the file — the bench
 text says "NOT a Lean clause" for α ≠ 2.
 <!-- source: Hagi/Theory/CoverageReading.lean:630/:650/:675
-     (statement дословно, HEAD 2d619fc8); receipt C628 -->
+     (statement дословно); receipt C628 -->
 
 **(v) The bench application (C626).** `cost_regime_w` in
 scripts/bench_bridge.py is the python twin of the three regimes
@@ -1126,7 +1119,7 @@ bench mode with telemetry:
 C602) is exact: windows of width w with step s cover `[0, n)` IFF
 `s ≤ w` — necessity by witness s=17 > w=9 leaving byte 9 in a hole;
 the adaptive budget form keeps windows ≤ m (`covStartsStep_len_le`,
-:219).
+:220).
 
 **The negative-cycle pattern (C598 → C602).** A measured defect
 (truncation loses byte 0: `covStarts_trunc_uncovered_zero`,
@@ -1170,7 +1163,7 @@ anchor, a bench application, and measured bits —
 | window span | `s = min(w, ⌈(n−w)/(m−2)⌉)`; iff `s ≤ w` | `covStartsStep_adaptive_covers`, CoverageReading.lean:233 (C602) | adaptive-span / generate-hier tables | n=540 → s=8, 61 windows; n=4032 boundary s=64; n≥4160 honest INFEASIBLE (C602/C613) |
 | step size | `γ* = 1/L`, `nlDrop (1/L) L G = G²/(2L)` | `nl_drop_optimal`, NegativeTransfer.lean:481 (C606) | auto-LR = 1/(2·trace H̄) in ATA/TGC (C609) | γ_auto = 0.477 / 0.520 / 0.667 (exact Fractions) vs old 1/10; verdicts bit-identical to pre (C609) |
 | window layout | `B = w(m−1)`, `s = w` ⇒ `(B−w)/s+2 = m`; peak ≤ m | `hier_peak_window_budget`, CoverageReading.lean:315 (C611) | generate-hier mode (C613) | n=100000: 25 blocks, 24×63+51, total 1563, peak 63; single-level n=8128 needs 127 > 64 (INFEASIBLE), hier [63,63,1] peak 63 (C611/C613) |
-| window width rule | fixed: w = w_max; linear: near-const corridor [c·n, c·(n+w)); mixed α=2: w* = √(a/c), lower ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) | `windowCost_fixed_mono`/`windowCost_linear_near_const`/`mixedCost_relax_min(_eq)`/`mixedCost_lower`, CoverageReading.lean:575/:603/:631/:651/:676 (C623/C628) | `--cost-regime {fixed,linear,mixed}` in generate-hier (C626) | n=100000, w∈{16,64,256}: reads 6250/1563/391; linear totals 100000/100032/100096 in corridor [100000, 100000+w); fixed optimum w=256 → 391 reads (C623/C626) |
+| window width rule | fixed: w = w_max; linear: near-const corridor [c·n, c·(n+w)); mixed α=2: w* = √(a/c), lower ⌈n/w⌉·(a+c·w²) ≥ 2n·√(a·c) | `windowCost_fixed_mono`/`windowCost_linear_near_const`/`mixedCost_relax_min(_eq)`/`mixedCost_lower`, CoverageReading.lean:577/:602/:630/:650/:675 (C623/C628) | `--cost-regime {fixed,linear,mixed}` in generate-hier (C626) | n=100000, w∈{16,64,256}: reads 6250/1563/391; linear totals 100000/100032/100096 in corridor [100000, 100000+w); fixed optimum w=256 → 391 reads (C623/C626) |
 <!-- source: строка w-rule — receipt C623:42-46; receipt C626 (cost_regime_w, pinned asserts, w_max=256→391); receipt C628 (mixedCost_* freeze 8844); якоря WindowTradeoff-блока в CoverageReading.lean rg HEAD (T2 repin) -->
 
 Two structural remarks. First, the optimal-step clause is
@@ -1258,9 +1251,8 @@ by the hierarchy of Card 10.
 Two more cards joined the registry draft in the reading era
 (docs/PALOMAR-CARDS.md, C621/C625; anchors rg-verified,
 statements Lean-verbatim). Honest scope: the C616 niche check
-covered the Cards 9–11 statements; Cards 12–13 have NOT been
-checked against the registry — that check is a separate beat,
-not claimed here.
+covered Cards 9–11 only; the C630 recheck covered all 13 cards
+and C658 all 17 (docs/PALOMAR-CARDS.md) — 0 overlaps.
 <!-- source: receipt C621 (Card 12, DocLint/freeze logs);
      receipt C625 (Card 13); receipt C616
      (ниша-проверка — только Cards 9–11) -->
@@ -1282,7 +1274,7 @@ B at s = w.
 width-independent.** For any `0 < w1, w2`:
 `w1 * ((n + w1 - 1) / w1) ≤ w2 * ((n + w2 - 1) / w2) +
 (w1 - 1)` (`windowCost_linear_near_const`,
-CoverageReading.lean:600) — totalCost(w1) ≤ totalCost(w2) +
+CoverageReading.lean:602) — totalCost(w1) ≤ totalCost(w2) +
 c·(w1 − 1) and symmetrically, with the corridor n ≤ w·⌈n/w⌉ ≤
 n + w − 1 (`windowCost_linear_bounds`, :586); contrast regime
 (a) `windowCost_fixed_mono` (:577): fixed cost makes w = w_max
@@ -1458,10 +1450,12 @@ not a Lean clause.
    non-convex landscape plus a UAT on a finite grid; primes has neither
    (no UAT statement at all), and the code's random W1 gives a ≠ 0 only
    probabilistically (C657).
-31. **The descent signal a < 0 is a hypothesis.** Its link to C655
-   (`adam_first_step_dot_pos` ⇒ a = ⟨Jᵀ(p−y), d⟩ < 0 by the chain rule)
-   is NOT formalized: L is nonlinear in the parameters and a < 0 enters
-   as a hypothesis. hlin (linear logit displacement in η) is a code-side
+31. **The descent signal a < 0 is a hypothesis.** UPDATE (C663/C665):
+   for a LINEAR logit carrier the link is proved (`chain_linear`,
+   `useful_of_adam_first`), and for the relu block strict descent for
+   small η is proved (`useful_of_adam_first_relu`); the certified drop
+   magnitude on the nonlinear carrier is open, and a < 0 still enters
+   the useful-step theorem as a hypothesis. hlin (linear logit displacement in η) is a code-side
    JVP fact at Wo = 0, not a theorem (C657).
 32. **Without-replacement conservativity is not formalized.** The code
    samples batches without replacement; `batch_drop_generalizes` assumes
