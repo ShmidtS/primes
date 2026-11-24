@@ -2938,6 +2938,96 @@ EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0
   (overshoot хуже identity); A = 0 ⇒ ¬ COMMIT ∀η. Log:
   .tmp/C657/gates.log.
 
+## C666 «Надя.txt» ↔ primes: карта 10 идей HAGI v2 Optimal и их носители
+
+- Beat: C666 — формализовать и объединить идеи
+  `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY @2026-11-24, 961 строк
+  Python «HAGI v2 Optimal — Compact Self-Growing Neuro-Symbolic Byte
+  Model»). Base HEAD 32a61ee5, tree clean. Новый модуль
+  `Hagi/Theory/NadyaOptimal.lean` (namespace `Hagi.Theory.NadyaOptimal`,
+  10 def, 16 theorem; wired в Hagi.lean root). Скрипты не трогал.
+- Карта 10 идей (theorem / уже есть / honest-эвристика):
+  1. auto_transfer_gate (Надя.txt:103-106: `2⟪θ,t⟫ > ‖θ‖²`) — УЖЕ
+     ЕСТЬ: точная iff-граница C572 `warm_better_char`
+     (`Hagi/Theory/NegativeTransfer.lean`) и `auto_transfer_gate_sound`
+     (AutoTransferGate.lean); дублирования нет — только строка в карте.
+  2. paired_gain / LCB-гейт (Надя.txt:109-112, z = 1.5;
+     :884-890 GROW iff lcb > 0) — THEOREM `paired_mean_dev_bound`
+     (Hoeffding через `holdout_concentration`: |d| ≤ B ⇒
+     P[popMean d + r ≤ holdoutMean d] ≤ 2·exp(−2k(r/(2B))²)) и
+     `paired_lcb_false_grow_bound` (ложный GROW при popMean d ≤ 0).
+     Honest: радиус r ДЕТЕРМИНИРОВАННЫЙ; в коде радиус
+     z·σ̂/√n по выборочному σ̂ (случайная величина, зависит от
+     выборки) — под union bound C660 не попадает без
+     дополнительного аргумента; iid-holdout — модель (окна
+     перекрываются); CE не ограничен [0,B] — нормировка не
+     формализована (тот же honest-pin, что C660).
+  3. BitAlloc trit5 (Надя.txt:413-424) — THEOREM `trit5_roundtrip`
+     (unpack ∘ pack = id) + `trit5_unshift`, `trit5Pack_lt_243`;
+     носитель — TritCodec C574 `trit_roundtrip` (pack base-3 уже
+     был; здесь только сдвиг цифры = уровень + 1 — специализация,
+     не дублирование). int4 (Надя.txt:427-440) — THEOREM
+     `int4_roundtrip` (byte < 256 ∧ unpack(pack a b) = (a, b)).
+     `_best_mse_ternary` (Надя.txt:390-410) — `exists_best_mse_scale`
+     (существование минимизатора MSE на конечном списке кандидатов;
+     сам список кандидатов — running-mean/mean/rms — не формализован).
+     Honest: list-level `_pack_int4` с нечётным padding и срезом
+     `out[:length]` НЕ формализован (3 попытки, Sunk Cost → карточка).
+  4. Arithmetic coder (Надя.txt:460-560) — НЕ формализован: честная
+     карточка C653 (ArchiverCodeLength: Kraft/идеальный кодер,
+     32-bit range coder — ≥400 строк). Ссылка.
+  5. coherence_dust_filter (Надя.txt:73-92: PMI bigram с
+     leave-one-out, 2-means 8 итераций, порог gap) — honest-ЭВРИСТИКА
+     без certified-свойства. Что могло бы сертифицироваться: PMI-порог
+     ⇒ отбор Regular доменов (закон vs random) — не доказано;
+     loo_count_ge (count − 1 ≥ 0) тривиален и не добавлен
+     (TrivialLint).
+  6. HybridMuon (Надя.txt:120-152) — THEOREM `cosine_sched_bounds`
+     (3/20 ≤ sched ≤ 1), `cosine_sched_start` (sched 0 = 1),
+     `cosine_sched_end` (t ≥ T ⇒ sched = 3/20), `cosine_sched_mono`
+     (0 ≤ t₁ ≤ t₂ ⇒ sched t₂ ≤ sched t₁; Real.strictAntiOn_cos),
+     `muon_step_norm_bound` (‖(p − a•orth) − p‖ ≤ a·c при ‖orth‖ ≤ c).
+     Honest: c — гипотеза операторной нормы полярной матрицы;
+     PolarExpressCert (`Hagi/Optimization/PolarExpressCert.lean`)
+     даёт скалярный interval-сертификат, Фробениус-граница из него
+     НЕ выведена; momentum/nesterov (m + 0.5·0.1·g) и weight decay
+     (p *= 1 − lr·sched·wd) — вне утверждения.
+  7. grow_width (Надя.txt:350-386: d0→d1, rms scale ×√(d0/d1),
+     eps ×(d0/d1), W_q ×√(hd1/hd0), rotary f1 = concat) — ЯДРО
+     THEOREM `rmsnorm_scale_inv`: padded (x,0), gain ×√(d0/d1),
+     eps ×(d0/d1) ⇒ `rmsOut` первых d0 координат равен старому
+     ТОЧНО (без пренебрежения eps); лемма `rmsMs_pad` (mean(y²) по
+     d1 = (d0/d1)·mean(x²)). Honest-остаток (карточка): W_q scale
+     и rotary-частоты, полный logits(new) = logits(old) — не
+     формализованы; это WIDTH-рост, другой вид, чем
+     DEPTH-рост `trunk_function_preserving` (FunctionPreservingGrowth).
+  8. EXACT_BYPASS / JSON_MOD_XOR (Надя.txt:695-750) — THEOREM
+     `bypass_reaches_compression_limit`: если q — распределение
+     (∑q = 1, q ≥ 0), ставящее 1 на носителе p ⇒ ceBits p q = 0 ∧
+     expLen p (idealLen q) = 0 ∧ entBits p = 0 (символьный закон =
+     предел сжатия); `idealLen_eq_zero_of_prob_one`. Носитель —
+     bridge ExactBypass C541 (`ce_covered_zero`) ↔ ArchiverCodeLength
+     C653 (`idealLen_self_bounds`): H = 0 ⇒ 0 ≤ E[len] ≤ 1 здесь
+     усилено до E[len] = 0. Honest: сам закон (id·7+3 mod 97 и
+     т.д.) и детерминированность следующего байта — code-side.
+  9. ingest_continual unseen-маска (Надя.txt:868-869: g_Wout[:, ~unseen]
+     = 0, emb только unseen) — тривиально по построению (зануление
+     градиента ⇒ нулевое обновление видимых строк при Adam-first;
+     для Adam с momentum/v — НЕ нулевое обновление из-за истории).
+     Не добавлен (TrivialLint: premise = conclusion); гейт — п.2.
+  10. Best-snapshot по holdout каждые 75/25 шагов (Надя.txt:847-855,
+      :500-505) — УЖЕ ЕСТЬ: peeking покрыт union bound C660
+      `holdout_gate_two_way_delta` (HoldoutGateTwoWay.lean).
+- Аксиомы (AllAxiomCheck + .tmp/C666/traj.log): все 16 —
+  [propext, Classical.choice, Quot.sound]; `int4_roundtrip` —
+  [propext, Quot.sound].
+- Witness .tmp/C666/traj.lean (rc=0): trit5 [1,0,2,1,0] → code 140
+  (decide) → round-trip; int4 (3,14) → 227 → (3,14); cosine
+  T = 450: sched 0 = 1, sched 450 = 3/20, sched 225 ≤ sched 100;
+  rmsnorm_scale_inv d0 = 24, d1 = 48; lcb B = 1, r = 1/8, k = 512 ⇒
+  2·exp(−4); bypass Fin 1: p = q = 1 ⇒ CE = expLen = H = 0.
+- Gates: scripts/ci.sh → CI: PASS; FREEZE: PASS (9003 = 8977 + 26).
+
 ## C665 нелинейный носитель: спуск по дифференциалу для relu-блока (honest)
 
 - Beat: C665 = roadmap C664 top-2 — закрыть honest-pin C663/C657 для
