@@ -10,7 +10,6 @@ namespace Hagi.Optimization
 
 /-!
 # PolarExpressCert — скалярный interval-сертификат Newton-Schulz
-(Polar-Express, P3 карты)
 
 Polar-Express заменяет SVD-ортогонализацию тремя шагами
 Newton-Schulz с minimax-коэффициентами (нечётные полиномы
@@ -394,7 +393,7 @@ theorem polar_express_step3_bound {x : ℝ} (hx1 : (5:ℝ)/512 ≤ x) (hx2 : x �
     (by first | (simp only [polarQ, p5]; norm_num1) | norm_num1)
     hx1 hx2
 
-/-- **Polar-Express interval-сертификат (P3)**: композиция трёх
+/-- **Polar-Express interval-сертификат**: композиция трёх
 рационализованных minimax Newton-Schulz полиномов переводит
 спектральный бокс `[1/1000, 1]` в ТОЧНЫЙ рациональный бокс
 `[9/512, 1049/1024] ≈ [0.0176, 1.0244]`. Спектрального взрыва нет:

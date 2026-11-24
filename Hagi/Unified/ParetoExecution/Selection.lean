@@ -14,7 +14,7 @@ set_option linter.style.header false
 set_option linter.unusedFintypeInType false
 
 /-!
-# Cycle 70 — finite constrained Pareto execution controller
+# Finite constrained Pareto execution controller
 
 A well-specified FINITE policy over an explicitly supplied family of
 candidate actions: maximize an objective subject to a model-safety
@@ -22,7 +22,7 @@ predicate and separate memory / operation-count budget caps, using the
 ACTUAL successor function `step : A → S → S` of the mathematical model
 (no synthesized "desired effects" records are executed).
 
-Design (plan `cycle70-controller.md`, alternative 3):
+Design:
 
 * `feasible` reuses `Hagi.Growth.safeCandidates` on
   `safe a ∧ memory a ≤ M ∧ operations a ≤ C`.
@@ -337,7 +337,7 @@ end Finite
 
 section Robust
 
-/-! ### Cycle 71 — bounded-estimation robust selection
+/-! ### Bounded-estimation robust selection
 
 The frontier beyond exact selection: the controller may only access an
 `estimate` of the model objective at successor states, with a uniform

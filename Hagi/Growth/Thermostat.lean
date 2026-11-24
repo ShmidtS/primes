@@ -9,13 +9,13 @@ namespace Hagi.Growth
 
 
 /-!
-# Термостат селектора (R388) — сертифицированный горизонт остановки
+# Термостат селектора — сертифицированный горизонт остановки
 
 Архитектурный идеал: HAGI как термодинамическая машина;
 температура — измеряемая величина контроллера, а не
 гиперпараметр. Термостат: расписание охлаждения
 T_t = T₀·α^t; admission-порог и merge-гейт масштабируются
-от T. Из закона концентрации Гиббса (R386/R387): эксплорация
+от T. Из закона концентрации Гиббса: эксплорация
 останавливается ПО ЗАКОНУ — когда e^{−δ/T_t} ≤ θ.
 
 `thermostat_stop`: замкнутый горизонт остановки
@@ -98,7 +98,7 @@ theorem thermostat_stop (α T0 δ θ : ℝ) (hα1 : 0 < α)
   exact (Real.exp_le_exp.mpr hfinal).trans_eq (Real.exp_log hθ1)
 
 open Filter in
-/-- **Merge-гейт: фазовый переход неизбежен (R389)**: при
+/-- **Merge-гейт: фазовый переход неизбежен**: при
 охлаждении `T_t = T₀·α^t` любой положительный Jensen-зазор
 `J > 0` рано или поздно проходит гейт `J ≥ θ·T_t` —
 eventually-форма: слияние (конденсация листьев в корень)
@@ -121,9 +121,9 @@ theorem merge_gate_eventually (α T0 J θ : ℝ) (hα1 : 0 < α)
   rwa [mul_div_cancel₀ _ hθ.ne'] at this
 
 open Filter in
-/-- **Единая фазовая точка (R407)**: ∃ N, ∀ t ≥ N:
-эксплорация остановлена (e^{−δ/T_t} ≤ θ, R388) ∧
-merge-гейт открыт (θ·T_t ≤ J, R389) — контроллер
+/-- **Единая фазовая точка**: ∃ N, ∀ t ≥ N:
+эксплорация остановлена (e^{−δ/T_t} ≤ θ) ∧
+merge-гейт открыт (θ·T_t ≤ J) — контроллер
 охлаждения сертифицированно достигает режима
 «консолидация»: одна точка переключения для всего T-контура
 (max двух горизонтов). -/
@@ -133,9 +133,9 @@ theorem thermostat_phase_point (α T0 δ J θ : ℝ)
     ∃ N : ℕ, ∀ t : ℕ, (N : ℝ) ≤ t →
       Real.exp (-δ/(T0 * α ^ t)) ≤ θ
         ∧ θ * (T0 * α ^ t) ≤ J := by
-  -- R388 stopping horizon
+  -- stopping horizon
   have hstop := thermostat_stop α T0 δ θ hα1 hα2 hT0 hδ hθ1 hθ2
-  -- R389 merge gate eventually: extract concrete bound
+  -- merge gate eventually: extract concrete bound
   have hgate := merge_gate_eventually α T0 J θ hα1 hα2 hT0 hJ hθ1
   rw [eventually_iff] at hgate
   obtain ⟨N2, hN2⟩ := mem_atTop_sets.mp hgate
@@ -153,11 +153,11 @@ theorem thermostat_phase_point (α T0 δ J θ : ℝ)
   exact ⟨hstop t (hmax1.trans ht), hN2 t (Nat.cast_le.mp (hmax2.trans ht))⟩
 
 open Finset in
-/-- **Концентрация после фазовой точки (R408)**: ∃N,
+/-- **Концентрация после фазовой точки**: ∃N,
 ∀t ≥ N: share(T_t) ≥ 1 − C·θ — после единой точки
-переключения (R407) система не только останавливает
+переключения система не только останавливает
 эксплорацию, но и СКОНЦЕНТРИРОВАНА на минимизаторе
-(R386-оценка с e^{−δ/T_t} ≤ θ). Режим
+(оценка Гиббса с e^{−δ/T_t} ≤ θ). Режим
 «консолидация» = сконцентрированное состояние: термостат
 × Гиббс-концентрация в одном утверждении. -/
 theorem phase_concentration {V : Type*} [Fintype V]
@@ -187,12 +187,12 @@ theorem phase_concentration {V : Type*} [Fintype V]
   linarith
 
 open Finset in
-/-- **Сертификат консолидации (R412)** — капстоун
+/-- **Сертификат консолидации** — капстоун
 контроллера: ∃N, ∀t ≥ N: эксплорация остановлена ∧
 merge-гейт открыт ∧ Гиббс-концентрация ≥ 1 − Cθ. Одна
 точка, три свойства: физический режим «консолидация»
 HAGI формально наступает и поддерживается (max двух
-горизонтов R407/R408). -/
+горизонтов). -/
 theorem consolidation_certificate {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
     (α T0 δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
@@ -205,10 +205,10 @@ theorem consolidation_certificate {V : Type*} [Fintype V]
         ∧ 1 - (((Finset.univ.erase vstar).card : ℕ) : ℝ) * θ
           ≤ Real.exp (-(E vstar)/(T0 * α ^ t))
             / (∑ v, Real.exp (-(E v)/(T0 * α ^ t))) := by
-  -- phase point from R407 (J := θ)
+  -- phase point (J := θ)
   obtain ⟨N, hN⟩ := thermostat_phase_point α T0 δ θ θ hα1 hα2 hT0 hδ
     hθ1 hθ1 hθ2
-  -- concentration from R408
+  -- concentration after phase point
   obtain ⟨N2, hN2⟩ := phase_concentration E vstar α T0 δ hα1 hα2 hT0 hδ
     hgap θ hθ1 hθ2
   refine ⟨max N N2, fun t ht => ?_⟩
@@ -220,14 +220,13 @@ theorem consolidation_certificate {V : Type*} [Fintype V]
   exact ⟨hstop, hgate, hN2 t (h2.trans ht)⟩
 
 open Finset in
-/-- **Третий мост: Гиббс × Хёфдинг (R413)**: при центрировании d по
+/-- **Третий мост: Гиббс × Хёфдинг**: при центрировании d по
 Гиббс-мере p_T и 2|K|θ < 1 существует равномерно
 ε_θ-хорошая точка — выборка из охлаждённого ансамбля
 репрезентативна для всего класса (Гиббс-веса —
-вероятностная мера: exp_pos + div_self; R411 напрямую).
-Треугольник мостов замкнут: термостат ↔ Гиббс
-(R408), термостат ↔ Хёфдинг (R409–411), Гиббс ↔
-Хёфдинг (R413). -/
+вероятностная мера: exp_pos + div_self).
+Треугольник мостов замкнут: термостат ↔ Гиббс,
+термостат ↔ Хёфдинг, Гиббс ↔ Хёфдинг. -/
 theorem gibbs_representative {V K : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] [Fintype K]
     (E : V → ℝ) (T : ℝ) (hT : 0 < T)
@@ -254,15 +253,12 @@ theorem gibbs_representative {V K : Type*} [Fintype V]
     d a b hw hw1 hlt hbd hc θ hθ1 hθ2 hsmall
 
 open Finset in
-/-- **Сертифицированное состояние HAGI (R414)** — супер-капстоун
-сети: ∃N, ∀t ≥ N: эксплорация остановлена ∧
-merge-гейт открыт ∧ Гиббс-концентрация
-≥ 1−Cθ ∧ существует равномерно
-ε_θ-репрезентативная точка для
-всего класса оценок (R412 + R413).
-Три вертикали + три моста в одном
-утверждении: термодинамическая машина
-HAGI сертифицирована целиком. -/
+/-- **Сертифицированное состояние HAGI** — супер-капстоун
+сети: ∃N, ∀t ≥ N: эксплорация остановлена ∧ merge-гейт
+открыт ∧ Гиббс-концентрация ≥ 1−Cθ ∧ существует равномерно
+ε_θ-репрезентативная точка для всего класса оценок.
+Три вертикали + три моста в одном утверждении.
+-/
 theorem hagi_certified_state {V K : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] [Fintype K]
     (E : V → ℝ) (vstar : V)
@@ -292,7 +288,7 @@ theorem hagi_certified_state {V K : Type*} [Fintype V]
     exact gibbs_representative E (T0 * α ^ 0) hTpos d a b hlt hbd
       (fun k => hcent k 0) θ hθ1 hθ2 hsmall
   obtain ⟨v0, hv0⟩ := hpt
-  -- controller certificate from R412
+  -- controller certificate
   obtain ⟨N, hN⟩ := consolidation_certificate E vstar α T0 δ hα1 hα2
     hT0 hδ hgap θ hθ1 hθ2
   refine ⟨N, fun t ht => ?_⟩
@@ -300,11 +296,11 @@ theorem hagi_certified_state {V K : Type*} [Fintype V]
   exact ⟨h1, h2, h3, v0, hv0⟩
 
 open Finset in
-/-- **TV-следствие сертифицированного состояния (R415)**:
+/-- **TV-следствие сертифицированного состояния**:
 ∃N, ∀t ≥ N: TV(p_{T_t}, δ_{v*}) ≤ C·θ — после
 фазовой точки охлаждённое состояние метрически
-близко к минимизатору (R408-концентрация
-+ R395-TV-идентификация). -/
+близко к минимизатору (концентрация
++ TV-идентификация). -/
 theorem certified_state_tv {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
     (α T0 δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
@@ -329,10 +325,8 @@ theorem certified_state_tv {V : Type*} [Fintype V]
   linarith
 
 open Finset in
-/-- **Энергетическое следствие сертифицированного состояния
-(R416)**: ∃N, ∀t ≥ N: ⟨E⟩_{T_t} ≤ E* + Δ·C·θ —
-энергия охлаждённого состояния прижата к
-основному с θ-точностью (R393 × R407). -/
+/-- **Энергетическое следствие сертифицированного состояния**: ∃N, ∀t ≥ N: ⟨E⟩_{T_t} ≤ E* + Δ·C·θ —
+энергия охлаждённого состояния прижата к основному с θ-точностью. -/
 theorem certified_state_energy {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
     (α T0 δ Δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
@@ -352,7 +346,7 @@ theorem certified_state_energy {V : Type*} [Fintype V]
   obtain ⟨hstop, _⟩ := hN t ht
   have hTpos : (0:ℝ) < T0 * α ^ t :=
     mul_pos hT0 (pow_pos hα1 t)
-  -- R393
+  -- ожидаемая энергия Гиббса
   have hb := gibbs_expected_energy_bound E δ (T0 * α ^ t) hTpos
     vstar Δ hmin hgap hΔ
   -- scale the exp by theta
@@ -374,12 +368,9 @@ theorem certified_state_energy {V : Type*} [Fintype V]
   linarith [hb, hR]
 
 open Finset in
-/-- **Калориметрический избыток сертифицированного состояния
-(R417)**: ∃N, ∀t ≥ N: ⟨E⟩_t − F_t ≤ (Δ+T₀)·C·θ —
-энергетическая и свободная энергия
-согласованы: избыток − тепло, запасённое в
-охлаждённом состоянии, ≤ θ-масштаба
-(R416 + R398: F ≥ E* − T·Cθ, T ≤ T₀). -/
+/-- **Калориметрический избыток сертифицированного состояния**: ∃N, ∀t ≥ N: ⟨E⟩_t − F_t ≤ (Δ+T₀)·C·θ —
+избыток − тепло, запасённое в охлаждённом состоянии, ≤ θ-масштаба
+(F ≥ E* − T·Cθ, T ≤ T₀). -/
 theorem certified_state_excess {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
     (α T0 δ Δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
@@ -443,14 +434,9 @@ theorem certified_state_excess {V : Type*} [Fintype V]
   linarith [hE, hF', hring, hprod]
 
 open Filter in
-/-- **График охлаждения → 0 (R425)**:
-T_t = T₀·α^t → 0 — семантика
-термостата: температура
-убывает до абсолютного
-нуля (квази-нуль термостата).
-Фундирует все tendsto-результаты
-вертикали (R387–400 вели это
-инлайн). -/
+/-- **График охлаждения → 0**: T_t = T₀·α^t → 0 — семантика
+термостата: температура убывает до абсолютного нуля.
+Фундирует все tendsto-результаты вертикали. -/
 theorem thermostat_tendsto_zero (α T0 : ℝ) (hα1 : 0 < α)
     (hα2 : α < 1) :
     Tendsto (fun t : ℕ => T0 * α ^ t) atTop (nhds 0) := by
@@ -458,14 +444,10 @@ theorem thermostat_tendsto_zero (α T0 : ℝ) (hα1 : 0 < α)
   simpa using Tendsto.const_mul T0 hp
 
 open Finset Real Filter in
-/-- **TV → 0 вдоль отжига (R426)**: сертифицированное
+/-- **TV → 0 вдоль отжига**: сертифицированное
 состояние сходится к минимизатору метрически:
 TV(p_{T_t}, δ*) → 0. Сжатие: TV ≤ C·e^{−δ/T_t} ≤
-C·T_t/(T_t+δ) → 0 (R386 × R395 × R425;
-e^{−x} ≤ 1/(1+x) через inv_le_inv₀). Фазовый
-переход R415 — не только наступает, но и
-знутри всё чище: асимптотическая
-чистота. -/
+C·T_t/(T_t+δ) → 0 (e^{−x} ≤ 1/(1+x) через inv_le_inv₀). -/
 theorem certified_state_tv_tendsto {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
     (α T0 δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
@@ -533,14 +515,9 @@ theorem certified_state_tv_tendsto {V : Type*} [Fintype V]
       (Finset.sum_nonneg (fun v _ => abs_nonneg _))) hbound htail
 
 open Finset Real Filter in
-/-- **Энергия → E* вдоль термостатного
-графика (R427)**: ⟨E⟩_{T_t} → E* при
-T_t = T₀·α^t (аналог R394 для
-δ/(n+1)-графика). Сжатие:
-0 ≤ ⟨E⟩−E* ≤ ΔC·T_t/(T_t+δ) → 0
-(R420 × R393 × R426-хвост). Энергетическая
-чистота сертифицированного
-состояния наряду с метрической (R426). -/
+/-- **Энергия → E* вдоль термостатного графика**: ⟨E⟩_{T_t} → E*
+при T_t = T₀·α^t. Сжатие: 0 ≤ ⟨E⟩−E* ≤ ΔC·T_t/(T_t+δ) → 0
+(хвост TV-оценки). -/
 theorem certified_state_energy_tendsto {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
     (α T0 δ Δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
@@ -554,7 +531,7 @@ theorem certified_state_energy_tendsto {V : Type*} [Fintype V]
   have hTpos : ∀ t : ℕ, (0:ℝ) < T0 * α ^ t :=
     fun t => mul_pos hT0 (pow_pos hα1 t)
   set C : ℝ := (((Finset.univ.erase vstar).card : ℕ) : ℝ) with hC
-  -- tail bound (as in R426)
+  -- tail bound (as in TV → 0)
   have hexpb : ∀ t : ℕ, Real.exp (-δ/(T0 * α ^ t))
       ≤ (T0 * α ^ t)/(T0 * α ^ t + δ) := by
     intro t
@@ -589,11 +566,11 @@ theorem certified_state_energy_tendsto {V : Type*} [Fintype V]
             mul_le_mul_of_nonneg_left (hexpb t)
               (mul_nonneg hΔ0 hC0)
           linarith
-  -- lower: E* <= <E>_t (R420)
+  -- lower: E* <= <E>_t
   have hlower : ∀ t : ℕ, E vstar ≤ (∑ v, E v * Real.exp (-(E v)/(T0 * α ^ t)))
         / (∑ v, Real.exp (-(E v)/(T0 * α ^ t))) :=
     fun t => gibbs_expected_energy_lower E (T0 * α ^ t) (hTpos t) vstar hmin
-  -- tail tends to 0 (as in R426)
+  -- tail tends to 0 (as in TV → 0)
   have hA := thermostat_tendsto_zero α T0 hα1 hα2
   have hB : Tendsto (fun t : ℕ => T0 * α ^ t + δ) atTop (nhds δ) := by
     simpa using hA.add tendsto_const_nhds
@@ -636,16 +613,10 @@ theorem certified_state_energy_tendsto {V : Type*} [Fintype V]
   simpa using hdiff.add (tendsto_const_nhds (x := E vstar))
 
 open Finset Real Filter in
-/-- **F → E* вдоль термостатного графика (R428)**:
-свободная энергия сходится к
-основному состоянию при
-T_t = T₀·α^t (аналог R399 для
-δ/(n+1)-графика). Сжатие:
-0 ≤ E*−F ≤ T_t·C·T_t/(T_t+δ) → 0
-(R398 × ln(1+x) ≤ x × R421). Триада
-чистоты завершена: метрика
-(R426) + энергетика (R427) +
-свободная энергия (R428). -/
+/-- **F → E* вдоль термостатного графика**:
+свободная энергия сходится к основному состоянию при
+T_t = T₀·α^t. Сжатие: 0 ≤ E*−F ≤ T_t·C·T_t/(T_t+δ) → 0
+(F ≥ E* − T·Cθ и ln(1+x) ≤ x). -/
 theorem certified_state_free_energy_tendsto {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
     (α T0 δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
@@ -658,7 +629,7 @@ theorem certified_state_free_energy_tendsto {V : Type*} [Fintype V]
     fun t => mul_pos hT0 (pow_pos hα1 t)
   set C : ℝ := (((Finset.univ.erase vstar).card : ℕ) : ℝ) with hC
   have hC0 : (0:ℝ) ≤ C := Nat.cast_nonneg _
-  -- exp tail bound (R426-style)
+  -- exp tail bound (TV-style)
   have hexpb : ∀ t : ℕ, Real.exp (-δ/(T0 * α ^ t))
       ≤ (T0 * α ^ t)/(T0 * α ^ t + δ) := by
     intro t
@@ -757,12 +728,11 @@ private lemma exp_div_tail (T δ e : ℝ) (hT : 0 < T) (hδ : 0 < δ)
   linarith
 
 open Finset Real Filter in
-/-- **Нернст на термостатном графике (R429)**:
-S_t = (⟨E⟩−F)/T_t → 0 при T_t = T₀·α^t — третий закон на
-реальном охлаждении. Ключ: острыह хвост
-e^{−δ/T} = (e^{−δ/2T})² ≤ (2T/(2T+δ))² ⟹ e/T ≤ 4T/δ².
-ЧЕТВЕРТА чистоты: метрика (R426) + энергетика (R427) +
-свободная энергия (R428) + энтропия (R429). -/
+/-- **Нернст на термостатном графике**: S_t = (⟨E⟩−F)/T_t → 0 при
+T_t = T₀·α^t — третий закон на реальном охлаждении. Ключ: острый хвост
+e^{−δ/T} = (e^{−δ/2T})² ≤ (2T/(2T+δ))² ⟹ e/T ≤ 4T/δ²:
+четвёртая сторона чистоты после метрики, энергетики и
+свободной энергии. -/
 theorem certified_state_entropy_tendsto {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
     (α T0 δ Δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
@@ -958,12 +928,9 @@ theorem certified_state_entropy_tendsto {V : Type*} [Fintype V]
         * (4:ℝ)/δ^2))
 
 open Finset Real Filter in
-/-- **Калориметрический нуль (R430)**:
-⟨E⟩_t − F_t → 0 вдоль термостата
-(мгновенная композиция R427 + R428
-через Tendsto.sub): запасённое тепло
-исчезает — асимптотическая
-версия R417. -/
+/-- **Калориметрический нуль**: ⟨E⟩_t − F_t → 0 вдоль термостата
+(Tendsto.sub из двух предыдущих пределов): запасённое тепло
+исчезает — асимптотическая версия калориметрического избытка. -/
 theorem certified_state_excess_tendsto {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (vstar : V)
     (α T0 δ Δ : ℝ) (hα1 : 0 < α) (hα2 : α < 1)
@@ -982,12 +949,9 @@ theorem certified_state_excess_tendsto {V : Type*} [Fintype V]
     hT0 hδ hgap
   simpa using hE.sub hF
 
-/-- **Монотонность охлаждения (R431)**:
-T_{t+1} = T₀·α^{t+1} ≤ T₀·α^t = T_t —
-температура не растёт
-(семантический кирпич
-для всех тендст-результатов
-вертикали). -/
+/-- **Монотонность охлаждения**:
+T_{t+1} = T₀·α^{t+1} ≤ T₀·α^t = T_t — температура не растёт
+(семантический кирпич для всех tendsto-результатов вертикали). -/
 theorem thermostat_monotone (α T0 : ℝ) (hα1 : 0 < α)
     (hα2 : α < 1) (hT0 : 0 < T0) (t : ℕ) :
     T0 * α ^ (t+1) ≤ T0 * α ^ t := by
@@ -1001,14 +965,10 @@ theorem thermostat_monotone (α T0 : ℝ) (hα1 : 0 < α)
   linarith [hfin]
 
 open Finset in
-/-- **Хёфдинг ↔ MWU: последний
-мост (R442)**: выборка из
-hedge-распределения
-w_T ∝ e^{−ηL} репрезентативна
-для всего класса оценок при
-2|K|θ < 1 (R413 при E := L, T := 1/η —
-тождество весов). ПОЛНЫЙ
-ГРАФ МОСТОВ: 4 вертикали,
+/-- **Хёфдинг ↔ MWU: последний мост**: выборка из
+hedge-распределения w_T ∝ e^{−ηL} репрезентативна для всего
+класса оценок при 2|K|θ < 1 (мост Гиббс × Хёфдинг при E := L,
+T := 1/η — тождество весов). Полный граф мостов: 4 вертикали,
 все 6 пар соединены. -/
 theorem mwu_representative {V K : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] [Fintype K]

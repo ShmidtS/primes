@@ -11,13 +11,13 @@ import Hagi.Unified.AnytimeMartingale
 import Mathlib.Tactic
 
 /-!
-# Statistics — the holdout / anytime canon (W3, C435–C487)
+# Statistics — the holdout / anytime canon
 
 One line of development, one canonical module. Each statistical
 concept is described ONCE here; the five sections keep their
 historical namespaces so every fully-qualified name is stable.
 
-* Honest finite-population holdout risk (W3 /): a model
+* Honest finite-population holdout risk: a model
   fixed BEFORE the draw is a loss table; the holdout law is the
   uniform product law — unbiasedness, Hoeffding concentration,
   the selection-bias counterexample, and the finite-codebook
@@ -40,8 +40,8 @@ historical namespaces so every fully-qualified name is stable.
   here would create an import cycle — kept separate, names stable.
 
 Honest pins live in each section; the with-replacement surrogate
-pin is closed by the section above it.  Layer
-decision: Theory — consumes the `Hagi.Probability` tower
+pin is closed by the section above it.
+Layer: Theory — consumes the `Hagi.Probability` tower
 (CertifiedEstimator / Concentration / Azuma / FreedmanAdaptive),
 `Hagi.Unified.AnytimeMartingale` (Ville) and
 `Hagi.Unified.ParetoExecution`; the bench mode `wrbound` of

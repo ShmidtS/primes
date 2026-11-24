@@ -8,7 +8,7 @@ import Hagi.Unified.CertifiedLoop
 /-!
 # StochasticLoop — стохастический certified loop через ядерный адаптер
 
-Consumer-layer адаптер (A14 C352-analysis top-1): цепь
+Цепь
 стохастических шагов (`CertStochasticStep`: drop / failure /
 descent_whp) погружается в ядерный капстон
 (`certified_loop_kernel` над `CertStepGenBounded`), так что
@@ -43,7 +43,7 @@ certified-loop гарантию, что и детерминированные, �
 **Честные ограничения (что остаётся premise-form):**
 
 * условия шума (bounded / zero-mean / cond-variance) остаются
-  биндерами C350-моста — цикл потребляет ГОТОВЫЕ
+  биндерами стохастического моста — цикл потребляет ГОТОВЫЕ
   `CertStochasticStep`, на свой уровень их не поднимает;
 * бюджетные и floor-законы держатся ω-РАВНОМЕРНО (посылки hbnb /
   hflr): δ-бюджет учитывает только descent-отказы шагов; отказы

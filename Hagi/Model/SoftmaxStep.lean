@@ -277,27 +277,24 @@ theorem descent_example :
       ≤ logitCE 0 - (2/2) * (1 / (1 + Real.exp 0))^2 :=
   descent_step 0 2 (by norm_num) (by norm_num)
 
-/-! ## Bridge: explicit model -> certified joint stage (R350)
+/-! ## Bridge: explicit model -> certified joint stage
 
 The `h_emp_smooth` premise of `Foundations.joint_stage` is
 DERIVED (not assumed) for the explicit logit-CE model:
 `logitCE_descent_lemma` is exactly the L-smoothness form
 with `L = 1/2` (coefficient 1/4 = L/2). Instantiating
 `joint_stage` with this derived smoothness yields the
-certified descent stage for the real model — the first
-closed bridge from an explicit model to the stage
-calculus. -/
+certified descent stage for the real model. -/
 
 set_option maxHeartbeats 400000 in
-/-- Certified joint stage for the explicit logit-CE model
-(R350). Here `d` is a descent DIRECTION (along `-grad`), so
+/-- Certified joint stage for the explicit logit-CE model.
+Here `d` is a descent DIRECTION (along `-grad`), so
 the certified-descent premise reads `d^2 ≤ (-logitGrad w)*d`
 (automatic for `d = t·q` with `0 ≤ t ≤ 1`, `q = -grad ≥ 0`).
 The smoothness premise of `joint_stage` is DERIVED from
 `logitCE_descent_lemma` (which is exactly L-smoothness with
 `L = 1/2`), giving `logitCE (w + eta*d) ≤ logitCE w -
-eta*d^2/2` — the first h_emp_smooth premise closed by an
-explicit model. -/
+eta*d^2/2`. -/
 theorem joint_stage_logitCE (w eta d : ℝ)
     (heta : 0 < eta) (heta2 : eta ≤ 2)
     (hdescent : d ^ 2 ≤ (-logitGrad w) * d) :
@@ -322,7 +319,7 @@ theorem joint_stage_logitCE (w eta d : ℝ)
     (by norm_num) heta' heta.le hdescent hsmooth
 
 /-!
-## Trajectory bound for the explicit model (R354)
+## Trajectory bound for the explicit model
 
 Iterating the derived certified stage (`joint_stage_logitCE`)
 telescopes over the whole training trajectory: after T
@@ -383,7 +380,7 @@ theorem logitCE_nonneg (w : ℝ) : 0 ≤ logitCE w := by
   simp only [logitCE]
   simpa using hlog
 
-/-- Bounded total certified descent (R355): the summed
+/-- Bounded total certified descent: the summed
 per-step certified decreases along ANY certified trajectory
 never exceed the initial CE — since CE stays nonnegative,
 the model cannot descend forever. The explicit-model

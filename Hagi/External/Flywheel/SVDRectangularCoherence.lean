@@ -33,10 +33,9 @@ The coherence factor μ(E) measures how concentrated the singular values are:
 - μ ≈ 1: Incoherent (flat spectrum, singular values roughly equal)
 - μ ≈ 1/√r: Coherent (dominated by top singular value)
 
-This generalizes the square-matrix coherenceFactor
-from CoherenceCharacterization (not ported)
-to rectangular matrices, which is required for analyzing Kronecker approximation errors
-after the rearrangement operator $\mathcal{R}$ produces non-square matrices.
+The rectangular analogue of the square-matrix `coherenceFactor`
+(CoherenceCharacterization); needed because the rearrangement R
+produces non-square matrices.
 
 ### Main definitions
 
@@ -46,7 +45,7 @@ after the rearrangement operator $\mathcal{R}$ produces non-square matrices.
 
 * `coherenceFactorRect_zero`: μ(0) = 1
 * `coherenceFactorRect_pos_of_ne_zero`: E ≠ 0 → μ(E) > 0
-* `coherenceFactorRect_eq_square_case`: For n×n matrices, matches `coherenceFactor`
+* `coherenceFactorRect_eq_formula`: μ(E) on the square case
 -/
 
 section RectangularCoherenceFactor
@@ -189,9 +188,7 @@ theorem coherenceFactorRect_nonneg (E : Matrix m n ℂ) : 0 ≤ coherenceFactorR
     used in `CoherenceCharacterization.lean`. Both use the same formula:
     μ(E) = ‖E‖_F / (√rank(E) · ‖E‖₂)
 
-    Note: This theorem establishes structural equivalence. The actual numeric equality
-    with `coherenceFactor` from CoherenceCharacterization.lean requires that both files
-    use the same norm instances, which they do (L2 operator norm for ‖·‖ and Frobenius for ‖·‖_F). -/
+    Only a formula restatement: equality with `coherenceFactor` itself is not proved. -/
 theorem coherenceFactorRect_eq_formula (E : Matrix n n ℂ) (hE : E ≠ 0) :
     coherenceFactorRect E = frobeniusNormRect E / (Real.sqrt E.rank * ‖E‖₂) := by
   unfold coherenceFactorRect

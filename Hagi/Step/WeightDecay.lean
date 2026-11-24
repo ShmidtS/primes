@@ -6,7 +6,7 @@ import Mathlib.Tactic
 
 
 /-!
-# Weight decay as an implicit norm constraint (R372)
+# Weight decay as an implicit norm constraint
 
 Formal core of the weight-decay-as-regularizer view
 (plan §2; arXiv:2507.01598 family): the update

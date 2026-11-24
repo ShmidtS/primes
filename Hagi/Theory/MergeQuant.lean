@@ -10,8 +10,8 @@ set_option linter.style.header false
 # MergeQuant — the Fisher quantization / measured merge canon
 
 One canonical module for the merge-quantization family (merged
-from FisherQuant.lean + NonlinearMerge.lean; namespaces preserved,
-Continual.lean precedent). Each concept is described ONCE here.
+from FisherQuant.lean + NonlinearMerge.lean; namespaces preserved).
+Each concept is described ONCE here.
 
 * Fisher quantization (`Hagi.Theory.FisherQuant`): second-order
   per-coordinate quantization bounds — the exact quadratic carrier
@@ -36,7 +36,7 @@ variable {d : ℕ} {I : Type} [Fintype I]
 
 variable {d : ℕ} {I : Type} [Fintype I]
 
-/-! ## Quadratic carrier: exact second-order identity (pattern) -/
+/-! ## Quadratic carrier: exact second-order identity -/
 
 /-- Least-squares loss on a fixed dataset, coordinate form:
 `quadLoss a y θ = Σᵢ (⟪a i, θ⟫ − y i)²/2`. -/
@@ -458,7 +458,7 @@ def quadGradDiag (c a θ : Fin d → ℝ) (j : Fin d) : ℝ :=
   c j * (θ j - a j)
 
 /-- Кривизнный остаток merge: δ_curv = ⅛ Σ cᵢ (w2ᵢ−w1ᵢ)² — второй
-порядок Taylor (pattern) в диагональной метрике. -/
+порядок Taylor в диагональной метрике. -/
 noncomputable def curvRemainder (c w1 w2 : Fin d → ℝ) : ℝ :=
   ∑ i, c i * (w2 i - w1 i) ^ 2 / 8
 

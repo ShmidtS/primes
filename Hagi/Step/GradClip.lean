@@ -1,9 +1,9 @@
 import Mathlib.Tactic
 
 /-!
-# Gradient Clipping: масштабирование до шара нормы (источник №29)
+# Gradient Clipping: масштабирование до шара нормы
 
-Источник №29: Pascanu, Mikolov, Bengio, "On the difficulty of
+Источник: Pascanu, Mikolov, Bengio, "On the difficulty of
 training recurrent neural networks" (arXiv 1211.5063).
 Gradient clipping — стандартная защита от взрывных градиентов:
 g заменяется на min(1, R/‖g‖)·g — масштабирование до шара
@@ -30,7 +30,7 @@ variable {n : ℕ}
 noncomputable def clip (R : ℝ) (g : Fin n → ℝ) : Fin n → ℝ :=
   if ‖g‖ ≤ R then g else (R / ‖g‖) • g
 
-/-- Норма клипа не превосходит порога (ядро №29). -/
+/-- Норма клипа не превосходит порога -/
 theorem clip_norm_le (R : ℝ) (hR : 0 ≤ R) (g : Fin n → ℝ) :
     ‖clip R g‖ ≤ R := by
   unfold clip

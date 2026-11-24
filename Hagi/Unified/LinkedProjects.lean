@@ -7,7 +7,7 @@ import Hagi.Optimization.InexactContraction
 рабочие Statement-мосты, где теория HAGI ПОГЛОЩАЕТ
 результат внешнего проекта как частный случай уже
 доказанного ядра (без импорта чужих пакетов: их
-toolchain-пины 4.27/4.32 несовместимы с нашим 4.35 —
+toolchain-пины 4.27/4.32 несовместимы с нашим 4.36 —
 связь theorem-level, не package-level).
 
 ## ArtificialTheorems (GasStationManager)
@@ -28,8 +28,7 @@ toolchain-пины 4.27/4.32 несовместимы с нашим 4.35 —
 
 Time-uniform PAC-Bayes / e-processes / empirical Bernstein:
 наш слой — `Unified/AnytimeMartingale` (Ville),
-`Unified/AnytimePACBayes` (Catoni), `Probability/Freedman`,
-`Probability/FreedmanTwoSided`. Заимствование — stitching
+`Probability/Freedman` (Freedman/Azuma-style концентрация). Заимствование — stitching
 и master e-process поверх нескольких стратегий (у нас
 master один; их countable master — кандидат в расширение).
 

@@ -49,7 +49,6 @@ theorem singularValues_antitone (A : Matrix m n ℂ) :
     Antitone (singularValues A) := by
   intro k₁ k₂ hk
   unfold singularValues
-  -- Always use AᴴA eigenvalues₀ (after architectural change)
   apply Real.sqrt_le_sqrt
   -- eigenvalues₀_antitone: k₁ ≤ k₂ → eigenvalues₀ k₂ ≤ eigenvalues₀ k₁
   -- castLE preserves ≤: k₁ ≤ k₂ → castLE k₁ ≤ castLE k₂

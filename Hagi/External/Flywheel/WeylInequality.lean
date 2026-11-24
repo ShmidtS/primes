@@ -19,8 +19,6 @@ For Hermitian A, B: λₖ(A) + λₙ(B) ≤ λₖ(A+B) ≤ λₖ(A) + λ₁(B).
 
 -/
 
--- unused, but keeping around in case we need it for the singular value version
--- private def _root_.Nat.triangular (n : ℕ) : ℕ := n * (n + 1) / 2
 
 open scoped Matrix ComplexOrder
 open Finset Matrix BigOperators
@@ -45,9 +43,6 @@ For Hermitian A, B and any vector x:
   Re⟨(A+B)x, x⟩ = Re⟨Ax, x⟩ + Re⟨Bx, x⟩
 
 This is the fundamental lemma enabling Weyl's inequality proof. -/
--- Q: Do we actually need hA and hB here? The proof doesn't seem to use them...
--- A: Yes we do - we need the inner products to be real. Actually wait, we're
--- taking Re anyway so maybe not? TODO: try removing them
 theorem rayleigh_add (A B : Matrix n n ℂ) (_hA : A.IsHermitian) (_hB : B.IsHermitian)
     (x : EuclideanSpace ℂ n) :
     (@inner ℂ _ _ (Matrix.toEuclideanLin (A + B) x) x).re =
@@ -341,8 +336,7 @@ theorem weyl_eigenvalue_upper_bound (A B : Matrix n n ℂ)
   -- By Courant-Fischer min-max for A+B, λₖ(A+B) = inf_{dim V = n-k} sup R
   -- So λₖ(A+B) ≤ sup R on W (since W has dimension n-k)
 
-  -- But wait, we need to verify the dimension formula.
-  -- By Courant-Fischer min-max: λₖ(A+B) ≤ rayleighSup(A+B, W) for dim W = n - k
+    -- By Courant-Fischer min-max: λₖ(A+B) ≤ rayleighSup(A+B, W) for dim W = n - k
 
   have h_step1 : (hA.add hB).eigenvalues₀ k ≤ CourantFischer.rayleighSup (A + B) (hA.add hB) W := by
     have hW_nonempty : ∃ x : W, x.val ≠ 0 := by

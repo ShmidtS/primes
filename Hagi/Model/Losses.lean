@@ -6,13 +6,6 @@ import Mathlib.Tactic
 import Hagi.Probability.NoiseTemperature
 
 /-!
-# Семейство функций потерь и регуляризаций (объединённое)
-
-ZLoss, GradNorm, Softcap, VicReg, TripletLoss, NTXent.
-Имена сохранены.
--/
-
-/-!
 # NTXent (источник №83: Chen et al., "SimCLR",
 # arXiv 2002.05709)
 

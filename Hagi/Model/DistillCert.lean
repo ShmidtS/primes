@@ -53,7 +53,7 @@ noncomputable def quantStudent {n : ℕ} (c : DistillCert (n := n)) :
   fun i => gridQ c.delta c.hdelta (c.student i)
 
 /-- КАНАЛ КВАНТОВАНИЯ: поточечная ошибка квантованного
-ученика ≤ Δ/2 (реюз gridQ_error). -/
+ученика ≤ Δ/2 (`gridQ_error`). -/
 theorem quant_pointwise {n : ℕ} (c : DistillCert (n := n)) (i : Fin n) :
     |quantStudent c i - c.student i| ≤ c.delta / 2 :=
   gridQ_error c.delta c.hdelta (c.student i)

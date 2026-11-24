@@ -7,7 +7,7 @@ set_option linter.unusedSectionVars false
 /-!
 # ExactBypass — нулевой CE символьного bypass на PROVEN_EXACT-покрытии
 
-Внешний план (mapping, P8, top-4): HAGI_v2 Exact-First
+HAGI_v2 Exact-First
 Residual Coupling — детерминированные паттерны перехватываются
 символьными экспертами с сертификатом PROVEN_EXACT (0 нейронных
 FLOP на покрытых позициях), остаток — нейронным ядром
@@ -59,7 +59,7 @@ when probability 1 is assigned to the true byte at every
 covered position. -/
 def ExactGate (p : ι → ℝ) (xs : List ι) : Prop := ∀ x ∈ xs, p x = 1
 
-/-- Core of P8: a predictor placing probability 1 on the true
+/-- Core: a predictor placing probability 1 on the true
 byte has pointwise CE exactly `-ln 1 = 0`. -/
 theorem ce_pointwise_of_prob_one (p : ℝ) (h : p = 1) :
     cePoint p = 0 := by
@@ -83,7 +83,7 @@ theorem ce_split (p : ι → ℝ) (xs ys : List ι) :
   unfold ceSum
   rw [List.map_append, List.sum_append]
 
-/-- Linear decomposition of the plan: on a mixed sequence
+/-- Linear decomposition: on a mixed sequence
 (covered positions with p = 1, then residual positions) the
 total CE equals the residual CE alone — the covered share
 contributes exactly zero. -/

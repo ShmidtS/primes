@@ -43,9 +43,9 @@ descends the true CE down to the gap boundary.
    bench is TELEMETRY ONLY (outside the certificate).
 2. The bench learning rate is a guarded normalized analytic
    gradient step (measured-drop admission); no smoothness
-   constant is certified for the sandwich objective, and the
-   adaptive-majorizer η of `Hagi.Theory.AdaptiveMajorizer` is a
-   future bit.
+   constant is certified for the sandwich objective; the
+   adaptive-majorizer η of `Hagi.Theory.AdaptiveMajorizer` is
+   not used by the bench.
 3. Feature/weight snap-to-grid pins (family) live in
    the bench script, not here; this module is n,m-free.
 -/

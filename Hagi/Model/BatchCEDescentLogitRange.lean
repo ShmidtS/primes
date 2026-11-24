@@ -5,7 +5,7 @@ import Hagi.Model.BatchCEDescent
 /-!
 # BatchCEDescentLogitRange
 
-Logit-range family incl. the MAIN theorems: `dirLogitRange`, `batchLogitRangeSquare`, `batchLogitSafeStep`/`Majorizer`/`NextParameters`, and comparison with the existing engine. Split from `BatchCEDescent`.
+Logit-range family incl. the MAIN theorems: `dirLogitRange`, `batchLogitRangeSquare`, `batchLogitSafeStep`/`Majorizer`/`NextParameters`, and comparison with the existing engine.
 -/
 
 set_option relaxedAutoImplicit false

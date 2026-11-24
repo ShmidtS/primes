@@ -347,7 +347,7 @@ theorem dhcStep_antitone_kappa (a s : Fin K → ℝ)
   unfold dhcStep
   linarith [hdiff, hdom]
 
-/-! ## Связка с Information-слоем HAGI (объединение идей) -/
+/-! ## Связка с Information-слоем HAGI -/
 
 /-- Мост концепций: DHC-веса это HAGI-softmax `softDef`
 на отнормированных активациях `a j / T` (температура
@@ -357,7 +357,7 @@ theorem dhcWeights_eq_softDef (a : Fin K → ℝ) (T : ℝ) (i : Fin K) :
     dhcWeights a T i = Hagi.Prelude.softDef (fun j => a j / T) i :=
   rfl
 
-/-- Энтропийная граница (объединение с R334): шаноновская
+/-- Энтропийная граница: шаноновская
 энтропия DHC-весов выбора не превышает `log K` —
 следствие HAGI-гиббсовской леммы `kl_nonneg`,
 применённой к распределению весов и равномерному. -/

@@ -8,12 +8,12 @@ import Hagi.Model.BatchCEDescent
 /-!
 # The common cross-entropy model interface
 
-Audit 4.1: the CE family (~40 modules in `Hagi/Model`) repeats one
-theory under three variance axes — carrier (single sample / batch /
-stochastic), head (identity / gated / nonlinear), numeric regime
-(exact / quantized).  The single-sample (`Model.CEDescent`) and batch
-(`Model.BatchCEDescentSafeStep`) tranches already share, statement for
-statement, the *safe-step descent contract*: quantities
+The CE family in `Hagi/Model` repeats one theory under three
+variance axes — carrier (single sample / batch / stochastic), head
+(identity / gated / nonlinear), numeric regime (exact / quantized).
+The single-sample (`Model.CEDescent`) and batch
+(`Model.BatchCEDescent`) tranches share, statement for statement, the
+*safe-step descent contract*: quantities
 `A(θ)` (alignment, the squared norm of the negative residual-gradient
 direction), `R²(θ)` (quadratic range coefficient, the Böhning
 curvature term), the update `next θ` taken at the safe step
@@ -23,29 +23,27 @@ curvature term), the update `next θ` taken at the safe step
 
 This module is that contract, once: `CEModel Θ` is a structure of
 carrier data plus the contract proofs.  Two bridged specializations
-instantiate it from the existing SSOT theorems — every proof field
-delegates to an existing theorem, no statement is duplicated — and
-the consumer theorems (`strictDescent`, `safeStep_decrease_le_loss`)
-are proved once on the interface and instantiated twice, replacing
-the per-tranche duplicated strict-descent tails.
+instantiate it from the existing SSOT theorems, and the consumer
+theorems (`strictDescent`, `safeStep_decrease_le_loss`) are proved
+once on the interface.
 
-## Honest ledger (outside the interface, pinned migration tranches)
+## Honest ledger (outside the interface)
 
 - `StochasticCE`: the end-to-end stochastic learning theorem lives in
   `Hagi.Unified.StochasticCELearning`, above this layer; it is
   a consumer of the same `ceOneHot` SSOT and is a pointer target, not
-  a bridge, here.
-- `GatedCE`: the `Model.GatedCE*` family uses a curvature-selected
+  a bridge here.
+
+- `GatedCE`: `Model.GatedCEDescent` uses a curvature-selected
   step (`nSize`), a different contract shape.
 - `NonlinearCE`: `Model.CEJacobianMajorizer` majorizes through a
-  Jacobian remainder ball; adapting its `A`/`R`/remainder split to
-  this interface is a tranche.
+  Jacobian remainder ball; its `A`/`R`/remainder split is not bridged
+  to this interface.
 - `QuantizedCE`: `Model.CEQuantized` alters penalty constants, not
-  the functional; a tranche.
+  the functional; not bridged.
 
-The CE functional itself stays `Hagi.ceOneHot` (`Core.Concat`); the
+The CE functional stays `Hagi.ceOneHot` (`Core.Concat`); the
 parametric head stays `Model.SoftmaxHead` (`headCE`, `headLoss`).
-Nothing outside this file changes.
 -/
 
 set_option relaxedAutoImplicit false
@@ -56,8 +54,7 @@ variable {Θ : Type}
 
 /-- The common safe-step descent contract of the CE family: the loss,
 its safe update, the alignment `A` and range-square `R²` of the
-underlying quadratic majorizer, plus the laws every mature CE tranche
-already proves: the floor, alignment nonnegativity, the
+underlying quadratic majorizer, plus the laws: the floor, alignment nonnegativity, the
 nondegeneracy transfer, and the guaranteed decrease
 `L(next θ) ≤ L(θ) − 2A²/R²` of the step taken at `η = 4A/R²`. -/
 structure CEModel (Θ : Type) where
@@ -87,9 +84,7 @@ structure CEModel (Θ : Type) where
 
 /-! ## Generic consumers: proved once on the interface -/
 
-/-- Strict descent at a nondegenerate point, once for every CE model;
-instantiations replace the per-tranche duplicated strict-descent
-tails. -/
+/-- Strict descent at a nondegenerate point, once for every CE model. -/
 theorem strictDescent (M : CEModel Θ) (θ : Θ) (hR : 0 < M.rangeSquare θ) :
     M.loss (M.next θ) < M.loss θ := by
   have hA := M.alignment_pos_of_range_pos θ hR
@@ -135,7 +130,7 @@ noncomputable def singleSampleCE (X : Matrix V (Fin d) ℝ) (t : V) :
 variable [Nonempty V]
 
 /-- The arithmetic-mean batch CE model: the carrier data of
-`Model.BatchCEDescentSafeStep` at feature batch `X` and labels `y`.
+`Model.BatchCEDescent` at feature batch `X` and labels `y`.
 Every proof field is an existing `BatchCEDescent` theorem; the floor
 is the empirical mean of nonnegative per-sample losses. -/
 noncomputable def batchCE {B : ℕ} (X : Fin B → Matrix V (Fin d) ℝ)
@@ -169,7 +164,7 @@ theorem singleSampleCE_strictDescent (X : Matrix V (Fin d) ℝ) (t : V)
   strictDescent _ θ hR
 
 /-- Interface corollary (proof: the generic `strictDescent`): strict
-batch CE descent of `Model.BatchCEDescentSafeStep` at the common safe
+batch CE descent of `Model.BatchCEDescent` at the common safe
 step. -/
 theorem batchCE_strictDescent {B : ℕ} (X : Fin B → Matrix V (Fin d) ℝ)
     (y : Fin B → V) (θ : EuclideanSpace ℝ (Fin d))

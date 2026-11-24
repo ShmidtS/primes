@@ -11,22 +11,11 @@ import Hagi.External.Flywheel.SpectralNormGap
 
 Defines μ(E) = ‖E‖_F / (√rank · ‖E‖₂) ∈ [1/√r, 1].
 μ ≈ 1 implies incoherent (flat spectrum), μ ≈ 1/√r implies coherent.
-Convergence typically achieved in 15 iterations for practical matrices.
 
 ## References
 
 [1] Candès & Recht (2009). Found. Comput. Math. 9(6), 717–772.
 [2] Tropp, J. (2012). Found. Comput. Math. 12(4), 389–434.
-
-## Notes
-
-This file has gotten quite long (almost 2000 lines). Should probably split it up
-into separate files for:
-- Basic coherence definitions
-- Rank-related lemmas
-- The main characterization theorems
-
-But that's a refactor for another day...
 -/
 
 open scoped ComplexOrder Matrix
@@ -42,10 +31,6 @@ variable {n : Type*} [Fintype n] [DecidableEq n] [Nonempty n]
 section RankSingularValues
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
-
--- I spent way too long on this section. The key insight is that singular values
--- are just square roots of eigenvalues of A^H A, so nonzero sv <-> nonzero eig.
--- Seems obvious in retrospect but the type theory made it tricky.
 
 /-- Nonzero singular values correspond to nonzero eigenvalues of Aᴴ * A.
     Since σᵢ = √(λᵢ) where λᵢ ≥ 0, we have σᵢ ≠ 0 ↔ λᵢ ≠ 0. -/
@@ -1753,9 +1738,7 @@ theorem spectralGap_nonneg (A : Matrix n n ℂ) : 0 ≤ spectralGap A := by
   · -- Case: card n ≤ 1
     exact SVD.singularValues₀_nonneg A _
 
-/-- **Existence of Spectral-Optimal Solution** (v4.34 port: proved).
-
-Rank-1 truncated SVD is itself the spectral-norm minimizer:
+/-- Rank-1 truncated SVD is the spectral-norm minimizer:
 σ₂(A) = ‖A - trunc1‖ ≤ σ₁(A - N) = ‖A - N‖ for rank N ≤ 1
 (spectral error identity + Weyl low-rank interlacing). -/
 private theorem trunc1_spectral_optimal_aux (A : Matrix n n ℂ)
@@ -1781,9 +1764,7 @@ private theorem trunc1_spectral_optimal_aux (A : Matrix n n ℂ)
     rw [hfull, sub_self, norm_zero]
     exact norm_nonneg _
 
-/-- **Existence of Spectral-Optimal Solution** (v4.34 port: proved).
-
-For any matrix A there exists a rank-1 matrix M minimizing the spectral
+/-- For any matrix A there exists a rank-1 matrix M minimizing the spectral
 norm error: rank-1 truncated SVD is such a minimizer. -/
 theorem exists_spectral_minimizer_rank1 (A : Matrix n n ℂ) :
     ∃ M : Matrix n n ℂ, M.rank ≤ 1 ∧
@@ -1792,7 +1773,7 @@ theorem exists_spectral_minimizer_rank1 (A : Matrix n n ℂ) :
     fun N hN => trunc1_spectral_optimal_aux A N hN⟩
 
 /-- The spectral-optimal rank-1 approximation:
-rank-1 truncated SVD (v4.34 port: definitional, no axiom of choice). -/
+rank-1 truncated SVD. -/
 noncomputable def spectralOptimalRank1 (A : Matrix n n ℂ) : Matrix n n ℂ :=
   SVD.truncatedSVD A 1
 

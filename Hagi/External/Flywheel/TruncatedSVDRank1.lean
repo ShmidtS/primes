@@ -10,18 +10,9 @@ import Mathlib.LinearAlgebra.Matrix.Rank
 # Truncated SVD for Rank-1 Matrices
 
 For rank(A) ≤ 1: truncatedSVD(A,1) = A. Follows from σₖ = 0 for k ≥ 1.
-
-## Status
-
-This is the simplest case of truncated SVD. The general Eckart-Young
-machinery now exists in full: optimality of the truncated SVD in the
-Frobenius norm is `eckart_young_frobenius` (FrobeniusNorm.lean), and the
-general tail-sum lower bound `eckart_young_lower_bound`
-(EckartYoungLower.lean) covers every rank target at once, subsuming the
+The general theory is `eckart_young_frobenius` (FrobeniusNorm.lean) and
+`eckart_young_lower_bound` (EckartYoungLower.lean); this file keeps the
 rank-one identity as the case where the tail vanishes.
-
-Created: 2025-01-02
-Last modified: 2026-11-12 (Eckart-Young TODO closed: general machinery now exists)
 -/
 
 open Matrix
@@ -33,7 +24,6 @@ namespace Hagi.External.Flywheel
 
 variable {n : Type*} [Fintype n] [DecidableEq n]
 
--- Q: should this be in SVD.lean instead? It's kinda SVD-specific.
 
 /-- If rank(A) ≤ 1, then singular values at indices ≥ 1 are zero. -/
 theorem singularValues₀_eq_zero_of_rank_le_one (A : Matrix n n ℂ) (h : A.rank ≤ 1)

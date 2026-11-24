@@ -8,7 +8,7 @@ import Hagi.Theory.FunctionPreservingGrowth
 /-!
 # GrowTrunkBlock — рост trunk'а ЦЕЛЫМ БЛОКОМ (bench-мост)
 
- расширяет мини-HAGI: рост = добавление ЦЕЛОГО блока в trunk
+Расширяет мини-HAGI: рост = добавление ЦЕЛОГО блока в trunk
 (глубина +1), а не только fiber-признака. Теоретическая основа —
  `FunctionPreservingGrowth` (`trunk_function_preserving`,
 `function_preserving_admissible`); этот модуль — перенос той же
@@ -42,7 +42,7 @@ drop > 0 — вклад блока появляется тут), затем GPM 
 Ville stop на ОДНОЙ канонической CertStepData цепи; obj до/после
 grow равен ТОЧНО (exact Fraction assert).
 
- (`--mode mini-hagi5`): ПОВТОРЯЕМЫЙ grow-цикл — несколько
+`--mode mini-hagi5`: ПОВТОРЯЕМЫЙ grow-цикл — несколько
 identity-grow событий в одном прогоне (глубина 2 → 5, каждое —
 `grow_blocks_repeat_sound` шаг за шагом), между событиями —
 certified-обучение ТОЛЬКО нового блока (старые frozen); весь цикл
@@ -62,8 +62,7 @@ Ville-стоп) — bench-измерение, не теорема.
   унификация носителей — вне этого бита (KISS; совпадение ФУНКЦИЙ
   фиксирует `bench_bridge_to_C450`).
 - Отсутствие полезности нейтрального блока на шаге 0 — по
-  построению; польза — из последующего certified-обучения (тот же
-  pin, что у).
+  построению; польза — из последующего certified-обучения.
 -/
 
 set_option relaxedAutoImplicit false
@@ -104,7 +103,7 @@ section Trunk
 variable {V : Type}
 
 /-- Композиция bench-блоков: первый блок применяется первым
-(foldl-форма, mirrors `lmTrunk` C444/LMCompose). -/
+(foldl-форма, mirrors `lmTrunk` из `Hagi.Model.LMCompose`). -/
 def benchTrunk : List ((ℕ → V → ℝ) → ℕ → V → ℝ) →
     (ℕ → V → ℝ) → ℕ → V → ℝ :=
   List.foldl (fun b f => f ∘ b) id

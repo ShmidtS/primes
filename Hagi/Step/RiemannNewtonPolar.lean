@@ -13,7 +13,7 @@ namespace Hagi.Step
 
 
 /-!
-# Riemannian (covariant) Newton in polar coordinates (R385)
+# Riemannian (covariant) Newton in polar coordinates
 
 Polar metric `g = diag(1, r²)`; the covariant Hessian of a
 function `f(r, θ)` carries the Christoffel correction

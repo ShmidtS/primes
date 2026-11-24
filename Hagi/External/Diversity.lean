@@ -10,7 +10,7 @@ set_option linter.style.header false
 /-!
 # Wave2: GitHub-scout finds, transported
 
-Four upgrades from the scouts (round 38):
+Four upgrades from the scouts:
 
 **1. `grad_dist_polarization` / `grad_zero_merge_perfect`**
 (from Rose-STL-Lab/demystifying-mergeability, ICML 2026):
@@ -31,8 +31,7 @@ Gittins-index acquisition — the discrete counterpart of the
 shadow price λ; the index-maximizer dominates, the stopping
 rule is our λ-termination operationalized.
 
-**4. `merge_init_head_start`** (our niche, confirmed
-unclaimed): the merged init starts ON the interpolation
+**4. `merge_init_head_start`**: the merged init starts ON the interpolation
 manifold where `ensemble_ce_le_mean_general` bounds its CE
 — it inherits the ensemble-variance-reduced evaluation
 point at step 0; scratch starts at the log|V| baseline. The
@@ -109,8 +108,7 @@ end GradMerge
 
 section ConfigCert
 
--- not A theorem (round-41 audit): the statement was
--- conclusion ≡ hypothesis (an identity restatement). The
+-- No theorem here: the candidate statement was conclusion ≡ hypothesis. The
 -- PRESCRIPTION stands (measure → construct → only then QP);
 -- the honest constructive content lives in the ConFIG
 -- closed-form construction, not in an existence tautology.

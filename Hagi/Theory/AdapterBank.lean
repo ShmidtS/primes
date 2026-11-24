@@ -8,10 +8,9 @@ import Hagi.Theory.AdapterGrowth
 /-!
 # AdapterBank — bank доменных адаптеров + warm-start
 
-Source-anchored мост волны HAGI_v2 210/210b (прецедент
-wave199 →): upstream-код реализовал bank per-domain
-адаптеров и warm-start перенос БЕЗ теории — этот модуль
-формализует семантику КОДА точно.
+Source-anchored мост к HAGI_v2 (волны 210/210b): upstream-код
+реализовал bank per-domain адаптеров и warm-start перенос — этот
+модуль формализует семантику КОДА точно.
 
 Upstream source-anchors (C:\HAGI_v2, read-only):
 - `hagi/trunk_ops.py:310-345` — класс `AdapterBank`: per-domain
@@ -35,7 +34,7 @@ Upstream source-anchors (C:\HAGI_v2, read-only):
   (adapter_warm_start).
 
 Теоремы:
-- `adapter_bank_isolation` — конечная форма C544-изоляции:
+- `adapter_bank_isolation` — структурная изоляция:
   гипотеза `s' i = s i` у `adapter_isolation_zero_forgetting`
   становится СТРУКТУРНЫМ фактом (достаточно `i ≠ j`);
 - `warm_transfer_sound` — forgetA=0 (слот src не меняется при
@@ -64,8 +63,7 @@ Upstream source-anchors (C:\HAGI_v2, read-only):
   не участвует.
 - **Обучение trunk/head** — вне носителя: банк замораживает
   общий trunk (wave210: «never changes the incumbent path»);
-  если trunk обновляется — см. `trunk_update_needs_projection`
-.
+  если trunk обновляется — см. `trunk_update_needs_projection`.
 -/
 
 set_option relaxedAutoImplicit false
@@ -91,7 +89,7 @@ abbrev AdapterBankState (ι r d : Type*) [Fintype r] [Fintype d] :=
 /-- Обновление РОВНО одного слота j (семантика всех операций
 кода над словарём: get/apply/transfer/обучение трогают
 свой слот только). Ключевая структура: `i ≠ j` ⇒ слот i
-нетронут БЕЗ гипотез — конечная форма C544-изоляции. -/
+нетронут БЕЗ гипотез. -/
 def bankUpdate (bank : AdapterBankState ι r d) (j : ι)
     (a : AdaptState r d) : AdapterBankState ι r d :=
   fun i => if i = j then a else bank i
@@ -208,7 +206,7 @@ def bankBatch (bank : AdapterBankState ι r d)
 (bankBatch, каждый домен — СВОЙ слот) выход слота `i`, которого
 НЕ касался ни один шаг, неизменен ТОЧНО — все инварианты
 нетронутых доменов держатся при любом числе доменов. Индукция по
-списку обновлений с шагом `adapter_bank_isolation` (C544-паттерн
+списку обновлений с шагом `adapter_bank_isolation` (паттерн
 `adapter_per_task_sound`, но структурно: без гипотез заморозки —
 нетронутость видна из списка). -/
 theorem bank_composition (bank : AdapterBankState ι r d)

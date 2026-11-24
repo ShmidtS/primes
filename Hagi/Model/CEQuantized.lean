@@ -187,7 +187,7 @@ theorem ceOneHot_ternary_le_ceQuantPenalty {V : Type} [Fintype V]
     exact ceOneHot_ternary_le_structural X t s w hs
 
 /-- If the certified quantization penalty is smaller than the exact
-Cycle81 safe-step residual, actual ternary quantization preserves strict
+`CEDescent` safe-step residual, actual ternary quantization preserves strict
 cross-entropy descent. -/
 theorem ceOneHot_ternary_safeStep_lt {V : Type} [Fintype V] [Nonempty V]
     {d : ℕ} (X : Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d))
@@ -238,7 +238,8 @@ theorem ceQuantWitness_alignment :
     Hagi.Prelude.softDef, ceQuantWitnessFeatures,
     Matrix.mulVec, dotProduct, Fin.sum_univ_two, Fin.sum_univ_succ]
 
-/-- The actual Cycle81 safe successor, derived by expanding
+/-- The actual `CEDescent` safe successor, derived by expanding
+
 `ceNextParameters` and `safeStepSize`, is the stated raw vector. -/
 theorem ceQuantWitness_safeSuccessor :
     (ceNextParameters ceQuantWitnessFeatures 0 0

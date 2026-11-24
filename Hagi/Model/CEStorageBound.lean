@@ -8,8 +8,7 @@ set_option linter.style.header false
 /-!
 # Logical codebook width together with the selected packed CE bound
 
-The cardinality proofs adapt the reviewed local cardinality
-probe.  They bound the logical fixed-width payload of the existing joint
+The cardinality proofs bound the logical fixed-width payload of the existing joint
 codec; they make no physical-storage or optimality assertion.
 -/
 

@@ -8,11 +8,10 @@ import Hagi.Model.CEGlobalConvergence
 /-!
 # Margin-based PL for the unregularized cross-entropy
 
- research queue #3.  `Hagi.Model.CEGlobalConvergence` pinned the
-PL premise of the unregularized CE open: the regularized route
-(`ce_global_convergence_reg`) discharges PL through the ℓ2
-strong convexity constant `λ` (weight decay).  This module replaces
-that λ-crutch with data geometry: on a realizable 2-class problem with
+ `Hagi.Model.CEGlobalConvergence` discharges the PL premise of the CE
+only through ℓ2 regularization (`ce_global_convergence_reg`, strong
+convexity constant `λ`, weight decay).  This module replaces that
+λ-crutch with data geometry: on a realizable 2-class problem with
 margin, the UNREGULARIZED CE satisfies PL on a ball with an explicit
 constant built from the margin coefficient and the radius.
 
@@ -82,8 +81,7 @@ formalization source found.
 
 ## the multiclass extension (V classes, explicit μ(a,B,V))
 
- queue item 4.  The scalar 2-class head above generalizes to a
-V-class gap head: correct logit `a·θ`, every wrong logit `0`, loss
+The scalar 2-class head above generalizes to a V-class gap head: correct logit `a·θ`, every wrong logit `0`, loss
 `gapHead a θ = log (1 + c·e^{−aθ})` with `c = card V − 1` (bridged by
 `gapHead_eq_ceOneHot`; `c = 0` degenerates to the constant zero loss).
 The multiclass margin-PL constant is
@@ -104,7 +102,7 @@ premise-form margin `∀ v ≠ t, γ ≤ z t − z v`:
 `ce_margin_le` (softmax-margin-to-loss) and `softDef_margin_lb`
 (softmax-margin-to-probability, `1/(1+c·e^{−γ}) =
 e^{γ}/(e^{γ}+c)`).  Probe evidence: numeric sweep (2·10⁵ points,
-max(2μf − f'²) = −8.5e−19 ≤ 0) plus Lean crux pre-verification.
+max(2μf − f'²) = −8.5e−19 ≤ 0).
 -/
 
 set_option relaxedAutoImplicit false

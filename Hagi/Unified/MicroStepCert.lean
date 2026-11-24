@@ -34,8 +34,7 @@ def frobDot (A B : Matrix (Fin m) (Fin n) ℝ) : ℝ :=
 
 /-- Квадрат нормы Фробениуса. -/
 def frobSq (A : Matrix (Fin m) (Fin n) ℝ) : ℝ :=
-  Hagi.Core.frobSq A  -- dedup: делегат каноническому определению
-
+  Hagi.Core.frobSq A  
 theorem frobSq_eq (A : Matrix (Fin m) (Fin n) ℝ) :
     frobSq A = ∑ i, ∑ j, (A i j) ^ 2 := by
   unfold frobSq Hagi.Core.frobSq

@@ -3,8 +3,7 @@ import Mathlib.Data.List.SplitLengths
 import Mathlib.Data.List.SplitBy
 
 /-!
-# AdaptiveChunking (приоритет 3 «HAGI Neural Computer»,
-# ): динамический чанкинг H-Net — M зависит от
+# AdaptiveChunking: динамический чанкинг H-Net — M зависит от
 # ВХОДА и параметров, а не фиксирован.
 
 Статическая теория (HNet.lean) оценивает cost при
@@ -172,7 +171,6 @@ theorem floorCappedChunks_adaptive_le_static {α : Type} (c : k → ℝ)
     (fun _ => Nat.cast_nonneg _)
     (fun _ => floorCappedChunks_length_le L r hL hr hsuccess)
 
--- C213_BOUNDARY_BLOCK_START
 /-! ## Finite Boolean boundary-driven lossless chunks -/
 
 /-- Split before each next token whose boundary flag is true. -/
@@ -315,8 +313,7 @@ theorem floorBoundaryChunks_adaptive_lt_of_strict {α : Type*} (c : k → ℝ)
     (fun _ => floorBoundaryChunks_length_le L r hL hr hSuccess)
     l₀ hc₀ hstrict
 
--- C213_BOUNDARY_BLOCK_END
--- C214_ADJACENT_BLOCK_START
+-- C214_ADJACENT_BLOCK_END
 /-! ## Adjacent previous/current tags with plain-erasure projection -/
 
 /-- Tag each value with its predecessor; the seed is a dummy pair. -/
@@ -352,7 +349,7 @@ theorem length_adjacentBoundary_projection {α : Type*} (θ : α × α → Bool)
       (boundaryChunks θ (adjacentPairs xs)).length := by
   simp only [List.length_map]
 
-/-- Projection transfers C213's exact boundary route count. -/
+/-- Projection transfers the exact boundary route count. -/
 theorem length_adjacentBoundary_projection_exact {α : Type*} (θ : α × α → Bool)
     (xs : List α) :
     ((boundaryChunks θ (adjacentPairs xs)).map (List.map Prod.snd)).length =
@@ -403,7 +400,7 @@ theorem floorAdjacent_projection_flatten {α : Type*} (L r : ℝ)
   unfold floorBoundaryChunks at hSuccess
   exact flatten_cappedAdjacent_projection hSuccess
 
-/-- The projected successful floor route inherits C213's real count bound. -/
+/-- The projected successful floor route inherits the real count bound. -/
 theorem floorAdjacent_projection_length_le {α : Type*} (L r : ℝ)
     (hL : 0 ≤ L) (hr : 0 < r) {θ : α × α → Bool}
     {xs : List α} {chunks : List (List (α × α))}
@@ -412,7 +409,7 @@ theorem floorAdjacent_projection_length_le {α : Type*} (L r : ℝ)
   have h := floorBoundaryChunks_length_le L r hL hr hSuccess
   simpa only [List.length_map] using h
 
-/-- The projected floor route count transports C213's static cost bound. -/
+/-- The projected floor route count transports the static cost bound. -/
 theorem floorAdjacent_projection_adaptive_le_static
     {α k : Type*} [Fintype k] (c : k → ℝ) (hc : ∀ l, 0 ≤ c l)
     (L r : ℝ) (hL : 0 ≤ L) (hr : 0 < r) {θ : α × α → Bool}

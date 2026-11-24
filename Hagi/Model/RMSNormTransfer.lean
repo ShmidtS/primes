@@ -15,11 +15,10 @@ import Hagi.Model.RMSNorm
 set_option linter.style.header false
 
 /-!
-# RMSNorm Lipschitz constant discharge (E4 rmsnorm rung)
+# RMSNorm Lipschitz constant discharge
 
-The rmsnorm rung of the E4 backbone ladder (TD E4-C300/C307 notes:
-"Lipschitz для RMSNorm premise-form (μn, звено 4)"): the pre-norm
-`LipschitzWith μn` premise of the attention transfer stack is
+The pre-norm `LipschitzWith μn` premise of the attention transfer
+stack is
 discharged into explicit constants, matched to the EXACT carrier
 definition `Hagi.Model.RMSNorm.rnVec x i = x i / sqrt (ms x)` — the
 PURE Zhang–Sennrich base form (no ε-floor, no affine weight `g`).

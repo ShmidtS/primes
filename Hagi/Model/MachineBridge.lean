@@ -3,7 +3,7 @@ import Hagi.Model.ReferenceMachine
 import Hagi.Model.CertifiedTransition
 
 /-!
-# Мост: эталонная машина → стадийная семантика (аудит v7, этап 4)
+# Мост: эталонная машина → стадийная семантика
 
 `machineStageInput` строит `StageInput ℝ` из ИЗМЕРЕНИЙ
 эталонной машины (ReferenceMachine, n = 1): все энергии —
@@ -160,11 +160,10 @@ theorem machine_advance_certified (eta Delta kappa s : ℝ)
   linarith
 
 
-/-! ### Многомерный мост: машина → стадийная семантика (аудит v17 P0-1)
+/-! ### Многомерный мост: машина → стадийная семантика
 
-Аудит требовал явный мост S.params = w →
-(advance S u).params = jointStep a w η. Здесь этот мост
-доказан в размерности n над EuclideanSpace, вместе с
+Явный мост S.params = w →
+(advance S u).params = jointStep a w η доказан в размерности n над EuclideanSpace, вместе с
 end-to-end сертификатом V3 (фактический спад) для
 машинного цикла. -/
 
@@ -192,7 +191,7 @@ noncomputable def machineStageInputN (a w : EuclideanSpace ℝ (Fin n))
   h_eta_pos := heta
 
 
-/-- МОСТ ПАРАМЕТРОВ (аудит v17 P0-1, главный запрос):
+/-- МОСТ ПАРАМЕТРОВ:
 если параметры состояния — веса машины (S.params = w), то
 исполнение цикла ТОЧНО соответствует шагу эталонной машины:
 (advance S u).params = jointStep a w η. Координатно:
@@ -212,14 +211,13 @@ theorem machine_param_bridge (a w : EuclideanSpace ℝ (Fin n))
   exact rfl
 
 
-/-- END-TO-END (аудит v17 P0-1 + P0-2): машинный цикл в
+/-- END-TO-END: машинный цикл в
 размерности n даёт ФАКТИЧЕСКИЙ спад энергии
 состояния обучения. Все величины — вычисленные
 функции весов; леджер сжатия — `compress_energy_ledger`;
 мост параметров — `machine_param_bridge`. Строгость
 (hstrict): погрешность шаг+квантования меньше чистого
-спада шага (достаточно мелкое Δ). Этот факт закрывает
-P0-1: первый end-to-end мост машина↔состояние в n. -/
+спада шага (достаточно мелкое Δ). -/
 theorem machine_actual_descent_n
     (a w : EuclideanSpace ℝ (Fin n))
     (eta Delta : ℝ) (heta : 0 < eta) (hetaL : eta ≤ 1)

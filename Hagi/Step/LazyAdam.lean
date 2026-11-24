@@ -6,10 +6,9 @@ import Mathlib.Tactic
 import Hagi.Math.Foundations.Recurrence
 
 /-!
-# LazyAdam-семейство (объединённое)
+# LazyAdam-семейство
 
-Базовый LazyAdam и его моментная версия. Слит из двух
-модулей; имена деклараций сохранены.
+Базовый LazyAdam и его моментная версия.
 -/
 
 set_option linter.style.header false
@@ -66,9 +65,6 @@ theorem lazyReplay_exact (beta2 vstale g : ℝ) (d : ℕ) :
       = (beta2^d) * vstale + (beta2^d) * (1 - beta2) * g^2 := by
   ring
 
--- НЕ ТЕОРЕМА: прежняя rfl-форма была носителем предписания.
--- Аккумулятор-произведение — реализация; эквивалентность —
--- в тождествах выше.
 
 set_option linter.unusedDecidableInType false in
 -- гипотеза сохранена: документированная посылка API

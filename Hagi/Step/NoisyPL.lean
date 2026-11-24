@@ -109,8 +109,7 @@ theorem noisy_recurrence_telescope (e : ℕ → ℝ) (c d : ℝ)
     (hstep : ∀ t, e (t + 1) ≤ c * e t + d)
     (e₀ : ℝ) (h0 : e 0 ≤ e₀) (t : ℕ) :
     e t ≤ c ^ t * e₀ + d / (1 - c) :=
-  -- dedup (audit P3/PL): constant-c спец-случай канона
-  -- variable_telescope (c_t ≡ c, c0 = c).
+  -- Constant-c special case of `variable_telescope` (c_t ≡ c, c0 = c).
   have h := variable_telescope e (fun _ => c) c d
     (fun _ => hc) (fun _ => le_refl c) hc1 hd hstep e₀ h0 t
   by simpa using h

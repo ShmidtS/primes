@@ -4,7 +4,7 @@ import Hagi.Cert.Core
 import Hagi.Cert.StepGen
 
 /-!
-# StepContract — единый моноид сертификатов шага (аудит v15 §4.3)
+# StepContract — единый моноид сертификатов шага
 
 Замена зоопарка из 21 структуры-сертификата одним контрактом:
 `(decrease, riskCost, budgetSpend)` с неотрицательностью и
@@ -147,8 +147,7 @@ theorem trajectory_convergence {T : ℕ}
   linarith
 
 
-/-! ### Мост к каноническому телескопу (закрытие пункта
-дублирования аудита v15): `lyapunov_termination_fin` —
+/-! ### Мост к каноническому телескопу: `lyapunov_termination_fin` —
 частный случай `trajectory_convergence` при постоянном
 контракте (decrease = eps, risk = 0). -/
 
@@ -163,8 +162,7 @@ def constContract (eps : ℝ) (heps : 0 ≤ eps) : StepContract where
 
 /-! ### мост в каноническое ядро `Hagi.Cert.CertStepGen`
 
-Замыкает диспозицию survey-строки 7 (merge map A10: Step + Optimization →
-StepProvider interface): `StepContract` остаётся моноидом учёта
+`StepContract` остаётся моноидом учёта
 (decrease/riskCost/budgetSpend без носителя), а канонический шаг
 строится посылочно. Честность двух краёв:
 
@@ -175,7 +173,7 @@ StepProvider interface): `StepContract` остаётся моноидом учё
 * `riskRem` — СВОБОДНЫЙ параметр + посылки split/next/nonneg
   (паттерн снятия 0-пиннинга): контракт не имеет
   рискового носителя, остаток задаёт потребитель. -/
-/-- С280-адаптер: контракт + пучок системных метрик с посылками
+/-- Адаптер: контракт + пучок системных метрик с посылками
 собираются в канонический `CertStepGen` (δ-канал нулевой на
 тривиальном носителе `fun _ => 0`). -/
 def StepContract.toCertStepGen {S TaskId : Type*}

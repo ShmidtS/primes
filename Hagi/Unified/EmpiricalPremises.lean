@@ -4,9 +4,9 @@ import Hagi.Math.Foundations.StageCalculus
 set_option linter.style.header false
 
 /-!
-# EmpiricalPremises — единый реестр эмпирических посылок (цикл 40, аудит #8 п.2)
+# EmpiricalPremises — единый реестр эмпирических посылок
 
-Проблема аудита: ≥50 разнородных `h_emp_*`-посылок в
+Проблема: ≥50 разнородных `h_emp_*`-посылок в
 сигнатурах 89 теорем — реестр скриптом есть (AssumptionScan),
 единой СТРУКТУРЫ нет. Здесь — канонический реестр:
 

@@ -7,11 +7,9 @@ import Hagi.Model.Residual
 set_option linter.style.header false
 
 /-!
-# Residual transfer of certified descent (E4 first composition)
+# Residual transfer of certified descent
 
-The first composition theorem of the nonlinear backbone certificate
-(E4 seed): a
-certified head descent transfers through residual blocks with an
+A certified head descent transfers through residual blocks with an
 explicit leak bound — the cascade-leak pattern of
 `Hagi.Architecture.CascadeLeak` applied to the UPDATE path
 instead of the adapter path.
@@ -48,10 +46,10 @@ so a head descent `δ` at the stack output transfers as
 This is the induction step for stacking blocks: each block
 multiplies the leak factor by `(1 + μᵢ)`.
 
-Honest scope: the full FastArch3 forward/backward (attention
-Jacobians, RoPE exactness, GDN RAM rung, RMSNorm constants) is NOT
-claimed here; those internals are the documented follow-up ladder
-(`.omc/tech-debt.md` E4 entry).
+Scope: the full FastArch3 forward/backward is NOT claimed here;
+attention (`Hagi.Model.AttentionTransfer`), RMSNorm
+(`Hagi.Model.RMSNormTransfer`) and RoPE (`Hagi.Model.RoPETransfer`)
+transfer are separate modules.
 -/
 
 namespace Hagi.Model.BackboneTransfer
@@ -106,8 +104,8 @@ theorem residual_transfer_le {f : X → X} {loss : X → ℝ}
   linarith
 
 /-- Certified head descent transfers through ONE residual block: a
-drop `δ` certified at the block output for the intended step (
-premise-form) survives the block up to the leak slack `Lc·μ·‖dx‖`. -/
+drop `δ` certified at the block output for the intended step
+(premise-form) survives the block up to the leak slack `Lc·μ·‖dx‖`. -/
 theorem residual_transfer_descent {f : X → X} {loss : X → ℝ}
     {μ Lc : NNReal} {δ : ℝ} (hf : LipschitzWith μ f)
     (hloss : LipschitzWith Lc loss) (x dx : X)

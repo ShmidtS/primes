@@ -17,11 +17,11 @@ set_option linter.style.header false
 
 /-!
 # ParetoLogit — конечный Pareto-контроллер на реальной
-скалярной логистической цели (цикл 72)
+скалярной логистической цели
 
-Мост между циклами 70/71 (конечный контроллер над РЕАЛЬНЫМИ
-преемниками и робастный отбор с ограниченной ошибкой оценки) и
-точной логистической сертификацией циклов 36/42 (`logitCE`,
+Мост между конечным контроллером над РЕАЛЬНЫМИ преемниками и
+робастным отбором с ограниченной ошибкой оценки (Selection.lean) и
+точной логистической сертификацией LogitCert (`logitCE`,
 `descent_step_strict`, `logitStepCertExact`, `certified_loop`):
 
 * `logitProblem eta` — конечная задача `Fin 2 → ℝ` с целью
@@ -390,7 +390,7 @@ set_option linter.style.header false
 
 /-!
 # QualityResourceMin — exact minimum model resources under
-an objective floor (cycle 73)
+an objective floor
 
 This complements the quality-first `ParetoExecution.selection`:
 for a finite candidate family, choose a minimum-cost action whose
@@ -615,9 +615,9 @@ set_option linter.style.header false
 
 /-!
 # RobustResourceMin — minimum declared resources under a
-bounded-estimation quality floor (cycle 74)
+bounded-estimation quality floor
 
-The exact finite policy of cycle 73 requires the successor's objective
+The exact finite policy of QualityResourceMin requires the successor's objective
 value directly. Here only `estimate` may be available, but every actual
 successor has error bounded by a uniform `eps`. Use the conservative
 eligibility criterion
@@ -869,7 +869,7 @@ set_option linter.style.header false
 
 /-!
 # RobustCostSensitivity — uncertainty radius and least certified
-resource cost (cycle 75)
+resource cost
 
 Increasing epsilon shifts the estimator floor UP, hence shrinks the
 lower-bound-certified finite class. If both radius levels have eligible
@@ -945,7 +945,6 @@ set_option linter.style.header false
 
 /-!
 # RobustRadius — exact boundary for estimator-floor admissibility
-(cycle 76)
 
 For a given objective floor, the lower-bound-certified class is nonempty
 precisely when `eps ≤ maxEstimate − qfloor`, where `maxEstimate` is the
@@ -1032,7 +1031,6 @@ set_option linter.style.header false
 
 /-!
 # Executable finite selection with logical guard and relation counters
-(cycle 77)
 
 This module instruments the existing `List.filter` and `List.argmin`
 algorithms. It does not implement another minimum engine. Logical
@@ -1133,7 +1131,7 @@ end Hagi.Unified.ExecutableSelection
 
 
 /-!
-# Executable discrete finite resource selection (cycle 77)
+# Executable discrete finite resource selection
 
 A supplied action list is filtered by a concrete Bool guard, then the
 existing `List.argmin` chooses minimum memory-first resource cost among

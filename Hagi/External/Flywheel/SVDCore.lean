@@ -88,10 +88,6 @@ theorem singularValues₀_sq (A : Matrix n n ℂ) (k : Fin (Fintype.card n)) :
 
 /-! ### Singular Values of Zero Matrix -/
 
--- This section is probably overkill for just proving that sv(0) = 0
--- but I wanted to make sure all the plumbing was correct.
--- Feel free to golf these proofs.
-
 /-- Helper: The characteristic polynomial of the zero matrix is X^n. -/
 private lemma matrix_charpoly_zero : (0 : Matrix n n ℂ).charpoly = X ^ Fintype.card n := by
   rw [charpoly, charmatrix]
@@ -152,11 +148,6 @@ theorem singularValues₀_zero : singularValues₀ (0 : Matrix n n ℂ) = 0 := b
 
 /-! ### Singular Vectors -/
 
--- Naming convention: left vs right is confusing. Here's how I remember it:
--- - rightUnitary V: eigenvectors of A^H A ("right" because Av = σ u)
--- - leftUnitary U: eigenvectors of A A^H ("left" because A^H u = σ v)
--- If anyone has a better mnemonic please share!
-
 /-- The right singular vectors V: an orthonormal basis of eigenvectors of Aᴴ * A.
     These form a unitary matrix where column i is the eigenvector for σᵢ². -/
 noncomputable def rightUnitary (A : Matrix n n ℂ) : unitaryGroup n ℂ :=
@@ -171,8 +162,7 @@ noncomputable def leftUnitary (A : Matrix n n ℂ) : unitaryGroup n ℂ :=
 noncomputable def singularDiagonal (A : Matrix n n ℂ) : Matrix n n ℂ :=
   diagonal (Complex.ofReal ∘ singularValues A)
 
--- CFC = continuous functional calculus. Took me a while to figure out what this was.
--- See: https://leanprover-community.github.io/mathlib4_docs/Mathlib/Analysis/CStarAlgebra/ContinuousFunctionalCalculus/Basic.html
+-- CFC = continuous functional calculus.
 
 /-- The square root of Aᴴ*A, which is positive semidefinite by construction.
     This matrix P = √(Aᴴ*A) is central to polar decomposition: A = U*P. -/

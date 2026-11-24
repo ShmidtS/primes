@@ -6,7 +6,7 @@ import Hagi.Unified.LinkedQVec
 
 
 /-!
-# NegativeTests — типовые негативные тесты сертификатов (Gate 1)
+# NegativeTests — типовые негативные тесты сертификатов
 
 Каждая теорема — формальное свидетельство НЕВОЗМОЖНОСТИ фиктивного
 сертификата: только проекции и арифметика существующих контрактов,
@@ -86,7 +86,5 @@ theorem ram_post_is_exact_write {m n : ℕ}
     (w : RamWriteCert pre i v) :
     w.post = Matrix.updateRow pre i v := w.post_eq
 
-/-! ### N6. (удалено в ревизии: тривиальное следствие
-honest_actual_drop из HonestTransition.lean — дубль без новой
-информации; НЕ прятался в baseline, а удалён) -/
+
 end Hagi.Unified.NegativeTests

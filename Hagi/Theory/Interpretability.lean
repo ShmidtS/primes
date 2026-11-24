@@ -6,7 +6,7 @@ import Mathlib.Tactic
 /-!
 # Description-length interpretability contract
 
-Research beat: iWSP (arXiv 2611.18114) audits interpretability as a
+Research: iWSP (arXiv 2611.18114) audits interpretability as a
 REBUILD bottleneck — a model counts as interpretable when a SHORT
 description (there: a text summary of at most a couple hundred
 words) lets an independent session REBUILD a model that preserves
@@ -22,13 +22,12 @@ Three honest results:
   compressed model `M̃ = rebuild d` has a short description AND a
   bounded parameter displacement `dist M̃ M ≤ δ`, then the rebuild
   certificate holds with `ε_rebuild = lip * δ` DERIVED through the
- Lipschitz transport binder — the same algebra
+  Lipschitz transport binder — the same
   per-step quantization penalty, now read as an interpretability
   certificate instead of an optimization cost.
   (Termination-style finite-counting arguments follow the
   SelfEdit canon pattern: see `Hagi.Theory.SelfEditGate` in
-  `Hagi/Theory/SelfEdit.lean`.)
-* `exists_good_not_reachable` / `exists_not_rebuildable` (finite
+  `Hagi/Theory/SelfEdit.lean`.)* `exists_good_not_reachable` / `exists_not_rebuildable` (finite
   counting bound, the interpretability-is-special negative result):
   on a finite model class, budget-`B` descriptions over a finite
   alphabet rebuild at most `card Sig ^ B` distinct models; when the
@@ -111,7 +110,7 @@ If the compressed model `M̃` has a short description
 displacement `dist M̃ M ≤ δ`, then the rebuild certificate holds
 with `ε_rebuild = lip * δ` — DERIVED through the Lipschitz
 transport, not assumed.  Reading: quantized/low-rank compressions
-(C367-style short encodings) ARE interpretability certificates up
+(short encodings) ARE interpretability certificates up
 to one Lipschitz transport of the compression error. -/
 theorem rebuildable_of_compressible {Θ : Type} (sys : RebuildSystem Θ)
     (M M' : Θ) (d : sys.desc) (δ : ℝ) (B : ℕ)
@@ -212,7 +211,7 @@ theorem exists_not_exact_rebuildable {Θ Sig : Type} [Fintype Θ]
   obtain ⟨x, _, hx⟩ := exists_not_rebuildable loss θ ε B R hgood hcard
   exact ⟨x, hx⟩
 
-/-! ## (c) The admission pointer-lemma (pattern) -/
+/-! ## (c) The admission pointer-lemma -/
 
 /-- pointer-lemma: the description budget enters an
 admission margin exactly like a memoryCost channel — as a

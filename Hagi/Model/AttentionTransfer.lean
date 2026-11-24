@@ -8,12 +8,12 @@ import Hagi.Core.Attention
 set_option linter.style.header false
 
 /-!
-# Attention block transfer composition (E4 attention rung)
+# Attention block transfer composition
 
-The attention rung of the E4 backbone ladder (TD E4-C300,
-`.omc/tech-debt.md`): the existing softmax error-damping
-certificate `Hagi.Core.attention_error_damped` is wired into the
- residual-transfer stack (`Hagi.Model.BackboneTransfer`).
+The attention rung of the E4 backbone ladder: the softmax
+error-damping certificate `Hagi.Core.attention_error_damped` is
+wired into the residual-transfer stack
+(`Hagi.Model.BackboneTransfer`).
 
 The attention branch is the softmax-weighted value composition
 `attnBranch p v x = ∑ i, p i • v i x`. The damping interface: the
@@ -34,13 +34,13 @@ blocks (`AttnBlock`, `attnStack`, `attnGain`) inherit the
 multiplicative descent bound
 (`attention_stack_transfer_descent`, `_strict`).
 
-Honest scope: the softmax weight map (p depending on x through
-the QK^T scores) is encapsulated by the fixed-probability
-premise — the softmax-map Lipschitz rung is follow-up; RMSNorm
-Lipschitz is premise-form (`μn`; ladder rung 4); RoPE exactness
+Scope: the softmax weight map (p depending on x through
+the QK^T scores) is a fixed-probability premise — no softmax-map
+Lipschitz constant is claimed; RMSNorm Lipschitz is premise-form
+(`μn`, discharged in `Hagi.Model.RMSNormTransfer`); RoPE exactness
 (`Hagi.Core.RoPEMoments.rot_norm` preserves the pairwise-block
-inner product, not a normed-space norm) is a NEXT rung; the full
-FastArch3 forward/backward certificate is NOT claimed here.
+inner product, not a normed-space norm) and the full FastArch3
+forward/backward certificate are not claimed here.
 -/
 
 namespace Hagi.Model.AttentionTransfer
@@ -122,10 +122,10 @@ theorem attn_branch_lipschitz {p : ι → ℝ} {v : ι → X → X} {μatt : NNR
 -/
 
 /-- Pre-norm composition: a `μn`-Lipschitz norm map (`μn`
-premise-form — the RMSNorm Lipschitz rung instantiates it later)
+premise-form)
 composed with the `μatt`-Lipschitz attention branch gives the
-`(μn·μatt)`-Lipschitz pre-norm branch — exactly the block
-hypothesis shape. -/
+`(μn·μatt)`-Lipschitz pre-norm branch — the block hypothesis
+shape. -/
 theorem attn_norm_branch_lipschitz {n : X → X} {p : ι → ℝ}
     {v : ι → X → X} {μn μatt : NNReal} (hn : LipschitzWith μn n)
     (hp : ∀ i, 0 ≤ p i) (hp1 : ∑ i, p i = 1)
@@ -158,7 +158,7 @@ theorem attention_block_transfer {n : X → X} {p : ι → ℝ} {v : ι → X �
 (Lipschitz premise `μatt`). -/
 structure AttnBlock (X : Type*) [NormedAddCommGroup X]
     [NormedSpace ℝ X] (ι : Type*) [Fintype ι] where
-  /-- Pre-norm map (RMSNorm rung instantiates; `μn`-Lipschitz premise). -/
+  /-- Pre-norm map (`μn`-Lipschitz premise). -/
   n : X → X
   /-- Softmax weights (fixed probability distribution premise). -/
   p : ι → ℝ

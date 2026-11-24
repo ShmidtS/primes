@@ -9,14 +9,12 @@ import Hagi.Architecture.ManifoldHyperConn
 set_option linter.style.header false
 
 /-!
-# GDN block transfer composition (E4 GDN rung, hybrid payoff)
+# GDN block transfer composition (hybrid payoff)
 
-The GDN rung of the E4 backbone ladder (TD E4-C300/C309 remaining
-rung 1: "GDN RAM read/write perturbation rung"): the GDN side of
-the hybrid attention+GDN backbone is wired into the residual
-transfer stack (`Hagi.Model.BackboneTransfer`), and the HYBRID
-payoff theorem lands — a stack mixing attention blocks and GDN
-blocks descends with the product gain.
+The GDN side of the hybrid attention+GDN backbone is wired into the
+residual transfer stack (`Hagi.Model.BackboneTransfer`), and the
+HYBRID payoff theorem lands — a stack mixing attention blocks and
+GDN blocks descends with the product gain.
 
 GDN-form verdict (the carrier survey pin): the repository carries
 GDN in three distinct forms, and the block form must be
@@ -32,11 +30,11 @@ with `M` doubly stochastic. The GDN BLOCK wired here is form (3):
 the doubly-stochastic state mixing branch, with the GDN nonlinear
 gate (form (2) δ/β/σ gate structure) entering PREMISE-FORM as a
 `μg`-Lipschitz pre-gate — exactly mirroring the pre-norm
-premise (discharged per-instance later, did for μn).
+premise.
 
 Carrier transport: `gdnMix M x = WithLp.toLp 2 (M *ᵥ ofLp x)` on
 `EuclideanSpace ℝ n` (the transfer stack's abstract carrier),
-through the same WithLp transport .
+through the same WithLp transport.
 
 * `gdnMix_lipschitz` — MAIN GDN lemma: `IsDoublyStochastic M ⇒
   LipschitzWith 1 (gdnMix M)` `doublyStochastic_sq_le`
@@ -64,16 +62,15 @@ through the same WithLp transport .
   same Euclidean carrier) and GDN blocks, each block carrying its
 own composed μᵢ (attention `μn·μatt`, GDN `μg`); the stack
 instantiated over the heterogeneous blocks list with product
-gain — both block-type adapters now exist.
+gain.
 
 Honest scope: the GDNBridge RAM read/write semantics and the GDN2
 memory update (projection `I − UᵀU`, decay `D`, gated write
 `ω ⊙ V`) are NOT claimed as state contractions — only the
 mHC-style doubly-stochastic mixing branch is certified, and the
 nonlinear gate stays premise-form (μg); Sinkhorn balancing is NOT
-claimed (`IsDoublyStochastic M` is a premise — C231's honest
-boundary); the softmax weight map stays premise-form; the
-full FastArch3 forward/backward certificate is NOT claimed here.
+claimed (`IsDoublyStochastic M` is a premise); the softmax weight
+map stays premise-form.
 -/
 
 namespace Hagi.Model.GDNTransfer
@@ -165,7 +162,7 @@ theorem gdn_block_transfer {gate : EuclideanSpace ℝ n → EuclideanSpace ℝ n
   residual_transfer_le (gdn_branch_lipschitz hg hM) hloss x dx
 
 /-!
-## P5 per-instance discharge: the tanh gate family
+## Gate per-instance discharge: the tanh gate family
 
 The abstract gate premise `LipschitzWith μg gate` is discharged
 per-instance for the componentwise-saturating tanh family — the
@@ -173,10 +170,8 @@ scalar activation shape of the GDN2 δ/β/σ gate — with the honest
 constant `μg = 1`. Multi-argument δ/β/σ gate compositions are NOT
 claimed 1-Lipschitz (their constants remain per-instance data).
 
-Dedup note: the scalar fact `|tanh x - tanh y| ≤ |x - y|`
-(formerly a private `tanh_abs_sub_le` twin here) lives as the
-public `Hagi.Model.GatedCEGradient.abs_tanh_sub_le` — the private
-twin was a statement duplicate exposed by the lock regeneration.
+The scalar fact `|tanh x - tanh y| ≤ |x - y|` is the public
+`Hagi.Model.GatedCEDescent.abs_tanh_sub_le`.
 -/
 
 /-- The componentwise-saturating tanh gate on the Euclidean
@@ -320,7 +315,7 @@ theorem gdn_stack_transfer_descent_strict (bs : List (GdnBlock n))
   linarith
 
 /-!
-## The hybrid stack (the rung payoff)
+## The hybrid stack
 -/
 
 variable {ι : Type*} [Fintype ι]
@@ -358,7 +353,7 @@ noncomputable def hybGain (bs : List (HybBlock n ι)) : NNReal :=
 
 /-- Every block of a well-premised hybrid list satisfies
 block hypothesis: attention blocks through the adapter, GDN
-blocks through the C231-backed mixing adapter. -/
+blocks through the mixing adapter. -/
 theorem hybBlockList_lipschitz (bs : List (HybBlock n ι))
     (hatt : ∀ a : AttnBlock (EuclideanSpace ℝ n) ι,
       HybBlock.att a ∈ bs → LipschitzWith a.μn a.n
@@ -420,8 +415,7 @@ theorem hybrid_stack_transfer_descent_strict (bs : List (HybBlock n ι))
 -/
 
 /-- Nonvacuity of the mixing premise: the identity matrix is
-doubly stochastic (permutation matrices give the tight case —
-C231's own boundary note). -/
+doubly stochastic (permutation matrices give the tight case). -/
 example : IsDoublyStochastic (1 : Matrix (Fin 3) (Fin 3) ℝ) := by
   refine ⟨⟨fun i j => by simp [Matrix.one_apply]; split_ifs <;> norm_num,
       fun i => ?_⟩, fun j => ?_⟩

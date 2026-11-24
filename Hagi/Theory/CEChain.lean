@@ -10,7 +10,7 @@ import Hagi.Unified.StochasticCELearning
 /-!
 # The unified cross-entropy theory chain
 
-Audit 4.1 (A17 stage 2): the CE family is ONE mathematical chain,
+The CE family is ONE mathematical chain,
 each stage a specialization of the previous one by an explicit
 bridge — not competing variants:
 
@@ -52,8 +52,7 @@ CrossEntropy ──▶ Gradient ──▶ Curvature ──▶ SafeStep ──▶
   plus uncertainty `u`, the accept condition
   `0 < Â - r ∧ 0 < Ĉ + u` certifies the drop lower bound
   `(Â - r) ^ 2 / (4 * (Ĉ + u))` directly from the universal form
-  (pure algebra; the full Freedman-radius theorem is).
-  The end-to-end whp learning theorem stays in
+  (pure algebra; no probability here). The end-to-end whp learning theorem stays in
   `Hagi.Unified.StochasticCELearning` (re-exported below).
 * CONVERGENCE — the chain head: `ce_global_convergence_reg_closed`
   (PL geometric rate for the regularized head) and
@@ -63,7 +62,7 @@ CrossEntropy ──▶ Gradient ──▶ Curvature ──▶ SafeStep ──▶
 
 - The GatedCE zero-curvature unit fallback (`η = 1`, drop `A`) is
   outside the universal form: the quadratic degenerates.  It stays
-  in `Model.GatedCESafeStep` (documented the pointwise
+  in `Model.GatedCESafeStep` (the pointwise
   curvature law `0 < R ^ 2 → 0 < A` is false there).
 - `Model.CEModel` `η = 4A / R ^ 2` descent CONTRACT on
   `loss/next/alignment/rangeSquare`: a parallel packaging of the
@@ -153,13 +152,13 @@ theorem universalDrop_ge_of_bounds (U : UniversalSafeStep Θ) (θ : Θ)
     (by positivity : (0:ℝ) < 4 * U.curvature θ)]
   nlinarith
 
-/-- The accept-form of the universal step (audit 5.2 algebra, the
- target shape): with an alignment estimate `Â` carrying
+/-- The accept-form of the universal step (the target
+shape): with an alignment estimate `Â` carrying
 nonnegative uncertainty `r` and a curvature estimate `Ĉ` carrying
 uncertainty `u`, the accept condition `0 < Â - r ∧ 0 < Ĉ + u`
 certifies, from the universal form alone, the drop lower bound
-`(Â - r) ^ 2 / (4 * (Ĉ + u))`.  No probability here — the
-Freedman-radius theorem is . -/
+`(Â - r) ^ 2 / (4 * (Ĉ + u))`.  No probability here; the
+Freedman-radius theorem is `Hagi.Unified.StochasticCELearning`. -/
 theorem universal_accept_form (U : UniversalSafeStep Θ) (θ : Θ)
     {Â Ĉ r u : ℝ} (hCpos : 0 < U.curvature θ)
     (hA : Â - r ≤ U.alignment θ) (hC : U.curvature θ ≤ Ĉ + u) :
@@ -343,10 +342,10 @@ theorem gated_descent (X : Matrix V (Fin d) ℝ) (t : V)
 
 /-! ## Stage 4 — the stochastic pointer (full theorem) -/
 
-/-- Chain pointer to the end-to-end stochastic learning theorem
+/-- Chain pointer to the end-to-end stochastic learning theorem:
 whp descent of the real regularized head under fresh-sample
 SGD with the Freedman radius.  The accept-form algebra above is its
- interface. -/
+interface. -/
 alias stochasticLearning :=
   Hagi.Unified.StochasticCELearning.stochastic_ce_loop_whp_pl
 

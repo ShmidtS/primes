@@ -3,8 +3,7 @@ import Hagi.Unified.CertifiedLoop
 import Hagi.Unified.DescentCoreQuad
 
 /-!
-# LoopInstances : заполнение StepCert из
-# реального градиентного шага
+# LoopInstances: заполнение StepCert из реального градиентного шага
 
 Мост DescentCore → CertifiedLoop: квадратичная модель
 поставляет зависимый сертификат честного перехода —

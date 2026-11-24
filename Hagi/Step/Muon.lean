@@ -10,29 +10,7 @@ import Hagi.Math.Foundations.Recurrence
 # Muon-семейство (объединённое)
 
 Базовый Muon-шаг, выравнивание, двухуровневая версия,
-распад веса. Слит из четырёх модулей; namespace-блоки и
-имена деклараций сохранены.
--/
-
-/-!
-# chunked CE - exact piecewise summation + prior decomposition
-
-Phase B. Sources: 2609.32100
-(exact definition of valid token positions + protocol),
-2607.16666 (subsampling with rate correction),
-2607.10951 (one-sample unbiasedness transfer).
-
-Theorems:
-
-* `chunked_sum_exact` - EXACTNESS of chunked summation:
-if T = n * w, the token sum splits into n chunks of width w
-with NO loss - the chunked CE equals the full CE.
-* `ce_prior_decomposition` - CE = H(prior) + KL correction:
-cross-entropy against q decomposes as the prior entropy
-plus the KL divergence (proper objective).
-
-Honest boundary: the valid-position protocol (masking of
-padding) follows 2609.32100; here positions are all valid.
+распад веса.
 -/
 
 /-!
@@ -151,7 +129,7 @@ theorem muonDir_norm_sq_le {W : Type} [NormedAddCommGroup W]
 end Hagi.Step
 
 
-/-! ### Источник №72 (Muon, 2502.25082): скалярная модель
+/-! ### Скалярная модель (Muon, 2502.25082)
 итерации Ньютона-Шульца. Реальный Muon ортогонализует
 матрицу импульса итерацией U ← U(3I−UᵀU)/2; сингулярные
 числа эволюционируют по скалярной карте ns(u) = u(3−u²)/2.
@@ -227,9 +205,9 @@ theorem ns_error_contract (u : ℝ) (hu : 0 < u) (hu1 : u < 1) :
 end Hagi.Step.MuonNS
 
 /-!
-# Muon: оптимальность выравнивания (источник №12)
+# Muon: оптимальность выравнивания
 
-Источник №12: "Muon Optimizes Under Spectral Norm
+"Muon Optimizes Under Spectral Norm
 Constraints" (arXiv 2506.15054): Muon-шаг — ортогональная
 полярная часть градиента — steepest descent при спектральной
 норме: максимум выравнивания с градиентом среди ортогональных

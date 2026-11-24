@@ -30,11 +30,10 @@ that loop:
 * `ef21_pl_linear_rate` — PL-condition linear rate with explicit
   contraction `ρ = 1 − 2μc₁ + c₂cδ ∈ [0, 1)` under the dominance
   gate `c₂cδ < 2μc₁` and cap `2μc₁ ≤ 1`, delegating the recursion
-  to the canon `Hagi.Foundations.recurrence_pure` (same dedup
-  discipline as `Hagi.Optimization.pl_linear_convergence`).
+  to the canon `Hagi.Foundations.recurrence_pure`.
 
-Honest boundary: the REAL quantizer instances are bridged in
-`Hagi/Optimization/EF21Quantizer.lean` (A7 bridge 2): fixed-
+Honest boundary: the REAL quantizer instances are bridged below:
+fixed-
 support TopK and the ternary lift `qTernVec` are `α = 0`
 contractive, NOT `α > 0` contractive (both refuted with explicit
 witnesses), and the additive-error contract `IsInexactCompressor`
@@ -42,11 +41,10 @@ carries them through `ef21_inexact_descent`. What remains
 documented-only: per-vector-scaled relative contractivity
 (`c < 1`, the EF21 literature route) and the saturation-tail
 inexact instantiation (proven in energy form in
-`Hagi/Runtime/TernaryExact.lean`).
-The toy-quadratic EF theory (`Hagi/Theory/Compression.lean`: exact
-telescoping, quality transfer on quadratics) is subsumed in spirit
-by the abstract contractor analysis; the dedup is future work —
-nothing is deleted or changed here.
+`Hagi/Runtime/TernaryExact.lean` (`ternary_split_le`). The
+toy-quadratic EF theory (`Hagi/Theory/Compression.lean`: exact
+telescoping, quality transfer on quadratics) is not wired to this
+abstract contract.
 -/
 
 set_option linter.style.header false
@@ -196,11 +194,10 @@ set_option linter.style.header false
 set_option linter.style.openClassical false
 
 /-!
-# Quantizer compressor instances for EF21 (A7 bridge 2)
+# Quantizer compressor instances for EF21
 
 The bridge from REAL quantizers (ternary rounding, TopK sparsifier)
-to the EF21 Markov contract `IsContractive`
-(`Hagi/Optimization/EF21Markov.lean`). Honest math:
+to the EF21 Markov contract `IsContractive`. Honest math:
 
 * `topK` (fixed-support mask) IS `alpha = 0` contractive
   (`topK_contractive`): zeroing the tail never expands. It is NOT
@@ -345,8 +342,8 @@ theorem qTern_pointwise_le (s x : ℝ) (hs : 0 < s) :
 
 /-- The ternary quantizer is `alpha = 0` contractive: per
 coordinate the quantization error never exceeds the magnitude, so
-`|Q u - u|_2 <= |u|_2` for every `u` (the degenerate endpoint of
-the `IsContractive` contract, same convention as C231's
+(the degenerate endpoint of
+the `IsContractive` contract, same convention as
 `contractive_zero`). -/
 theorem qTernVec_contractive_zero (s : ℝ) (hs : 0 < s) :
     EF21Markov.IsContractive (qTernVec s : (n → ℝ) → (n → ℝ)) 0 := by

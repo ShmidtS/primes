@@ -17,14 +17,7 @@ import Hagi.External.Flywheel.SVD
 [2] Fischer, E. (1908). Über quadratische Formen mit reellen Koeffizienten.
 [3] Horn & Johnson (2012), Thm 4.2.11.
 
-## TODO
-- [ ] Generalize to normal matrices (not just Hermitian)?
-- [ ] The min-max direction is done, still need max-min formulation
-- [ ] Consider refactoring eigenspace_span_finrank - it's getting long
 -/
-
--- HACK: importing all of Mathlib is slow, but I kept getting random missing lemmas
--- when trying to import specific files. Fix later.
 
 open scoped Matrix ComplexOrder
 open Finset Matrix BigOperators
@@ -39,14 +32,6 @@ section SubspaceDimensionTools
 
 variable {K : Type*} [DivisionRing K]
 variable {E : Type*} [AddCommGroup E] [Module K E] [FiniteDimensional K E]
-
--- NOTE(amarkovski): I'm not 100% sure if we need FiniteDimensional instances here
--- or if they can be inferred. Leaving explicit for now.
-
--- Old attempt that didn't work:
--- theorem subspace_intersection_nontrivial' (V W : Submodule K E) ... := by
---   apply Submodule.ne_bot_iff.mpr
---   -- stuck here, couldn't figure out how to extract witness
 
 /-- If two finite-dimensional subspaces have dimensions summing to more than the
 ambient space, their intersection is nontrivial. -/

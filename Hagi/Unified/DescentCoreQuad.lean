@@ -141,8 +141,7 @@ theorem quad_drop (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :
   rw [hone] at hdrop
   linarith
 
-/-- Делегаты канонических η-теорем (перенесены в
-Hagi.Foundations.QuadEta — чистая математика, слой 0). -/
+/-- Делегаты канонических η-теорем (`Hagi.Foundations.QuadEta`). -/
 theorem quadE_eq_quadLossAt (a w : k → ℝ) :
     quadE a w = Hagi.Foundations.quadLossAt a w := by
   unfold quadE Hagi.Foundations.quadLossAt

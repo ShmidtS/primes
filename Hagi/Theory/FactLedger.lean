@@ -8,8 +8,8 @@ set_option relaxedAutoImplicit false
 /-!
 # FactLedger — append-only факт-леджер memory store
 
-Bench-мост к HAGI_v2 волны 219–220 (external memory
-store, `hagi/memory_store/facts.py:1` — WAVE 219). Класс
+Bench-мост к HAGI_v2 external memory store
+(`hagi/memory_store/facts.py:1`). Класс
 `ConflictAwareFactStore` («append-only evidence ledger with guarded
 current-value updates», facts.py:56-59): каждое `facts.propose` INSERT-ит
 новую строку в `facts.guarded_fact_history` (facts.py:171-177), DELETE
@@ -18,8 +18,7 @@ current-value updates», facts.py:56-59): каждое `facts.propose` INSERT-и
 (повтор того же значения всё равно INSERT-ится, facts.py:152-154) —
 dedup-теорема честно опущена.
 
-Fresh-minimal инвариант (KISS, 2 теоремы): история фактов — список
-записей, append = `facts ++ [e]`.
+Модель: история фактов — список записей, append = `facts ++ [e]`; две теоремы.
 
 - `fact_append_preserves` — существующие записи идентичны после
   append (`List.take_length_append`: take по длине старой истории);
@@ -27,8 +26,7 @@ Fresh-minimal инвариант (KISS, 2 теоремы): история фак
   (`List.mem_append`): append-монотонность запроса.
 
 Обе — мост к Mathlib-леммам `List.take_length_append` /
-`List.mem_append`; вклад витка = framing в fact-терминах
-(недублирование: леммы Mathlib переиспользуются как есть).
+`List.mem_append` (недублирование: леммы Mathlib переиспользуются как есть).
 -/
 
 namespace Hagi.Theory.FactLedger

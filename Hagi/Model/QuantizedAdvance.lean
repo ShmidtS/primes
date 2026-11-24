@@ -5,7 +5,7 @@ import Hagi.Energy.Quantizer
 
 /-!
 # QuantizedAdvance — РЕАЛЬНАЯ семантика компрессии
-(аудит v16, P0 «Real execution refinement», Test 3)
+(real execution refinement)
 
 Проблема: `StageSemantics.advance` записывает
 `params' = params − η·stepDir` — ПРЕДКВАНТОВАННОЕ значение;
@@ -14,8 +14,8 @@ import Hagi.Energy.Quantizer
 равны ФАКТИЧЕСКИ квантованным `q(params − η·stepDir)`.
 
 - `advanceQ`: advance + реальное квантование параметров;
-- `advanceQ_quantized`: params' = q(params − η·d) — Test 3
-  выполнен (rfl-контракт);
+- `advanceQ_quantized`: params' = q(params − η·d) —
+  rfl-контракт;
 - `advanceQ_prox`: при контракте квантовщика
   ‖q x − x‖ ≤ Δ квантованное состояние в Δ-окрестности
   идеального (advance) — мост к энергетическим оценкам;
@@ -30,13 +30,13 @@ open Hagi.System Hagi.Model
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-- Квантованный переход: advance + фактическое квантование
-параметров (Test 3: состояние хранит РЕАЛЬНУЮ конфигурацию). -/
+параметров (состояние хранит РЕАЛЬНУЮ конфигурацию). -/
 def advanceQ (S : GrowthState X) (u : StageInput X) (q : X → X) :
     GrowthState X :=
   { advance S u with
     params := q (S.params - u.sp.eta • u.stepDir) }
 
-/-- TEST 3 (rfl-контракт): параметры пост-состояния равны
+/-- (rfl-контракт): параметры пост-состояния равны
 ФАКТИЧЕСКИ квантованным параметрам шага. -/
 theorem advanceQ_quantized (S : GrowthState X) (u : StageInput X)
     (q : X → X) :

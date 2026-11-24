@@ -12,7 +12,7 @@ import Hagi.Semantics.FunctionalState
 MeasureProto (протокол измерения с операционными типами),
 ProtoTrajectory (execution × measurement × certificate вдоль
 реальной траектории), FsGate (commit/hold над функциональным
-состоянием). Слит из трёх модулей; имена сохранены.
+состоянием).
 -/
 
 /-!
@@ -32,8 +32,8 @@ ProtoTrajectory (execution × measurement × certificate вдоль
 3. `machineProto_gap`: dStep производственного QuadGate
    выводится из протокола: machineGap = loss(θ) −
    loss(jointStep θ) — НИКАКИХ внешних чисел;
-4. `machineGateFromProto`: machineCert (GateCert такта
-   №269) — спроецирован из протокола: gate-решение
+4. `machineGateFromProto`: machineCert (GateCert)
+   — спроецирован из протокола: gate-решение
    полностью происхождено.
 -/
 
@@ -143,7 +143,7 @@ end Hagi.Unified.MeasureProto
 # ProtoTrajectory: протокол × траектория —
 полная цепочка execution × measurement × certificate.
 
-Замыкание интеграции аудита №5: лоссы, измеряемые
+Лоссы, измеряемые
 ПРОТОКОЛОМ (MeasureProto), вдоль РЕАЛЬНОЙ
 траектории commit/hold (QuadTrajectory):
 

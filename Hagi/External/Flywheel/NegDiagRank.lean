@@ -16,13 +16,10 @@ self-contained; Mathlib's Gershgorin lemmas
 and do not cover this sign-aware, non-strict-off-diagonal form.
 
 WHY STRICT ROW SUMS: with weak row sums (`≤ 0`) the statement is FALSE.
-The graph-laplacian BELOW has negative
-diagonal, nonnegative off-diagonal entries and row sums equal to zero,
-yet kills the constant vector (see the example below). This matches the
-addendum's own caveat that the Laplacian case only yields rank `n - 1`;
-the weak/irreducible version is deferred and NOT claimed here.
+The graph Laplacian (`example` at the end of the file) has negative
+diagonal, nonnegative off-diagonal entries and zero row sums, yet kills
+the constant vector; the weak/irreducible version is not claimed.
 
-Created: 2026-11-12
 -/
 
 open Matrix
@@ -119,8 +116,7 @@ end Hagi.External.Flywheel.NegDiagRank
 /-- The laplacian matrix (here on `Fin 2`) kills the constant vector
 while meeting every weak (non-strict) row-sum hypothesis — negative
 diagonal, nonnegative off-diagonal entries, row sums equal to zero.
-Hence no injectivity lemma can hold under weak row sums, and only the
-strict version is landed. -/
+Hence no injectivity lemma can hold under weak row sums. -/
 example :
     (Matrix.of fun i j : Fin 2 => if i = j then (-1 : ℝ) else 1) *ᵥ
       (fun _ => (1 : ℝ)) = fun _ => (0 : ℝ) := by

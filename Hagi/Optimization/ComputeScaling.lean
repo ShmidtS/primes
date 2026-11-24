@@ -11,8 +11,7 @@ import Hagi.Probability.GibbsCore
 
 namespace Hagi.Optimization
 
-/-- COMPUTE-OPTIMAL НИЖНЯЯ ГРАНИЦА (инфо-теор. scaling laws,
-Jeon–Van Roy arXiv 2407.01456): при потерях L(m,n) = a/m + b/n
+/-- COMPUTE-OPTIMAL НИЖНЯЯ ГРАНИЦА: при потерях L(m,n) = a/m + b/n
 (модель m, данные n) и линейной стоимости вычислений
 C = m+n — для ЛЮБОЙ аллокации
 L ≥ (√a + √b)² / C:

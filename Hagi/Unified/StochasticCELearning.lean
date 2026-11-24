@@ -64,22 +64,13 @@ of the real objective.
 * `stochastic_ce_loop_whp_pl` — the drift floor DISCHARGED from PL
   (`μ = λ` via `strong_convex_pl` + `ceReg_attains`) plus a global
   gap floor premise.
-* `stochastic_ce_loop_whp_pl` — the drift floor DISCHARGED from PL
-  (`μ = λ` via `strong_convex_pl` + `ceReg_attains`-style attainment
-  binder) plus a global gap floor premise.
-* PUNNED to a follow-up (honest scope cut, session): (a) the
-  componentwise formalization of the REAL uniform-minibatch row
-  estimator (`card V • (softmax−onehot)_v X_v + λθ`) and its
-  unbiasedness for `ceGradReg` under `uniformOfFinset` — the
-  `hbias` binder stays abstract here; (b) routing the composition
-  through `stochastic_loop_certified` per-step
-  `CertStochasticStep` certificates over the product noise space
-  (needs a marginalization lemma for `historyLaw` prefixes not in
-  the API).
-* `stochastic_ce_loop_certified` — the same composition routed
-  through the kernel adapter `stochastic_loop_certified`:
-  per-step `CertStochasticStep` certificates over the noise-sequence
-  space give the union bound + certified-loop telescope.
+* Not proved here: the componentwise formalization of the REAL
+  uniform-minibatch row estimator (`card V • (softmax−onehot)_v X_v +
+  λθ`) and its unbiasedness for `ceGradReg` under `uniformOfFinset`
+  (the `hbias` binder stays abstract); routing the composition
+  through `stochastic_loop_certified` per-step `CertStochasticStep`
+  certificates over the product noise space (needs a marginalization
+  lemma for `historyLaw` prefixes not in the API).
 
 ## Honest limitations (pinned)
 
@@ -90,8 +81,7 @@ of the real objective.
   expected-descent machinery (a supermartingale for `E[f(θ_k)]`,
   i.e. `E[f(θ_{k+1}) | θ_k] ≤ (1−μ/L) f(θ_k)` combined with whp
   concentration) NOT present in the repo — `FreedmanStep` gives whp
-  tails only, no conditional-expectation descent lemma.  PINNED
-  OPEN with this precise statement.
+  tails only, no conditional-expectation descent lemma.
 * **Global θ-binders**: the noise/gradient premises quantify over
   ALL θ (not only reachable iterates); a markovLaw-support
   characterization would weaken them to reachable states — future
@@ -111,7 +101,7 @@ open scoped Matrix InnerProductSpace BigOperators Classical
 open Hagi.Probability Hagi.Model.CEGlobalConvergence
   Hagi.Unified.StochasticLoop
 
-/-! ## Part 1: deterministic and one-step SGD descent (E-abstract) -/
+/-! ## Part 1: deterministic and one-step SGD descent -/
 
 section Descent
 
@@ -790,7 +780,7 @@ theorem stepDrift_ge_floor (X : Matrix V (Fin d) ℝ) (t : V) (lam γr : ℝ)
   linarith
 
 set_option maxHeartbeats 400000 in
-/-- **THE FIRST END-TO-END STOCHASTIC LEARNING THEOREM**.
+/-- **End-to-end stochastic learning theorem**.
 
 Training the REAL ℓ2-regularized log-linear CE head `ceReg X t lam`
 by stochastic gradient descent with a FRESH noise sample per step
@@ -804,8 +794,8 @@ Noise premises (all explicit binders, global over θ):
 * `hbias` — directional unbiasedness: the `νp`-mean of every
   directional pairing with `g θ ·` equals the pairing with the true
   gradient `ceGradReg θ` (the uniform-minibatch row estimator is the
-  intended instantiation; its componentwise formalization is pinned
-  to a follow-up, see module docs);
+  intended instantiation; its componentwise formalization is not
+  done here, see module docs);
 * `hbnd` — per-sample noise bound `‖g θ i − ∇f θ‖ ≤ cb`;
 * `hvar` — variance bound `E‖g θ · − ∇f θ‖² ≤ σ₂max`;
 * `hG`/`hGsq` — global gradient cap/floor (the floor is PL-derived
@@ -940,7 +930,7 @@ attainment `ceReg_attains`), given a global gap floor premise
 `Δ ≤ ceReg θ − ceReg θstar` for every θ (honest: the whp telescope
 is meaningful only while the loss stays above the optimum by Δ;
 once the gap drops below Δ the floor premise fails and the theorem
-is vacuous — the PL-RATE composition stays pinned open). -/
+is vacuous). -/
 theorem stochastic_ce_loop_whp_pl
     (X : Matrix V (Fin d) ℝ) (t : V) (lam : ℝ) (hlam : 0 < lam)
     (γr : ℝ) (hγpos : 0 < γr)

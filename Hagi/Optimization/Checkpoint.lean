@@ -2,9 +2,8 @@ import Mathlib.Tactic
 
 /-!
 # Gradient Checkpointing: sqrt-трейдофф память/пересчёт
-(источник №48)
 
-Источник №48: Chen et al., "Training Deep Nets with Sublinear
+Chen et al., "Training Deep Nets with Sublinear
 Memory Cost" (arXiv 1604.06174). Хранить k контрольных точек
 слоёв из n: память k + n/k (точки + пересчитываемые
 сегменты), пересчёт ≈ n/k слоёв: оптимум k = √n даёт

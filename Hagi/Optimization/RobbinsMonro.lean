@@ -3,8 +3,8 @@ import Hagi.Optimization.InexactContraction
 # RobbinsMonro — детерминированное ядро Роббинса-Монро
 
 Затухающие шаги с расходящейся суммой гасят любую начальную ошибку
-рекурсии; произведение коэффициентов сжатия стремится к нулю. Основа
-стохастической аппроксимации и расписаний learning rate. Сводка:
+рекурсии; произведение коэффициентов сжатия стремится к нулю.
+Сводка:
 STATUS.md, секция Hagi/Optimization/RobbinsMonro.lean.
 -/
 namespace Hagi.Optimization

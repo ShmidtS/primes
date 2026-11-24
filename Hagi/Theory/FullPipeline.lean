@@ -10,10 +10,10 @@ set_option relaxedAutoImplicit false
 /-!
 # Full pipeline — the unified six-phase cycle
 
-Gap: the bench modes exercised the phases
+The bench modes exercised the phases
 SEPARATELY (cert-ce, ef21-step, hadamard-tern, grow, grow-stop);
 no single certified trajectory ran the WHOLE lifecycle on one
-objective chain. adds the unified composition: ONE task
+objective chain. This module adds the unified composition: ONE task
 passes six phases back to back — TRAIN, EF21 (in-step quantized
 compression), HADAMARD-TERN (measured-coherence gated ternary
 jump), GROW (block admission), MERGE (measured-δ branch merge),
@@ -45,7 +45,7 @@ EXISTING theorem, cited as the construction route:
   `Hagi.Theory.AnytimeHoldoutStop.grow_stop_sound` /
   `stop_blocks_admission` — the stop lives INSIDE the growth gate.
 
-The cycle theorem consumed below is `certify_then_commit_sound`
+The cycle theorem consumed below is `certify_then_commit_sound`:
 rounds owned by gate kinds, commits carry certified ledger
 steps, holds are no-ops, the stop blocks commits.
 
@@ -65,10 +65,10 @@ steps, holds are no-ops, the stop blocks commits.
 - **The bridge is list-level**: `checkTrajectory` checks the
   reported readouts (positive drop, real descent, chained
   objectives); it does not re-derive the probability premises of
- — those remain premise-form, exactly .
+the stop — those remain premise-form.
 
-Layer decision: Theory (7), like CertifyThenCommit — the module
-must see the cycle (7) and the Runtime checker (3).
+Layer: Theory (7), like CertifyThenCommit — the module must see
+the cycle (7) and the Runtime checker (3).
 -/
 
 open MeasureTheory
@@ -90,7 +90,7 @@ inductive FullPipelinePhase where
   | train
   /-- EF21 in-step quantized steps with error feedback. -/
   | ef21Step
-  /-- Coherence-gated ternary quantization jump (). -/
+  /-- Coherence-gated ternary quantization jump. -/
   | hadamardTern
   /-- Growth block admission by the LCB margin. -/
   | grow
@@ -217,10 +217,10 @@ set_option relaxedAutoImplicit false
 /-!
 # Trunk training — certified joint trunk+head steps
 
-Gap: every bench mode trained a LINEAR
+Every bench mode trained a LINEAR
 head on a frozen carrier; the joint theory
 (`Hagi.Training.JointTrunkHead`) had no executable Python face.
- adds the trunk-training bench (`scripts/bench_bridge.py`,
+This module adds the trunk-training bench (`scripts/bench_bridge.py`,
 `--mode trunk-train`): a NON-LINEAR trunk — an L1-denominator
 rational RMSNorm surrogate (true RMSNorm divides by an irrational
 √; the surrogate x/(|x|+ε) is Fraction-exact, docstring-pinned in
@@ -229,7 +229,7 @@ the linear head by certified steps.
 
 ## Coordination only — the mathematics lives in the components
 
-This module is composition GLUE `FullPipeline` pattern;
+This module is composition GLUE (the `FullPipeline` pattern);
 every substantive leg is an EXISTING theorem, cited as the
 construction route:
 
@@ -250,7 +250,7 @@ construction route:
   exactly in `Fraction`s on the actual parameters) with guarded
   rollback (drop ≤ 0 ⇒ HOLD, parameters restored)
   hold semantics. A, R, dd are telemetry; the strict-commit
-  criterion is advisory. The commit criterion consumed
+  criterion is advisory. The commit criterion consumed by the
   cycle is the realized drop > 0, exactly as in
   `Hagi.Theory.CertifyThenCommit.commit_drop_checked`.
 - `trunkPhaseRoute` is a TAG, not a claim of component
@@ -259,10 +259,10 @@ construction route:
 - `trunk_traj_drop_pos` is the list-level bridge from the
   executable checker (`checkTrajectory`) to per-step drop
   positivity — the same pattern as `full_traj_drop_pos`;
-  it does not re-derive the probability premises .
+  it does not re-derive the probability premises of the stop.
 
-Layer decision: Theory (7), like FullPipeline — the module must
-see the cycle (7) and the Runtime checker (3).
+Layer: Theory (7), like FullPipeline — the module must see
+the cycle (7) and the Runtime checker (3).
 -/
 
 open MeasureTheory
@@ -274,20 +274,20 @@ namespace Hagi.Theory.TrunkTrain
 
 /-! ## The trunk phases and their gate routes -/
 
-/-- The two phases of the trunk-training bench (
-`--mode trunk-train`): the certified JOINT trunk+head step and the
+/-- The two phases of the trunk-training bench
+(`--mode trunk-train`): the certified JOINT trunk+head step and the
 certified head finetune on the frozen trunk. -/
 inductive TrunkTrainPhase where
   /-- Joint trunk+head step (`joint_head_trunk_step_le`
   route; the bench admits it by the measured drop with guarded
   rollback). -/
   | jointStep
-  /-- Head finetune step on the frozen trunk (
-  adaptive-majorizer headStep route, as TRAIN). -/
+  /-- Head finetune step on the frozen trunk
+  (adaptive-majorizer headStep route, as TRAIN). -/
   | headFinetune
 deriving Inhabited
 
-/-- The construction-route map from the trunk phases
+/-- The construction-route map from the trunk phases to the
 gate owners. Both routes are owned by the head gate: the joint
 step IS a certified head safe-step plus the measured trunk
 displacement damage (the additive majorizer), and the head

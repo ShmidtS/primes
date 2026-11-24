@@ -9,20 +9,17 @@ import Hagi.Model.SoftmaxHead
 set_option linter.style.header false
 
 /-!
-# FastArch3 end-to-end transfer assembly (E4 final rung)
+# FastArch3 end-to-end transfer assembly
 
-The FINAL rung of the E4 backbone ladder (TD E4-C300 remaining
-rung: "chain all rungs into the full FastArch3 stack certificate"):
-the end-to-end FastArch3-SHAPED certified-descent theorem — the
+The end-to-end FastArch3-SHAPED certified-descent theorem — the
 parametric SoftmaxHead on top of the hybrid stack
-(attention + RoPE wrap + RMSNorm discharge
-GDN), assembled as COMPOSITION ONLY of the landed carriers, with
-every remaining hypothesis exposed as an explicit PREMISE LEDGER
-entry (summarized in STATUS.md).
+(attention + RoPE wrap + RMSNorm discharge + GDN), assembled as
+COMPOSITION ONLY of the existing carriers, with every remaining
+hypothesis exposed as an explicit PREMISE LEDGER entry.
 
 Structure (a thin config over existing carriers — KISS):
 
-* `FA3Block n ι` — one hybrid backbone block: `att a R` (
+* `FA3Block n ι` — one hybrid backbone block: `att a R`
   `AttnBlock` on the Euclidean carrier, optionally wrapped in a
   RoPE-style pre-rotation `R`; instantiates `R = rotEuc θ m`,
   an `Isometry`, at UNCHANGED damping; `R = id` when unwrapped) or

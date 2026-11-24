@@ -15,9 +15,7 @@ Enables spectral error control via Frobenius-space SVD.
 
 ## Warning
 
-The nlinarith calls in this file are slow (~2-3s each). I tried to find cleaner
-proofs but nlinarith was the only thing that worked. If someone knows a better
-approach please let me know!
+The nlinarith calls in this file are slow (~2-3s each).
 -/
 
 import Hagi.External.Flywheel.NormSupport
@@ -258,13 +256,9 @@ theorem spectral_error_bound_via_R
 The Frobenius-optimal Kronecker approximation in the rearranged space is the
 rank-1 truncated SVD of R(C). We define the spectral error bound using this.
 
-Note: We work with square matrices for R(C) : Matrix (m × p) (n × q) ℂ.
-When m × p and n × q have the same cardinality (i.e., mp = nq), the SVD
-theorems from SVD.lean apply directly.
-
-For the general rectangular case, we would need rectangular SVD theory,
-which is partially developed in MatrixNormRelations.lean. For now, we
-state the bound in terms of the Frobenius error of ANY matrix M.
+R(C) : Matrix (m × p) (n × q) ℂ; when mp = nq the square SVD theorems
+apply directly. Here the bound is stated for an arbitrary M in the
+rearranged space.
 -/
 
 end UpperBound
@@ -339,9 +333,7 @@ theorem spectral_error_rank1_bound (A : Matrix n' n' ℂ) :
 
 end SquareCase
 
-/-! ## Summary: Complete
-
-The main results of are:
+/-! ## Summary
 
 1. `spectral_error_bound_via_R`: The general bound
    ‖C - R⁻¹(M)‖₂ ≤ ‖R(C) - M‖_F
@@ -479,9 +471,7 @@ theorem kronecker_error_gap_bound {n' : Type*} [Fintype n'] [DecidableEq n'] [No
 
 end Tightness
 
-/-! ## Summary: Complete
-
-The main results of are:
+/-! ## Summary
 
 1. `outerProduct_spectral_norm_le`: ‖uv*‖₂ ≤ ‖u‖·‖v‖ (upper bound on spectral norm of rank-1)
 

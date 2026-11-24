@@ -9,10 +9,9 @@ import Hagi.Core.RoPEMoments
 set_option linter.style.header false
 
 /-!
-# RoPE rotation isometry transfer composition (E4 rope rung)
+# RoPE rotation isometry transfer composition
 
-The rope rung of the E4 backbone ladder (TD E4-C300/C307 notes):
-the existing rotary fact `Hagi.Core.RoPEMoments.rot_norm` preserves
+The rotary fact `Hagi.Core.RoPEMoments.rot_norm` preserves
 the pairwise-block inner product `pairInner x x` (same-vector form
 only), and this rung upgrades it to a genuine NORMED-SPACE isometry
 and wires it into the transfer stack.
@@ -51,7 +50,7 @@ Honest scope: the isometry is on the Euclidean carrier
 `EuclideanSpace ℝ (Fin d ⊕ Fin d)` through the `toEuc` transport —
 no operator-norm statement, no matrix-orthogonality claim
 (`RᵀR = I` form), no softmax-map Lipschitz, no RMSNorm constant;
-those stay premise-form / future rungs .
+those stay premise-form (see `Hagi.Model.FastArch3Transfer`).
 -/
 
 namespace Hagi.Model.RoPETransfer

@@ -6,8 +6,7 @@ import Hagi.Core.FrobOuter
 /-!
 # CurvatureSafe — учитывающий кривизну SafeQP (trust region)
 
-(R322: перенесён из Dynamics/ в Step/ — аудит v3 §2.2: теория
-кривизны и ограничения размера шага живёт в оптимизационном слое.)
+(Теория кривизны и ограничения размера шага живёт в оптимизационном слое.)
 
 Второпорядковая оценка при L-Lipschitz градиентах:
 `L_i(w+d) − L_i(w) ≤ −⟪g i, d⟫ + (L_i/2)·‖d‖²`.
@@ -285,7 +284,7 @@ variable {d : ℕ}
 open scoped Matrix
 open Finset
 
-/-! ## Bilinear quadratic drift (A8 F7)
+/-! ## Bilinear quadratic drift
 
 For bilinear (`A @ B`-shaped) adapter steps the SafeQP linear
 acceptance `⟪g, d⟫ ≥ −tol` is insufficient: the Frobenius energy
@@ -352,7 +351,7 @@ theorem frobSq_smul (W : Matrix (Fin d) (Fin d) ℝ) (η : ℝ) :
   rw [← hz] at h
   simpa using h
 
-/-- The A8 insufficiency witness: for every `tol ≥ 0` and every
+/-- Insufficiency witness for the linear-only test: for every `tol ≥ 0` and every
 nonzero bilinear direction `W` there is a step size `η` at which
 the EXACT quadratic drift exceeds `tol` even though the linear
 term is identically zero (so the linear-only acceptance test
@@ -381,7 +380,7 @@ theorem safeqp_second_order_acceptance (inner eps L dnorm eta dL : ℝ)
     (hacc : L * eta * eta * dnorm / 2 - eps ≤ eta * inner) :
     dL ≤ eps := by linarith
 
-/-- Preconditioner-metric premise-form (A8 `(I + γΣ_old)⁻¹`):
+/-- Preconditioner-metric premise-form (`(I + γΣ_old)⁻¹`):
 a PSD-preconditioned direction `d = (QᵀQ) *ᵥ g` is conflict-free
 — `⟪g, d⟫ = ‖Q *ᵥ g‖² ≥ 0`. -/
 theorem safeqp_precond_conflict_free {n : ℕ}

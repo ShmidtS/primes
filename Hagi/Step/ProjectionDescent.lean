@@ -7,9 +7,8 @@ import Hagi.Math.Foundations.StageCalculus
 /-!
 # ProjectionDescent — канонический Step-слой вертикали спуска проекции
 
-Канонический оптимизационный слой теории проекции (R321,
-перенесено из Audit.Foundations/Exactness — аудит v3 §2.2):
-Step больше не импортирует Audit.
+Канонический оптимизационный слой теории проекции
+(Step не импортирует Audit):
 
 Для выпуклого C и минимизатора расстояния ds до g0:
 
@@ -254,7 +253,7 @@ theorem joint_stage_linked {X : Type*} [NormedAddCommGroup X] [InnerProductSpace
   exact Hagi.Foundations.joint_stage L eta ‖ds‖ (⟪g0, ds⟫_ℝ)
     E2 E1 hL heta heta0 hdescent' h_emp_smooth
 
-/-! ## Orthogonal projection = zero interference (R348)
+/-! ## Orthogonal projection = zero interference
 
 The GPM/EoupCT family (Saha et al. 2021, arXiv:2103.09762;
 Wang et al. 2026, arXiv:2609.30935) constrains new-task

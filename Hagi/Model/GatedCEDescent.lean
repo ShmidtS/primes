@@ -13,9 +13,9 @@ not the linear head, arbitrary resource table, or a general transformer.
 
 The exact Fréchet derivative reuses `CEGradient`'s categorical composition
 theorem.  One-Lipschitz `tanh` is proved from its derivative and the mean
-value theorem; it is not assumed.  A later nonlinear safe-step theorem still
-has to account for the nonlinear Taylor remainder: the linear CE update and
-its logarithm displacement equality cannot simply be transplanted here.
+value theorem; it is not assumed.  The nonlinear safe-step theorem below
+accounts for the nonlinear Taylor remainder: the linear CE update cannot
+simply be transplanted here.
 -/
 
 set_option relaxedAutoImplicit false

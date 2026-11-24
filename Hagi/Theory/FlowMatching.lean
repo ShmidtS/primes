@@ -8,7 +8,7 @@ import Hagi.Theory.CEChain
 /-!
 # Certified discrete Flow Matching bridge
 
- . The bridge between Conditional Flow Matching (Lipman et al.,
+The bridge between Conditional Flow Matching (Lipman et al.,
 Flow Matching for Generative Modeling) and the certified learning
 stack of this repository — an HONEST DISCRETE core, no
 continuous-time overreach:

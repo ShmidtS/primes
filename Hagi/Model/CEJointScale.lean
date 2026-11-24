@@ -6,8 +6,8 @@ import Hagi.Model.CEGroupedScale
 /-!
 # CEJointScale — the joint/choice scale canon
 
-Merged here (v5 W1): `Hagi.Model.CEScaleChoice` (the common
-certified finite scale-choice interface).  Namespaces unchanged.
+Includes the common certified finite scale-choice interface
+(`ScaleChoice`).  Namespaces unchanged.
 -/
 
 /-!
@@ -16,8 +16,8 @@ certified finite scale-choice interface).  Namespaces unchanged.
 For the complete-five-cell carrier of `CEGroupedScale`, this module minimizes
 `min (Σg blockPenalty_g, jointObservedPenalty)` over the complete finite
 function space `Fin G → DyadicScaleCode`.  The joint observed branch exposes
-possible cancellation between blocks; the separable branch retains the proved
-Cycle84 certificate.  Neither branch is an exact cross-entropy change, and the
+possible cancellation between blocks; the separable branch retains the
+`CEGroupedScale` separable certificate.  Neither branch is an exact cross-entropy change, and the
 selected assignment is not claimed to minimize actual cross-entropy.
 
 The complete logical search has `CEGroupedScale.jointCandidateCount G = 255 ^ G`
@@ -115,7 +115,7 @@ theorem jointObservedPenalty_le_sum_groupObservedPenalty {G : ℕ} {V : Type}
       rw [Finset.mul_sum]
 
 /-- A reusable pointwise bound by the total separable certificate.  It follows
-from Cycle84's exact decomposition and its independently certified local bound. -/
+from the `CEGroupedScale` exact decomposition and its independently certified local bound. -/
 theorem abs_ceLogits_joint_sub_le_sum_blockPenalties_half {G : ℕ} {V : Type}
     [Fintype V] (e : (Fin G × Fin 5) ≃ Fin (5 * G))
     (X : Matrix V (Fin (5 * G)) ℝ) (w : EuclideanSpace ℝ (Fin (5 * G)))
@@ -225,7 +225,7 @@ theorem selectedCoupledScales_level_pos {G : ℕ} {V : Type} [Fintype V]
     0 < Hagi.Runtime.dyadicLevel (selectedCoupledScales e X w g) :=
   Hagi.Runtime.dyadicLevel_pos _
 
-/-- The full coupled minimum is no larger than Cycle84's selected separable
+/-- The full coupled minimum is no larger than the `CEGroupedScale` selected separable
 score.  The latter is used as one complete candidate, not as a constant-only
 restriction, and this does not order the two actual CE values. -/
 theorem selectedCoupledScales_le_selectedGroupScales_total {G : ℕ} {V : Type}
@@ -241,7 +241,7 @@ theorem selectedCoupledScales_le_selectedGroupScales_total {G : ℕ} {V : Type}
       coupledPenalty_le_sum_blockPenalties e X w (selectedGroupScales e X w)
 
 /-- Any coupled-eligible complete assignment makes the complete selected
-minimum eligible for the exact Cycle81 safe-step residual. -/
+minimum eligible for the exact `CEDescent` safe-step residual. -/
 theorem selectedCoupledScales_strict_margin_of_exists {G : ℕ} {V : Type}
     [Fintype V] (e : (Fin G × Fin 5) ≃ Fin (5 * G))
     (X : Matrix V (Fin (5 * G)) ℝ) (θ : EuclideanSpace ℝ (Fin (5 * G)))
@@ -371,7 +371,7 @@ noncomputable def packedCoupledScales {G : ℕ} {V : Type} [Fintype V]
       (blockWeights e w g i))
 
 /-- Decoding the new selector's actual payload returns exactly its selected
-quantized block; no selector or scale is borrowed from Cycle84's pack proof. -/
+quantized block; no selector or scale is borrowed from the `CEGroupedScale` pack proof. -/
 theorem decodeStep_packedCoupledScales {G : ℕ} {V : Type} [Fintype V]
     (e : (Fin G × Fin 5) ≃ Fin (5 * G)) (X : Matrix V (Fin (5 * G)) ℝ)
     (w : EuclideanSpace ℝ (Fin (5 * G))) (g : Fin G) :
@@ -432,7 +432,8 @@ theorem ceQuantWitness_knownSample_jointObservedPenalty :
   rw [ceQuantWitness_jointParameters_knownSample]
   simp
 
-/-- The old separable score is also zero at that complete assignment. -/
+/-- The separable score is also zero at that complete assignment. -/
+
 theorem ceQuantWitness_knownSample_separablePenalty :
     (∑ g, blockPenalty (canonicalBlockEquiv 1)
       CEQuantized.ceQuantWitnessFeatures CEPackedStep.rawSuccessor g
@@ -553,9 +554,8 @@ The bridges `grouped_scale_choice` and `joint_scale_choice` instantiate
 the record for the independent per-group selector of
 `CEGroupedScale.selectedGroupScales` and for the coupled selector of
 `CEJointScale.selectedCoupledScales`, whose codebook is the complete
-assignment space.  Statements and proofs of the existing selectors are
-frozen and untouched; the corollaries below are derived through the
-general theorems.
+assignment space.  The corollaries below are derived through the general
+theorems without restating those selectors.
 
 What deliberately stays out of the interface: the coupled-specific
 facts (comparison with the separable total, zero-penalty collapse, the

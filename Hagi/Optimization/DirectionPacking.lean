@@ -22,11 +22,11 @@ open InnerProductSpace
 * `Sop` — frame operator S = Σ⟪uᵢ,·⟫·uᵢ; `Sop_inner` /
   `Sop_inner_left` — его матричные элементы;
 * `Sop_trace` — tr S = M для M единичных направлений
-  (Парсеваль через OrthonormalBasis.sum_inner_mul_inner).
-
-Недостающие шаги полной границы Уэлча
-μ² ≥ (M−d)/(d(M−1)): tr S² = Σᵢₖ⟪uᵢ,uₖ⟫² (самосопряжённость)
-и сведение М² ≤ d·tr S² к μ-оценке — следующая итерация.
+  (Парсеваль через OrthonormalBasis.sum_inner_mul_inner);
+* `Sop_trace_sq` — tr S² = Σᵢₖ⟪uᵢ,uₖ⟫²;
+* `welch_bound_core` — `(M − d)/(M − 1) ≤ d·μ²` (Коши на диагонали
+  frame operator, разложение Σᵢₖ = M + M(M−1)μ²);
+* `welch_min_dimension` / `welch_capacity_full` — необходимые размерности.
 -/
 
 theorem sum_sq_cauchy {ι : Type*} [Fintype ι] (f : ι → ℝ) :

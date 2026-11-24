@@ -15,8 +15,7 @@ namespace Hagi.Optimization
 (2μ(E−E*) ≤ G, G — квадрат нормы градиента) + честный
 градиентный шаг (E(t+1) ≤ E t − G t/(2L)) дают ЛИНЕЙНУЮ
 сходимость к оптимуму:
-E t − E* ≤ (1 − μ/L)^t · (E 0 − E*) — классический критерий
-first-order оптимальности: PL-условие заменяет выпуклость. -/
+E t − E* ≤ (1 − μ/L)^t · (E 0 − E*). -/
 theorem pl_linear_convergence (E G : ℕ → ℝ) (Estar μ L : ℝ)
     (hL : 0 < L) (hμ : 0 < μ) (hμL : μ ≤ L)
     (hE : ∀ t, Estar ≤ E t)

@@ -176,13 +176,12 @@ theorem extendedONB_rectangular_v2_spec (A : Matrix m n ℂ) (k : m) (hk : k ∈
     finrank_euclideanSpace
     (leftSingularVectorByM_orthonormal_on_nonzero A)).choose_spec k hk
 
-/-! ##### Original Orthonormal Basis Extension (kept for compatibility) -/
+/-! ##### Alternative orthonormal basis extension -/
 
 /-- Extend the orthonormal left singular vectors to a full orthonormal basis of EuclideanSpace ℂ m.
 
-    Note: The partial set is indexed by a subset of n (columns with σⱼ ≠ 0), but the full
-    basis must be indexed by m. The extension theorem handles this mismatch by constructing
-    a basis indexed by m that agrees with our vectors on their domain. -/
+    The partial set is indexed by a subset of n (columns with σⱼ ≠ 0) while the
+    full basis is indexed by m. -/
 noncomputable def extendedONB_rectangular (A : Matrix m n ℂ) :
     OrthonormalBasis m ℂ (EuclideanSpace ℂ m) := by
   let s := nonzeroSingularIndices_rectangular A
@@ -213,7 +212,7 @@ Convert the orthonormal basis to a unitary matrix in unitaryGroup m ℂ.
 -/
 
 /-- The constructed unitary matrix U for rectangular SVD.
-    Columns are derived from the extended orthonormal basis (v2 with diagonal alignment). -/
+    Columns are the extended orthonormal basis, aligned on the diagonal. -/
 noncomputable def constructedU_rectangular (A : Matrix m n ℂ) : unitaryGroup m ℂ :=
   ⟨onbToMatrix (extendedONB_rectangular_v2 A),
    onbToMatrix_mem_unitaryGroup _⟩
@@ -329,7 +328,7 @@ lemma singularDiagonal_at_diagonalK (A : Matrix m n ℂ) (j : n) (k : m)
 
 /-! #### Core Equation: A*V = U*S
 
-The main theorem of prove that A*V equals U*S column by column.
+A*V equals U*S column by column.
 
 For column j (with j : n):
 - If σⱼ ≠ 0: (A*V)[:,j] = σⱼ · uⱼ by construction of left singular vectors
@@ -448,7 +447,7 @@ theorem AV_eq_US_rectangular (A : Matrix m n ℂ) :
       simp only [leftSingularVectorNonzero_rectangular]
 
       -- Need: singularValues A ⟨idx, _⟩ = singularValueFromEigenvalue A j
-      -- Now that singularValues always uses Aᴴ*A, this follows directly
+      -- Both sides use eigenvalues of Aᴴ*A
       have h_sv_eq : singularValues A ⟨(eigenvaluesBijection n j).val, h_in_min⟩ =
                     singularValueFromEigenvalue A j :=
         singularValues_eq_singularValueFromEigenvalue A j h_in_min

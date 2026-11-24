@@ -7,7 +7,7 @@ import Hagi.Data.BoolVenn
 /-!
 # Exact Boolean Venn head: atoms as ReLU neurons
 
-Track B7 (master plan v3 addendum A4). The four Venn atoms of
+The four Venn atoms of
 `Hagi.Data.BoolVenn` are realized by ReLU threshold neurons
 `vAtom sA sB A B = relu (sA*A + sB*B - 1)` on `{−1,+1}` inputs
 (exactly-one-hot: `vAtoms_sum_one`, `vAtoms_mem`), and the 16 boolean

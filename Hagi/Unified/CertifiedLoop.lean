@@ -7,7 +7,7 @@ import Hagi.Cert.StepGen
 /-!
 # CertifiedLoop — КАПСТОН: единый замкнутый цикл обучения
 
-Интегрирует все сертифицированные компоненты серии аудита
+Интегрирует сертифицированные компоненты
 в одну теорему верхнего уровня:
 
 - `CanonicalParams` : params — единственный носитель;
@@ -187,14 +187,12 @@ theorem certified_loop_strict (obj : S → ℝ) (M : MeasuredState S)
   exact ⟨by linarith, h1⟩
 
 
-/-! ### Риск-агрегация (цикл 34, аудит #8 п.9 +Risk) -/
+/-! ### Риск-агрегация -/
 
 /-- ПЕРВАЯ ТЕОРЕМА НАКОПЛЕННОГО РИСКА: сертифицированная
 цепочка из n шагов накапливает риск НЕ БОЛЕЕ n·riskLim —
 индивидуальные riskBound каждого шага агрегируются в
-глобальный лимит. Риск-канал сертификатов теперь УЧАСТВУЕТ
-в выводе цикла (аудит #8: «riskBound в выводе certified_loop
-не участвует вообще» — закрыто). -/
+глобальный лимит. -/
 theorem certified_loop_risk (obj : S → ℝ) (M : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ)
     (f : ℕ → S) (b : ℕ → ℝ) (n : ℕ)
@@ -221,12 +219,12 @@ theorem certified_loop_risk (obj : S → ℝ) (M : MeasuredState S)
     rw [hconv]
     linarith
 
-/-! ### C278-адаптер: StepCert → общее ядро CertStepGen
+/-! ### Адаптер: StepCert → общее ядро CertStepGen
 
-A10 item 2 (второй адаптер, капстон-цикл): шаг цикла — view над
+Шаг цикла — view над
 общим ядром `Hagi.Cert.CertStepGen`. Индекс задач `TaskId := Fin 5`
 демонстрирует поглощение жёсткого `Fin 5`-индекса общим типом
-ядра (сам `StepCert`/`FloorKept` не меняются — Freeze).
+ядра (сам `StepCert`/`FloorKept` не меняются).
 
 Честные границы (premise-form, паттерн):
 * точный бюджетный закон `hbudeq : b' = bt - budgetSpend` — посылка
@@ -238,8 +236,7 @@ A10 item 2 (второй адаптер, капстон-цикл): шаг цик
   отождествляет, обе посылки задаёт потребитель.
 -/
 
-/-- шаг капстон-цикла как шаг общего ядра (premise-form,
-`TaskId := Fin 5` — частный случай общего индекса ядра). -/
+/-- шаг капстон-цикла как шаг общего ядра (premise-form). -/
 def StepCert.toCertStepGen {S : Type*} {obj : S → ℝ}
     {M : MeasuredState S} {floor : Fin 5 → ℝ} {riskLim : ℝ}
     {s s' : S} {bt b' riskRem : ℝ}
@@ -272,10 +269,9 @@ def StepCert.toCertStepGen {S : Type*} {obj : S → ℝ}
   delta_nonneg := by norm_num
   floorsKept := hfloors
 
-/-! ### C344-адаптер: StepCert → bounded-ядро (hbudeq разряжена)
+/-! ### Адаптер: StepCert → bounded-ядро
 
-A14 QW3: точная бюджетная посылка `hbudeq` C278-адаптера больше
-не нужна — нестрогого `hdec` самого цикла достаточно для bounded
+Точная бюджетная посылка `hbudeq` не нужна — нестрогого `hdec` самого цикла достаточно для bounded
 ядра `Hagi.Cert.CertStepGenBounded`, а точное ядро получается
 ФОРМАЛЬНО БЕЗ ПОСЫЛОК через `Hagi.Cert.CertStepGenBounded.toExact`
 (точная трата ОПРЕДЕЛЕНА как разность состояний, равенство по
@@ -370,7 +366,7 @@ theorem stepCert_to_bounded_to_exact_budgetBound {S : Type*}
 end Hagi.Unified.CertifiedLoop
 
 /-!
-# CertifiedLoopKernel — капстон на общем ядре (A14 QW4+QW5)
+# CertifiedLoopKernel — капстон на общем ядре
 
 Капстон `certified_loop` переформулирован над цепями
 `Hagi.Cert.CertStepGenBounded` общего ядра (`TaskId` произвольный —
@@ -382,7 +378,7 @@ view:
   неотрицательный бюджет, бюджетный телескоп, риск- и δ-леджери;
 * мост на ℕ × S (`bridgeMetrics`/`bridgeObl`/`legacy_chain`):
   траектория `StepCert` погружается в ядерную цепь БЕЗ посылок
-  hbudeq/hrisk/hrisk'/hfloors C278-адаптера (bounded-маршрут;
+  hbudeq/hrisk/hrisk'/hfloors (bounded-маршрут;
   riskLim ≥ 0 ВЫВОДИТСЯ из riskBound + неотрицательности траты);
 * `certified_loop_eq_kernel` — заключения legacy `certified_loop`
   ВЫВЕДЕНЫ из ядерного капстона (+ риск-агрегация как бонус);
@@ -391,8 +387,8 @@ view:
 Честные границы: ядерный floor — floor на ОБЪЕКТИВЕ; измеримое
 качество `FloorKept` цикла — канал исполнения, восстановлен
 отдельной индукцией `legacy_quality` (не подменяется ядерным).
-QW4 (HonestTransition → kernel view) — не дёшево: HonestTransition
-не несёт бюджетного закона вовсе (только 0 ≤ b') — следующий бит.
+HonestTransition → kernel view не построен: HonestTransition не
+несёт бюджетного закона (только 0 ≤ b').
 -/
 
 namespace Hagi.Unified.CertifiedLoopKernel
@@ -643,7 +639,7 @@ def legacy_chain (obj : S → ℝ) (Mm : MeasuredState S)
 /-- ГЛАВНЫЙ МОСТ: заключения `certified_loop` ВЫВЕДЕНЫ из ядерного
 капстона `certified_loop_kernel` через `legacy_chain` (плюс
 риск-леджер — бонус ядра). Формулировка legacy капстона не
-изменена (Freeze): это ОТДЕЛЬНАЯ теорема, доказательство которой
+изменена: это ОТДЕЛЬНАЯ теорема, доказательство которой
 не использует legacy `certified_loop`. -/
 theorem certified_loop_eq_kernel (obj : S → ℝ) (Mm : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ)

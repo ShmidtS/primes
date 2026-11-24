@@ -2,8 +2,8 @@ import Mathlib.Tactic
 import Hagi.Probability.NoiseTemperature
 
 /-!
-# GradCentralization (источник №86: Yang et al.,
-# "Gradient Centralization", arXiv 2004.02861)
+# GradCentralization (Yang et al., "Gradient Centralization",
+# arXiv 2004.02861)
 
 Центрирование градиента: g' = g − mean(g)·1 перед шагом —
 проекция на гиперплоскость нулевого среднего.

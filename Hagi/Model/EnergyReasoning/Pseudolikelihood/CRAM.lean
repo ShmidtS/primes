@@ -20,11 +20,11 @@ set_option linter.style.header false
 /-!
 # Pseudolikelihood as free-cell local-field cross-entropy with β
 
-Track E1 (addendum A11 bridge B2, CRAM / arXiv:2611.17309): the
+CRAM (arXiv:2611.17309): the
 pseudolikelihood of a categorical pairwise energy reduces EXACTLY
 to cross-entropy on the LOCAL FIELD — the off-`i` energy is
 independent of the candidate value and cancels as a constant
-(C261's delta machinery viewed as a constant), for every
+(the off-`i` energy viewed as a constant), for every
 inverse temperature β, over the FREE cells of a CRAM problem.
 
 * `CRAMProblem` — the concrete constraint carrier: per-cell
@@ -34,7 +34,7 @@ inverse temperature β, over the FREE cells of a CRAM problem.
 * `symmetrizeCoupling` / `symmetric_parameterization_preserves_hK`
   — the constructive symmetrizer `(Kt + Ktᵀ)/2` satisfies the
   symmetric-K premise of the main identities by construction.
-* `conditionalLogit_eq_neg_localField_add_const` — (B2 MAIN)
+* `conditionalLogit_eq_neg_localField_add_const` — 
   under symmetric `K`, `−H(y^{i←a}) = −L_i(a) + C_i(y)` with
   `C_i(y) = L_i(y_i) − H(y)` a constant in `a`
   single-cell delta identity (reused verbatim) read as a
@@ -67,7 +67,7 @@ inverse temperature β, over the FREE cells of a CRAM problem.
 
 * The K-gradient is NOT claimed: `K` enters `L_i` through the
   neighbor literals `y_j`; its derivative is a rank-one
-  operator per parameter — deferred (premise-form only).
+  operator per parameter — premise-form only.
 * No descent/convergence claim: these are exact identities and
   a gradient FORMULA, not a training certificate.
 * The free-cell identities are premise-free algebra (valid for
@@ -81,7 +81,7 @@ namespace Hagi.Model.EnergyReasoning
 /-! ## Словарь перегрузок: `MetricDirection`
 Канон-носитель направления метрики в CRAM-псевдоправдоподобии —
 этот файл; одноимённые объявления внутри него различают
-нормировки. Полное переименование — вне v5.
+нормировки.
 -/
 
 open Hagi.Energy (pairwiseEnergy localField)
@@ -143,12 +143,10 @@ section Shift
 
 /-! ## Minimal shift-invariance lemmas (private)
 
-Audit note (plan, challenge 1): NO softmax/CE const-shift
+NO softmax/CE const-shift
 lemma exists in the Prelude (`InfoCore`), `Core.Concat`, or
 `Numerics.Numerics` — only `softDef_pos`, `softDef_sum_one`,
-`softDef_eq_exp_sub_lse`, `temperature_*`. These two minimal
-companions are PRIVATE to this file to keep the addition
-additive (no existing module touched). -/
+`softDef_eq_exp_sub_lse`, `temperature_*`. These two minimal companions are PRIVATE to this file. -/
 
 variable {k : Type*} [Fintype k]
 
@@ -192,10 +190,10 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
 omit [Fintype α] [DecidableEq α] in
-/-- (B2 MAIN) Under symmetric `K`, the local conditional logit
+/-- Under symmetric `K`, the local conditional logit
 splits as `−H(y^{i←a}) = −L_i(a) + C_i(y)` with the constant
 `C_i(y) = L_i(y_i) − H(y)` INDEPENDENT of `a`: the off-`i`
-energy is a constant of the candidate value — this is C261's
+energy is a constant of the candidate value — this is the
 single-cell delta identity (`single_cell_move_energy_delta_symm`,
 reused verbatim) read as a constant offset. -/
 theorem conditionalLogit_eq_neg_localField_add_const
@@ -259,7 +257,7 @@ noncomputable def freeCellPseudolikelihood (β : ℝ) (B : ι → α → ℝ)
       ceOneHot (y i) (fun a => -β * pairwiseEnergy B K (Function.update y i a)))
     / (P.freeCells.card : ℝ)
 
-/-- (B2) The free-cell pseudolikelihood equals the mean over
+/-- The free-cell pseudolikelihood equals the mean over
 FREE cells of the local cross-entropy on the LOCAL-FIELD logits
 `−β·L_i`: the per-cell constant `β·C_i(y)` cancels in
 `ceOneHot` exactly as it cancels in softmax. Premise-free in
@@ -299,7 +297,7 @@ section Gradient
 variable {V : Type} [Fintype V] [Nonempty V] [DecidableEq V]
 variable {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ E]
 
-/-- (B2, premise-form) The local CE gradient on a differentiable
+/-- (premise-form) The local CE gradient on a differentiable
 local-field family: if `θ ↦ Lmap θ` has derivative Lmap' at
 `θ`, then the derivative of `a ↦ ceOneHot t (−β · Lmap θ a)` at
 `θ` in direction `h` is
@@ -322,7 +320,7 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι] [Nonempty ι]
 variable {α : Type} [Fintype α] [DecidableEq α] [Nonempty α]
 
 omit [Nonempty ι] in
-/-- (B2 chain rule) The `B`-gradient of the free-cell
+/-- The `B`-gradient of the free-cell
 pseudolikelihood: `B` enters the local field AFFINELY
 (derivative `proj i`), so the derivative of the objective at
 `B` in direction `h` is
@@ -450,8 +448,7 @@ set_option linter.style.header false
 /-!
 # Typed CRAM transition contracts with Cert-kernel bridge
 
-Track E-bridge B3 (addendum A11 bridge B3): CRAM transitions
-become TYPED premise-form contracts over a `CRAMState` carrier
+CRAM transitions become TYPED premise-form contracts over a `CRAMState` carrier
 with exact resource laws (budget' = budget − cost, nonnegative
 remainder), bridged into the canonical certification kernel
 `Hagi.Cert` so the certified telescope applies.
@@ -502,7 +499,7 @@ remainder), bridged into the canonical certification kernel
   (`pseudolikelihood_freeCell_B_gradient`) but no descent is
   proven from it here.
 * Exploration makes NO descent claim and carries no energy field.
-* Accepted solution: validity says nothing about energy (E4
+* Accepted solution: validity says nothing about energy (the
   separation) — the energy bound is optional data.
 * The kernel adapter's metric readouts are explicit premises; no
   ambient `SystemMetrics` is postulated for `CRAMState`.
@@ -848,7 +845,7 @@ structure CRAMExplorationStep (s s' : CRAMState ι α) where
 /-- The production certificate: a `ValidityCertificate` (givens
 preserved + constraints satisfied `EnergyStop`)
 agreeing with the current board, with an OPTIONAL energy bound.
-Validity says NOTHING about energy (E4 separation: the bound is
+Validity says NOTHING about energy (the bound is
 optional data, and an energy threshold alone certifies nothing). -/
 structure CRAMAcceptedSolution (B : ι → α → ℝ)
     (K : ι → ι → α → α → ℝ) (C : ι → α → Prop)
@@ -883,14 +880,12 @@ theorem _root_.Hagi.Cert.HoldStep.cram_state_components {TaskId : Type*}
   subst e
   exact ⟨rfl, rfl, rfl, rfl, rfl, rfl, rfl⟩
 
-/-! ### C278-адаптер: CRAMEnergyDescentStep → общее ядро CertStepGen
+/-! ### Адаптер: CRAMEnergyDescentStep → общее ядро CertStepGen
 
-A10 item 2 (третий адаптер): спускной шаг CRAM как шаг общего ядра
-`Hagi.Cert.CertStepGen`. Отличия от C267-моста `toKernelCertStep`:
-остаток риска — НЕ пиннинг, а чтение носителя `s'.riskRem`
-(ненулевой остаток допустим по построению), и δ-канал ядра
-живёт на носителе `deltaRem` (нулевой расход у спускового шага —
-запись явная, свёрнутый C245-канал). -/
+Спускной шаг CRAM как шаг общего ядра `Hagi.Cert.CertStepGen`.
+Отличия от моста `toKernelCertStep`: остаток риска — чтение носителя
+`s'.riskRem` (ненулевой остаток допустим), δ-канал ядра живёт на
+носителе `deltaRem` (спуск δ не тратит — запись явная). -/
 
 /-- спускной шаг CRAM — шаг общего ядра (premise-form:
 метрики читают энергию доски, вычислительный бюджет и остаток
@@ -939,8 +934,7 @@ set_option linter.style.header false
 /-!
 # Finite-class generalization for learned energy models
 
-P4 frontier item:
-what generalization claim is TRUE and cheaply provable for a learned-energy
+What generalization claim is TRUE and cheaply provable for a learned-energy
 solver.  The honest two-tier structure:
 
 * TIER 1 (correctness, EXACT): accepted outputs are validated by the
@@ -953,7 +947,7 @@ solver.  The honest two-tier structure:
   concentration API (`concRadius`, `concRadius_valid`) — no new
   concentration mathematics.
 
-What is NOT claimed (honesty ledger, research.md §2): no continuous
+What is NOT claimed: no continuous
 classes, no Rademacher/VC machinery, no stability, no claim that low PL
 loss implies validity (that is exactly the non-separation), no
 distributional assumption beyond the explicit independent finite product.

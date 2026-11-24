@@ -14,7 +14,7 @@ import Hagi.Unified.StochasticCELearning
 /-!
 # The central stochastic safe step with the Freedman radius
 
-Audit A17 §5.2, the CENTRAL theorem of the unified proof chain: ONE
+The CENTRAL theorem of the unified proof chain: ONE
 certified decision mechanism for every update.  Given a proposal
 (direction from ANY provider, an estimated alignment, an estimated
 curvature) and a state-conditioned noise model, the controller EITHER
@@ -34,7 +34,7 @@ one-measurement instance of `Hagi.Probability.freedman_variance_radius`
 applied to the alignment estimator
 `Â(θ, ω) = A(θ) + noise(θ, ω)` on one minibatch.
 
-## Composition (the audit's Proposal → SafeStep → Certificate arrows)
+## Composition
 
 * `StochasticProposal` — the proposal record: a deterministic carrier
   `U : UniversalSafeStep Θ` (loss, η-parametrized update direction,
@@ -50,7 +50,7 @@ applied to the alignment estimator
   probability that the controller accepts AND the certified descent
   fails is at most `exp(−r²/(4σ))`.
 * `stochastic_safe_step_certificate` — the `CertStochasticStep`
-  packaging (pattern) under a uniform alignment floor.
+  packaging under a uniform alignment floor.
 * `acceptStepCert` — the `CertStepGen` adapter: an accepted step is a
   certified step of the general kernel (drops into the certified
   loop `trajectory_telescope_gen`).
@@ -76,12 +76,12 @@ applied to the alignment estimator
   (`noiseLaw` is a function of `θ`, matching the conditioning
   `∀ a ∈ (markovLaw …).support`).  The tail statement is about the
   noise GIVEN the state and direction, never about selecting `d`.
-- The variance-form regime `c·r ≤ 2σ` is a premise (regime);
+- The variance-form regime `c·r ≤ 2σ` is a premise;
   outside it the radius `exp(−r²/(4(σ + c·r)))` applies and is
   NOT restated here.
 - The T-step chaining is cited, not reproved: `stochasticLoop`
-  (the whp loop) and `trajectoryTelescope` (
-  drop telescope of the general kernel).
+  (the whp loop) and `trajectoryTelescope` (drop telescope of the
+general kernel).
 - `universal_accept_form` proves the drop at the
   TRUE-value step `A/(2C)`; the present module proves the
   conservative-estimate step `(Â−r)/(2(Ĉ+u))` — a different object,
@@ -220,7 +220,7 @@ theorem certified_descent_of_noise_le (P : StochasticProposal Θ Ω)
 
 /-! ## Stage 4 — the CENTRAL theorem -/
 
-/-- THE CENTRAL THEOREM (audit 5.2): under the noise premises
+/-- THE CENTRAL THEOREM: under the noise premises
 of `StochasticProposal` and in the variance regime
 `c·r ≤ 2σ`, the probability that the controller ACCEPTS the update
 AND the certified descent fails is at most `exp(−r²/(4σ))`.  With
@@ -272,7 +272,7 @@ theorem hold_refusal_safe (P : StochasticProposal Θ Ω) (θ : Θ) (ω : Ω)
 
 /-! ## Stage 5 — the CertStochasticStep packaging -/
 
-/-- The packaged certificate (pattern): if additionally the
+/-- The packaged certificate: if additionally the
 estimated conservative alignment is uniformly at least `a₀` over the
 noise space and every draw is accepted, the accepted step is a
 `CertStochasticStep` with the constant drop
@@ -357,7 +357,7 @@ noncomputable def proposalMetrics (U : UniversalSafeStep Θ)
   budget := fun s => U.loss s * 0
   task := fun _ => t
 
-/-- The CertStepGen adapter (the audit's Certificate arrow): an
+/-- The CertStepGen adapter: an
 ACCEPTED step on a good draw is a certified step of the general
 kernel at the zero delta level — positive certified drop, real
 descent (from `certified_descent_of_noise_le`), the resource
@@ -397,13 +397,12 @@ noncomputable def acceptStepCert (P : StochasticProposal Θ Ω)
 
 /-! ## Stage 7 — the T-step chaining pointers (cited, not reproved) -/
 
-/-- Chain pointer to the drop telescope of the general kernel (/
- `Hagi.Cert.trajectory_telescope_gen`): a trajectory of
+/-- Chain pointer to the drop telescope of the general kernel (`Hagi.Cert.trajectory_telescope_gen`): a trajectory of
 `acceptStepCert` steps telescopes — the terminal objective is the
 initial objective minus the sum of certified drops. -/
 alias trajectoryTelescope := Hagi.Cert.trajectory_telescope_gen
 
-/-- Chain pointer to the end-to-end stochastic learning theorem
+/-- Chain pointer to the end-to-end stochastic learning theorem:
 whp descent of the real regularized CE head over the SGD
 loop with the Freedman radius — the T-step stochastic head this
 module's single-step mechanism composes into. -/
@@ -417,7 +416,7 @@ end Hagi.Theory.StochasticSafeStep
 /-!
 # Compression-aware safe step with error budget
 
-Audit A17 §5.3: the compression penalty lives INSIDE the safe step
+The compression penalty lives INSIDE the safe step
 — optimization and quantization stop being independent systems.
 The controller knows how much of the descent margin is EATEN by
 compression, and refuses when nothing survives.
@@ -436,7 +435,7 @@ certified drop becomes `A²/(4C) − 2·L_lip·ε_q`: the accept rule
 requires this to be positive — the compression-aware REFUSAL
 (`compressedRefusal`: when `A²/(4C) ≤ 2·L_lip·ε_q`, NO step size has
 a positive certified margin; holding the state is the only sound
-action `Hold` path).
+action — the `Hold` path).
 
 The fractional form `A_eff = A − 2·L_lip·ε_q/η` was considered and
 REJECTED as dishonest: the penalty does not scale with `η`; dividing
@@ -543,7 +542,7 @@ theorem lipschitz_transport (P : CompressedParams Θ) (θ : Θ) :
   have h := P.transport (P.compress θ) θ
   linarith [h, hb]
 
-/-- MAIN THEOREM (audit 5.3): the safe step WITH the
+/-- MAIN THEOREM: the safe step WITH the
 compression penalty folded in.  Executing the step at the exact
 state but reading BOTH endpoints from compressed storage, the loss
 obeys the universal majorizer law with the exact additive penalty
@@ -606,7 +605,7 @@ theorem compressed_descent (P : CompressedParams Θ) (θ : Θ)
 the whole descent margin (`A²/(4C) ≤ 2·L_lip·ε_q`), NO step size has
 a positive certified margin — the guaranteed descent never beats the
 penalty, so the controller holds the state entirely (the safe `Hold`
-path `hold_refusal_safe`).  Exactly the audit demand:
+path `hold_refusal_safe`).
 ternary compression is enabled only where it provably does not
 destroy the descent budget. -/
 theorem compressedRefusal (P : CompressedParams Θ) (θ : Θ)
@@ -863,9 +862,9 @@ end Hagi.Theory.CompressedSafeStep
 /-! ## Confinement — PL confinement geometry (ns Hagi.Theory.Confinement preserved) -/
 
 /-!
-# Confinement for safe-step dynamics (A18.5)
+# Confinement for safe-step dynamics
 
-Audit A18.5: a safe step that (weakly) decreases the loss keeps the
+A safe step that (weakly) decreases the loss keeps the
 whole trajectory inside the start sublevel set; if that sublevel set
 is bounded (coercivity), the trajectory is CONFINED to a ball — and
 on a ball the margin-PL inequality (`Hagi.Model.CEMarginPL.margin_pl_ball`,
@@ -919,7 +918,7 @@ namespace Hagi.Theory.Confinement
 
 /-- The confinement induction: if every step weakly decreases the
 loss, then every iterate stays in the sublevel set of the start
-point.  This is the whole mechanism of A18.5 — everything else is
+point.  This is the whole mechanism — everything else is
 obtaining the monotonicity and bounding the sublevel. -/
 theorem sublevel_confinement {Θ : Type} (s : Θ → Θ) (f : Θ → ℝ)
     (hmono : ∀ θ, f (s θ) ≤ f θ) (θ₀ : Θ) (t : ℕ) :
@@ -1024,7 +1023,7 @@ theorem plStep_nonincreasing {E : Type} [NormedAddCommGroup E] [InnerProductSpac
 /-! ## The rate theorem: confinement discharges the ball premise -/
 
 open scoped InnerProductSpace in
-/-- THE A18.5 RATE THEOREM.  `margin_pl_convergence` with its
+/-- THE RATE THEOREM.  `margin_pl_convergence` with its
 confinement premise h_conf REPLACED by a derivation: the gradient
 step is monotone by smoothness alone (`plStep_nonincreasing`), the
 monotone trajectory stays in the θ₀-sublevel (`sublevel_confinement`),

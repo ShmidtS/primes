@@ -20,7 +20,7 @@ set_option linter.style.header false
 /-!
 # Pseudolikelihood as local conditional cross-entropy
 
-Track E1 (addendum A9, CRAM / arXiv:2611.17309): the pseudolikelihood
+CRAM (arXiv:2611.17309): the pseudolikelihood
 objective of a categorical pairwise energy is EXACTLY the mean local
 cross-entropy over the CRAM-sign conditional logits — reducing it to
 the existing `Hagi.Prelude.ceDef` / `Hagi.Prelude.softDef` machinery
@@ -34,7 +34,7 @@ pseudolikelihood training by construction, with no new CE theory.
 * `pseudolikelihoodObjective` — `J = (1/|ι|) Σ_i −log q_i(y_i)`,
   written with `Hagi.Core.ceOneHot` (the `-log q_i(y_i)` term IS
   `ceOneHot (y i) z_i`, since `-log q_i(y_i) = lse z_i − z_i(y i)`).
-* `pseudolikelihood_eq_conditional_ce` — (E1 MAIN) `J` equals the mean
+* `pseudolikelihood_eq_conditional_ce` — `J` equals the mean
   of `Hagi.Prelude.ceDef (Pi.single (y i) 1) (Hagi.Prelude.softDef z_i)`
   over `i`: pseudolikelihood is local conditional cross-entropy on the
   Prelude CE spine (`Hagi.Core.ceOneHot_eq_ceDef_pi_single`, termwise).
@@ -54,7 +54,7 @@ an explicit sign adapter; none is claimed here.
 Pseudolikelihood is NOT the full likelihood: it is the exact local
 conditional objective only. Nothing here asserts descent in `θ`
 (CertTrain) or free-energy descent in `p` (CertReason) — those are
-separate certificates (A9), E2+ scope.
+separate certificates.
 -/
 
 namespace Hagi.Model.EnergyReasoning
@@ -97,7 +97,7 @@ section Identities
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
-/-- (E1 MAIN) The pseudolikelihood objective equals the MEAN of local
+/-- The pseudolikelihood objective equals the MEAN of local
 conditional cross-entropies on the canonical Prelude CE spine:
 `J = (1/|ι|) Σ_i ceDef (δ_{y i}) (softDef z_i)` with one-hot targets
 `δ_{y i} = Pi.single (y i) 1` and logits `z_i = conditionalLogit`.
@@ -116,7 +116,7 @@ theorem pseudolikelihood_eq_conditional_ce [Nonempty α]
         (conditionalLogit B K y i))
 
 omit [DecidableEq α] in
-/-- (E1) Pseudolikelihood is nonnegative: every local term
+/-- Pseudolikelihood is nonnegative: every local term
 `ceOneHot (y i) z_i = lse z_i − z_i (y i) ≥ 0` (the target exponential
 is one term of the log-sum-exp normalizer), the variable count is
 positive for nonempty `ι`. -/
@@ -148,7 +148,7 @@ set_option linter.style.header false
 /-!
 # Latent energy field: strict convexity, ℓ∞ contraction, two-phase protocol
 
-Track E3 (addendum A9 §E3 + A9-supplement, CRAM / Maze-Hard): the LATENT
+CRAM / Maze-Hard: the LATENT
 quadratic energy on a finite graph carrier,
 
   `latentEnergy N m G z = (m/2)·Σ z i^2 − (1/2)·Σ i, z i * Σ j ∈ N i, z j − z G`,
@@ -186,7 +186,7 @@ Main results:
   `visibleBiasWithZ B zc`, the visible greedy single-cell descent
   (`Hagi.Energy.greedy_single_cell_nonincreasing`) applies verbatim.
 
-## Two-phase protocol (supplement mandate)
+## Two-phase protocol
 
 Phase 1: iterate `latentUpdate` until `‖z^k − z*‖ < ε_z`
 (`latent_settle_tolerance` gives the horizon). Phase 2: FREEZE the
@@ -196,8 +196,7 @@ updates are FORBIDDEN by this theory: a z-move changes the bias
 `B' i a = B i a + zc i` mid-descent, so the single-cell delta
 identity no longer bounds the total energy change and the Lyapunov
 argument breaks. The frozen-z premise is structural: `zc : ι → ℝ` is not
-a function of `y`. No joint-update descent theorem exists (see the
-RootApi negative pin: the name visible_descent_joint_z is nonexistent).
+a function of `y`. No joint-update descent theorem exists here.
 
 ## Honest boundaries
 
@@ -210,7 +209,7 @@ RootApi negative pin: the name visible_descent_joint_z is nonexistent).
   the form is merely semidefinite on the double-loop graph, at `m < Δ`
   it takes negative values — no convexity, no contraction factor < 1.
 * Energy descent (visible or latent) is NOT a validity certificate; the
-  E-track certificates remain separate (A9 cert-kernel).
+  validity certificates remain separate (`EnergyStop`, `ValidityCertificate`).
 -/
 
 namespace Hagi.Model.EnergyReasoning
@@ -382,7 +381,7 @@ theorem latent_cross_le (N : ι → Finset ι)
         exact mul_le_mul_of_nonneg_left (add_le_add h1 hcol) (by norm_num)
     _ = (Δ:ℝ) * ∑ i, w i ^ 2 := by rw [Finset.mul_sum]; ring
 
-/-- **`latent_hessian_diag_dominant`** — (E3 MAIN) the symmetrized quadratic
+/-- **`latent_hessian_diag_dominant`** — the symmetrized quadratic
 form is diagonally dominant with gap `m − Δ`:
 `((m − Δ)/2) * Σ w i ^ 2 ≤ latentQuadraticForm N m w`. -/
 theorem latent_hessian_diag_dominant (N : ι → Finset ι) (m : ℝ)
@@ -605,7 +604,7 @@ theorem latent_energy_add (N : ι → Finset ι) (m : ℝ) (G : ι)
   rw [hex]
   ring
 
-/-- **`latent_strict_convex`** — (E3 MAIN) for `m > Δ`, distinct points and
+/-- **`latent_strict_convex`** — for `m > Δ`, distinct points and
 `0 < t < 1` the energy is strictly below the chord. -/
 theorem latent_strict_convex (N : ι → Finset ι) (m : ℝ) (G : ι)
     (hNsymm : ∀ i j, j ∈ N i ↔ i ∈ N j)
@@ -745,7 +744,7 @@ theorem latent_grad_zero_of_min (N : ι → Finset ι) (m : ℝ) (G : ι)
   rw [h1] at hmin'
   nlinarith [hneg]
 
-/-- **`latent_unique_min`** — (E3 MAIN) uniqueness of the global minimizer
+/-- **`latent_unique_min`** — uniqueness of the global minimizer
 (midpoint chord argument; `m > Δ`). -/
 theorem latent_unique_min (N : ι → Finset ι) (m : ℝ) (G : ι)
     (hNsymm : ∀ i j, j ∈ N i ↔ i ∈ N j)
@@ -774,7 +773,7 @@ end Fix
 /-! ## ℓ∞ contraction of the update map -/
 section Contr
 
-/-- **`latent_update_contraction`** — (E3 MAIN) the discrete update map is
+/-- **`latent_update_contraction`** — the discrete update map is
 a `Δ/m`-contraction in the ℓ∞ (Pi sup) norm, `Δ/m < 1`. -/
 theorem latent_update_contraction (N : ι → Finset ι) (m : ℝ) (G : ι)
     {Δ : ℕ} (hΔ : ∀ i, (N i).card ≤ Δ) (hm : (Δ : ℝ) < m)
@@ -864,7 +863,7 @@ theorem latent_update_fixed_exists [Nonempty ι] (N : ι → Finset ι) (m : ℝ
     exact (latent_fixed_iff_grad N m G (ne_of_gt hm0) zstar).mp hfix i
   exact latent_min_of_grad_zero N m G hNsymm hΔ (by linarith) zstar hgrad
 
-/-- **`latent_iterate_err_bound`** — (E3 MAIN) geometric iterate error
+/-- **`latent_iterate_err_bound`** — geometric iterate error
 bound `‖z^k − z*‖ ≤ (Δ/m)^k * ‖z^0 − z*‖` for any fixed point `z*` of the
 update, REUSING `Hagi.Optimization.inexact_contraction_bound` at `ε = 0`
 (premise `0 < Δ`: the reused lemma needs a factor in `(0,1)`; the `Δ = 0`
@@ -914,7 +913,7 @@ end Banach
 /-! ## Two-phase protocol: frozen-z visible descent -/
 section TwoPhase
 
-/-- **`visible_descent_frozen_z`** — (E3 MAIN, thin by design) the
+/-- **`visible_descent_frozen_z`** — (thin by design) the
 two-phase composition: after settling `z` and FREEZING it into the
 constant bias `visibleBiasWithZ B zc` (constant in the visible state `y`
 BY CONSTRUCTION — `zc` is not a function of `y`), the greedy
@@ -924,8 +923,7 @@ to a local-field minimizer.
 
 JOINT `(z, p)` updates break the Lyapunov argument: a z-move changes the
 bias mid-descent, the single-cell delta identity no longer bounds the
-total energy change, and NO joint-update descent theorem is claimed (the RootApi negative
-pin: the name visible_descent_joint_z is nonexistent — records this). -/
+total energy change, and NO joint-update descent theorem is claimed. -/
 theorem visible_descent_frozen_z {α : Type*} (B : ι → α → ℝ)
     (K : ι → ι → α → α → ℝ) (hK : ∀ i j a b, K i j a b = K j i b a)
     (zc : ι → ℝ) (y : ι → α) (i : ι) (a : α)
@@ -988,7 +986,7 @@ set_option linter.style.header false
 /-!
 # Heat-bath kernel, focused mixture stationarity
 
-Track E4 (addendum A9 §E4 + A9-supplement, CRAM / arXiv:2611.17309): the
+CRAM (arXiv:2611.17309): the
 Gibbs-search transition kernel as an EXPLICIT policy — the single-cell
 heat-bath kernel, its detailed balance and stationarity w.r.t. the Boltzmann
 density, and the focused (state-dependent) mixture.
@@ -1000,16 +998,16 @@ density, and the focused (state-dependent) mixture.
   `z i` when `z` agrees with `y` off cell `i` (a single-cell move), `0`
   otherwise. The kernel is UNCLAMPED; clamp preservation is a theorem with a
   free-cells premise, not a construction.
-* `heatbath_detailed_balance` — (E4 MAIN) under symmetric `K` and `T ≠ 0`
+* `heatbath_detailed_balance` — under symmetric `K` and `T ≠ 0`
   the kernel is reversible w.r.t. the unnormalized Boltzmann density
   `π(y) = exp(−E(y)/T)`. The proof reduces EXACTLY to the identity
   `single_cell_move_energy_delta_symm` plus the off-cell localField
   invariance; the softmax normalizer cancels (both weights are evaluated at
   the same state's fields).
-* `heatbath_stationary` — (E4 MAIN) reversible + row-stochastic ⇒ stationary
+* `heatbath_stationary` — reversible + row-stochastic ⇒ stationary
   (`reversible_stationary`), via `heatbathKernel_rowsum` (the map
   `a ↦ y^{i←a}` reindexes the supported row: `Finset.sum_bij`).
-* `mixture_reversible` / `focused_mixture_stationary` — (E4 MAIN) the focused
+* `mixture_reversible` / `focused_mixture_stationary` — the focused
   selection `Q = Σ_i w(y)_i · Q_i` is reversible/stationary under TWO
   explicit load-bearing premises: SUPPORT (each `Q_i` only moves cell `i`)
   and INVARIANCE (`w(y^{i←a})_i = w(y)_i` — the selection weight of cell `i`
@@ -1022,17 +1020,16 @@ density, and the focused (state-dependent) mixture.
   the selection weights vanish on given cells (`∀ y, w y i = 0` for given
   `i`), the mixture output preserves every given value EXACTLY.
 
-## Honest boundaries (A9 'not to adopt' list + supplement §E4)
+## Honest boundaries
 
 * STATIONARITY ≠ MONOTONICITY: `T > 0` can RAISE energy — the heat-bath
   weight of a HIGHER-energy value is strictly positive (fixture witness
   below: weight `exp(−3)/(1 + exp(−3)) > 0` for the worse value). No descent
   claim is made about the kernel or the mixture.
-* The A9-supplement phrase "state-dependent mixture preserves stationarity"
+* The phrase "state-dependent mixture preserves stationarity"
   is FALSE as an unconditional statement (two-state flip-vs-stay
   counterexample); the INVARIANCE premise here is exactly what the counterexample
-  violates, and it is documented as load-bearing (RootApi-пин: имя
-  `focused_mixture_stationarity_without_invariance` отсутствует).
+  violates, and it is documented as load-bearing.
 * The stationarity statements are about the unnormalized density on a
   FINITE configuration space; no measure-theoretic packaging, no mixing-time
   or convergence-rate claim.
@@ -1084,8 +1081,7 @@ noncomputable def boltzmannDensity (B : ι → α → ℝ) (K : ι → ι → α
   Real.exp (-(pairwiseEnergy B K y) / T)
 
 /-- The focused (state-dependent) mixture kernel
-`Q(y, z) = Σ_i w(y)_i * Q_i(y, z)` — the FocusedSearch selection policy of
-A9-supplement §E4. -/
+`Q(y, z) = Σ_i w(y)_i * Q_i(y, z)` — the focused search selection policy. -/
 noncomputable def focusedMixture (w : (ι → α) → ι → ℝ)
     (Q : ι → (ι → α) → (ι → α) → ℝ) (y z : ι → α) : ℝ :=
   ∑ i, w y i * Q i y z
@@ -1199,7 +1195,7 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*} [Fintype α] [DecidableEq α] [Nonempty α]
 
 omit [DecidableEq α] [Nonempty α] in
-/-- (E4 MAIN) Heat-bath detailed balance: under symmetric `K`
+/-- Heat-bath detailed balance: under symmetric `K`
 (`K_ij(a,b) = K_ji(b,a)`, the CRAM `W = sym(K)`) and `T ≠ 0`, the
 single-cell kernel is REVERSIBLE w.r.t. the unnormalized Boltzmann density
 `π(y) = exp(−E(y)/T)`. The proof is exactly the delta identity
@@ -1267,7 +1263,7 @@ theorem reversible_stationary (π : (ι → α) → ℝ)
     _ = π z := by ring
 
 omit [DecidableEq α] in
-/-- (E4 MAIN) Heat-bath stationarity: the single-cell heat-bath kernel
+/-- Heat-bath stationarity: the single-cell heat-bath kernel
 preserves the Boltzmann density — detailed balance (`heatbath_detailed_balance`)
 plus row-stochasticity (`heatbathKernel_rowsum`) via
 `reversible_stationary`. STATIONARITY ≠ MONOTONICITY: at `T > 0` the kernel
@@ -1288,7 +1284,7 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*} [Fintype α] [DecidableEq α] [Nonempty α]
 
 omit [Fintype α] [DecidableEq α] [Nonempty α] in
-/-- (E4 MAIN, part a) The focused mixture of reversible SINGLE-CELL kernels
+/-- (part a) The focused mixture of reversible SINGLE-CELL kernels
 is reversible under the SUPPORT premise (`Q_i(y,z) ≠ 0 ⇒ z = y^{i←(z i)}`:
 each kernel only moves its own cell) and the INVARIANCE premise
 (`w(y^{i←a})_i = w(y)_i`: the selection weight of cell `i` is invariant under
@@ -1336,7 +1332,7 @@ theorem mixture_rowsum (w : (ι → α) → ι → ℝ)
     _ = 1 := hw y
 
 omit [DecidableEq α] [Nonempty α] in
-/-- (E4 MAIN) Focused mixture stationarity: `Q = Σ_i w(y)_i · Q_i` with
+/-- Focused mixture stationarity: `Q = Σ_i w(y)_i · Q_i` with
 `w ≥ 0`-free normalization `Σ_i w(y)_i = 1` preserves `π` under the SUPPORT,
 INVARIANCE, reversibility and row-sum premises (see `mixture_reversible`
 for why the premises are load-bearing). STATIONARITY ≠ MONOTONICITY:
@@ -1356,7 +1352,7 @@ theorem focused_mixture_stationary (w : (ι → α) → ι → ℝ)
     (fun y => mixture_rowsum w Q y hw hrow)
 
 omit [DecidableEq α] in
-/-- (E4 MAIN, corollary) The FOCUSED-GIBBS-SEARCH policy — a state-dependent
+/-- (corollary) The FOCUSED-GIBBS-SEARCH policy — a state-dependent
 mixture of single-cell heat-bath kernels — preserves the Boltzmann density.
 The heat-bath family satisfies SUPPORT structurally
 (`heatbathKernel_supported`), so only `hK`, `T ≠ 0`, INVARIANCE of the
@@ -1474,18 +1470,17 @@ set_option linter.style.header false
 /-!
 # Certified stopping: energy threshold vs validity certificate
 
-Track E4 (addendum A9 §E4 + A9-supplement cert-kernel): the STOPPING side of
+The STOPPING side of
 Gibbs search — two DISTINCT certificates, never conflated:
 
 * `EnergyStop` — the EFFICIENCY event: a configuration `y` with
   `pairwiseEnergy B K y ≤ τ`. An energy threshold is a search-efficiency
-  heuristic, NEVER a correctness claim (A9 'not to adopt': threshold stop is
-  empirical).
+  heuristic, NEVER a correctness claim.
 * `ValidityCertificate` — the PRODUCTION certificate: a configuration `y`
   that preserves every given value (`preserves_givens`) and satisfies every
   per-cell constraint (`satisfies_constraints`) — the AcceptedSolution shape
-  of the A9-supplement cert-kernel (preserves_givens + satisfies_constraints).
-* `stopping_sound_of_separation` — (E4 MAIN) the SEPARATION transfer: under
+  (preserves_givens + satisfies_constraints).
+* `stopping_sound_of_separation` — the SEPARATION transfer: under
   the separation premise "every configuration with `E ≤ τ` is valid"
   (∀ y', E(y') ≤ τ → givens preserved ∧ constraints satisfied), an
   `EnergyStop` produces a `ValidityCertificate`. The separation premise is
@@ -1528,7 +1523,7 @@ structure EnergyStop (B : ι → α → ℝ) (K : ι → ι → α → α → �
 /-- The validity certificate: a configuration `y` that (1) preserves every
 given value (`givens i = some a → y i = a` — clamps intact) and (2)
 satisfies every per-cell constraint `C i (y i)`. This is the PRODUCTION
-certificate (AcceptedSolution of the A9-supplement cert-kernel); it says
+certificate (`CRAMAcceptedSolution` in `CRAM.lean`); it says
 NOTHING about energy. -/
 structure ValidityCertificate (givens : ι → Option α)
     (C : ι → α → Prop) where
@@ -1539,7 +1534,7 @@ structure ValidityCertificate (givens : ι → Option α)
   /-- Constraints satisfied at every cell. -/
   satisfies_constraints : ∀ i, C i (y i)
 
-/-- (E4 MAIN) Certified stopping, soundness of the separation condition:
+/-- Certified stopping, soundness of the separation condition:
 if every configuration with energy `≤ τ` is valid (the SEPARATION premise —
 this is what an external verifier must certify about the instance), then an
 `EnergyStop` at threshold `τ` PRODUCES a `ValidityCertificate`. The premise

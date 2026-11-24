@@ -398,8 +398,6 @@ theorem fderiv_ceDirection {V : Type} [Fintype V] [Nonempty V]
   by_cases hv : v = t <;>
     simp [ceResidual, ceLogits, Hagi.Prelude.softDef, hv]
 
-/-! ## Elementary checks -/
-
 /-- Zero features give zero range and the zero safe step. -/
 theorem zeroMatrix_safeStepSize_test :
     safeStepSize (0 : Matrix (Fin 2) (Fin 2) ℝ) 0 0 = 0 := by
@@ -627,7 +625,7 @@ theorem ceRangeMajorizer_safeStep_eq (X : Matrix V (Fin d) ℝ)
   field_simp
   ring
 
-/-- MAIN THEOREM (P0c): the range-based safe step loses at least
+/-- MAIN THEOREM: the range-based safe step loses at least
 `2·A²/R'²` with `R' = sup d − inf d`, and `R' ≤ ceStepRange`, so the
 certified descent is never smaller than the engine's. -/
 theorem ceOneHot_rangeSafeStep_le_residual (X : Matrix V (Fin d) ℝ)

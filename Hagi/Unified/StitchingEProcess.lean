@@ -29,10 +29,8 @@ Ville time-uniform false-alarm control
 
 Honesty boundaries (documented deferrals):
 
-* Countable-family stitching (countable weights, tsum closure with
-  a.e. summability) is DEFERRED — it adds genuine measure-theoretic
-  noise, and the slow-loop consumer commits against finitely many
-  e-processes. The finite family is the honest primary form.
+* Countable-family stitching is in `Hagi.Unified.CountableStitching`
+  (finite-prefix reduction; no supermartingale closure of the tsum).
 * Each `E i` is a hypothesis (premise-form): this file proves the
   stitching closure and the budget transfer, not the construction of
   the per-expert e-processes (those come from the Freedman anytime
@@ -129,7 +127,7 @@ theorem stitching_eprocess_anytime (w : k → ℝ) (hw : ∀ i, 0 ≤ w i)
   exact ville_anytime_false_alarm hM hMnn hmass n hdelta
 
 
-/-! ## Freedman empirical predictable variance (A8 F5)
+/-! ## Freedman empirical predictable variance
 
 Extension of the stitching gate with the empirical-variance
 comparison: when the cumulative predictable variance satisfies the
@@ -141,8 +139,7 @@ the fixed-`c²` exponent — smaller variance ⇒ tighter concentration ⇒
 larger confidence.  The stitched empirical master then fires every
 anytime alarm the fixed master fires at the same threshold
 (`stitching_alarm_superset`) — the drift-detection power statement
-behind A8's measured 6% → 63% detection at ≤ 5% FPR (Class-D
-evidence, motivation only).  Denominator positivity is an explicit
+(motivation: measured 6% → 63% detection at ≤ 5% FPR).  Denominator positivity is an explicit
 premise (at `c = 0`, `B = 0` both denominators vanish — degenerate
 case excluded honestly, not derived). -/
 

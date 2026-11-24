@@ -5,7 +5,7 @@ import Hagi.Unified.StitchingEProcess
 import Mathlib.Analysis.SpecificLimits.Basic
 
 /-!
-# Countable stitching of e-processes (P4 item E3)
+# Countable stitching of e-processes
 
 The countable-family extension of the finite stitching gate
 (`Hagi.Unified.StitchingEProcess`): given a COUNTABLE family

@@ -11,11 +11,9 @@ set_option linter.style.header false
 /-!
 # Pseudolikelihood (umbrella)
 
- slicing: the former 5555-line monolith is split into four files
-under `Hagi.Model.EnergyReasoning.Pseudolikelihood.*` (Core, LocalField,
-Mixing, CRAM) with unchanged fully-qualified names. This module remains
-the import point for consumers (Hagi.lean, Training.StepProvider,
-Contracts.DataToQuality).
+ Split into four files under `Hagi.Model.EnergyReasoning.Pseudolikelihood.*`
+(Core, LocalField, Mixing, CRAM); this module is the import point for
+consumers (Hagi.lean, Training.StepProvider, Contracts.DataToQuality).
 -/
 
 namespace Hagi.Model.EnergyReasoning

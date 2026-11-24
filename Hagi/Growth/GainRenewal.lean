@@ -189,7 +189,7 @@ theorem gain_renewal_growth_one (G D : ℕ → ℝ) (γ inj ξ : ℝ)
       rw [hcast, hsplit]
       linarith [hr]
 
-/-! ## The R102 window lift -/
+/-! ## The window lift -/
 
 /-- If `0 < α`, `C (t+1) = C t + G t`, and `α·C t ≤ G t` at
 every t, then `C 0·(1 + α)^T ≤ C T`. -/

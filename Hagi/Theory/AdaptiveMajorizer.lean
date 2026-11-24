@@ -16,7 +16,7 @@ majorizer `Hagi.Energy.lse_shift_upper` bounds the lse shift by
 ignores the variance under the target distribution.  Near the end of
 training the soft target concentrates (one-hot limit), the variance
 of the displacement under `smax x` collapses, but the range does not
-— certified steps stay unjustifiably small (THEORY_ALIGNMENT pain).
+— certified steps stay unjustifiably small.
 
 CANON (tight): with the exact Bennett multiplier
 `kappa r = (Real.exp r - 1 - r) / r ^ 2`,
@@ -32,8 +32,7 @@ CONSEQUENCE of its tight twin via `kappa_le_expR` plus the
 degenerate `r = 0` case (constant displacement, zero variance) —
 no parallel proofs are maintained.
 
-The mechanism is deliberately series-free (the series route hung on
-`hasSum_nat_add_iff` whnf in a previous session, route 1):
+The mechanism is deliberately series-free:
 
 - `kappa_mono` via `exp_aux_N_nonneg`: `N t = e ^ t * (t − 2) + t + 2`
   has `N 0 = N' 0 = 0`, `N'' t = t * e ^ t ≥ 0` — Lagrange MVT twice;
@@ -1149,7 +1148,7 @@ theorem ce_adaptive_drop_dominates_tight (X : Matrix V (Fin d) ℝ)
 
 /-- **Zero variance kills the curvature**: if the directional logit
 displacement has zero variance under the soft target (the
-concentrated, one-hot-limit regime of THEORY_ALIGNMENT), the
+concentrated, one-hot-limit regime), the
 majorizer is exactly linear for every `η ≤ 1` — the certified
 descent has no curvature penalty at all. -/
 
@@ -1186,7 +1185,7 @@ theorem ceOneHot_next_le_linear_of_zero_var_tight (X : Matrix V (Fin d) ℝ)
 
 /-! ## Code bridge: the implementation's claim, at the exact range
 
-HAGI_v2 `hagi/lm.py` (`CertifiedStepLM._adaptive_step`, wave 252)
+HAGI_v2 `hagi/lm.py` (`CertifiedStepLM._adaptive_step`)
 returns the claim `A * η - C * η ^ 2` at the `η` it actually takes,
 with `C = kappa R * Var`, `R` the MAXIMAL range of the directional
 logit displacement. `Hagi.Model.ceStepRange = 2 * ∑ |g|` is only a

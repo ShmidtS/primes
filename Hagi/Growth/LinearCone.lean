@@ -10,18 +10,18 @@ import Hagi.Growth.GainRenewal
 set_option linter.style.header false
 
 /-!
-# LinearCone — consolidated cone-family core (A5 R3 slice 5)
+# LinearCone — consolidated cone-family core
 
-Byte-identical merge of PerronCone, ConeCorridor, GrowthDynamics,
-ConeDynamics, NonlinearCone, FrontierScaling. Namespace blocks and
-declaration FQNs preserved.
+Merge of PerronCone, ConeCorridor, GrowthDynamics, ConeDynamics,
+NonlinearCone, FrontierScaling. Namespace blocks and declaration
+FQNs preserved.
 -/
 
 section C238_perron
 /-!
-# Perron core for the cone family (audit-3 unification)
+# Perron core for the cone family
 
-The algebraic observation of the third audit, formalized: the
+The algebraic observation, formalized: the
 cone condition `γ·k² + (1−ρ)·k ≤ β` is the EIGENVECTOR equation
 of the 2×2 dynamics matrix `M = [[1, γ], [β, ρ]]`: the cone
 boundary vector `(1, k)` is an eigenvector with eigenvalue
@@ -127,7 +127,7 @@ theorem cone_perron_growth (C D : ℕ → ℝ) (γ β ρ k : ℝ)
           Fin.sum_univ_two] at hc0 hc1
         linear_combination ((1 + γ * k) ^ T * C 0) * hc1
 
-/-- МОНОТОННОЕ СРАВНЕНИЕ КОНУСА (аудит v3, Phase 3): если
+/-- МОНОТОННОЕ СРАВНЕНИЕ КОНУСА: если
 γ,ρ,β ≥ 0, фактическая динамика (C,D) удовлетворяет
 НЕРАВЕНСТВам C_{t+1} ≥ C_t + γD_t, D_{t+1} ≥ ρD_t + βC_t − ξ_t,
 а (C',D') — решение той же системы с РАВЕНСТВАМИ и
@@ -156,7 +156,7 @@ theorem cone_comparison (C D C' D' : ℕ → ℝ) (γ ρ β : ℝ)
         _ ≤ ρ * D t + β * C t - 0 := by ring_nf; linarith
         _ ≤ D (t + 1) := by linarith [hD t]
 
-/-- СРАВНЕНИЕ С ВОЗМУЩЕНИЕМ (аудит v3 Phase 3): при
+/-- СРАВНЕНИЕ С ВОЗМУЩЕНИЕМ: при
 ξ_t ≤ ε·C_t возмущённая динамика
 D_{t+1} ≥ ρD_t + βC_t − ξ_t доминируется системой с
 эффективным β' = β − ε (ε ≤ β) — возмущение поглощается
@@ -242,7 +242,7 @@ theorem cone_explicit_monotone (C D : ℕ → ℝ) (ρ β : ℝ) (hρ : 0 ≤ ρ
     nlinarith [hC1, hbetaS]
   nlinarith [h, hlast]
 
-/-- МОСТ h_emp_dyn ⇒ ЯВНАЯ ОЦЕНКА (аудит v3): возмущённая
+/-- МОСТ h_emp_dyn ⇒ ЯВНАЯ ОЦЕНКА: возмущённая
 конусная посылка `ρ·D t + β·C t − ξ t ≤ D (t+1)` при
 ξ t ≤ ε·C t, C t ≥ 0 и ε ≤ β эквивалентна чистому конусному
 неравенству с эффективным β−ε; замкнутая форма
@@ -385,8 +385,7 @@ theorem h_emp_takeoff_exponential (C D G : ℕ → ℝ) (γ k : ℝ)
 
 /-- КОНУСНАЯ ИНВАРИАНТНОСТЬ ПОСЫЛОК MasterHAGI_trunc: блок
 h_emp_{cone0, C_cap, dyn, beta} поддерживает конусное
-соотношение (α/γ)·C t ≤ D t индукцией по t (ядро конусного
-блока аудита v3): cap ограничивает рост C фактором (1+α),
+соотношение (α/γ)·C t ≤ D t индукцией по t: cap ограничивает рост C фактором (1+α),
 beta оплачивает дрейф+возмущение, dyn переносит на D. -/
 theorem trunc_cone_invariance (C D ξ : ℕ → ℝ) (α γ ρ β : ℝ)
     (hα : 0 ≤ α) (hγ : 0 < γ) (hρ : 0 ≤ ρ)
@@ -462,9 +461,9 @@ end Hagi.Foundations
 end C238_perron
 section C238_corridor
 /-!
-# ConeSystem-коридор (шаг 4 аудита v5, ядро)
+# ConeSystem-коридор
 
-Консолидация: через ЕДИНУЮ структуру GrowthDynamics —
+Через ЕДИНУЮ структуру GrowthDynamics —
 двусторонняя оценка: если конусные посылки дают takeoff
 (нижняя), а окно роста — cap (верхняя), то capability
 зажат ТОЧНОЙ экспонентой: (1+α)^T·C0 ≤ C T ≤ (1+α)^T·C0.
@@ -561,7 +560,7 @@ structure GrowthDynamics (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
     alpha / gamma * ((1 + alpha) - rho) + xi t / C t ≤ beta
 
 
-/-- **Телескоп прироста под полосой (R548)**: если каждый
+/-- **Телескоп прироста под полосой**: если каждый
 шаговый прирост ограничен полосой (G t ≤ b t), то полный
 прирост не превосходит телескопа полосы: C T - C 0 ≤ Σ b t.
 Базовая форма для anytime-growth бюджетов (b t = μ + u). -/
@@ -584,9 +583,9 @@ theorem telescope_band (C G b : ℕ → ℝ) (T : ℕ)
       have hpt := hband T (Finset.mem_range.mpr (Nat.lt_succ_self T))
       linarith
 
-/-- **Anytime-growth бюджет (R548)**: полоса μ + u на каждом
+/-- **Anytime-growth бюджет**: полоса μ + u на каждом
 шаге с u = √(2σ²·ln(T/α)) (anytime_safe_threshold-форма) даёт
-C T ≤ C 0 + T·μ + T·u — линейный рост за jmp anytime-уровень. -/
+C T ≤ C 0 + T·μ + T·u — линейный рост за anytime-уровень. -/
 theorem anytime_growth_budget (C G b : ℕ → ℝ) (T : ℕ) (μ u : ℝ)
     (hstep : ∀ t ∈ Finset.range T, C (t + 1) = C t + G t)
     (hband : ∀ t ∈ Finset.range T, G t ≤ b t)
@@ -600,7 +599,7 @@ theorem anytime_growth_budget (C G b : ℕ → ℝ) (T : ℕ) (μ u : ℝ)
   push_cast at hsum ⊢
   linarith
 
-/-- Телескоп полосы (R556, ∀t-форма). -/
+/-- Телескоп полосы (∀t-форма). -/
 theorem band_telescope (C G : ℕ → ℝ) (b σ : ℝ)
     (hstep : ∀ t, C (t + 1) = C t + G t)
     (hband : ∀ t, G t ≤ b * (1 - σ) ^ t) :
@@ -619,10 +618,10 @@ theorem band_telescope (C G : ℕ → ℝ) (b σ : ℝ)
               b * (1 - σ) ^ t := by
             rw [Finset.sum_range_succ]; ring
 
-/-- **Затухающая полоса ⟹ capability-потолок (R556)**: прирост
+/-- **Затухающая полоса ⟹ capability-потолок**: прирост
 накрыт геометрически убывающей полосой G t ≤ b·(1−σ)^t
 (b ≥ 0, σ > 0) — рост насыщается: C T ≤ C 0 + (b/σ)·(1−(1−σ)^T)
-≤ C 0 + b/σ; мост к сигнатуре насыщения satC (R531). -/
+≤ C 0 + b/σ. -/
 theorem geometric_band_ceiling (C G : ℕ → ℝ) (b σ : ℝ) (T : ℕ)
     (hstep : ∀ t, C (t + 1) = C t + G t)
     (hband : ∀ t, G t ≤ b * (1 - σ) ^ t)
@@ -658,11 +657,11 @@ theorem geometric_band_ceiling (C G : ℕ → ℝ) (b σ : ℝ) (T : ℕ)
   exact le_trans h1 (by linarith [hstep2])
 
 
-/-- **Цель выше потолка полосы — недостижима (R557)**:
+/-- **Цель выше потолка полосы — недостижима**:
 термостат-настройка: если затухающая полоса даёт потолок
 C 0 + b/σ ниже цели C*, то цель не достигается ни на каком
-горизонте. Обратная сторона R530 (γ-дефицит): полоса — ещё
-один механизм блокировки takeoff. -/
+горизонте. Обратная сторона γ-дефицита (GainRenewal): полоса —
+ещё один механизм блокировки takeoff. -/
 theorem band_target_unreachable (C G : ℕ → ℝ) (b σ Cstar : ℝ)
     (T : ℕ)
     (hstep : ∀ t, C (t + 1) = C t + G t)
@@ -676,7 +675,7 @@ theorem band_target_unreachable (C G : ℕ → ℝ) (b σ Cstar : ℝ)
   linarith
 
 
-/-- Геометрическая сумма (переиспользуемая форма, R560). -/
+/-- Геометрическая сумма (переиспользуемая форма). -/
 theorem geo_sum_decay (σ : ℝ) (hσ : 0 < σ) (T : ℕ) :
     ∑ t ∈ Finset.range T, (1 - σ) ^ t = (1 - (1 - σ) ^ T) / σ := by
   induction T with
@@ -686,8 +685,8 @@ theorem geo_sum_decay (σ : ℝ) (hσ : 0 < σ) (T : ℕ) :
       field_simp [pow_succ]
       ring
 
-/-- **Нижняя полоса ⟹ гарантированный рост (R560)**: зеркальная
-к R556 ситуация: прирост поддержан снизу G t ≥ b·(1−σ)^t
+/-- **Нижняя полоса ⟹ гарантированный рост**: зеркальная
+к потолку ситуация: прирост поддержан снизу G t ≥ b·(1−σ)^t
 (b ≥ 0, σ ∈ (0,1]) — capability гарантированно достигает
 C 0 + (b/σ)·(1−(1−σ)^T) к горизонту T. -/
 theorem band_guaranteed_growth (C G : ℕ → ℝ) (b σ : ℝ) (T : ℕ)
@@ -718,7 +717,7 @@ theorem band_guaranteed_growth (C G : ℕ → ℝ) (b σ : ℝ) (T : ℕ)
   rw [hsum] at hT
   exact hT
 
-/-- **Время достижения цели (R560)**: если цель C* внутри
+/-- **Время достижения цели**: если цель C* внутри
 нижней полосы-насыщения (C 0 + b/σ ≥ C*), то к горизонту
 T ≥ ln(1 − σ(C*−C0)/b)/ln(1−σ) цель достигнута — таймер
 термостата в замкнутой форме. -/
@@ -733,9 +732,8 @@ theorem band_time_to_target (C G : ℕ → ℝ) (b σ Cstar : ℝ)
   linarith
 
 
-/-- **Range-версия гарантированного роста (R561)**: полоса
-только на горизонте t < T (сертифицируемая форма; канон
-R540-лямбд для генерализованных гипотез). -/
+/-- **Range-версия гарантированного роста**: полоса
+только на горизонте t < T (сертифицируемая форма). -/
 theorem band_guaranteed_growth_range (C G : ℕ → ℝ) (b σ : ℝ)
     (T : ℕ)
     (hstep : ∀ t, C (t + 1) = C t + G t)
@@ -760,7 +758,7 @@ theorem band_guaranteed_growth_range (C G : ℕ → ℝ) (b σ : ℝ)
         _ = C 0 + b * (1 - (1 - σ) ^ (T + 1)) / σ := by
             field_simp [hpow]
             ring
-/-- **Таймер термостата в замкнутой лог-форме (R567)**:
+/-- **Таймер термостата в замкнутой лог-форме**:
 при σ < 1 и σ(C*−C0) < b цель C* настигается на горизонте
 T ≥ ln(1 − σ(C*−C0)/b)/ln(1−σ) — обратная задача каскада
 в логарифмической форме: из лог-неравенства выводится
@@ -937,21 +935,16 @@ theorem cone_ratio_step_is_reinvest (C D : ℕ → ℝ)
     (by linarith [hdyn]) (le_of_eq hstep) hbeta
 
 
-/-! ### Аудит v17, P1: единое ядро роста
+/-! ### Единое ядро роста
 
-`GrowthDynamics` (бундл предпосылок аудита §6.1)
-сводится к абстрактному ядру
-конуса `ConeData` (см. также
-`MasterHAGITrunc.frontier_cone_struct` — та же
-индукция через единственную копию
-тождества `cone_step`). Здесь —
-канальная проекция: предпосылки
-бундла совпадают с полями ConeData. -/
+`GrowthDynamics` (бундл предпосылок) сводится к абстрактному ядру
+конуса `ConeData` (та же индукция, что
+`MasterHAGITrunc.frontier_cone_struct`, — через единственную копию
+тождества `cone_step`). Здесь — канальная проекция: предпосылки
+бандла совпадают с полями ConeData. -/
 
-/-- Bundle GrowthDynamics порождает конусные
-данные ядра (канальная проекция:
-каждое поле полегко
-восстанавливается из следующего). -/
+/-- Bundle GrowthDynamics порождает конусные данные ядра (канальная
+проекция: каждое поле восстанавливается из своего носителя). -/
 def coneDataOfGrowthDynamics (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
     (alpha gamma rho beta : ℝ) :
     ConeData where
@@ -962,9 +955,8 @@ def coneDataOfGrowthDynamics (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
   ρ := rho
   β := beta
 
-/-- МОСТ: согласованность проекции — эта же
-капабилити/фронтир/принуждение и
-константы законов. -/
+/-- МОСТ: согласованность проекции — capability/frontier/forcing
+и константы законов совпадают. -/
 theorem coneDataOfGrowthDynamics_eq (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
     (alpha gamma rho beta : ℝ) :
     (coneDataOfGrowthDynamics C G D xi alpha gamma rho beta).C = C
@@ -1245,20 +1237,20 @@ section C238_frontier
 кап на рост `C (t+1) ≤ (1+α)·C t`, конус в нуле и порог на `β`.
 
   пороге `(α/γ)·((1+α) − ρ) + ξ t / C t ≤ β` (нужно `0 < C t`);
-(Конусный шаг/инвариант перенесён в Foundations/ConeTakeoff — R326.)
+  (Конусный шаг/инвариант — в `Hagi.Math.Foundations.ConeTakeoff`.)
 * `cone_edge_geometric_growth`: при точном шаге, gain-законе, конусе
   и капе выполнены тождества `G = α·C`, `D = (α/γ)·C`,
   `C' = (1+α)·C` — модель ПОЛНОСТЬЮ НАСЫЩЕННОГО режима
   (одновременные нижняя и верхняя границы роста): точное
   равенство каждой итерации. Это не устойчивая гарантия для
   произвольного обучения с шумом — вне насыщения применять
-  нельзя (оговорка );
+  нельзя;
 * `sustained_geometric_growth_from_production`: из указанных посылок —
   `C 0 * (1 + α) ^ T ≤ C T` для всех T (без свободной
   гипотезы «α·C ≤ γ·D»: ворота выводятся из конуса);
 * `frontier_asymptotic`: если `ξ t ≤ ξ̄·C t`, порог стягивается
   к константе `(α/γ)·((1+α) − ρ) + ξ̄ ≤ β` и выводится тот же
-  takeaway.
+  рост.
 
 Эмпирическое содержание — сами посылки (динамика, порог).
 -/

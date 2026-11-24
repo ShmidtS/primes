@@ -20,8 +20,7 @@ set_option linter.style.header false
 /-!
 # Sparse local field: neighbour-restricted sums and operation counts
 
-Track D3 (addendum A11 P3 "sparse field update correctness"): the
-claimed FLOP advantage of LOCAL (sparse) couplings, turned into
+The claimed FLOP advantage of LOCAL (sparse) couplings, turned into
 theorems. The dense `localField`
 `L_i(a) = B i a + Σ_{j ≠ i} K i j a (y j)` sums over ALL off-diagonal
 cells; when the coupling `K` is SUPPORTED on neighbour sets
@@ -40,10 +39,10 @@ identity composes unchanged. The cost advantage is a formal
   `N i ⊆ univ \ {i}` VERBATIM: the sparse split respects
   ordered-pair convention (off-diagonal, `1/2` outside in the energy;
   the field is one-sided and creates/destroys no diagonal entry).
-* `sparse_localField_eq_dense` — (D3 MAIN) under support and
+* `sparse_localField_eq_dense` — under support and
   no-self-neighbour the sparse field EQUALS the dense `localField`:
   zero couplings contribute nothing (`Finset.sum_subset`).
-* `sparse_update_energy_delta_eq` — (D3 MAIN) with symmetric `K` the
+* `sparse_update_energy_delta_eq` — with symmetric `K` the
   exact single-cell energy delta is the SPARSE field difference —
  `single_cell_move_energy_delta_symm` composed (cited, not
   reproved) through the equivalence above.
@@ -53,16 +52,16 @@ identity composes unchanged. The cost advantage is a formal
   products `card(univ \ {i}) · (card α)²` / `(N i).card · (card α)²`
   (the Σ_{j ∈ N i} card α² shape as one product; per value `a` the
   field reads card-many coupling entries).
-* `localField_op_count_le` — (D3 MAIN) `N i ⊆ univ \ {i}` ⇒ sparse
+* `localField_op_count_le` — `N i ⊆ univ \ {i}` ⇒ sparse
   work ≤ dense work.
-* `localField_op_count_lt` — (D3 MAIN) STRICT for a proper neighbour
+* `localField_op_count_lt` — STRICT for a proper neighbour
   subset and `0 < card α` (necessary: an empty value type zeroes both
   products): the formal FLOP advantage of local couplings.
 * `sparse_support_of_symmetric` — symmetric `K` + support ⇒ the
   transpose side also vanishes (`i ∉ N j → K i j a b = 0`): symmetric
   storage cannot smuggle a nonzero entry outside the neighbour sets.
 
-## Honest boundaries (D3)
+## Honest boundaries
 
 * The op counts are ℕ-PRODUCT counts (entry reads per field value);
   NO asymptotics, no machine model of arithmetic — `localField_sparse_work`
@@ -133,7 +132,7 @@ theorem sparse_neighbours_subset (N : ι → Finset ι)
   exact absurd hj (hN i)
 
 omit [Fintype α] [DecidableEq α] in
-/-- (D3 MAIN) Under coupling support and no-self-neighbour the SPARSE
+/-- Under coupling support and no-self-neighbour the SPARSE
 field EQUALS the dense `localField`: zero couplings contribute
 nothing (`Finset.sum_subset` over `N i ⊆ univ \ {i}`). -/
 theorem sparse_localField_eq_dense (N : ι → Finset ι)
@@ -147,7 +146,7 @@ theorem sparse_localField_eq_dense (N : ι → Finset ι)
     (fun j _ hj => hs i j a (y j) hj)
 
 omit [Fintype α] [DecidableEq α] in
-/-- (D3 MAIN) With symmetric `K` the exact single-cell move delta of
+/-- With symmetric `K` the exact single-cell move delta of
 the DENSE pairwise energy is the SPARSE field difference
 `single_cell_move_energy_delta_symm` composed (cited, not reproved)
 through `sparse_localField_eq_dense`. -/
@@ -178,7 +177,7 @@ theorem neighbour_card_le (N : ι → Finset ι) (i : ι) :
   Finset.card_le_card (Finset.subset_univ (N i))
 
 omit [DecidableEq α] in
-/-- (D3 MAIN) Op-count bound: with `N i` inside the off-diagonal the
+/-- Op-count bound: with `N i` inside the off-diagonal the
 SPARSE work product is ≤ the DENSE work product (Finset card monotone
 under the common `(card α)²` multiplier). -/
 theorem localField_op_count_le (N : ι → Finset ι)
@@ -189,7 +188,7 @@ theorem localField_op_count_le (N : ι → Finset ι)
     (Finset.card_le_card (sparse_neighbours_subset N hN i))
 
 omit [DecidableEq α] in
-/-- (D3 MAIN) STRICT op-count advantage: a PROPER neighbour subset
+/-- STRICT op-count advantage: a PROPER neighbour subset
 (`N i ⊂ univ \ {i}`) with `0 < card α` gives strictly less work than
 the dense field. The premise `0 < card α` is NECESSARY, not
 decorative: an empty value type zeroes both products. -/
@@ -279,7 +278,7 @@ set_option linter.style.header false
 /-!
 # Numerical error bridges: guarded energy descent under local-field noise
 
-Track P3 (addendum A11, first item): the CRAM solver's computed local
+The CRAM solver's computed local
 fields `L̂_i` (e.g. BF16-rounded evaluations) carry a per-value error
 `|L̂_i(a) − L_i(a)| ≤ ε`. This file bridges that numerical premise to
 the exact-arithmetic descent of `Hagi.Energy.SingleCellDescent`:
@@ -298,9 +297,9 @@ the exact-arithmetic descent of `Hagi.Energy.SingleCellDescent`:
   constant `zc i` to every local-field value (composition seam).
 * `guarded_greedy_strict_drop` — composition of the guarded acceptance
   with `Hagi.Energy.strict_drop_of_positive_margin` at the two-phase
-  frozen-z setting (`visibleBiasWithZ`): upgrades C261's
+  frozen-z setting (`visibleBiasWithZ`): upgrades the
   exact-arithmetic descent to noise-robust descent. Joint `(z, y)`
-  updates remain FORBIDDEN by the E3 two-phase protocol.
+  updates remain FORBIDDEN by the two-phase protocol.
 * `latent_update_degree_zero_exact_after_one` /
   `latent_update_degree_zero_one_step_is_fixed` — the `Δ = 0`
   degenerate case (all neighborhoods empty): the latent update is a
@@ -347,7 +346,7 @@ section Guard
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*}
 
-/-- **`guarded_energy_delta_error`** — (P3 MAIN) the computed
+/-- **`guarded_energy_delta_error`** — the computed
 single-cell energy delta `Δ̂ = L̂_i(a) − L̂_i(y_i)` approximates the TRUE
 delta `Δ = E(y^{i←a}) − E(y)` within `2ε`: the delta involves TWO field
 evaluations (`L̂ i a` and `L̂ i (y i)`), each within `ε` of the exact
@@ -373,7 +372,7 @@ theorem guarded_energy_delta_error (B : ι → α → ℝ)
   rw [key, abs_le]
   constructor <;> linarith
 
-/-- **`guarded_energy_delta`** — (P3 MAIN) the guard is SOUND: if the
+/-- **`guarded_energy_delta`** — the guard is SOUND: if the
 COMPUTED improvement margin clears the full noise slack,
 `2ε < L̂_i(y_i) − L̂_i(a)`, then the TRUE energy strictly decreases.
 Rejection (`margin ≤ 2ε`) carries no information — see the witness
@@ -418,13 +417,13 @@ theorem localField_visibleBiasWithZ (B : ι → α → ℝ)
   unfold localField visibleBiasWithZ
   ring
 
-/-- **`guarded_greedy_strict_drop`** — (P3 MAIN, composition
+/-- **`guarded_greedy_strict_drop`** — (composition
 `strict_drop_of_positive_margin`) guarded acceptance under the
 two-phase frozen-z setting: computed fields of the frozen-bias energy
 `pairwiseEnergy (visibleBiasWithZ B zc) K` with margin clearing `2ε`
-give a STRICT drop of that TRUE energy. This upgrades C261's
+give a STRICT drop of that TRUE energy. This upgrades the
 exact-arithmetic descent to noise-robust descent. The frozen-`z`
-premise is structural (E3): joint `(z, y)` updates remain forbidden —
+premise is structural: joint `(z, y)` updates remain forbidden —
 a mid-descent z-move changes the bias and voids the delta identity. -/
 theorem guarded_greedy_strict_drop (B : ι → α → ℝ)
     (K : ι → ι → α → α → ℝ) (hK : ∀ i j a b, K i j a b = K j i b a)
@@ -438,12 +437,12 @@ theorem guarded_greedy_strict_drop (B : ι → α → ℝ)
 
 end FrozenZ
 
-/-! ## Latent Δ = 0 degenerate case (B1-low) -/
+/-! ## Latent Δ = 0 degenerate case -/
 section LatentZero
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-/-- **`latent_update_degree_zero_exact_after_one`** — (B1-low) at
+/-- **`latent_update_degree_zero_exact_after_one`** — at
 `Δ = 0` (all neighborhoods empty) the latent update is the CONSTANT
 map `1[i = G]/m`, hence exact after ONE step — no contraction factor,
 no asymptotic floor `ε_round/(1−q)` (that floor belongs to a genuine
@@ -476,8 +475,8 @@ set_option linter.style.header false
 /-!
 # Latent fixed point support and reachability
 
-Track B2 (addendum A11 B-level): support/connectivity properties of the
-LATENT fixed point `z*` of `latentUpdate` (C272's `LatentEnergy.lean`
+Support/connectivity properties of the
+LATENT fixed point `z*` of `latentUpdate` (`LatentEnergy.lean`
 carrier, fixed-point equation `z* i = (Σ_{j ∈ N i} z* j + 1[i = G])/m`
 with symmetric adjacency, degree bound `(N i).card ≤ Δ`, `m > Δ`).
 
@@ -486,7 +485,7 @@ Main results:
 * `latent_fixed_unique` — uniqueness of the fixed point (directly from
   `latent_update_contraction`: `‖z − z'‖ ≤ (Δ/m)·‖z − z'‖` with
   `Δ/m < 1` forces equality), reused by `latent_fixed_zero_off_closed`.
-* `latent_fixed_nonneg` — (B2 MAIN) the unique fixed point is
+* `latent_fixed_nonneg` — the unique fixed point is
   nonnegative: at the argmin index the goal injection `1[i = G] ≥ 0`
   and the neighbour terms give `m·z i ≥ card(N i)·z i`, so
   `(m − card(N i))·z i ≥ 0` with `m > Δ ≥ card` forces `z i ≥ 0`.
@@ -496,12 +495,12 @@ Main results:
   into `N i`; nonnegativity handles the remaining neighbour terms).
 * `LatentPath` — inductive reachability from the goal over the
   neighbour relation (path length = number of edges).
-* `latent_fixed_pos_of_reachable` — (B2 MAIN) if `LatentPath N G i k`
+* `latent_fixed_pos_of_reachable` — if `LatentPath N G i k`
   then `(1/m)^(k+1) ≤ z* i`, in particular `0 < z* i`: positivity
   propagates from the goal along every path.
 * `latent_fixed_upper_bound` — global sup bound `z* i ≤ 1/(m − Δ)`
   (argmax mirror of the nonneg argument).
-* `latent_fixed_zero_off_closed` — (B2 MAIN) on a set `C'` closed
+* `latent_fixed_zero_off_closed` — on a set `C'` closed
   under neighbours (`∀ i ∈ C', N i ⊆ C'`) with no goal
   (`∀ i ∈ C', i ≠ G`), the fixed point vanishes: the 0-on-C' patch of
   `z*` is again a fixed point (closedness for `i ∈ C'`; SYMMETRY for
@@ -515,10 +514,9 @@ Main results:
   receives contributions from ALL its neighbours, so off-path edges
   break a pure path-decay bound). The provable general statement is
   the global sup bound `1/(m − Δ)` (see `latent_fixed_upper_bound`);
-  the name `latent_fixed_decay_upper` is nonexistent (RootApi negative
-  pin). Honesty over completeness.
+  the name `latent_fixed_decay_upper` is nonexistent. Honesty over completeness.
 * All theorems are about the FIXED POINT of `latentUpdate` (which
-  exists uniquely by C272's Banach theorem); no iterate statements are
+  exists uniquely by the Banach theorem of `LatentEnergy.lean`); no iterate statements are
   duplicated here (see `latent_iterate_err_bound` there).
 
 Numeric anchor (consumed from `LatentEnergy.lean`'s frozen fixture):
@@ -554,7 +552,7 @@ theorem latent_fixed_unique (N : ι → Finset ι) (m : ℝ) (G : ι)
     exact e
   linarith
 
-/-- **`latent_fixed_nonneg`** — (B2 MAIN) with `m > Δ`, any fixed point
+/-- **`latent_fixed_nonneg`** — with `m > Δ`, any fixed point
 of the latent update is nonnegative (minimum argument: at the argmin
 index `m·z i = Σ_{N i} z j + 1[i = G] ≥ card(N i)·z i`, and
 `m − card(N i) > 0` since `card ≤ Δ < m`). -/
@@ -645,7 +643,7 @@ inductive LatentPath (N : ι → Finset ι) (G : ι) : ι → ℕ → Prop
   | step {j i : ι} {k : ℕ} (h : LatentPath N G j k) (hn : i ∈ N j) :
       LatentPath N G i (k + 1)
 
-/-- **`latent_fixed_pos_of_reachable`** — (B2 MAIN) if `i` is reachable
+/-- **`latent_fixed_pos_of_reachable`** — if `i` is reachable
 from the goal by a path of length `k`, then `(1/m)^(k+1) ≤ z* i`; in
 particular `0 < z* i`: positivity propagates from the goal source term
 along every path. -/
@@ -718,7 +716,7 @@ end Reach
 /-! ## Zero on neighbour-closed goal-free regions -/
 section Closed
 
-/-- **`latent_fixed_zero_off_closed`** — (B2 MAIN) if `C'` is closed
+/-- **`latent_fixed_zero_off_closed`** — if `C'` is closed
 under neighbours (`∀ i ∈ C', N i ⊆ C'`) and carries no goal
 (`∀ i ∈ C', i ≠ G`), then the fixed point vanishes on `C'`: the
 0-on-`C'` patch of `z*` is again a fixed point (closedness for
@@ -822,14 +820,14 @@ set_option linter.style.header false
 /-!
 # Attention coupling: the latent-to-visible field link L_ij(z)
 
-Track B3 (addendum A11 B-level): the REAL CRAM+Z link — the latent
+The CRAM+Z link — the latent
 state `z` couples into the VISIBLE pairwise energy through an
 ATTENTION-weighted coupling kernel K(z), not just an additive bias
-(the additive route is `LatentEnergy.visibleBiasWithZ`, the E3
+(the additive route is `LatentEnergy.visibleBiasWithZ`, the
 two-phase seam — both exist, this file adds the multiplicative
 attention link).
 
-Construction: at FROZEN `z` (E3 two-phase protocol; `z` is
+Construction: at FROZEN `z` (two-phase protocol; `z` is
 discrete/frozen — no differentiability-in-`z` is claimed), scores
 `s : ι → ι → ℝ` induce softmax attention weights
 `attentionWeights s i j = exp(s i j) / ∑_k exp(s i k)`, and the
@@ -841,9 +839,9 @@ coupling carries BOTH directed edges in every entry:
   `attentionWeights_sum` — the softmax simplex facts (weights in
   `[0,1]`, row sums `1`; premise `[Nonempty ι]`: an empty index type
   has no softmax).
-* `attention_coupling_symmetric` — (B3 MAIN) `L_ij(a,b) = L_ji(b,a)`
+* `attention_coupling_symmetric` — `L_ij(a,b) = L_ji(b,a)`
   BY CONSTRUCTION: the two directed contributions swap exactly. This
-  is the A9 upper-triangle trick — both directed edges are built into
+  is the upper-triangle trick — both directed edges are built into
   every `L_ij`, so the kernel satisfies `hK` premise with NO
   symmetry hypothesis on `κ` or `w`. Fin 3 numeric anchor below uses
   a deliberately ASYMMETRIC `κ` to catch any index-role slip.
@@ -872,11 +870,11 @@ coupling carries BOTH directed edges in every entry:
   2ε-guard recipe of `guarded_energy_delta` instantiated at the
   coupling bound.
 
-## Honest boundaries (B3)
+## Honest boundaries 
 
 This is the STRUCTURAL CRAM+Z bridge only. Full Maze-Hard semantics —
 support of `z*`, reachability, and JOINT `(z, y)` updates — remain
-OPEN: joint updates are still forbidden by the E3 two-phase protocol
+OPEN: joint updates are still forbidden by the two-phase protocol
 (a mid-descent z-move changes the kernel and voids the delta
 identity; no joint theorem exists or is claimed). The softmax
 Lipschitz-in-z step is a premise, not a theorem.
@@ -942,14 +940,14 @@ variable {α : Type*}
 
 /-- **`attentionCoupling`** — the attention coupling
 `L_ij(a,b) = κ_ij·w_ij·f(a,b) + κ_ji·w_ji·f(b,a)`: BOTH directed
-edges are built into every entry (the A9 upper-triangle
+edges are built into every entry (the upper-triangle
 construction); `w` is the attention weight function (e.g.
 `attentionWeights s` at frozen `z`). -/
 noncomputable def attentionCoupling (κ w : ι → ι → ℝ) (f : α → α → ℝ)
     (i j : ι) (a b : α) : ℝ :=
   κ i j * w i j * f a b + κ j i * w j i * f b a
 
-/-- **`attention_coupling_symmetric`** — (B3 MAIN) symmetry BY
+/-- **`attention_coupling_symmetric`** — symmetry BY
 CONSTRUCTION: `L_ij(a,b) = L_ji(b,a)` — the two directed
 contributions swap exactly (add_comm; NO symmetry premise on `κ` or
 `w`). This is why the kernel `attentionK` satisfies `hK`
@@ -1010,12 +1008,12 @@ theorem attention_K_symmetric (κ w : ι → ι → ℝ) (f : α → α → ℝ)
     ∀ i j a b, attentionK κ w f i j a b = attentionK κ w f j i b a :=
   fun i j a b => attention_coupling_symmetric κ w f i j a b
 
-/-- **`frozen_z_field_with_attention`** — (B3 MAIN, thin by design)
+/-- **`frozen_z_field_with_attention`** — (thin by design)
 the local field for `K(z)` is well-defined and the machinery
 applies AT FROZEN `z`: moving cell `i` to a local-field minimizer of
 `pairwiseEnergy B (attentionK κ (attentionWeights s) f)` does not
 increase the energy. PREMISE-FORM for the descent — NO joint
-`(z, y)` theorem exists or is claimed (E3 two-phase protocol: a
+`(z, y)` theorem exists or is claimed (two-phase protocol: a
 mid-descent z-move changes the kernel and voids the delta
 identity). -/
 theorem frozen_z_field_with_attention (B : ι → α → ℝ)
@@ -1113,7 +1111,7 @@ section LatentLink
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*}
 
-/-- **`latent_error_couples_field`** — (B3 MAIN, PREMISE-FORM chain,
+/-- **`latent_error_couples_field`** — PREMISE-FORM chain,
 honest) the composed latent-error contract: if the latent settling
 tolerance gives `‖z − z*‖ ≤ η` and the softmax attention is
 Lipschitz-in-`z` with constant `L_sm` (PREMISE — no such lemma is
@@ -1132,7 +1130,7 @@ theorem latent_error_couples_field (B : ι → α → ℝ) (κ : ι → ι → �
       ≤ ((Finset.univ \ {i}).card : ℝ) * (2 * κmax * fmax * (Lsm * η)) :=
   attention_coupling_field_diff B κ w1 w2 f hκ hf hsoft y i a
 
-/-- **`latent_attention_guarded_drop`** — (B3 MAIN) the guard
+/-- **`latent_attention_guarded_drop`** — the guard
 ABSORBS the latent error: with
 `ε := |S_i|·2κmax·fmax·L_sm·η` (the coupling bound), a computed
 improvement margin `2ε < L̂(y_i) − L̂(a)` on the `K(z)`-fields gives a
@@ -1140,7 +1138,7 @@ STRICT drop of the TRUE energy
 `pairwiseEnergy B (attentionK κ w2 f)` — the `2ε`-guard recipe of
 `guarded_energy_delta` instantiated at the attention coupling bound.
 Rejection still carries no information (honesty). Joint
-`(z, y)` updates remain FORBIDDEN (E3). -/
+`(z, y)` updates remain FORBIDDEN. -/
 theorem latent_attention_guarded_drop [Nonempty α] (B : ι → α → ℝ)
     (κ : ι → ι → ℝ) (w1 w2 : ι → ι → ℝ) (f : α → α → ℝ)
     {κmax fmax Lsm η : ℝ} (hκ : ∀ i j, 0 ≤ κ i j ∧ κ i j ≤ κmax)

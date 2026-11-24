@@ -562,9 +562,7 @@ theorem minibatch_inner_tail {m : ℕ} (hm : 0 < m)
 
 
 /-- общий ингредиент концентрационных доказательств: проекция
-шума на направление ограничена `σ·‖d‖` (Коши–Шварц). Ранее
-байт-в-байт дублировался в `minibatch_inner_concentration` и
-`minibatch_inner_concentration_upper`. -/
+шума на направление ограничена `σ·‖d‖` (Коши–Шварц). -/
 theorem noise_proj_abs_le {m : ℕ} (d : X) (sigma : ℝ)
     (xi : K → Fin m → Ω → X)
     (h_emp_noise_bound : ∀ i j ω, ‖xi i j ω‖ ≤ sigma)
@@ -576,8 +574,7 @@ theorem noise_proj_abs_le {m : ℕ} (d : X) (sigma : ℝ)
         mul_le_mul_of_nonneg_right (h_emp_noise_bound i j ω) (norm_nonneg d)
 
 /-- общий ингредиент: тождество показателя хвоста
-`m·noiseEps² = 2·(σ‖d‖)²·log(|K|/δ)`. Ранее дублировался
-байт-в-байт в обоих концентрационных доказательствах. -/
+`m·noiseEps² = 2·(σ‖d‖)²·log(|K|/δ)`. -/
 theorem noiseEps_sq_identity {m : ℕ} [Nonempty K] (hm : 0 < m)
     (d : X) (hd : d ≠ 0) (sigma : ℝ) (hsigma : 0 < sigma)
     (delta : ℝ) (hdelta : delta ∈ Set.Ioo 0 1) :
@@ -1306,7 +1303,7 @@ theorem adaptive_net_concentration {m : ℕ} (hm : 0 < m) {n : ℕ}
           _ ≤ Rv := by
               rw [hRv]
               exact mul_le_mul_of_nonneg_right (h_emp_noise_bound i j ω) (norm_nonneg v)
-      -- both one-sided Hoeffding tails (R92's minibatch_inner_tail)
+      -- both one-sided Hoeffding tails (`minibatch_inner_tail`)
       have htail_down := minibatch_inner_tail hm (fun j ω => ⟪xi i j ω, v⟫_ℝ) Rv hRvpos
         (fun j => h_emp_noise_meas i j v hvnorm) (h_emp_noise_indep i v hvnorm)
         (fun j => h_emp_noise_zero i j v hvnorm) hB hAnn
@@ -1565,13 +1562,13 @@ end Hagi.Step
 set_option linter.style.header false
 
 /-!
-# SubspaceSafeQP — концентрация в подпространстве направлений (аудит TD-05)
+# SubspaceSafeQP — концентрация в подпространстве направлений
 
 Размерностный взрыв `adaptiveNoiseEps` = σ(D+ε)·√(2log(2|K|(2M+1)ⁿ/δ)/m)
 делает равномерную концентрацию по ε-сети неприменимой к реальным
 моделям: log|N| = O(n log M) при n ~ 10⁷ требует m ≫ n.
 
-Лечение (по плану аудита, фаза 5): направление d* и защищённые
+Лечение: направление d* и защищённые
 градиенты g₁..g_K лежат в r-мерном подпространстве
 span{d₀, g₁,…,g_K}, r = K+1 ≪ n. Если ι : ℝ^r → ℝ^n —
 линейная изометрия (сохраняет скалярные произведения), и весь
@@ -1642,9 +1639,6 @@ end Hagi.Step
 
 /-!
 # Варианты SafeQP: метрический SafeQP и KLS-SafeQP
-
-Разделы ниже слиты из отдельных модулей; имена деклараций
-сохранены (политика слияний — см. Hagi/Step/SafeQP.lean).
 
 Проекция кандидата d₀ на допустимое множество
 `⟪g_i, d⟫ ≥ −ε_i` в метрике d ↦ ‖A d‖ (симметричная

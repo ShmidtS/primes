@@ -13,38 +13,39 @@ import Mathlib.Tactic
 /-!
 # MasterTheorem — сборная траекторная теорема certified-or-refuse
 
-центральная теорема A17 (audit's master statement):
+Центральная теорема:
 
 «EITHER performs a certified update with controlled descent and
 preserved constraints, OR safely refuses; across the trajectory
 total quality loss, risk, compute budget stay within proven
 bounds.»
 
-## Clause-by-clause honesty audit (mapping)
+## Clause-by-clause honesty audit
 
-| Пункт аудита | Формальный пункт |
+| Пункт | Формальный пункт |
 |---|---|
 | EITHER certified update | `MasterStepCert` (drop ≥ 0, penalty ≥ 0 — форма `2·L_lip·ε_q`, cost ≥ 0, спуск `fullObjective s' ≤ fullObjective s − drop + penalty`) |
-| OR safely refuses | `MasterTrajectory.holds`: hold ⇒ тождество состояния (семантика `hold_rollback_total`; та же дихотомия у `hold_refusal_safe` `refuse_safe`) |
+| OR safely refuses | `MasterTrajectory.holds`: hold ⇒ тождество состояния (семантика `hold_rollback_total`; та же дихотомия у `hold_refusal_safe` / `refuse_safe`) |
 | total quality loss bounded | `master_trajectory_bound` (ТЕЛЕСКОП `obj_telescope_err`, линейное накопление penalty) |
 | compute budget in proven bounds | `MasterBudgetCert` (PREMISE-канал: Σ cost ≤ B, потребительский биндер) + доказанный `master_budget_uniform` (cap c ⇒ Σ ≤ T·c) |
 | risk in proven bounds | whp-канал: `master_union_bound` (P[all good] ≥ 1 − Σδ_t, паттерн) + `master_conditional_bound` (телескоп на good-событии) |
-| preserved constraints | указатель `master_accept_fullCert` (FullStepCert) → `fourCert_of_parts` (layer 8) + книги |
+| preserved constraints | указатель `master_accept_fullCert` (FullStepCert) → `fourCert_of_parts` (layer 8) |
 
 ## Честные пины (premise-form)
 
 - **Бюджет — premise-канал.** `MasterBudgetCert` — явный
   биндер, НЕ ресурсный учёт: пин (budget = 0 zero-channel)
-  наследуется и становится явным. Реальный учёт — co-beat.
+  наследуется и становится явным. Реальный учёт — MasterBudget
+  ниже (при ledger-реализации канала).
 - **EF residual, траекторный член — ПИН.** endpoint-формы
-  (`ef_compressed_step_bound`) цитируются; Σ‖e_t‖-телескоп —
-  co-beat (ranked #2).
+  (`ef_compressed_step_bound`) цитируются; Σ‖e_t‖-телескоп не
+  доказан.
 - **PL-геометрия — ПИН.** Теоремы живут на CE-reg
   носителе (`ce_global_convergence_reg_closed`), не на
   `fullObjective` канонического состояния; композиция требует
-  carrier-моста (co-beat). Здесь: `master_uniform` даёт линейную
+  carrier-моста (не доказан). Здесь: `master_uniform` даёт линейную
   замкнутую форму, геометрическая — при мосте.
-- **whp — условно-на-good-событиях** (даунгрейд gap 3):
+- **whp — условно-на-good-событиях**:
   union bound без независимости; δ-бюджет покрывает только
   descent-отказы шагов (caveats наследуются).
 - **Four-cert — указатель.** LayerLint: Training (8) > Theory (7),
@@ -84,7 +85,7 @@ structure MasterStepCert (s s' : CanonicalTrainState n a e q r c k) where
   cost : ℝ
   /-- Стоимость неотрицательна. -/
   cost_nonneg : 0 ≤ cost
-  /-- Спуск ПОЛНОЙ цели с штрафом:(weights+буферы). -/
+  /-- Спуск ПОЛНОЙ цели с штрафом. -/
   descent : fullObjective s' ≤ fullObjective s - drop + penalty
 
 /-- Траектория мастера: T шагов на каноническом состоянии, каждый
@@ -148,7 +149,7 @@ theorem MasterTrajectory.stepCost_eq (T : ℕ)
 /-- Бюджетный PREMISE-носитель: суммарная стоимость шагов
 траектории ≤ B — как ЭКСПЛИЦИТНЫЙ биндер (потребитель
 предъявляет; пин zero-budget наследуется и становится
-явным; НЕ ресурсный учёт — co-beat). -/
+явным; НЕ ресурсный учёт — см. MasterBudget ниже). -/
 structure MasterBudgetCert (T : ℕ)
     (m : MasterTrajectory (n := n) (a := a) (e := e) (q := q)
       (r := r) (c := c) (k := k) T) (B : ℝ) where
@@ -371,15 +372,15 @@ theorem master_conditional_bound (T : ℕ)
 drop, бюджетным законом ledger'а (premise) и риск-каналом ledger'а
 (premise) даёт `FullStepCert` — ингредиент, который
 `fourCert_of_parts` (layer 8, Training — LayerLint запрещает
-импорт сюда) собирает с growth-книгой (
-`growthCert_of_admission`) и macro-книгой в
+импорт сюда) собирает с growth-книгой
+(`growthCert_of_admission`) и macro-книгой в
 `FourCertTransition`. Управляющая дихотомия мастера
-(accept/refuse) совпадает с дихотомией поэтому каждый
+(accept/refuse) совпадает с дихотомией four-cert, поэтому каждый
 принятый шаг траектории мастера FOUR-CERT-композируем;
 `hpen : penalty = 0` — честный мост: FullStepCert
 формулируется БЕЗ penalty-канала, поэтому указатель покрывает
 бесштрафный (несжатый) случай; сжатый случай потребует
-penalty-aware расширения сертификата — co-beat. -/
+penalty-aware расширения сертификата (не доказано здесь). -/
 def master_accept_fullCert {s s' : CanonicalTrainState n a e q r c k}
     (mstep : MasterStepCert s s') (hpos : 0 < mstep.drop)
     (hpen : mstep.penalty = 0)
@@ -411,7 +412,7 @@ end Hagi.Theory
 /-!
 # MasterBudget — resource-ledger bridge for the budget clause
 
-ресурсный мост: premise-канал бюджета
+Ресурсный мост: premise-канал бюджета
 (`MasterBudgetCert`: Σ cost ≤ B как явный биндер потребителя)
 закрывается ДОКАЗАННЫМ королларием resource-слоя — телескоп
 бюджетного_LEDGERа (`budget_telescope_gen`: терминальный
@@ -475,7 +476,7 @@ variable (obl : Hagi.Cert.StepObligations TaskId)
 
 /-- Телескоп ресурсного ledger-а над kernel-полем
 `CertStepGen.budget_next` (тот же паттерн
-`budget_telescope_gen`; с A18.3/С425 — one-line специализация
+`budget_telescope_gen`; one-line специализация
 обобщённого `additive_ledger_telescope_eq` через budget-инстанс
 `Hagi.Cert.ExactAdditiveLedger`). Терминальный бюджет = начальный минус
 ТОЧНАЯ сумма per-step трат — закон ресурсного учёта. -/
@@ -531,7 +532,7 @@ theorem master_budget_of_resource_ledger (deltaLevel : S → ℝ)
 /-- УПАКОВКА: budget-клауза мастер-теоремы как theorem output —
 `MasterBudgetCert` при B = budget₀ строится ДОКАЗАТЕЛЬСТВОМ
 (bridge + nonneg), а не предъявляется потребителем. Это и есть
-замена premise-канала ресурсным королларием (beat top-2). -/
+замена premise-канала ресурсным королларием. -/
 theorem masterBudgetCert_of_resource_ledger (deltaLevel : S → ℝ)
     (T : ℕ) (traj : ℕ → S)
     (steps : ∀ j : ℕ, Hagi.Cert.CertStepGen M obl deltaLevel (traj j) (traj (j + 1)))

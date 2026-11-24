@@ -20,7 +20,7 @@ Byte Model». Формализованы только идеи с честным
 
 * §BitAlloc: _pack_trits5/_unpack_trits5 (Надя.txt:413-424, 5 тритов
   {-1,0,1} → byte, base-3, цифра = уровень + 1) — round-trip
-  `trit5_roundtrip` через `trit_roundtrip` (TritCodec, C574) после
+  `trit5_roundtrip` через `trit_roundtrip` (TritCodec) после
   сдвига цифр; _pack_int4/_unpack_int4 (Надя.txt:427-440, два
   int4-кода → byte) — `int4_roundtrip` (list-level срез по длине не
   формализован, карточка); _best_mse_ternary (Надя.txt:390-410) —
@@ -197,7 +197,7 @@ theorem cosine_sched_mono (T t₁ t₂ : ℝ) (hT : 0 < T) (h₁ : 0 ≤ t₁) (
 
 /-- Muon-шаг (Надя.txt:143: `p -= (lr·sched·sc)·orth`): норма изменения
 весов за шаг ≤ lr·sched·sc·c, где c — верхняя граница нормы
-полярной матрицы (гипотеза; PolarExpressCert C545 не воспроизведён). -/
+полярной матрицы (гипотеза; полярная матрица Muon не формализована). -/
 theorem muon_step_norm_bound {n : Type} [Fintype n] (a c : ℝ) (ha : 0 ≤ a)
     (p orth : EuclideanSpace ℝ n) (horth : ‖orth‖ ≤ c) :
     ‖(p - a • orth) - p‖ ≤ a * c := by

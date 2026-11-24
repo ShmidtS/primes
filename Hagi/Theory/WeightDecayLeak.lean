@@ -9,8 +9,7 @@ set_option relaxedAutoImplicit false
 /-!
 # Weight-decay leak — the GPM memory invariant under decay
 
-The projection face of weight decay (P4 of the external plan
-mapping, `.omc/analysis/external-plan-c537-mapping.md`): unlike
+The projection face of weight decay: unlike
 `Hagi.Step.WeightDecay` (decay as an implicit NORM ball), here
 the question is WHERE the decay step lives relative to the
 protected subspace of continual learning.
@@ -36,9 +35,8 @@ The projector hypothesis is only idempotence `P * P = P`
 (weaker than the `Pᵀ = P` of `proj_compl_orth`; symmetry is
 never used — rows of `W` are projected from the right).
 
-Layer decision: Theory (7) — consumes `Hagi.Theory.Continual`
-(`nrm`); same-layer import within `Hagi/Theory` is the
-sanctioned folder DAG.
+Consumes `Hagi.Theory.Continual` (`nrm`); same-layer import within
+`Hagi/Theory` is the sanctioned folder DAG.
 -/
 
 open scoped Matrix

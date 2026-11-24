@@ -10,7 +10,8 @@ import Hagi.Optimization.OptimizerVariants
 /-!
 # RL/post-training семейство (объединённое)
 
-RLHF, BestOfN, GAE, CFG, DPO, GRPO. Имена сохранены.
+RLHF, BestOfN, GAE, CFG, DPO, GRPO; слит из пяти модулей, имена
+деклараций сохранены.
 -/
 
 /-!
@@ -78,14 +79,6 @@ theorem groupAdv_std_unit (r : Fin n → ℝ) (_hn : 0 < n)
   rw [← Finset.sum_div, hsigdef, mul_div_cancel_left₀ _ hs2]
 
 end Hagi.Model.GRPO
-
-/-!
-# RL/post-training семейство (объединённое)
-
-RLHF, BestOfN, GAE, CFG, DPO — обучение с подкреплением
-и пост-тренинг предпочтений. Слит из пяти модулей; имена
-деклараций сохранены.
--/
 
 /-!
 # RLHF: KL-контроль цели (источник №52)

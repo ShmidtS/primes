@@ -11,9 +11,9 @@ import Mathlib.Tactic
 import Hagi.Model.Memory
 
 /-!
-# RamProtocol: протокол store/load + нормализация заикания (E6)
+# RamProtocol: протокол store/load + нормализация заикания
 
-Обзор «HAGI Neural Computer» (E6, Python-сторона: RAM discovery /
+Обзор «HAGI Neural Computer» (Python-сторона: RAM discovery /
 shared vocab / stutter chunker) требует формализации протокола
 store/load поверх идеального one-hot RAM и ядра stutter-чанкинга
 (схлопывание подряд идущих дубликатов адресов).
@@ -21,7 +21,7 @@ store/load поверх идеального one-hot RAM и ядра stutter-ч�
 Носитель — GDNRAM (`Hagi.Model.GDNRAM`): запись `ramWrite`
 (замена строки one-hot адресом), чтение `ramRead` (строка i).
 Идеальный roundtrip уже доказан как `ram_read_after_write` и
-`gdn_ram_roundtrip`; здесь он упакован в протольный API
+`gdn_ram_roundtrip`; здесь он упакован в протокольный API
 (`ramStore`/`ramLoad`) с теоремой roundtrip и изоляции адресов.
 
 Stutter-чанкер: `stutterNorm` схлопывает подряд идущие дубликаты
@@ -210,8 +210,7 @@ theorem stutterNorm_idempotent (l : List α) :
 порождают ОДИНАКОВОЕ первое чтение RAM — без промежуточных
 записей повторы адреса не меняют результат чтения
 (`ramLoad` чист относительно состояния). Полная эквивалентность
-потоков (чанк на серию повторов) — следующая ступень E6,
-не заявлена. -/
+потоков (чанк на серию повторов) не заявлена. -/
 theorem ram_load_stutter_head (S : Matrix (Fin m) (Fin n) ℝ)
     (a : Fin m) (l : List (Fin m)) :
     ((a :: l).map (ramLoad S)).head?
@@ -252,7 +251,7 @@ mod-wrap (единственное честное сведение `base + off` 
 -/
 
 /-- ОКНО-АДРЕС: base + off с явным mod-переносом в Fin m
-(премиза `hm : 0 < m`; усечения нет —  адреса всегда
+(премиза `hm : 0 < m`; усечения нет — адреса всегда
 корректны, перенос инертен внутри окна). -/
 def ramSpanAddr {m : ℕ} (hm : 0 < m) (base : Fin m) (off : ℕ) :
     Fin m := ⟨(base.val + off) % m, Nat.mod_lt _ hm⟩
@@ -331,7 +330,7 @@ theorem ram_access_gate_sound (S : Matrix (Fin m) (Fin n) ℝ)
 /-- ВЫБОР НЕ МЕНЯЕТ ПАМЯТЬ: любые два допущенных доступа по
 ТОМУ ЖЕ sel дают одно значение — `val` зависит только от
 состояния и sel (selection чист: `ramAccess` не пишет, в
-согласии с C303-изоляцией записей). -/
+согласии с изоляцией записей). -/
 theorem ram_access_selection_free (S : Matrix (Fin m) (Fin n) ℝ)
     (a : Fin m) (g₁ g₂ : Bool) (w₁ w₂ : Fin n → ℝ)
     (h₁ : (ramAccess S a g₁).val = some w₁)

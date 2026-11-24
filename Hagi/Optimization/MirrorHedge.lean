@@ -20,12 +20,11 @@ namespace Hagi.Optimization
 end Hagi.Optimization
 
 /-!
-# MirrorHedge — канон зеркального шага (хаб)
+# MirrorHedge — канон зеркального шага
 
-Хаб (split): семейство экспоненциальных весов
-(Gibbs-концентрация, MWU-потенциал, зеркальный шаг, Hedge-роутинг,
-survivor-склейка аудита v5). Содержимое разнесено в тематические
-части; модуль сохраняет имя для потребителей (→).
+Семейство экспоненциальных весов: Gibbs-концентрация, MWU-потенциал,
+зеркальный шаг, Hedge-роутинг, survivor-склейка. Содержимое
+разнесено в тематические части ниже.
 -/
 
 set_option linter.style.header false
@@ -34,7 +33,6 @@ set_option linter.style.header false
 # MirrorHedgeCore
 
 Зеркальный шаг (вариационный принцип): mirrorStep, тождество зеркального спуска, floor/attainment, AIF-EFO, hedge_free_energy_step, mirror_progress_identity.
-Split from `MirrorHedge`.
 -/
 
 /-
@@ -268,7 +266,7 @@ theorem aif_efe_floor {V : Type*} [Fintype V] [Nonempty V]
     ρ hρ hρ1
 
 /-- ГИББС = ЗЕРКАЛЬНЫЙ ШАГ С РАВНОМЕРНОЙ ССЫЛКОЙ:
-вариационная грань Гиббса (R421, gibbs_variational)
+вариационная грань Гиббса (`gibbs_variational`)
 выводится из mirror_descent_floor при ρ₀ = 1/n:
 -T·log(Σ e^{-ℓ/T}) ≤ ⟨ρ,ℓ⟩ + T·Σ ρ log ρ —
 слагаемые T·log n сокращаются: мера Гиббса, MWU и EFE —
@@ -317,7 +315,6 @@ set_option linter.style.header false
 # MirrorHedgeRegret
 
 Итерированные зеркальные веса: mirrorIterate, regret-оценки (mirror_step_regret, mirror_regret), semigroup-свойство и кумулятивность.
-Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Optimization
@@ -768,7 +765,6 @@ set_option linter.style.header false
 # MirrorHedgeEnergy
 
 Энергетическая монотонность итераций: mirrorIterate_energy_monotone/converges и термодинамический предел mirrorIterate_energy_infimum (Nernst), stepNorm и compose.
-Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Optimization
@@ -1045,7 +1041,6 @@ set_option linter.style.header false
 # MirrorHedgeWealth
 
 Hedge-капитал: hedge_wealth_product (телескопирование нормировок), hedge_wealth_nernst, hedge_wealth_rate, mirror_step_variational_descent, mirrorIterate_partial_mono.
-Split from `MirrorHedge`.
 -/
 
 namespace Hagi.Optimization
@@ -1439,17 +1434,10 @@ end Hagi.Optimization
 set_option linter.style.header false
 
 /-!
-# MirrorHedgeRouting
+# Exponential-weights routing (Hedge)
 
-Exponential-weights routing (Hedge): exp_neg_le_quad, hedge_step, hedge_telescope, router_regret_bound.
-Split from `MirrorHedge`.
--/
-
-/-!
-# Exponential-weights routing
-
-The per-step potential bound for Hedge routing, the product
-telelescope, and the router regret bound.
+`exp_neg_le_quad`, `hedge_step`, `hedge_telescope`, `router_regret_bound`:
+per-step potential bound, product telescope, router regret bound.
 -/
 
 open Real Finset Set
@@ -1619,12 +1607,12 @@ set_option linter.style.header false
 /-!
 # MirrorHedgeSurvivor
 
-HedgeSurvivor — склейка аудита v5: ewWeight/ewPot/ewNorm, hsurv_derived, ewNorm_survivor_lower, ewNorm_as_mirror.
-Split from `MirrorHedge`.
+`ewWeight`/`ewPot`/`ewNorm`, `hsurv_derived`,
+`ewNorm_survivor_lower`, `ewNorm_as_mirror`.
 -/
 
 /-!
-# HedgeSurvivor — склейка (a) аудита v5
+# HedgeSurvivor
 
 Вывод посылки выживания `hsurv` из САМИХ hedge_step +
 hedge_telescope: строится экспоненциально-взвешенный процесс
@@ -1812,7 +1800,7 @@ theorem ewPot_lower (l : ℕ → ι → ℝ) (eta : ℝ) (T : ℕ) (i : ι) :
       (fun j _ => ewWeight_nonneg l eta T j) (Finset.mem_univ i)
   exact hterm.trans hsum
 
-/-- СКЛЕЙКА (a) — ПОСЫЛКА ВЫЖИВАНИЯ ВЫВЕДЕНА: для EW-процесса
+/-- СКЛЕЙКА: для EW-процесса
 hsurv из router_regret_bound выполняется С АЛГОРИТМИЧЕСКИМИ
 потерями A = Σ_t Σ_i p t i l t i. Больше не гипотеза. -/
 theorem hsurv_derived (l : ℕ → ι → ℝ) (eta : ℝ) (T : ℕ) (i : ι)
@@ -1913,15 +1901,11 @@ namespace Hagi.Optimization
 end Hagi.Optimization
 
 /-!
-# InfoPreservation (аудит v16, Test 6: information
-# preservation вдоль траектории)
+# InfoPreservation — сохранение информации вдоль траектории
 
-Регрет-форма сохранения информации: вдоль mirrorIterate
-(вариационное ядро №70) суммарное превышение потерь
-траектории над ЛЮБЫМ целевым распределением ρ* ограничено
-начальным KL-расстоянием T·KL(ρ*‖ρ₀) — дрейф не свободен:
-информация о цели сохраняется в среднем (реюз mirror_regret
-БЕЗ новых посылок).
+Регрет-форма: вдоль mirrorIterate (вариационное ядро №70) превышение
+потерь траектории над ЛЮБЫМ целевым ρ* ограничено T·KL(ρ*‖ρ₀) —
+это в точности `mirror_regret`; отдельных объявлений нет.
 -/
 
 namespace Hagi.Optimization.InfoPreservation

@@ -9,9 +9,9 @@ import Mathlib.MeasureTheory.Measure.Real
 set_option relaxedAutoImplicit false
 
 /-!
-# Certify-then-commit — the end-to-end cycle theorem (A19/G6, beat)
+# Certify-then-commit — the end-to-end cycle theorem
 
-The G6 audit gap: a THROUGH-CYCLE theorem for the certify-then-commit
+A THROUGH-CYCLE theorem for the certify-then-commit
 loop — T rounds, each round owned by one of the four gates
 (HeadStep / GrowBlock / Compress / SelfEdit), each round either
 COMMITS a certified ledger step or HOLDS (no state change), with
@@ -30,7 +30,7 @@ fields only; nothing restated):
   `A ^ 2 / (4 * C)` at the bounded safe step —
   `Hagi.Theory.AdaptiveMajorizer.adaptive_descent` and its CE
   instantiation `ce_adaptive_descent`.
-- **GrowBlock** (): admission with the LCB margin
+- **GrowBlock**: admission with the LCB margin
   `λM·Δcost + λR·Δrisk + ε_cert ≤ drop` —
   `Hagi.Theory.BlockAdmission.block_admission_sound` (checker-
   verified `CertStepData`); the anytime holdout stop —
@@ -60,16 +60,15 @@ fields only; nothing restated):
 
 - **The mixed hold/commit induction is NEW but pure ledger
   bookkeeping** (`ctc_mixed_ledger`): linarith over `descent`,
-  `budget_next`, `riskStep` and the hold equalities. This is the
-  G6 level of generalization — coordination accounting, no new
-  component mathematics.
+  `budget_next`, `riskStep` and the hold equalities. This is pure
+  coordination accounting, no new component mathematics.
 - **`CertStep` does NOT imply risk monotonicity** (the sign of
   `riskSpend` is free): the (d) holdout channel is premise-form —
   per-round allowances `e i ≥ 0` with `Σ e ≤ ε`, discharged through
   the risk channel / stop routes. ε is a premise, not a
   derived quantity.
-- **Measure premises are PREMISE-form** (repo convention,
-): `μ.real {falseCommit i} ≤ δ i` is the consumer's
+- **Measure premises are PREMISE-form** (repo convention):
+  `μ.real {falseCommit i} ≤ δ i` is the consumer's
   to discharge (cited routes above); `commit`/`stop` are
   ω-INDEPENDENT record fields (the convention).
 - The checker leg (a) verifies the reported readouts (`checkStep`);
@@ -81,7 +80,7 @@ fields only; nothing restated):
   stated for `n ≤ T` (no claims about the system after the
   horizon, no trajectory extension).
 
-Layer decision: Theory (7), like BlockAdmission/CertCEHoldout —
+Layer: Theory (7), like BlockAdmission/CertCEHoldout —
 the module must see the Cert kernel (2), the Runtime checker (3)
 and the Measure vocabulary (Mathlib); layer 7 sees all of them.
 -/
@@ -93,8 +92,7 @@ namespace Hagi.Theory.CertifyThenCommit
 
 /-! ## Round kinds -/
 
-/-- The four gate owners of a certify-then-commit round (the A19
-cycle): a certified head step (adaptive majorizer), a growth
+/-- The four gate owners of a certify-then-commit round: a certified head step (adaptive majorizer), a growth
 block admission, an MDL compression prune, or a
 strict-gate self-edit adoption. The kind is a TAG for
 the construction route (cited in the module docstring); the cycle
@@ -165,10 +163,9 @@ structure CertifyThenCommitCycle (M : SystemMetrics S TaskId)
   init_floors : FloorsKept M obl (t 0)
   init_budget : 0 ≤ M.budget (t 0)
 
-/-! ## The G6 bookkeeping core -/
+/-! ## The bookkeeping core -/
 
-/-- **The mixed hold/commit ledger accounting** (the G6
-coordination core; pure bookkeeping — linarith over `descent`,
+/-- **The mixed hold/commit ledger accounting** (pure bookkeeping — linarith over `descent`,
 `budget_next`, `riskStep` and the hold equalities, NO component
 mathematics): over any horizon-N trajectory of certified commits
 and no-op holds with coupled drop/spend channels, at every time
@@ -303,7 +300,7 @@ theorem liftFun_sum (f : Fin T → ℝ) :
 
 variable {Ω : Type}
 
-/-- The false-commit event family of the cycle (pattern):
+/-- The false-commit event family of the cycle:
 round i committed (`commit i = true`) while the committed claim
 was false (`falseCommit i ω` — the consumer predicate,
 premise-form). -/
@@ -311,21 +308,19 @@ def ctcFalseCommitSet (commit : Fin T → Bool)
     (falseCommit : Fin T → Ω → Prop) (i : Fin T) : Set Ω :=
   {ω | commit i = true ∧ falseCommit i ω}
 
-/-- **certify_then_commit_sound (G6 — the end-to-end cycle
-theorem)**: for any T-round certify-then-commit cycle, under the
+/-- **certify_then_commit_sound — the end-to-end cycle
+theorem**: for any T-round certify-then-commit cycle, under the
 per-round false-commit measure premises (premise-form; discharge
-routes CITED `adaptive_anytime_valid` — the stitched Ville
-master with Σ weights ≤ 1 — or `adaptive_commit_bridge`
-`false_stop_bound` for stop-mediated rounds), with levels summing
+routes CITED: `adaptive_anytime_valid` — the stitched Ville
+master with Σ weights ≤ 1 — or `adaptive_commit_bridge`; for
+stop-mediated rounds `false_stop_bound`), with levels summing
 to at most `δtotal` and per-round holdout allowances summing to at
 most `ε`:
 - (b) the objective TELESCOPES: `obj (t T) ≤ obj (t 0) − Σ drops`
   over the committed ledger entries;
 - (c) with probability ≥ 1 − δtotal NO commit is false: the
-  union-bound leg (the pattern) over the T false-commit
-  events;
-- (d) the holdout risk grew by at most ε (premise-form channel,
-  discharged through);
+  union-bound leg over the T false-commit events;
+- (d) the holdout risk grew by at most ε (premise-form channel);
 - (e) the budget ledger BALANCES (`budget (t T) + Σ spends =
   budget (t 0)`), the budget stays nonnegative and the floors are
   kept at the terminal state. -/

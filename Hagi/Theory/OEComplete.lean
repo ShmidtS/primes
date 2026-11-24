@@ -7,7 +7,7 @@ set_option linter.unusedSectionVars false
 /-!
 # OEComplete — полнота поиска с Observational Equivalence дедупликацией
 
-Внешний план (mapping, P6): HAGI_v2 synthesize_batched_mdl
+HAGI_v2 synthesize_batched_mdl
 прунит программы с уже виденным вектором значений на пробах
 (OE hash-consing поверх Levin priority queue). Бенчмарк:
 naive — 6478 узлов без решения; Levin+OE+MITM — 896 узлов до

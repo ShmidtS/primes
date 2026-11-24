@@ -7,7 +7,7 @@ import Hagi.Step.Muon
 import Hagi.Step.SafeQPStep
 import Hagi.Step.SignSGD
 /-!
-# The direction-provider contract (audit 4.2)
+# The direction-provider contract
 
 Optimizers in this layer certify different properties of the
 DIRECTION they propose.  Survey of this layer: the

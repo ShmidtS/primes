@@ -1,9 +1,9 @@
 import Hagi.Probability.FannesPinsker
 
 /-!
-# Дистилляция знаний: температурный информационный диал (№19)
+# Дистилляция знаний: температурный информационный диал
 
-Источник №19: Hinton, Vinyals, Dean, "Distilling the
+Источник: Hinton, Vinyals, Dean, "Distilling the
 Knowledge in a Neural Network" (arXiv 1503.02531):
 перенос знаний teacher → student через SOFT-метки при
 температуре T («тёмное знание» — информация о сходстве
@@ -112,7 +112,7 @@ theorem soft_entropy_bound (p : ℝ) (hp : 0 < p) (hp2 : p < 1) :
   exact hcanon
 
 
-/-! ### Attention-масштабирование (источник №23) -/
+/-! ### Attention-масштабирование -/
 
 /-- ПОЧЕМУ 1/√d В ATTENTION (Vaswani et al., arXiv
 1706.03762), температурная интерпретация: масштаб логитов

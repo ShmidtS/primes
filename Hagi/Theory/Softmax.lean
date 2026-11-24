@@ -9,12 +9,11 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Softmax — the certified rational exp-interval canon (→)
+# Softmax — the certified rational exp-interval canon
 
 One canonical module for the certified softmax sandwich family
 (merged from RationalSoftmax.lean + SandwichMonotone.lean +
-BandTightening.lean; namespaces preserved, Continual.lean
-precedent). The concept is described ONCE here: `Real.exp x` is
+BandTightening.lean; namespaces preserved). The concept is described ONCE here: `Real.exp x` is
 sandwiched between RATIONAL endpoints `(1 + x / n) ^ n ≤ e ^ x ≤
 (1 - x / m) ^ (-m)` (valid for `0 < n`, `0 < m`, `0 ≤ x < m`;
 rational at rational `x`), so a rational-arithmetic softmax built
@@ -27,18 +26,17 @@ from them is provably below and above the true softmax.
 * Monotonicity in the LOGIT and certified prediction
   (`Hagi.Theory.SandwichMonotone`): the rational walls are
   monotone in `x`, disjoint sandwich intervals certify the argmax
-  (the Bernoulli-in-`n` pin remained open — closed one layer
-  up by BandTightening).
+  (disjoint sandwich intervals certify the argmax).
 * Summed `p̂` anti-monotonicity, exactly characterized:
   the TOTAL lower estimate is anti-monotone when only the
   denominator walls of ONE band are refined
   (`sum_phat_anti_mono_single_domain`); when the walls move
-  with the logits the total is NOT anti-monotone
-  honest pin, now a formal counterexample inside the certified
+  with the logits the total is NOT anti-monotone — a
+  formal counterexample inside the certified
   band (`band_mix_counterex`, `phat_total_not_anti_mono`).
 * Monotonicity in the DENOMINATOR and band tightening
   (`Hagi.Theory.BandTightening`): `(1 + x / n) ^ n` is
-  nondecreasing in `n` (the closed pin, Lagrange MVT), the
+  nondecreasing in `n` (Lagrange MVT), the
   band width shrinks under wall refinement, and adaptive
   calibration certifies the midpoint argmax.
 -/
@@ -71,7 +69,7 @@ theorem expLower_le_exp {n : ℕ} (hn : 0 < n) {x : ℝ} (hx : -n ≤ x) :
   have hnx : n * (x / n) = x := by field_simp
   rwa [hnx] at h2
 
-/-- Roadmap form of the lower bound: for `0 ≤ x`,
+/-- Weaker-premise form of the lower bound: for `0 ≤ x`,
 `(1 + x / n) ^ n ≤ e ^ x`. -/
 theorem expLower_le_exp' {n : ℕ} (hn : 0 < n) {x : ℝ} (hx : 0 ≤ x) :
     (1 + x / n) ^ n ≤ Real.exp x :=
@@ -164,8 +162,7 @@ widths `(hi u * ∑ hi) / (lo u * ∑ lo)` — the product of the
 pointwise interval width `hi u / lo u` and the normalizer
 interval width `∑ hi / ∑ lo`.  This is the certified
 `(n, m, R)`-width link for the `(1 + x / n) ^ n` family (see the
-module docstring; the surrogate closure rides on
-this bound in a future bench bit). -/
+module docstring). -/
 theorem certCE_gap {z lo hi : V → ℝ}
     (hlo : ∀ v, lo v ≤ Real.exp (z v)) (hlo0 : ∀ v, 0 < lo v)
     (hhi : ∀ v, Real.exp (z v) ≤ hi v) (u : V) :
@@ -422,7 +419,7 @@ a uniform accuracy `ε` of the midpoint estimates against the
 true softmax and a certified gap `2 * ε < softDef z b -
 softDef z a` for every competitor `a`, the midpoint argmax
 equals `b` (application of
-`Hagi.Data.CertifiedArgmax.certified_argmax_strict`). -/
+`Hagi.Cert.CertifiedArgmax.certified_argmax_strict`). -/
 theorem certified_pred {z lo hi : V → ℝ} {ε : ℝ} {b : V}
     (hacc : ∀ a, |sandwichMid lo hi a - softDef z a| ≤ ε)
     (hgap : ∀ a, a ≠ b → 2 * ε < softDef z b - softDef z a) :
@@ -591,7 +588,7 @@ theorem log_add_one_sub_div_pos {u : ℝ} (h1 : -1 < u)
       field_simp
     linarith
 
-/-! ## Bernoulli monotonicity (the pin, closed) -/
+/-! ## Bernoulli monotonicity in n -/
 
 /-- The Bernoulli sequence is nondecreasing: for `0 < n ≤ m`
 and `-n ≤ x`, `(1 + x/n) ^ n ≤ (1 + x/m) ^ m`
@@ -768,8 +765,8 @@ theorem expUpper_base_mono {m k : ℕ} (hm : 0 < m)
 
 variable {V : Type} [Fintype V] [Nonempty V]
 
-/-- The normalized certified band width of class `v` in the
- bench: the width of the sandwich interval
+/-- The normalized certified band width of class `v`:
+the width of the sandwich interval
 `[lo v / ∑ hi, hi v / ∑ lo]`. -/
 noncomputable def bandWidth (lo hi : V → ℝ) (v : V) : ℝ :=
   hi v / ∑ w, lo w - lo v / ∑ w, hi w
@@ -855,7 +852,7 @@ theorem cert_pred_adaptive_mono {z lo hi lo' hi' : V → ℝ}
 
 /-- Bernoulli sanity from the bench shape: the max-shift
 lower bounds tighten from `n = 4` to `n = 8` at `x = -2`
-(`(1/2) ^ 4 ≤ (3/4) ^ 8`), an instance of the closed pin. -/
+(`(1/2) ^ 4 ≤ (3/4) ^ 8`), an instance of `bernoulliLower_mono`. -/
 example : (1 + (-(2 : ℝ)) / 4) ^ 4 ≤ (1 + (-(2 : ℝ)) / 8) ^ 8 :=
   bernoulliLower_mono (by norm_num) (by norm_num) (by norm_num)
 

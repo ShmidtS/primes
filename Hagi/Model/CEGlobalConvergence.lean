@@ -9,10 +9,9 @@ import Hagi.Model.GatedCEDescent
 /-!
 # Global convergence for the log-linear CE head under PL
 
-A14 research bridge #6.  The repo's CE descent theory
-(`Hagi.Model.CEDescent`, the `BatchCEDescent*` family) gives local
-one-step certificates; this module adds the global statement that
-was missing: minimizing one-hot cross-entropy over a log-linear
+The repo's CE descent theory (`Hagi.Model.CEDescent`, the
+`BatchCEDescent*` family) gives local one-step certificates; this
+module adds the global statement: minimizing one-hot cross-entropy over a log-linear
 (softmax) head under a Polyak-Łojasiewicz (PL) condition yields a
 geometric decay of the loss gap under fixed-step gradient descent.
 
@@ -56,7 +55,8 @@ The two halves are deliberately independent:
   DISCHARGES PL for the ℓ2-REGULARIZED objective (`ceReg`, weight
   decay): strong convexity `λ` ⟹ PL `μ = λ` (`strong_convex_pl`),
   giving `ce_global_convergence_reg` with PL/smoothness derived;
-  the unregularized margin-based route stays pinned open.
+  the unregularized margin-based route is `Hagi.Model.CEMarginPL`
+(2-class gap head and multiclass, on a ball).
 * Fixed step `1 / L` only; no adaptive step sizes.
 * `ce_loglinear_convex` is stated on the plain parameter space
   `Fin d → ℝ`.  Transporting `ConvexOn` to the
@@ -1291,11 +1291,8 @@ Honest premise ledger: `hlam : 0 < λ` (the regularization strength;
 the PL constant is exactly `λ`, contributed by the regularizer
 alone), the loss floor `h_floor`, and ATTAINMENT `h_att : ceReg θstar
 ≤ fstar` (with `h_floor` it pins `fstar = ceReg θstar`) remain
-explicit.  Existence of a minimizer (provable for this coercive
-finite-dimensional objective by a compactness argument) is not
-formalized here.  The unregularized PL of Part 3 stays a premise:
-without the regularizer PL fails in general even for realizable
-data; the margin-based route is pinned open.  Unlike Part 3, `X = 0`
+explicit; the minimizer is supplied by `ceReg_attains` below.  Unlike
+Part 3, `X = 0`
 is allowed (`L = λ > 0`). -/
 theorem ce_global_convergence_reg (X : Matrix V (Fin d) ℝ) (t : V)
     (lam fstar : ℝ) (hlam : 0 < lam)

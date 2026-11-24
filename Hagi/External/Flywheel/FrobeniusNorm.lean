@@ -26,16 +26,7 @@ import Hagi.External.Flywheel.WeylInequality
     Quart. J. Math. 11, 50–59.
 [3] Horn & Johnson (2012), §5.6 (Unitarily Invariant Norms).
 
-Test matrix dims for validation: 3×75, 72×74, 111×81, 3×76, 121×54, 115×1.
 Implementation via `Matrix.frobeniusSeminormedAddCommGroup` instance.
-
-## Known Issues
-- The Eckart-Young theorem is not fully implmented yet (see below)
-- Some simp lemmas might be missing @[simp] tags
-
-## Questions
-- Should we use `NNReal` for the norm squared? Would simplify some proofs
-- Is there a better way to handle the sqrt vs rpow (1/2) situation?
 -/
 
 open Matrix
@@ -49,8 +40,7 @@ variable {n m : Type*} [Fintype n] [Fintype m] [DecidableEq n] [DecidableEq m]
 
 attribute [local instance] Matrix.frobeniusSeminormedAddCommGroup
 
--- FIXME: this lemma probably already exists somewhere in Mathlib?
--- I looked but couldn't find it. If someone finds it, replace this.
+-- Not found in Mathlib; replace if an upstream lemma appears.
 lemma Complex.norm_sq_eq_star_mul_self (z : ℂ) : ‖z‖^2 = (star z * z).re := by
   have key : star z * z = z.normSq := by
     simp only [Complex.star_def]
@@ -58,8 +48,7 @@ lemma Complex.norm_sq_eq_star_mul_self (z : ℂ) : ‖z‖^2 = (star z * z).re :
   rw [key]
   simp only [Complex.ofReal_re]
   rw [sq, Complex.norm_mul_self_eq_normSq]
-  -- #check Complex.sq_abs -- this exists but uses abs not norm, annoying
-
+  
 lemma Complex.norm_rpow_two_eq_star_mul_self (z : ℂ) : ‖z‖ ^ (2:ℝ) = (star z * z).re := by
   rw [Real.rpow_two]
   exact Complex.norm_sq_eq_star_mul_self z
@@ -493,16 +482,11 @@ The key insight is that:
 2. For the truncated diagonal Σₖ, off-diagonal terms are 0
 3. The diagonal terms of Σₖ give error Σᵢ≥ₖ σᵢ²
 
-**NOTE:** The previously stated "diagonal-only" lemma (eckartYoungCoreLemma) was FALSE.
-A rank-k matrix can have ALL diagonal entries matching σᵢ perfectly (unlike diagonal
-rank-k matrices which can have at most k nonzero entries).
+A diagonal-only bound is FALSE: n=2, k=1, σ=(2,1), C=[[2,1],[2,1]] has rank 1
+but diag(C) = σ. The proof therefore uses the full Frobenius norm (off-diagonal
+terms included), via Thompson interlacing from WeylInequality.lean.
 
-Counterexample: n=2, k=1, σ=(2,1), C=[[2,1],[2,1]] has rank 1 but diag(C)=(2,1)=σ.
-
-The correct proof uses the FULL Frobenius norm. We prove optimality via an alternative
-approach that doesn't require the false diagonal bound.
-
-See: Horn & Johnson, "Matrix Analysis" (2012), Theorem 7.4.9 (Eckart-Young-Mirsky).
+Reference: Horn & Johnson, "Matrix Analysis" (2012), Theorem 7.4.9.
 -/
 
 /-! ### Eckart-Young Theorem -/
@@ -517,21 +501,8 @@ See: Horn & Johnson, "Matrix Analysis" (2012), Theorem 7.4.9 (Eckart-Young-Mirsk
     1. Transform to SVD basis using unitary invariance
     2. In SVD basis, A becomes diagonal Σ
     3. Any rank-k approximation C = U* B V also has rank ≤ k
-    4. The truncated diagonal achieves minimum error among all matrices
-
-**IMPORTANT NOTE ON PROOF CORRECTNESS:**
-
-The previously used `eckartYoungCoreLemma` claimed that diagonal deviations alone
-bound the tail singular values. This is FALSE - see EckartYoung-BugReport.md.
-
-Counterexample: For A = diag(2,1), the rank-1 matrix C = [[2,1],[2,1]] has
-diagonal entries (2,1) = σ, giving RHS = 0, but LHS = 1.
-
-The correct proof uses the FULL Frobenius norm. The key insight is that while
-diagonal deviations alone may be insufficient, the off-diagonal terms of any
-non-diagonal rank-k approximation add enough error to compensate.
-
-For a rigorous proof, we use an alternative approach via projection optimality. -/
+    4. Thompson interlacing bounds the tail sum by the full Frobenius error
+       (diagonal deviations alone do not suffice; see the section note) -/
 theorem eckart_young_frobenius (A : Matrix n n ℂ) (k : ℕ)
     (B : Matrix n n ℂ) (hB : B.rank ≤ k) :
     ‖A - Matrix.SVD.truncatedSVD A k‖ ≤ ‖A - B‖ := by

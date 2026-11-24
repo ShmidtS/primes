@@ -10,7 +10,7 @@ import Hagi.Cert.StepGen
 set_option linter.style.header false
 
 /-!
-# TransitionCert — ЕДИНЫЙ сертификат перехода (аудит v18 P0)
+# TransitionCert — ЕДИНЫЙ сертификат перехода
 
 Пять контрактов перехода повторяют одни понятия. Единый
 generic-тип `TransitionCert`; GrowthState-контракт V3 —
@@ -116,7 +116,7 @@ theorem certs_telescope {obj risk : State → ℝ}
       exact h⟩
 
 
-/-! ### Мост в ядро StepRecord (цикл 41 →) -/
+/-! ### Мост в ядро StepRecord -/
 
 /-- TransitionCert → StepRecord: строгий спад даёт drop =
 obj s − obj (step s) > 0 — запись с ТОЧНЫМ спуском; risk-канал
@@ -134,18 +134,17 @@ noncomputable def TransitionCert.toRecord {obj risk : State → ℝ}
   delta := 0
 
 /-- TransitionCert → CertStep (deprecated-алиас StepRecord):
-старый мост цикла 41 — теперь запись журнала. -/
+старый мост — теперь запись журнала. -/
 noncomputable def TransitionCert.toCertStep {obj risk : State → ℝ}
     {step : State → State} {s : State} {riskLim : ℝ}
     (C : TransitionCert obj risk step s riskLim) :
     Hagi.Unified.HonestTransition.CertStep obj s (step s) :=
     C.toRecord
 
-/-! ### C279-адаптер: TransitionCert → общее ядро CertStepGen
+/-! ### Адаптер: TransitionCert → общее ядро CertStepGen
 
-A10 item 2 (adapter batch 2): единый сертификат перехода — view
-над общим ядром `Hagi.Cert.CertStepGen` (переориентация моста
-цикла 41 с минимального ядра). Честность risk-канала: носитель
+Единый сертификат перехода — view
+над общим ядром `Hagi.Cert.CertStepGen`. Честность risk-канала: носитель
 даёт риск ТОЛЬКО в форме неравенства (`risk_bound : ≤ +
 riskLim`), точный split-закон ядра — посылки потребителя со
 СВОБОДНЫМИ `rs` и `riskRem` (0-пиннинг отсутствует по
@@ -192,7 +191,8 @@ noncomputable def TransitionCert.toCertStepGen
 end Hagi.Unified.TC
 
 /-! ### Мост CertifiedTransitionV2 → StepContract
-(перенесён из Unified.TransitionContract, консолидация). -/
+
+ -/
 
 namespace Hagi.Unified.TransitionContract
 

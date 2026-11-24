@@ -10,12 +10,12 @@ import Mathlib.Analysis.InnerProductSpace.PiL2
 /-!
 # NegativeTransfer — точная граница негативного переноса
 
-Source-anchored мост волны HAGI_v2: upstream
+Source-anchored мост к HAGI_v2: upstream
 `hagi/unified.py:147-165` решает «когда warm-start переносить»
 эвристикой (pre-registered closeness); этот модуль даёт ТОЧНУЮ
-границу для квадратичной модели задачи B — дополняет
-(T1-эмпирика: 3/3 пары перенос помогает по AUC)
-(`warm_transfer_sound`: forgetA=0 + certified-обучаемость с
+границу для квадратичной модели задачи B — дополняет AdapterBank
+(T1-эмпирика: 3/3 пары перенос помогает по AUC;
+`warm_transfer_sound`: forgetA=0 + certified-обучаемость с
 любого init; transfer-качество НЕ обещано — honest-pin закрыт
 здесь теорией для квадратичного случая).
 
@@ -51,8 +51,8 @@ cold-init 0 (нейтральный слот). Certified-шаги — GD с
 
 ## Honest pins (что этот модуль НЕ покрывает)
 
-- **Только квадратичный мир — ТОЧНАЯ iff-граница** (C572-секция
-  Quad): нелинейные objectives — точной iff нет; в C592-секции
+- **Только квадратичный мир — ТОЧНАЯ iff-граница** (секция
+  Quad): нелинейные objectives — точной iff нет; в секции
   SmoothNL — только консервативная certified-достаточность
   (sufficient, НЕ necessary — bench-негатив-инстанс
   показывает случай «условие не выполнено, но warm всё равно
@@ -61,7 +61,7 @@ cold-init 0 (нейтральный слот). Certified-шаги — GD с
   практике цель неизвестна до обучения — правило требует оценки
   t̂ (pre-registered closeness unified.py:156 — её эвристика).
 - **Внутренний продукт**: θ живёт в пространстве той же
-  размерности, что и цель ( EuclideanSpace ℝ n); реальный
+  размерности, что и цель (EuclideanSpace ℝ n); реальный
   adapter-слот — матрицы (r×d, d×r) — вкладывается тривиально
   (vec), но statement векторное.
 -/
@@ -112,7 +112,7 @@ theorem quad_obj_zero (t : EuclideanSpace ℝ n) :
 /-- **neg_transfer_char (T2)**: warm-старт θ хуже cold
 (старт-объектив строго больше) ТОЧНО тогда, когда удвоенное
 скалярное произведение ⟨θ, t⟩ меньше квадрата нормы θ — обе
-стороны, без зазора. Дополняет C560-эмпирику: там 3/3 пары T1
+стороны, без зазора. Дополняет bench-эмпирику: там 3/3 пары T1
 (помогает); здесь — когда перенос НЕИЗБЕЖНО вредит. -/
 theorem neg_transfer_char (θ t : EuclideanSpace ℝ n) :
     quadObj t θ > quadObj t 0 ↔ 2 * ⟪θ, t⟫_ℝ < ‖θ‖ ^ 2 := by
@@ -485,7 +485,7 @@ theorem nl_drop_optimal (L G : ℝ) (hL : 0 < L) :
   ring
 
 /-! Числовой witness: L = 2, G = 1 ⟹ γ* = 1/2;
-tаблица guaranteed drop: γ = 0.1 → 9/100, γ = 0.5 → 1/4,
+Таблица guaranteed drop: γ = 0.1 → 9/100, γ = 0.5 → 1/4,
 γ = 0.9 → 9/100 — симметрия параболы вокруг вершины γ* = 1/2. -/
 example : nlDrop (1 / 10 : ℝ) 2 1 = 9 / 100 := by
   unfold nlDrop; norm_num
@@ -501,15 +501,13 @@ end Schedule
 end Hagi.Theory.NegativeTransfer
 
 /-
-Перенесённый модульный docstring исходного (до plan v7 §T8
-отдельного) модуля `Hagi.Theory.GrowthGate`.
-Блок `Hagi.Theory.GrowthGate` ниже перенесён дословно; гейт
+Модульный docstring блока `Hagi.Theory.GrowthGate` ниже; гейт
 построен на `nlDrop` / `nl_drop_optimal` из `Schedule` выше — одна тема
 «transfer / рост границы».
 
 # GrowthGate — certified-гейт ёмкости: когда рост оправдан
 
-Новая эра: rank/adapter-ёмкость. Аналогия
+Rank/adapter-ёмкость. Аналогия
 transfer-гейта (bench / `autoGate`): рост ёмкости
 (rank+1 / adapter-add) допустим ⟺ certified-выигрыш покрывает
 стоимость. Модель: текущая модель M_r (rank r) дообучается
@@ -530,10 +528,8 @@ guaranteed per-step drop равен `G²/(2L)` при оптимальном ш�
   budget-класса границ G, L) уменьшает objective не более чем на
   `c_add` — рост НЕ может окупиться за n шагов.
 
-Отличия от прецедентов — селектор ранга 1 vs 2 по измеренным
-probe-score (выбор режима); здесь — решение «расти/нет» по
-ФОРМУЛЬНОЙ границе теории против cost-модели, до всякого probe.
- — сравнение двух измеренных probe-прогонов; здесь —
+Отличия от прецедентов: селектор ранга (rankSelect) и transfer-гейт
+(autoGate) сравнивают измеренные probe-прогоны; здесь —
 ноль измерений: чистая theory-граница + scalar cost.
 
 ## Honest pins (что этот модуль НЕ покрывает)

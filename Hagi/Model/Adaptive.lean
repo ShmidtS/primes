@@ -11,7 +11,7 @@ import Hagi.Model.NormAct
 # Адаптивный рост архитектуры (объединённый)
 
 LoRA, Upcycling, Matryoshka, MoeExpansion, ReZero,
-SwitchMoE. Имена сохранены.
+SwitchMoE; слит из пяти модулей, имена деклараций сохранены.
 -/
 
 /-!
@@ -88,14 +88,6 @@ theorem switch_floor_eq_iff (P : Fin n → ℝ)
     field_simp
 
 end Hagi.Model.SwitchMoE
-
-/-!
-# Адаптивный рост архитектуры (объединённый)
-
-LoRA, Upcycling, Matryoshka, MoeExpansion, ReZero —
-адаптеры и рост архитектуры. Слит из пяти модулей; имена
-деклараций сохранены.
--/
 
 /-!
 # LoRA: низкоранговая адаптация (источник №35)

@@ -10,7 +10,7 @@ import Hagi.Unified.SignDescent
 
 Сертифицированный сжатый шаг (SignStepCert) и точный
 отрицательный результат об отсутствии равномерной
-drop-грани (SignNoKappa). Слит из двух модулей.
+drop-грани (SignNoKappa).
 -/
 
 /-!

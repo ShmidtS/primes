@@ -5,21 +5,20 @@ import Hagi.Model.CEDescent
 import Hagi.Model.Attention
 
 /-!
-# LMCompose — языковая модель как ФУНКЦИЯ: композиция блоков (W2)
+# LMCompose — языковая модель как ФУНКЦИЯ: композиция блоков
 
-Аудит W2: в корпусе есть кост-модели
-внимания (GQA/MLA/Flash/SWA, `Hagi.Model.Attention`), алгебра RoPE и
+В корпусе есть кост-модели внимания (GQA/MLA/Flash/SWA, `Hagi.Model.Attention`), алгебра RoPE и
 каузальной свёртки (`Hagi.Step.CausalFilter`), но самой языковой модели
 как функции «вход → распределение» НЕТ — глубочайшая обучаемая модель
 линейно-логитная (`Hagi.Model.CEDescent`) с фиксированными признаками.
-Этот модуль — первая настоящая композиция: LM = список transformer-блоков
+Этот модуль — композиция: LM = список transformer-блоков
 (записей с полями-функциями) + certified-голова, `lmProbs : Input → Probs`,
 с четырьмя доказанными свойствами:
 
 * (a) Липшиц-композиция: `trunk_lipschitz` — если каждый блок
   `Lᵢ`-Липшиц в prefix-метрике `dPre` (per-block посылка), то trunk
   `∏Lᵢ`-Липшиц; `lm_logit_lipschitz` — логиты LM Липшиц с константой
-  `headLip · ∏Lᵢ` (chain-механика уровня BlockSmooth, но на
+  `headLip · ∏Lᵢ` (chain-механика `BlockSmooth`, но на
   последовательностном носителе ℕ → V → ℝ);
 * (b) cost-мост: `lm_kv_cache_lt` — KV-компонента стоимости eval
   (сумма `gqaKVCost` по блокам) строго меньше full-MHA суммы, мост
@@ -45,8 +44,8 @@ import Hagi.Model.Attention
   перенос ℓ2 → prefix-ℓ1 здесь не делается (YAGNI).
 - Поле `attn` — упрощённый агрегатор над префиксом БЕЗ softmax-нормализации
   внутри блока; канонический softmax живёт в голове
-  (`Hagi.Prelude.softDef`). RoPE не вложен (`rope_normSq_preserved`
-  остаётся соседним модулем).
+  (`Hagi.Prelude.softDef`). RoPE не вложен (`rope_normSq_preserved` —
+  `Hagi.Model.Attention`).
 - Голова билинейная (`headProj` × `headTheta`, low-rank) — форма, к
   которой certified-step CEDescent применим напрямую; произвольная
   Matrix-голова потребует отдельного моста.
@@ -133,8 +132,7 @@ def blocksLip {V : Type} [Fintype V] (bs : List (CertifiedBlock V)) : ℝ≥0 :=
   (bs.map fun b => b.lip).prod
 
 /-- Композиция блоков: foldl по списку (первый блок применяется
-первым). Это trunk LM — «arbitrary trunk» канонической архитектуры
-аудита §4. -/
+первым). Это trunk LM — «arbitrary trunk». -/
 def lmTrunk {V : Type} [Fintype V] (bs : List (CertifiedBlock V))
     (x : ℕ → V → ℝ) : ℕ → V → ℝ :=
   bs.foldl (fun acc b => blockApply b.toTransformerBlock acc) x
@@ -424,7 +422,7 @@ noncomputable def lmHeadUpdate (m : LM V K d) (x : ℕ → V → ℝ)
 t) безопасный шаг `ceNextParameters` / `safeStepSize` строго
 уменьшает one-hot CE LM — буквально `ceOneHot_safeStep_lt` на
 признаках trunk. Trunk произволен (arbitrary trunk + certified
-head, аудит §4): его влияние входит только через фиксированную
+head): его влияние входит только через фиксированную
 feature-матрицу. -/
 theorem lm_head_safeStep_lt (m : LM V K d) (x : ℕ → V → ℝ) (t : ℕ)
     (tgt : K)

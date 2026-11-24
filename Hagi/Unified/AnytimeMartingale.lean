@@ -15,9 +15,7 @@ import Hagi.Math.Foundations.Recurrence
 * `anytime_valid_budget`: a false-alarm schedule decaying
   geometrically (`delta n = delta0 * rho ^ n`, `rho < 1`) has
   total mass at most `delta0 / (1 - rho)` over any horizon
-  `T`. The e-process/Ville form is in
-  `Hagi.Unified.AnytimeMartingale`; the unbounded-horizon form
-  remains open.
+  `T`.
 -/
 
 open Finset Real

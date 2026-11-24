@@ -5,7 +5,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib.Tactic
 
 /-!
-# ErrorFeedback — накопительный контракт накопленного резидуала (A16 §Error Feedback)
+# ErrorFeedback — накопленный резидуал квантованного шага
 
 Схема error feedback (Karimireddy–Stich–Jaggi 2019, Stich et al. 2018):
 
@@ -14,8 +14,8 @@ import Mathlib.Tactic
 
 Три контракта сжатия (различаются явно):
 
-* CONTRACTIVE — `contractiveCompressor Q : ‖Q x‖ ≤ ‖x‖` (C321/EF21
-  `Hagi.Optimization.EF21Markov.IsContractive` в squared-sum форме;
+* CONTRACTIVE — `contractiveCompressor Q : ‖Q x‖ ≤ ‖x‖`
+  (`Hagi.Optimization.EF21Markov.IsContractive` в squared-sum форме;
   импорт в Step запрещён LayerLint — здесь нормированная форма);
 * BOUNDED-ERROR — `boundedErrorCompressor Q ε : ‖Q x − x‖ ≤ ε`
   (тернарный паттерн `Hagi.Runtime.TernaryExact.qTern_error_in`,
@@ -46,8 +46,8 @@ import Mathlib.Tactic
 Носитель — произвольное вещественное нормированное пространство V
 (покрывает ℝ-свидетель и Fin n → ℝ). Честные пины: contractive /
 bounded-error посылки, липшицева константа L, покоординатный факт
-квантователя — binders; квадратичные следствия уровня C375/Unified
-(Compression (EF-канон), слой Theory, отсюда не импортируемый) не дублируются.
+квантователя — binders; квадратичные следствия
+(`Hagi.Theory.Compression`, слой Theory) не дублируются.
 -/
 
 set_option relaxedAutoImplicit false
@@ -61,7 +61,7 @@ variable {V : Type*} [NormedAddCommGroup V] [NormedSpace ℝ V]
 /-! ## Три контракта сжатия -/
 
 /-- КОНТРАКТИВНЫЙ контракт: компрессор не увеличивает норму
-(нормированная форма C321/EF21-сжатия после Hadamard; см.
+(нормированная форма EF21-сжатия после Hadamard; см.
 `Hagi.Optimization.EF21Markov.IsContractive` — squared-sum вариант). -/
 def contractiveCompressor (Q : V → V) : Prop :=
   ∀ x, ‖Q x‖ ≤ ‖x‖
@@ -268,7 +268,7 @@ theorem shiftQ_not_contractive (ε : ℝ) (hε : 0 < ε) :
   linarith
 
 /-- ТЕСНОСТЬ НАИВНОЙ ГРАНИЦЫ (свидетель разделения): на компрессоре
-сдвига (bounded-error, не контрактривном) с нулевым направлением
+сдвига (bounded-error, не конконтрактном) с нулевым направлением
 d = 0, η = 1 наивная схема НАБИРАЕТ ровно T • ε отклонения, а
 EF-схема держит e t = ε, т.е. концевое отклонение |e T − e 0| = ε.
 Наивная граница T • ε ДОСТИГАЕТСЯ — разделение контрактов реально,
@@ -291,7 +291,7 @@ theorem naive_accumulation_witness (ε : ℝ) (hε : 0 ≤ ε) (T : ℕ) :
 /-- КОЛИЧЕСТВЕННОЕ ПРЕИМУЩЕСТВО EF (сравнение трёх контрактов): при
 одном и том же bounded-error компрессоре EF-схема даёт
 endpoint-only отклонение ≤ 2ε (горизонто-независимое), наивное
-квантование — ≤ T • ε (линейное). При T ≥ 1 и ε ≥ 0EF-граница не
+квантование — ≤ T • ε (линейное). При T ≥ 1 и ε ≥ 0 EF-граница не
 хуже, при T ≥ 3 и ε > 0 — строго лучше. (Обе величины — верхние
 грани; достижимость наивной — `naive_accumulation_witness`.) -/
 theorem ef_advantage (T : ℕ) (xef xN y : ℕ → V)

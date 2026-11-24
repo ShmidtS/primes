@@ -5,10 +5,9 @@ import Hagi.Growth.GainRenewal
 set_option linter.style.header false
 
 /-!
-# γ-дефицит миксера (R530)
+# γ-дефицит миксера
 
-Закрытие открытого пункта «γ-дефицит mixer.gain→0»: взлёт
-capability требует минимального коэффициента урожая γ.
+Взлёт capability требует минимального коэффициента урожая γ.
 Контрапозиция `bounded_frontier_no_sustained_growth` и
 `sustained_geometric_growth_window_lift`:
 1. `gamma_min_for_target` — чтобы gate `α·C t ≤ G t` с
@@ -23,7 +22,7 @@ namespace Hagi.Growth
 
 open Real Finset
 
-/-- **Минимальный γ для цели (R530)**: если frontier-гейт держится
+/-- **Минимальный γ для цели**: если frontier-гейт держится
 и diversity ограничена D̄, то достижение уровня C* требует
 γ ≥ α·C* / D̄. -/
 theorem gamma_min_for_target (C G D : ℕ → ℝ) (α γ Dbar Cstar : ℝ)
@@ -44,7 +43,7 @@ theorem gamma_min_for_target (C G D : ℕ → ℝ) (α γ Dbar Cstar : ℝ)
     _ ≤ γ * Dbar := hcap'
 
 
-/-- **γ-дефицит ⟹ нет взлёта (R530)**: при γ·D̄ < α·C* capability
+/-- **γ-дефицит ⟹ нет взлёта**: при γ·D̄ < α·C* capability
 никогда не достигает цели C*: любой t даёт C t < C* — честный
 взлёт требует γ-бюджета γ ≥ α·C*/D̄. -/
 theorem gamma_deficit_no_takeoff (C G D : ℕ → ℝ) (α γ Dbar Cstar : ℝ)

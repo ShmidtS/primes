@@ -5,16 +5,16 @@ import Hagi.Probability.Freedman
 import Hagi.Unified.AnytimeMartingale
 
 /-!
-# Finite-PMF ↔ MeasureTheory bridge (A18.7)
+# Finite-PMF ↔ MeasureTheory bridge
 
-Audit W5: the library spoke in two unconnected probabilistic
+The library spoke in two unconnected probabilistic
 languages. Tower 1: finite sums — the `pmfMean` machine
 (`Hagi.Probability.FreedmanTwoSided`, Freedman/Azuma-style
 concentration over finite PMF laws). Tower 2: measure
 theory — `Mathlib.Supermartingale`, Ville inequalities and
 e-process budgets (`Hagi.Unified.AnytimeMartingale`,
 `Hagi.Contracts.VilleMonitor`). This module is the one-way
-glue between them, per master plan v3 addendum A18.7.
+glue between them.
 
 Layer note: the module lives in `Hagi/Unified` (layer 6, the
 merge layer) because the bridge consumes the Ville engine of
@@ -40,7 +40,7 @@ Contents (in bridge order):
   `pmfMean` process. Concentration facts proved with
   `pmfMean` acquire an anytime-valid form through this gate.
 
-Pins (A18.7): only finite measures (`PMF` over a `Fintype`);
+Pins: only finite measures (`PMF` over a `Fintype`);
 no densities, no continuous time, no `condExp`-level
 conditional-expectation API on the tower-1 side.
 -/

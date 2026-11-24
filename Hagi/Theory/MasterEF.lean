@@ -5,9 +5,9 @@ import Hagi.Step.ErrorFeedback
 /-!
 # MasterEF — EF-мастер-теорема: endpoint-only штраф на траектории
 
- (top-2 co-beat): усиление `master_trajectory_bound`.
+Усиление `master_trajectory_bound`.
 В штраф сжатия накапливается ЛИНЕЙНО по траектории
-(Σ_t 2·L_lip·ε_{q,t}, форма). Здесь исполняется
+(Σ_t 2·L_lip·ε_{q,t}). Здесь исполняется
 error-feedback (EF): квантованный шаг несёт резидуал
 `e (t+1) = u_t − q_t`, `u_t = η_t • d_t + e_t`, и весь эффект
 сжатия ТЕЛЕСКОПИРУЕТСЯ в концевой член — MAIN даёт
@@ -24,18 +24,18 @@ penalty ≡ 0). Новой индукции нет.
 ИДЕАЛЬНОЙ траектории (поле `hdrop`); исполняемая наследует их
 только через концевую коррекцию. Пер-шаговые drops на исполняемой
 потребовали бы пер-шагового penalty — это и есть (слабее при
-T ≥ 3, см. `master_ef_vs_naive`; per-step crossover).
+T ≥ 3, см. `master_ef_vs_naive`).
 
 Честные пины (наследуются):
 
-- **L_lip — binder**: `0 ≤ L` + липшиц-посылка .
+- **L_lip — binder**: `0 ≤ L` + липшиц-посылка.
 - **qTern-инстанциация**: через существующий подъём
   `coordLift_bounded_error` (цитируется, не дублируется).
 - **Адаптивные данные**: caveats наследуются.
 - **Carrier-мост**: модуль работает на generic нормированном V с
   абстрактной целью f (тот же уровень); мост к
-  `fullObjective` на `CanonicalTrainState` — пин co-beat.
-- **Бюджет/whp-каналы ** не затрагиваются (additions only).
+  `fullObjective` на `CanonicalTrainState` — пин (не доказано здесь).
+- **Бюджет/whp-каналы** не затрагиваются (additions only).
 -/
 
 set_option relaxedAutoImplicit false
@@ -56,7 +56,7 @@ e t)` С error feedback — резидуал эволюционирует
 `η t • d t`, тот же старт). Certified drops связаны с ИДЕАЛЬНОЙ
 траекторией (честно: десцент сертифицирован для несжатой
 динамики; исполняемая получает его через концевую коррекцию MAIN).
-Законы динамики — для всех t (), горизонт T — у
+Законы динамики — для всех t, горизонт T — у
 сертификата drops. -/
 structure EFTrajectory (T : ℕ) where
   /-- Шаги обучения (несжатые направления). -/
@@ -150,7 +150,7 @@ theorem master_ef_residual_invariant (T : ℕ) (tr : EFTrajectory (V := V) T)
 /-- EF-МАСТЕР-ТЕОРЕМА, замкнутая форма: bounded-error компрессор
 (ε) и `‖e 0‖ ≤ ε` дают `f (xef T) ≤ f (xef 0) − ∑ drop_t +
 2·L_lip·ε` — штраф НЕ зависит от T (endpoint-only), тогда как
-C392-форма накапливает T·(2·L_lip·ε). qTern-инстанциация ε —
+наивная форма накапливает T·(2·L_lip·ε). qTern-инстанциация ε —
  `coordLift_bounded_error` (покоординатный подъём). -/
 theorem master_trajectory_bound_ef_closed (T : ℕ)
     (tr : EFTrajectory (V := V) T) (L ε : ℝ) (hL : 0 ≤ L)
@@ -171,7 +171,7 @@ theorem master_trajectory_bound_ef_closed (T : ℕ)
 /-- T-ПРОТИВ-ОДНОГО разделение на уровне мастер-теоремы
 (траекторный crossover; per-step — нормы без drops
 `ef_advantage`): (i) EF endpoint-граница с константой `2·L·ε`;
-(ii) наивная C392-форма с равномерным пер-шаговым штрафом `2·L·ε`
+(ii) наивная форма с равномерным пер-шаговым штрафом `2·L·ε`
 даёт границу с `T·(2·L·ε)` (движок `obj_telescope_err`);
 (iii) при T не меньше одного EF-штраф не хуже; (iv) при T не
 меньше трёх и положительных L, ε — СТРОГО лучше: линейное

@@ -24,8 +24,6 @@ This file has multiple norm instances that can conflict:
 Be VERY careful about which instances are active. When in doubt, use
 the explicit frobeniusNorm' function instead of ‖·‖.
 
-I wasted an entire afternoon debugging a proof that was silently using
-the wrong norm instance. Don't be like me.
 -/
 
 import Mathlib.Analysis.Matrix.Spectrum
@@ -38,9 +36,6 @@ import Mathlib.Analysis.Matrix.Normed
 import Mathlib.LinearAlgebra.Matrix.Kronecker
 import Mathlib.Analysis.Complex.Order
 import Hagi.External.Flywheel.FrobeniusNorm
--- NOTE: Some of these imports might be redundant. I added them one by one
--- when I got "unknown identifier" errors. Feel free to clean up.
-
 open Matrix
 
 namespace Hagi.External.Flywheel
@@ -49,9 +44,6 @@ namespace Matrix.KroneckerRearrangement
 
 variable {m n p q : Type*} [Fintype m] [Fintype n] [Fintype p] [Fintype q]
          [DecidableEq m] [DecidableEq n] [DecidableEq p] [DecidableEq q]
-
--- Why do we need DecidableEq for all four types? I think it's for the
--- Fintype instances but I'm not 100% sure. Removing them breaks things.
 
 section Basic
 variable {α : Type*} [Semiring α]
@@ -82,15 +74,11 @@ def R (M : Matrix (m × n) (p × q) α) : Matrix (m × p) (n × q) α :=
 def outerProduct {I J : Type*} (u : I → α) (v : J → α) : Matrix I J α :=
   fun i j => u i * v j
 
--- I don't understand why the linter complains about unused section vars here
--- but not in other files. Setting this option to shut it up.
 set_option linter.unusedSectionVars false in
 @[simp]
 theorem R_apply (M : Matrix (m × n) (p × q) α) (i : m) (k : p) (j : n) (l : q) :
     R M ⟨i, k⟩ ⟨j, l⟩ = M ⟨i, j⟩ ⟨k, l⟩ := rfl
 
--- tried using `Function.uncurry` here but it made things more complicated
--- @[simp] theorem R_apply' ... := by simp [R, Function.uncurry]
 
 set_option linter.unusedSectionVars false in
 @[simp]
@@ -248,8 +236,6 @@ attribute [local instance] Matrix.instCStarRing
 
 /-- The CStarAlgebra instance for complex matrices with L2 operator norm.
     Uses `CStarAlgebra.mk` which unifies the already-available parent instances. -/
--- I honestly don't understand why this needs to be noncomputable.
--- The Mathlib source says something about "CFC" but I couldn't follow it.
 noncomputable instance instCStarAlgebraMatrix : CStarAlgebra (Matrix n n ℂ) :=
   CStarAlgebra.mk
 

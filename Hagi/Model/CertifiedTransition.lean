@@ -8,7 +8,7 @@ import Hagi.Cert.StepGen
 /-!
 # CertifiedTransition — зависимый сертификат перехода
 
-Реализация эскиза аудита v4 §5.4: сертификат привязан к
+Сертификат привязан к
 КОНКРЕТНЫМ состояниям pre/post — `exec` требует, чтобы post
 был получен реальным `advance`; прогресс/риск/бюджет —
 свойства именно этой пары состояний (нельзя выдать
@@ -34,7 +34,7 @@ structure CertifiedTransition (S S' : Hagi.System.GrowthState X)
     ≤ S.protectedRisk + (u.eff.growRisk + u.eff.mergeRisk
       + u.eff.jointRisk + u.eff.compressRisk)
   /-- Безопасность (ЛИМИТ): riskLim АКТИВНО участвует в
-  контракте — spec P0-3.3: riskAfter ≤ riskBefore + riskLim. -/
+  контракте: riskAfter ≤ riskBefore + riskLim. -/
   safetyLim : S'.protectedRisk ≤ S.protectedRisk + riskLim
   /-- Ресурсы: точный бюджетный ledger пост-состояния. -/
   resources : S'.budget = S.budget - (u.eff.growCost + u.eff.mergeCost
@@ -69,7 +69,7 @@ theorem certifiedTransition_of_advance (S : Hagi.System.GrowthState X)
     simp only [advance]
     ring
 
-/-- ГОРИЗОНТНАЯ ТЕОРЕМА (аудит v4 §5.4/§4): семейство
+/-- ГОРИЗОНТНАЯ ТЕОРЕМА: семейство
 сертифицированных переходов телескопирует точный бюджетный
 ledger — S T = S 0 − Σ spends; ресурсы накапливаются только
 через реальные exec-переходы. -/
@@ -181,7 +181,7 @@ theorem witness_certifiedTransition :
   certifiedTransition_of_advance wS0 wU0 (by simp [wU0])
     (by simp [wU0]) (by simp [wU0])
 
-/-- МОСТ ЦЕПОЧКИ УТОЧНЕНИЙ (аудит v6, L3): Certificate
+/-- МОСТ ЦЕПОЧКИ УТОЧНЕНИЙ: Certificate
 (GrowthState.verify-проекция) согласован с CertifiedTransition
 — переход уровня L3 детерминирует все три наблюдаемых поля
 Certificate пост-состояния: спад положителен, риск-трата в
@@ -205,11 +205,11 @@ theorem certificate_of_transition {X : Type*}
     ring
 
 
-/-- ЗВЕНО ЦЕПОЧКИ 2 (аудит v6, L3): сертифицированный
+/-- ЗВЕНО ЦЕПОЧКИ 2: сертифицированный
 переход (ядро CertifiedTransition) делает шаг-кандидата
 StepCertificate продуктивным для алгоритма отбора
 (bestDecrease): safe_selection_productive срабатывает —
-L3-сертификат напрямую кормит Certified Growth Loop. -/
+сертификат напрямую кормит Certified Growth Loop. -/
 theorem transition_safe_selection {X : Type*}
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     {S S' : Hagi.System.GrowthState X} {u : StageInput X}
@@ -265,7 +265,7 @@ theorem wsd_cycle_bound {X : Type*}
 
 open Hagi.System InnerProductSpace
 
-/-- ЗВЕНО ЦЕПОЧКИ 3 (аудит v6, L3): семейство сертифицированных
+/-- ЗВЕНО ЦЕПОЧКИ 3: семейство сертифицированных
 переходов с законами стадий ПОРОЖДАЕТ CycleCertificate:
 локальные контракты CertifiedTransition (exec/progress/safety/
 resources) + законы стадий дают T-горизонтный цикл-сертификат
@@ -334,11 +334,11 @@ theorem cycle_certificate_of_transitions {X : Type*}
     exact (hc t ht).resources }, trivial⟩
 
 
-/-- АУДИТ v12: riskLim-СВЯЗЬ. Если лимит riskLim покрывает
+/-- riskLim-СВЯЗЬ. Если лимит riskLim покрывает
 суммарный риск входа, то CertifiedTransition с этим лимитом
 гарантирует S'.protectedRisk − S.protectedRisk ≤ riskLim
 (параметр типа реально ограничивает прирост риска через
-safety-поле; закрытие замечания «riskLim не используется»). -/
+safety-поле). -/
 theorem certifiedTransition_risk_respect {X : Type*}
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     (S S' : Hagi.System.GrowthState X) (u : StageInput X)
@@ -351,19 +351,18 @@ theorem certifiedTransition_risk_respect {X : Type*}
   linarith [hs, hlim]
 
 
-/-! ### Аудит v16, проблема №5: riskLim ДОЛЖЕН проверяться.
+/-! ### riskLim ДОЛЖЕН провериваться.
 `CertifiedTransition` ведёт риск-бухгалтерию (safety), но
 не связывает её с переданным лимитом. `CertifiedTransitionV2`
-добавляет активное поле `hRiskLim : ΔR ≤ riskLim` (лимит
+несёт активное поле `hRiskLim : ΔR ≤ riskLim` (лимит
 реально соблюдён) и мост из старой структуры. -/
 
 /-- V2: сертифицированный переход с АКТИВНО проверенным
-риск-лимитом (№5: счётчик ≠ соблюдение лимита).
+риск-лимитом (учёт риска ≠ соблюдение лимита).
 НЕканонический слой: канонический переход — зависимый
 `Hagi.Unified.HonestTransition` (спуск выведен из
 исполнения); сведение — `ctv2Honest` при операциональных
-условиях спуска. Новым кодом использовать
-`HonestTransition` напрямую. -/
+условиях спуска. -/
 structure CertifiedTransitionV2 (S S' : Hagi.System.GrowthState X)
     (u : StageInput X) (riskLim : ℝ) where
   /-- Вся валидация V1. -/
@@ -372,7 +371,7 @@ structure CertifiedTransitionV2 (S S' : Hagi.System.GrowthState X)
   hRiskLim : S'.protectedRisk - S.protectedRisk ≤ riskLim
 
 /-- МОСТ V1 → V2: старый сертификат + соблюдение лимита
-дают V2 (полная совместимость, Freeze стабилен). -/
+дают V2. -/
 theorem ctv2_of_ct {S S' : Hagi.System.GrowthState X}
     {u : StageInput X} {riskLim : ℝ}
     (hc : CertifiedTransition S S' u riskLim)
@@ -381,8 +380,8 @@ theorem ctv2_of_ct {S S' : Hagi.System.GrowthState X}
   ⟨hc, hrisk⟩
 
 
-/-! ### Аудит v17 (P0-2): фактическое убывание objective —
-обязательное поле сертификата.
+/-! ### Фактическое убывание objective — обязательное поле
+сертификата.
 
 `progress : 0 < (verify S').decrease` — положительность
 ВЫЧИСЛЕННОГО числа-сертификата; это не то же, что
@@ -411,7 +410,7 @@ theorem ctv3_of_actualDescent {S S' : Hagi.System.GrowthState X}
     CertifiedTransitionV3 S S' u riskLim :=
   { toCertifiedTransitionV2 := hc, hActualDescent := hdrop }
 
-/-- КОНСТРУКТОР ИЗ ЗАКОНОВ СТАДИЙ (P0-2): при канонических
+/-- КОНСТРУКТОР ИЗ ЗАКОНОВ СТАДИЙ: при канонических
 предпосылках `advance_energy_drop` и строгой положительности
 сертифицированного дропа переход `advance S u` несёт
 V3-сертификат. -/
@@ -519,9 +518,9 @@ theorem stageLaws_mono_quantErr (S : Hagi.System.GrowthState X)
     mul_le_mul_of_nonneg_left hqe hksnn
   linarith
 
-/-! ### C279-адаптер: CertifiedTransitionV3 → общее ядро CertStepGen
+/-! ### Адаптер: CertifiedTransitionV3 → общее ядро CertStepGen
 
-A10 item 2 (adapter batch 2): V3-переход — view над общим ядром
+V3-переход — view над общим ядром
 `Hagi.Cert.CertStepGen`. Содержание носителя: СТРОГИЙ фактический
 спад энергии (`hActualDescent` — дроп = S.energy − S'.energy,
 спуск — равенство) и ТОЧНЫЙ бюджетный ledger (`resources`).

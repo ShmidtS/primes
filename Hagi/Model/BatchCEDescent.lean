@@ -29,7 +29,6 @@ open InnerProductSpace
 
 namespace Hagi.Model.BatchCEDescent
 
-
 /-- One parameter update along an arbitrary common direction. -/
 noncomputable def alongNext {d : ℕ} (θ D : EuclideanSpace ℝ (Fin d)) (eta : ℝ) :
     EuclideanSpace ℝ (Fin d) :=
@@ -250,7 +249,6 @@ theorem ceOneHot_alongNext_le {V : Type} [Fintype V] [Nonempty V]
       Hagi.ceOneHot t (ceLogits X θ) + eta * dirAction X θ t D
         + (eta * dirRange X D) ^ 2 / 8 :=
   ceOneHot_alongNext_le_majorizer X θ D t heta
-
 
 end Hagi.Model.BatchCEDescent
 
@@ -834,7 +832,6 @@ theorem ceOneHot_batchCommonNextParameters_le {V : Type} [Fintype V] {B d : ℕ}
     (y : Fin 0 → V) : batchLoss X (batchCommonNextParameters X θ y) y = batchLoss X θ y := by
   rw [batchCommonNextParameters_empty]
 
-
 end Hagi.Model.BatchCEDescent
 
 /-!
@@ -1027,7 +1024,6 @@ theorem batchLoss_alongNext_le_batchMajorizer
           ((∑ b, (dirRange (X b) (batchMeanDirection X θ y)) ^ 2) / (B : ℝ)) / 8 := by
       linear_combination eta * hmean
 
-
 /-- Positive range-square makes the selected common step positive. -/
 theorem batchSafeStep_pos_of_rangeSquare_pos
     {V : Type} [Fintype V] {B d : ℕ}
@@ -1134,7 +1130,6 @@ theorem batchLoss_batchNext_eq_of_rangeSquare_eq_zero
     (y : Fin B → V) (hR : batchRangeSquare X θ y = 0) :
     batchLoss X (batchNextParameters X θ y) y = batchLoss X θ y := by
   rw [batchNextParameters_eq_of_rangeSquare_eq_zero X θ y hR]
-
 
 end Hagi.Model.BatchCEDescent
 
@@ -1635,42 +1630,7 @@ theorem batchCommonSafeEta_le_batchDirectionSafeEta_neg_minimizer
       (batchCommonSafeWindow_le_batchDirectionSafeWindow_neg_minimizer
         X θ y hω) (by norm_num)
 
-
 end Hagi.Model.BatchCEDescent
-
-
-/-!
-# Common-direction arithmetic-batch cross-entropy descent
-
-This module proves a one-step majorization certificate for the raw arithmetic
-mean of one-hot cross-entropy losses on a supplied finite batch.  The common
-parameter direction is the arithmetic mean of the existing per-example
-negative residual directions.  Its mean directional action is exactly minus
-the squared norm of the mean residual transpose, and the quadratic coefficient
-uses the arithmetic mean of the squared logit ranges of that same direction.
-
-For an arbitrary common direction and nonnegative step, the existing Böhning
-bound `Hagi.Energy.lse_shift_upper` controls second-order error; this is not a
-probability tail theorem.  The selected safe step is zero when the mean squared
-range is zero.  Otherwise it minimizes the named averaged quadratic majorizer
-and gives strict descent of the actual arithmetic-mean batch loss.  Positive
-mean squared range implies a nonempty batch and positive alignment.
-
-The results concern only the supplied batch and quadratic majorizer.  A second
-candidate is the totalized minimum-norm point of the raw residual-gradient
-convex hull.  Its negative gives nonincreasing CE for every sample, with strict
-descent at a nonzero minimizer inside the exact half-window.  Empty batches and
-zero minimizers use a zero step, with no fabricated strict-progress claim.
-
-These are formal one-step certificates, not global CE minimization, held-out or
-statistical performance, native execution speed, or general neural-network
-optimality results.  Empty-batch mean values use Lean's `0 / 0 = 0` algebra
-convention.
-
-References are the repository implementations in `Model.CEDescent`,
-`Model.CEGradient`, and `Energy.PoEBound`.
--/
-
 
 namespace Hagi.Model.BatchCEDescent
 end Hagi.Model.BatchCEDescent

@@ -5,7 +5,7 @@ import Hagi.Unified.RecursiveClean
 set_option linter.style.header false
 
 /-!
-# Gauge-квотиент и наследование темпа осцилляций (R537)
+# Gauge-квотиент и наследование темпа осцилляций
 
 Формализация ядра QRR (Park & Rusch, «Looped Reasoning
 Finishes Earlier Than You Think», arXiv:2610.18174):
@@ -87,7 +87,7 @@ theorem residual_nonneg (sys : GaugeSystem) (z : ℂ) :
     rintro _ ⟨φ, rfl⟩
     exact dist_nonneg)
 
-/-- **Gauge-инвариантность остатка (R537, ядро QRR)**:
+/-- **Gauge-инвариантность остатка (ядро QRR)**:
 r_G(g_φ₀·z) = r_G(z) — движение по gauge-орбите невидимо
 для quotient-теста. Механика: эквивариантность перебрасывает
 вращение на T z, и остаток множества фаз совпадает
@@ -128,7 +128,7 @@ theorem quotientResidual_gauge_invariant (sys : GaugeSystem)
       exact ⟨φ, hpoint φ⟩
   exact congrArg sInf hrange
 
-/-- **Relative equilibrium ⟹ ранний halting (R537)**:
+/-- **Relative equilibrium ⟹ ранний halting**:
 если T z отличается от z лишь на фазу (T z = e^{iφ₀} z), то
 quotient-остаток нулевой: quotient-состояние сошлось, пока
 raw-траектория движется по орбите. Обоснование
@@ -163,7 +163,7 @@ noncomputable def seq (s c x₀ : ℝ) : ℕ → ℝ
   | 0 => x₀
   | (t + 1) => s * seq s c x₀ t + c
 
-/-- **Точная динамика отклонения (R537)**: при s ≠ 1
+/-- **Точная динамика отклонения**: при s ≠ 1
 отклонение от корня x* = c/(1−s) умножается на s^t:
 x_t − x* = s^t·(x₀ − x*). Ядро rate inheritance: мода
 переносит свой темп |s| на сходимость оболочки. -/
@@ -180,7 +180,7 @@ theorem seq_dev_exact {s c x₀ : ℝ} (hs : s ≠ 1) (t : ℕ) :
       rw [hshift, ih, pow_succ]
       ring
 
-/-- **Модульная форма затухания (R537)**: |x_t − x*| =
+/-- **Модульная форма затухания**: |x_t − x*| =
 |s|^t·|x₀ − x*| — амплитуда моды контролируется точно:
 alternating-мода (s = −r) с r ≥ 1 никогда не затухает;
 при r < 1 затухание геометрическое с темпом r. -/
@@ -191,7 +191,7 @@ theorem seq_dev_modulus {s c x₀ : ℝ} (hs : s ≠ 1) (t : ℕ) :
 
 /-! ## Non-forcing: орбитальное движение не трогает quotient (Prop A.2) -/
 
-/-- **Итерированная эквивариантность (R538, ядро Prop A.2)**:
+/-- **Итерированная эквивариантность (ядро Prop A.2 статьи)**:
 k-я итерация оператора переводит gauge-орбиту в gauge-орбиту:
 T^k (g·z) = g·(T^k z) — движение вдоль орбиты переносится
 параллельно и не смешивается с quotient-динамикой. -/
@@ -214,7 +214,7 @@ theorem rotStep (a b : ℝ) (z : ℂ) : rot b (rot a z) = rot (a + b) z := by
       = z * (exp (↑a * I) * exp (↑b * I)) := by ring
     _ = z * exp (↑(a + b) * I) := by rw [hexp]
 
-/-- **Орбитальная траектория relative equilibrium (R538)**:
+/-- **Орбитальная траектория relative equilibrium**:
 если T z = e^{iφ₀} z, то T^k z = e^{i k φ₀} z навсегда:
 raw-состояние вечно движется по орбите, quotient-состояние
 стоит — вычисление «завершено», динамика продолжает

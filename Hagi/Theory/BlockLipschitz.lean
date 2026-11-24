@@ -48,7 +48,7 @@ real-world atoms with derived constants (derivability, not tightness):
   by `M·‖w(x)−w(y)‖₁` with `M = sup_i ‖x i‖∞` — the obstruction is the
   UNBOUNDED VALUES, not the softmax (softmax itself is globally
   ≤ 1/2-Lipschitz in ℓ2, Pauli et al. 2023 — pinned, not restated).
-  CLOSED: with a certified value bound the positive side is
+  With a certified value bound the positive side is
   derivable — `attn_xdep_lipschitz` gives `B_V·(1 + L_w·R_x)` under
   (i) the operator bound `‖A u − A z‖₁ ≤ B_V·‖u − z‖₁`, (ii) the input
   radius `‖x i‖₁ ≤ R_x`, (iii) weight stability
@@ -65,8 +65,8 @@ real-world atoms with derived constants (derivability, not tightness):
 - MLP constant uses the Frobenius bound (`‖W‖₂ ≤ ‖W‖_F`, pin);
   the op-norm lemma is absent from the pinned Mathlib.
 - Constants are per-position ℓ1 (the `dPre` metric of LMCompose);
-  ℓ2→ℓ1 conversions cost the √n factors. Derivability is the goal of
-  this beat, not optimality.
+  ℓ2→ℓ1 conversions cost the √n factors. Derivability is the goal,
+  not optimality.
 -/
 
 set_option relaxedAutoImplicit false
@@ -305,8 +305,8 @@ theorem rmsN_l1_lip (ε : ℝ) (hε : 0 < ε) (x y : V → ℝ) :
 
 /-- CertifiedBlock for the RMSNorm atom (attn = id, norm = g·rmsN ε):
 `hLip` DERIVED with lip = `1 + G·(n+1)/ε` (residual + derived norm
-constant), `hCausal` DERIVED (positional dependence only
-pattern). Gain bounded by G coordinatewise. -/
+constant), `hCausal` DERIVED (positional dependence only).
+Gain bounded by G coordinatewise. -/
 noncomputable def certifiedRMSNorm (g : V → ℝ) (G : ℝ≥0) (ε : ℝ)
     (hε : 0 < ε) (hg : ∀ v, |g v| ≤ (G : ℝ)) :
     Hagi.Model.LMCompose.CertifiedBlock V where
@@ -915,7 +915,7 @@ def attnXDepOut (A : V → V → ℝ) (w : (Fin n → V → ℝ) → Fin n → �
   ∑ i, w x i * attnXDepVal A (x i) v
 
 /-- **x-Dependent attention is Lipschitz under a certified value
-bound** (closes the honest pin): with convex x-dependent
+bound**: with convex x-dependent
 weights `w x` (nonneg, sum 1), value operator bound
 `‖A u − A z‖₁ ≤ B_V·‖u − z‖₁`, input radius `‖x i‖₁ ≤ R_x`, and
 weight stability `‖w(x) − w(y)‖₁ ≤ L_w·‖x − y‖₁`, the attention
@@ -1034,7 +1034,7 @@ end Hagi.Theory.BlockLipschitz
 
 /-!
 # BlockSmooth — derived Lipschitz constants for the linear-block
-softmax-CE head (A18.4, audit priority 1)
+softmax-CE head
 
 The empirical premises `h_emp_smooth` / `h_emp_lip` (Lipschitz
 constant of the loss taken as MEASURED) hide that for the canonical
@@ -1239,7 +1239,7 @@ theorem blockCE_weight_lipschitz (t : V) (W V' : Matrix V (Fin n) ℝ)
 
 /-! ## (e) Consumption: the derived quantization-loss bridge -/
 
-/-- **The derived quantization→loss bridge** (A18.4 consumption): if
+/-- **The derived quantization→loss bridge**: if
 every weight of an `m×n` linear block feeding the CE head is rounded
 with componentwise error at most `D`, then the CE of the block output
 changes by at most

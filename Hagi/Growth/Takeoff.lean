@@ -7,15 +7,6 @@ import Hagi.Growth.LinearCone
 import Hagi.Math.Foundations.ConeTakeoff
 
 /-!
-# Взлёт (объединённый)
-
-TakeoffElasticity (цепь упругости) и RatioTakeoff
-(отношение реинвестиций). Имена деклараций сохранены.
--/
-
-set_option linter.style.header false
-
-/-!
 # TakeoffElasticity — произведение эластичностей петли
 
 * `elasticity_chain`: если `(1 + e t)·x t ≤ x (t+1)` при
@@ -29,6 +20,8 @@ set_option linter.style.header false
 Эластичности e t — измеряемые посылки; когда произведение
 превышает 1 — вопрос измерения, не теоремы.
 -/
+
+set_option linter.style.header false
 
 open Finset Real
 
@@ -143,7 +136,7 @@ end Hagi.Growth
 set_option linter.style.header false
 
 /-!
-# RatioTakeoff — takeoff через динамику отношения r = D/C
+# RatioTakeoff
 
 Посылки: точный шаг `C' = C + γ·D`, односторонняя динамика
 `D' ≥ ρ·D + β·C − ξ` (ξ = 0 в ядре), без верхней границы на `C'`.
@@ -181,7 +174,7 @@ theorem cone_ratio_step (C D : ℕ → ℝ) (γ ρ β k : ℝ)
     {t : ℕ}
     (hCpos : 0 < C t) (h_emp_cone : k * C t ≤ D t) :
     k * C (t + 1) ≤ D (t + 1) :=
-  -- dedup R291: delegation to the canonical Foundations.cone_step
+  -- делегирование каноническому `Hagi.Foundations.cone_step`
   Hagi.Foundations.cone_step C D γ ρ β k t hCpos
     (h_emp_step t) (h_emp_dyn t) hrhogk hbeta h_emp_cone
 
@@ -209,11 +202,9 @@ theorem cone_ratio_geometric_growth (C D : ℕ → ℝ) (γ k : ℝ)
     (h_emp_step : ∀ t, C (t + 1) = C t + γ * D t)
     (h_emp_cone : ConeRatio C D k) (T : ℕ) :
     C 0 * (1 + γ * k) ^ T ≤ C T := by
-  -- dedup R-scan: the manual induction is exactly the
-  -- specialization of TakeoffElasticity.elasticity_chain with
-  -- the constant cone elasticity `e t = γ·k` — the cone gives
-  -- the per-step elasticity lower bound, the product chain
-  -- does the rest.
+  -- частный случай `elasticity_chain` с постоянной
+  -- эластичкой `e t = γ·k`: конус даёт пошаговую оценку,
+  -- произведение — остальное.
   have hstep : ∀ t, (1 + γ * k) * C t ≤ C (t + 1) := by
     intro t
     rw [h_emp_step t]

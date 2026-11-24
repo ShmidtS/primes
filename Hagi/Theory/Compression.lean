@@ -15,11 +15,11 @@ set_option linter.style.header false
 set_option linter.unusedSectionVars false
 
 /-!
-# Compression — the error-feedback canon (→)
+# Compression — the error-feedback canon
 
 One canonical module for the EF/compression family (merged from
 EFTheory.lean + EF21InStep.lean + CertTernaryJump.lean; namespaces
-preserved, Continual.lean precedent). Each concept is described
+preserved). Each concept is described
 ONCE here.
 
 * The EF telescope (`Hagi.Unified.ErrorFeedback`): carrying the
@@ -902,8 +902,7 @@ def ternJumpStep (E E' bud bud' rsk rsk' : ℚ) : CertStepData :=
 /-! ## The acceptance criterion is admissive -/
 
 /-- **Certified ternary jump acceptance**: if the post-jump energy
-readout sits below the corpus ceiling `k·s²/8` while the pre-jump
-  `quantOpt_energy_bound` / quant_jump_honest premise form, the SAME
+readout sits below the corpus ceiling `k·s²/8` while the pre-jump  `quantOpt_energy_bound` / `quant_jump_honest` premise form, the SAME
   inequality the Python trainer evaluates exactly in `Fraction` — then
   the emitted jump step passes the executable checker (strict positive
   drop included).

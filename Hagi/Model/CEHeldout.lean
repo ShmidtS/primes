@@ -7,24 +7,21 @@ import Hagi.Probability.FiniteFamilyConfidence
 /-!
 # CEHeldout — the held-out confidence canon
 
-Merged here (v5 W1): `Hagi.Model.CEConfidenceScale`
-(raw cross-entropy confidence and sample budgets).  Namespace
-`Hagi.Model.CEConfidenceScale` unchanged.
+Includes the raw cross-entropy confidence and sample budgets section
+(namespace `Hagi.Model.CEConfidenceScale`).
 -/
 
 /-!
 # Held-out confidence for the decoded finite CE codebook
 
-The proofs are promoted from the reviewed Cycle87 prototype.
 The codebook contains decoded finite
 scale/trit codes, not arbitrary real raw weights, and is fixed before the
 independent categorical labels are sampled.  Consequently every actual
 `CEGroupedScale.jointParameters`, including one selected by a shortcut,
 is covered without a union bound over an unbounded real family.
 
-The normalizer is the reviewed prototype's
-`1 + log |V| + 4 * featureMass X`, with `featureMass` replaced by the equal
-existing definition `Hagi.Model.CEGroupedScale.featureAbsSum` from
+The normalizer is
+`1 + log |V| + 4 * featureMass X`, with `featureMass` the existing definition `Hagi.Model.CEGroupedScale.featureAbsSum` from
 `Hagi/Model/CEGroupedScale.lean`.  The elementary CE estimate uses
 nonnegativity from the target term in log-sum-exp and, for `|z v| ≤ r`,
 `CE(t,z) ≤ 2r + log |V|`.  Only CE divided by the positive normalizer is
@@ -437,7 +434,7 @@ theorem ceOneHot_decodeJoint_encodeJoint_mean_le_ceQuantPenalty
   have hmean := ceOneHot_mean_ceLogits_le X w1 w2 t
   exact hquant.trans (add_le_add hmean (le_refl _))
 
-/-! ### Anytime-замена вакуозного юнион-баунда (A8 F6)
+/-! ### Anytime-замена вакуозного юнион-баунда
 
 Юнион-фактор `61965^G · exp(−2 n ε²)` растёт по G и делает
 нижнюю доверительную границу отрицательной (вакуозной)
@@ -450,7 +447,7 @@ theorem ceOneHot_decodeJoint_encodeJoint_mean_le_ceQuantPenalty
 честная часть: вакуозность юнион-баунда в его вакуозном
 режиме и доминирование любой anytime-конфиденс 1−δ ∈ [0,1)
 над ним. Эмпирические числа (0.1465 против n ≥ 1.13M) —
-Class-D мотивация, не посылки и не утверждения. -/
+эмпирическая мотивация, не посылки и не утверждения. -/
 
 /-- Именованный юнион-фактор фиксированного словаря:
 мощность словаря × Hoeffding-затухание. -/

@@ -45,7 +45,6 @@ theorem wt_saving (m n : ℝ) (hmn : 0 < m * n) :
 
 end Hagi.Model.WeightTying
 
--- Мост Cortex (2610.20399) ↔ термодинамика HAGI.
 open Hagi.Energy
 
 namespace Hagi.Model
@@ -79,8 +78,7 @@ end Hagi.Model
 /-!
 # GDNRAM — точная адресуемая память (источник №62:
 # Qwenputer-эксперимент, divagr.com 2026; теоретическая
-# основа — Gated DeltaNet 2404.01648 с one-hot адресами;
-# аудит v10 §5.3)
+# основа — Gated DeltaNet 2404.01648 с one-hot адресами)
 
 Идея: GDN-слой с gate/write-strength = 1 и one-hot
 адресами ведёт себя как ТОЧНАЯ адресуемая RAM: запись в

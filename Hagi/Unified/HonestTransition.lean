@@ -34,7 +34,6 @@ namespace Hagi.Unified.HonestTransition
 Канон-носитель честного перехода — этот файл. Одноимённый
 `CertStep` здесь — адаптация ядра `Hagi.Cert.Core` к
 Unified-слою; исходное определение искать в `Hagi.Cert.Core`.
-Полное переименование — вне v5.
 -/
 
 variable {S : Type*}
@@ -92,17 +91,16 @@ theorem honest_two_steps_existent :
   refine ⟨3, 3 / 4, by norm_num, by norm_num, ?_, ?_⟩ <;> norm_num [quadObj]
 
 
-/-! ### CertStep — минимальное ядро сертификата → единая запись StepRecord (A19.2)
+/-! ### CertStep — минимальное ядро сертификата → единая запись StepRecord
 
- (аудит A19 N2): минимальное ядро {drop > 0, obj s' ≤ obj s − drop}
-было единственным истинным дублем класса (a) — оно сливается с новой
-ЕДИНОЙ записью журнала `Hagi.Cert.StepRecord` (drop-ядро + свободная
-телеметрия budget/risk/δ). Старое имя — deprecated-алиас; все
+Минимальное ядро {drop > 0, obj s' ≤ obj s − drop}
+было единственным истинным дублем класса (a) — сливается с ЕДИНОЙ
+записью журнала `Hagi.Cert.StepRecord` (drop-ядро + свободная
+телеметрия budget/risk/δ) этого файла. Старое имя — deprecated-алиас; все
 сертификаты HAGI обязаны давать мост в StepRecord (toRecord/toCertStep). -/
 
-/-- ЕДИНАЯ запись журнала сертифицированного шага (бывшее локальное
-ядро CertStep цикла 41 — класс (a) дубль, слит).
-Deprecated: используйте `Hagi.Cert.StepRecord` напрямую. -/
+/-- ЕДИНАЯ запись журнала сертифицированного шага: drop-ядро + свободная
+телеметрия budget/risk/δ. -/
 @[deprecated Hagi.Cert.StepRecord (since := "2026-11-19")]
 abbrev CertStep (obj : S → ℝ) (s s' : S) : Type :=
   Hagi.Cert.StepRecord obj s s'
@@ -127,7 +125,7 @@ def HonestTransition.toCertStep {obj : S → ℝ} {s s' : S}
 
 /-! ### S3-адаптер: HonestTransition → каноническое ядро Hagi.Cert
 
-Единственный отсутствующий мост (аудит A8 F6, S3): Adapters-слой
+Adapters-слой
 (`Hagi/Cert/Adapters.lean`) намеренно импортирует только Cert.Core и
 не может видеть HonestTransition; Unified-сторона имела мост лишь в
 МИНИМАЛЬНОЕ ядро CertStep. Ниже — мост в ПОЛНОЕ каноническое ядро
@@ -171,13 +169,13 @@ def HonestTransition.toKernelCertStep {S TaskId : Type*}
   risk_nonneg := by rw [hrisk']
   floorsKept := hfloors
 
-/-! ### C278-адаптер: HonestTransition → общее ядро CertStepGen
+/-! ### Адаптер: HonestTransition → общее ядро CertStepGen
 
-A10 item 2 (первый адаптер): переход в ЕДИНОЕ общее ядро
+Переход в ЕДИНОЕ общее ядро
 `Hagi.Cert.CertStepGen` (общий индекс задач, остаток риска —
-ПОЛЕ, свёрнутый δ-бюджет). Дефект устранён по построению:
-посылка `hrisk' : M.risk s' = 0` (остаток риска запинен в ноль —
-тратить риск мог только последний шаг траектории) заменена парой
+ПОЛЕ, свёрнутый δ-бюджет). Вместо посылки
+`hrisk' : M.risk s' = 0` (остаток риска запинен в ноль —
+тратить риск мог только последний шаг траектории) — пара
 `hrisk : M.risk s = rs + riskRem`, `hrisk' : M.risk s' = riskRem`
 со СВОБОДНЫМ параметром `riskRem` (нулевой остаток — частный
 случай `riskRem := 0`; неотрицательность остатка — явная посылка

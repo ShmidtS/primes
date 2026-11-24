@@ -10,10 +10,8 @@ import Hagi.Runtime.TernaryExact
 /-!
 # CEGroupedScale — the grouped dyadic-scale canon
 
-Merged here (v5 W1): `Hagi.Model.CEGroupedScaleBasic`
-(`featureAbsSum` leaf; the import-cost split is reverted as a
-known cost accepted by plan v5), and `Hagi.Model.CEScaleSelection`
-(packed-step payload section).  Namespaces unchanged.
+Includes the `featureAbsSum` leaf and the packed-step payload
+section.  Namespaces unchanged.
 -/
 
 /-!
@@ -317,10 +315,7 @@ end Hagi.Model.CEScaleSelection
 # Feature absolute mass leaf
 
 The single Mathlib-only definition `featureAbsSum` that the batch
-descent common part consumes.  Split out of `Hagi.Model.CEGroupedScale`
- so that the descent import path does not pay for the grouped
-scale stack; the namespace is continued here, so the fully-qualified
-name is unchanged.
+descent common part consumes.
 -/
 
 set_option relaxedAutoImplicit false
@@ -346,8 +341,7 @@ local score uses the same raw baseline.  Their sum is a certified upper
 bound for one actual joint update, not an exact global observed error and
 not the minimum of true cross-entropy.
 
-The finite selector follows `Model/CEScaleSelection.lean`; the two error
-views adapt `Model/CEQuantized.lean` to disjoint blocks.  Reindexing uses
+The two error views adapt `Model/CEQuantized.lean` to disjoint blocks.  Reindexing uses
 Mathlib's verified `finProdFinEquiv` (`Logic/Equiv/Fin/Basic.lean`) and
 `Equiv.sum_comp`.  `localEvaluationCount` counts mathematical score
 calls, not FLOPs or time; `groupPayloadBits` counts the logical fixed-width
@@ -473,7 +467,7 @@ noncomputable def blockWeights {G : ℕ}
     (w : EuclideanSpace ℝ (Fin (5 * G))) (g : Fin G) : Fin 5 → ℝ :=
   fun i => w.ofLp (e (g, i))
 
-/- `featureAbsSum` moved to `Hagi.Model.CEGroupedScaleBasic` (same
+/- `featureAbsSum` is defined in the leaf section above (same
 namespace). -/
 
 /-- Twice the actual sum of absolute logit changes of one block. -/
@@ -996,7 +990,7 @@ theorem blockParameters_one_eq_ternaryCEParameters
   rw [blockParameters_own, canonicalBlockEquiv_one_apply]
   rfl
 
-/-- The known code fixes the actual Cycle82/83 raw successor on the
+/-- The known code fixes the actual raw successor on the
 one-block witness. -/
 theorem ceQuantWitness_blockParameters_knownSample (g : Fin 1) :
     blockParameters (canonicalBlockEquiv 1) CEPackedStep.rawSuccessor g
@@ -1092,7 +1086,7 @@ theorem ceQuantWitness_decoded_packedBlock_strict_descent :
   · exact ceQuantWitness_selectedGroupScales_strict_descent
 
 
-/-! ## Computable per-block scale selector (TD A5-R5-C241)
+/-! ## Computable per-block scale selector
 
 The executable counterpart of `selectedGroupScales`: an explicit
 `List.foldl` argmin over all 255 dyadic codes, seeded at
@@ -1134,9 +1128,7 @@ theorem foldl_argmin_inv (f : Hagi.Runtime.DyadicScaleCode → ℝ)
 
 open Classical in
 /-- The executable per-block scale selector: an explicit foldl argmin
-over all 255 dyadic codes, seeded at `knownSampleScale`.  Empirical
-backing (A8 F5, Class-D): 2.64x better than L2 rounding via the
-dynamic scale selection this selector makes evaluable as data. -/
+over all 255 dyadic codes, seeded at `knownSampleScale`. -/
 noncomputable def selectedGroupScalesExec {G : ℕ} {V : Type} [Fintype V]
     (e : (Fin G × Fin 5) ≃ Fin (5 * G)) (X : Matrix V (Fin (5 * G)) ℝ)
     (w : EuclideanSpace ℝ (Fin (5 * G))) (g : Fin G) :

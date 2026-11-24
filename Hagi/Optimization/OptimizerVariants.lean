@@ -413,7 +413,7 @@ end Hagi.Optimization.Lookahead
 u'_i = u_i, если 0 < u_i·g_i; иначе 0.
 
 Формализуем честные свойства:
-1. `cautiousNorm_le`: маскирование НЕ увеличивает норму
+1. `cautiousMask_abs_le`: маскирование НЕ увеличивает норму
    (‖u'‖ ≤ ‖u‖ — отбрасывание компонент сжимает);
 2. `cautiousAligned`: выжившие компоненты согласованы со
    знаком градиента (u'_i·g_i ≥ 0);
@@ -480,7 +480,7 @@ probability ratio (r ≥ 0), A — advantage. Клип удерживает
 - `ppoClip_le_upper/lower`: клипнутый ratio в [lb, ub];
 - `ppoClip_mono`: клип монотонен по r;
 - `ppoClip_fixed`: lb ≤ r ≤ ub ⟹ клип тождествен;
-- `ppo_clip_term_bound`: |clip(r,1−ε,1+ε)·A| ≤ (1+ε)·|A|;
+- `ppo_clip_term_abs_bound`: |clip(r,1−ε,1+ε)·A| ≤ (1+ε)·|A|;
 - `ppo_surr_upper_bound`: L ≤ (1+ε)·|A| — клипнутый
   surrogate ОГРАНИЧЕН СВЕРХУ независимо от r: обновление
   политики не может дать неограниченный выигрыш

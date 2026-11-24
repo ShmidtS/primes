@@ -27,12 +27,11 @@ READ-ONLY: `C:\HAGI_v2\hagi\mdl.py`, 185 строк; интеграция —
 (`apply_prune`, :159-184 — любая неудача АБОРТИРУЕТ prune).
 
 СОСТАВНАЯ теорема `mdl_prune_cycle_sound` СОЕДИНЯЕТ четыре
-существующих обоснования (THEORY_ALIGNMENT.md), не пере-доказывая
-их:
+существующих обоснований, не пере-доказывая их:
 
 * (a) objective (Lpred + λ·Lcode) не растёт на каждом шаге
   prune — из `Hagi.Step.J3_nonincreasing` (обобщение
-  `mdlObjective_nonincreasing`, цикл 33 сверки) + посылки
+  `mdlObjective_nonincreasing`) + посылки
   «дубликаты не добавляют покрытия» (сертифицированная карта
   _certified_map, hagi/mdl.py:54-64: удалённый дубликат
   идентичен kept-копии на всём certified domain);
@@ -45,15 +44,15 @@ READ-ONLY: `C:\HAGI_v2\hagi\mdl.py`, 185 строк; интеграция —
   (hagi/mdl.py:7-8) удерживает их в pruned-библиотеке;
 * (merge) код-стоимость/риск merge-пере-кодирования аддитивны,
   компаундинга нет — `Hagi.Ensemble.merged_bound` +
-  `deltaCost_concat` (MergePrice, ATTACK_VECTOR §2);
+  `deltaCost_concat` (MergePrice);
 * (контрабаланс) pruned-библиотека остаётся в cheap-switching
   режиме — `Hagi.Budget.switching_never_exceeds_dense`
   (FlopsEconomy; ЧЕСТНЫЙ ПИН: теоремы amortized_growth_cheaper
-  не существует — это label в docstring JointCost.lean:228;
+  не существует — это label в docstring `Hagi.Budget.JointCost`;
   формальное содержание контрабаланса — switching-режим);
 * (d) завершаемость — строгая убыль card на каждом erase-шаге
   над конечной библиотекой ⇒ бесконечный prune-цикл невозможен
-  (паттерн `adopt_chain_terminates`, SelfEdit.lean:134;
+  (паттерн `adopt_chain_terminates`, SelfEdit.lean;
   Theory→Theory импорт запрещён LayerLint — переиспользован
   паттерн, не импорт).
 
@@ -94,8 +93,8 @@ def libCodeCost (bits : N → ℝ) (s : Library N) : ℝ :=
 
 /-- MDL-цель библиотеки: Lpred + λ·Lcode (предсказательная
 потеря + λ-взвешенная длина описания). source:
-THEORY_ALIGNMENT.md:620-623 (цикл 33 сверки,
-mdlObjective_nonincreasing; J(θ) = L_pred(θ) + λ·L_code(θ)),
+`mdlObjective_nonincreasing` из MDLThreeCurrency;
+J(θ) = L_pred(θ) + λ·L_code(θ)),
 эмпирический факт механизма — MDL-prune 1285→864 экспертов. -/
 def libObjective (Lpred : Library N → ℝ) (bits : N → ℝ)
     (lam : ℝ) (s : Library N) : ℝ :=
@@ -158,7 +157,7 @@ theorem prune_negative_experts_improve_sum {M : ℕ} (g : Fin M → ℝ)
 
 /-- СОСТАВНАЯ НОГА (a): MDL-цель (Lpred + λ·Lcode) НЕ РАСТЁТ на
 шаге prune — композиция `Hagi.Step.J3_nonincreasing` (λ_R = 0
-случай; обобщение `mdlObjective_nonincreasing` цикла 33).
+случай; обобщение `mdlObjective_nonincreasing`).
 Посылка `hdup` — «дубликаты не добавляют покрытия»: удаляемый
 эксперт сертифицированно идентичен kept-копии на всём certified
 domain (source: hagi/mdl.py:54-64 _certified_map —
@@ -253,7 +252,7 @@ card + r ≤ d, её активная per-token стоимость не прев
 плотного эксперта d² — композиция `Hagi.Budget.
 switching_never_exceeds_dense` (JointCost/FlopsEconomy).
 ЧЕСТНЫЙ ПИН: теоремы amortized_growth_cheaper НЕ существует —
-это label docstring'а JointCost.lean:228; формальное содержание
+это label docstring'а `Hagi.Budget.JointCost`; формальное содержание
 контрабаланса MDL-prune против роста — switching-режим.
 source: hagi/mdl.py (prune держит библиотеку малой против
 grow-цикла rewrite.py:294-310). -/
@@ -269,7 +268,7 @@ theorem pruned_switching_le_dense (r d : ℕ) {s : Library N}
 hagi/mdl.py:129-138), поэтому card строго убывает; строго
 убывающая ℕ-цепочка ограничена card начальной библиотеки ⇒
 бесконечный prune-цикл НЕВОЗМОЖЕН. Паттерн
-`adopt_chain_terminates` (SelfEdit.lean:134: строгий
+`adopt_chain_terminates` (SelfEdit.lean: строгий
 gain/убыль + конечность ⇒ нет бесконечной цепочки; здесь
 ℕ-индукция вместо Fintype.card-противоречия, Theory→Theory
 импорт запрещён LayerLint). -/
@@ -304,7 +303,7 @@ source: hagi/mdl.py:54-64, :98-99) с положительной
 * (a) MDL-цель Lpred + λ·Lcode НЕ РАСТЁТ на каждом шаге —
   нога `prune_step_objective_nonincreasing` (композиция
   `J3_nonincreasing` = обобщение `mdlObjective_nonincreasing`,
-  MDLThreeCurrency, цикл 33 сверки);
+  MDLThreeCurrency);
 * (a′) код-стоимость СТРОГО убывает (keep-shortest-AST);
 * (d) card строго убывает ⇒ завершаемость
   (`prune_chain_terminates`, паттерн).

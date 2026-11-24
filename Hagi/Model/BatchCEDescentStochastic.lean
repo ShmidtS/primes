@@ -8,7 +8,7 @@ import Hagi.Model.CEGroupedScale
 /-!
 # BatchCEDescentStochastic
 
- stochastic minibatch R'-step (A8 F3): `stochasticStepDraw`, expected descent, and feature-norm budgets.
+ stochastic minibatch R'-step: `stochasticStepDraw`, expected descent, and feature-norm budgets.
 -/
 
 set_option relaxedAutoImplicit false
@@ -23,7 +23,7 @@ open Hagi.Probability
 
 
 
-/-! ## stochastic minibatch R'-step (A8 F3)
+/-! ## stochastic minibatch R'-step
 
 One inverse-propensity stochastic minibatch step along the raw CE
 residual-gradient draw, with an honest expected-descent theorem: the

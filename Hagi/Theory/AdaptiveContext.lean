@@ -6,7 +6,7 @@ import Hagi.Theory.RangeWrap
 set_option relaxedAutoImplicit false
 
 /-!
-# AdaptiveContext — Occam-выбор окна контекста (wave214)
+# AdaptiveContext — Occam-выбор окна контекста
 
 Мост к HAGI_v2 `lm.AdaptiveContextSelector` (hagi/lm.py, класс с
 тем же именем): модель выбирает размер собственного контекста на
@@ -18,8 +18,8 @@ w_choices); выбирается НАИМЕНЬШИЙ W, чей измеренн
 measured benefit» (формализация Occam-выбора окна). Полная
 история остаётся у вызывающего: unbounded SOURCE, bounded compute.
 
-Fresh-minimal инвариант (KISS, 3 теоремы): выбор = первый элемент
-отсортированного списка кандидатов, прошедший порог. Аддитивный
+Модель: выбор = первый элемент отсортированного списка
+кандидатов, прошедший порог. Аддитивный
 эпсилон исходника опущен честно (strict-margin комментарий в
 research); fallback-ветка (нет подходящего W) моделируется none.
 
@@ -29,7 +29,7 @@ research); fallback-ветка (нет подходящего W) моделир�
   меньший кандидат порог не проходит (минимальное окно);
 - `selectW_budget_bound` — выбранный W ограничен максимумом списка
   (bounded compute: не более maxW окон по k байт независимо от
-  длины источника — certified saving, связь с patch_attn_saving).
+  длины источника).
 -/
 
 namespace Hagi.Theory.AdaptiveContext
@@ -97,7 +97,7 @@ theorem selectW_occam_minimal (w : ℕ) : ∀ ws, List.Pairwise (· < ·) ws →
 /-- **Бюджет вычислений**: выбранное окно не превосходит максимума
 списка кандидатов — инференс агрегирует не более maxW окон по k
 байт независимо от длины источника (unbounded source, bounded
-compute; certified saving окон относительно максимума). -/
+compute). -/
 theorem selectW_budget_bound (w : ℕ) : ∀ ws, selectW tol ce best ws = some w →
     w ≤ ws.foldr max 0 := by
   intro ws hsel

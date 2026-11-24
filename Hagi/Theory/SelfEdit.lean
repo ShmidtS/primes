@@ -10,12 +10,11 @@ set_option linter.unusedDecidableInType false
 set_option linter.unusedFintypeInType false
 
 /-!
-# SelfEdit — the adopt-gate / knob canon (→)
+# SelfEdit — the adopt-gate / knob canon
 
 One canonical module for the self-edit loop family; each concept
 is described ONCE here. The two sections keep their historical
-namespaces, so every fully-qualified name is stable (Continual.lean
-precedent, v4 T1).
+namespaces, so every fully-qualified name is stable.
 
 * The adopt gate (`Hagi.Theory.SelfEditGate`): a self-edit patch is
   adopted only if its score strictly improves — a strict-monotone
@@ -228,23 +227,21 @@ open Hagi.Theory.SelfEditGate
 /-! ### cfg-формула momentum-ручки -/
 
 /-- Параметр momentum-ручки: ρ ∈ (0,1). Семантика по cfg-формуле
-(THEORY_ALIGNMENT.md:856-861, Цикл 11): momentum-ручка задаётся ОДНИМ
+(cfg-формула Heavy Ball): momentum-ручка задаётся ОДНИМ
 скаляром ρ, из которого выводятся оба heavy-ball параметра. -/
 abbrev Rho := ℝ
 
 /-- Heavy-ball коэффициент инерции из ρ: β = ρ².
-source: THEORY_ALIGNMENT.md:856-861 (cfg_stability/cfg_descent:
-(β,η) = (ρ²,(1−ρ)²)); волна 62 (THEORY_ALIGNMENT.md:1119-1127):
+source: cfg_stability/cfg_descent: (β,η) = (ρ²,(1−ρ)²);
 β = ρ² держит характеристику на границе стабильности. -/
 def betaOf (ρ : Rho) : ℝ := ρ ^ 2
 
 /-- Шаг обучения из ρ: η = (1−ρ)².
-source: THEORY_ALIGNMENT.md:856-861 (cfg-формула; ημ = (1−ρ)² —
-нижняя граница интервала, волна 62). -/
+source: cfg-формула; ημ = (1−ρ)² — нижняя граница интервала. -/
 def etaOf (ρ : Rho) : ℝ := (1 - ρ) ^ 2
 
 /-- cfg-параметризация валидна при ρ ∈ (0,1): β ∈ (0,1) и η ∈ (0,1)
-(условие чисерной валидации Цикла 11: ρ∈{0.3,0.5,0.7,0.9} ⊂ (0,1)). -/
+(численная валидация: ρ∈{0.3,0.5,0.7,0.9} ⊂ (0,1)). -/
 theorem beta_eta_mem_Ioo (ρ : Rho) (h0 : 0 < ρ) (h1 : ρ < 1) :
     betaOf ρ ∈ Set.Ioo 0 1 ∧ etaOf ρ ∈ Set.Ioo (0 : ℝ) 1 := by
   unfold betaOf etaOf
@@ -279,7 +276,7 @@ theorem vel_const (β c : ℝ) (hβ : β ≠ 1) (g : ℕ → ℝ) (h : ∀ i, g 
 постоянном положительном сигнале c > 0 и инерции β ∈ (0,1) скорость
 momentum в каждый момент НЕ МЕНЬШЕ чистого шага: v_t ≥ c. Momentum
 накапливает согласованный сигнал, а не просто реагирует на последний.
-source-семантика: THEORY_ALIGNMENT.md:856-861 — cfg-настройка
+source-семантика: cfg-настройка
 (β,η)=(ρ²,(1−ρ)²) «даёт строгий спуск» именно за счёт накопления. -/
 theorem momentum_monotone_follows {β c : ℝ} (hβ0 : 0 < β) (hβ1 : β < 1)
     (hc : 0 < c) {g : ℕ → ℝ} (h : ∀ i, g i = c) (t : ℕ) :
@@ -386,9 +383,9 @@ theorem momentum_adopt_gated (f : ℕ → Config κ V) (h : MomentumChain score 
   rw [hf]
   exact hg
 
-/-- МОСТ К в конечном knob-space бесконечная цепочка принятых
+/-- МОСТ К ТЕРМИНАЦИИ: в конечном knob-space бесконечная цепочка принятых
 momentum-патчей НЕВОЗМОЖНА — прямое следствие `adopt_chain_terminates`
-(SelfEditGate.lean:139). Momentum-динамика не расширяет пространство
+(SelfEditGate). Momentum-динамика не расширяет пространство
 принятий: сколько бы скорость ни накапливала сигнал, принятия идут
 только через строгий certify-гейт, и их число конечно. -/
 theorem momentum_chain_terminates [Fintype κ] [Fintype V]

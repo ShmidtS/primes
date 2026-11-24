@@ -6,7 +6,7 @@ import Hagi.Theory.AdaptiveContext
 set_option relaxedAutoImplicit false
 
 /-!
-# CoverageReading — полное чтение входа окнами (wave228)
+# CoverageReading — полное чтение входа окнами
 
 Мост к HAGI_v2 `CertifiedStepLM._read_all_windows` (hagi/lm.py,
 commit b7f7f64): промпт читается ЦЕЛИКОМ скользящими окнами — окно k,
@@ -20,7 +20,7 @@ generate_auto агрегирует logits по ВСЕМ окнам.
 иначе головные окна (включая окно 0) отбрасываются, и байт 0
 остаётся непрочитанным — формализуем это как негативную теорему.
 
-Fresh-minimal инвариант (KISS, 2 теоремы): список стартов окон как
+Ядро (две теоремы): список стартов окон как
 чистая функция (covStarts), побайтовое покрытие интервала [s, s+k),
 усечение drop (len - m) как точный аналог среза [-m:]. Частичное
 падди-представление окна опущено честно: покрытие описано по
@@ -125,7 +125,7 @@ private theorem covStarts_tail_pos (n k : ℕ) (hk : 0 < k) :
 /-- **Граница max_span**: если стартов больше m, усечение до
 последних m (срез windows[-m:] = drop (len - m)) удаляет старт 0,
 и байт 0 не покрыт ни одним оставшимся окном. Честная граница
-заявления wave228 «every byte read, ≤64 windows»: при числе окон
+заявления «every byte read, ≤64 windows»: при числе окон
 больше max_span полное чтение НЕ гарантируется — дыра в голове. -/
 theorem covStarts_trunc_uncovered_zero (n k m : ℕ) (hk : 0 < k)
     (hbig : m < (covStarts n k).length) :
@@ -223,7 +223,7 @@ theorem covStartsStep_len_le (n w s : ℕ) (_hs : 0 < s) (hw : w < n) :
     List.length_map, List.length_range]
   by_cases hd : s ∣ n - w <;> simp [hd]
 
-/-- **Замыкание негатива **: адаптивный шаг s (0 < s ≤ w,
+/-- **Замыкание негатива**: адаптивный шаг s (0 < s ≤ w,
 бюджет (n−w)/s + 2 ≤ m) даёт ПОЛНОЕ покрытие [0, n) окнами
 длины w И число окон ≤ m — усечение windows[-max_span:]
 не срабатывает, старт 0 (и каждый байт) остаётся прочитанным.
@@ -274,8 +274,7 @@ def hierStarts (n B w s : ℕ) : List ℕ :=
   (((List.range ((n + B - 1) / B)).map (fun j =>
     ((covStartsStep (hierBlockLen n B j) w s).map (fun t => j * B + t)))).flatten)
 
-/-- **Иерархическое покрытие ЛЮБОГО n** (снятие INFEASIBLE-границы
-): без верхней границы на n старты hierStarts покрывают
+/-- **Иерархическое покрытие ЛЮБОГО n**: без верхней границы на n старты hierStarts покрывают
 каждый байт i < n окном [t, t + w) при 0 < s ≤ w и 0 < B —
 байты блока j = i/B покрываются окнами этого блока
 (covStartsStep_covers поблочно), число блоков ⌈n/B⌉ не
@@ -337,10 +336,9 @@ theorem hier_peak_window_budget (n B w s m : ℕ) (hs : 0 < s) (hsw : s ≤ w)
 /-!
 ## оптимальность B — TOTAL окон иерархии
 
- честно разделил peak (≤ m окон на блок, streaming) и total
-(⌈n/B⌉·(≤ m), растёт с n). Здесь закрывается вопрос: минимизирует ли выбор s = w,
-B = w·(m−1) суммарное число
-окон при ограничении peak ≤ m. Ответ: при s = w и w ∣ B total
+Peak ≠ total: peak ≤ m окон на блок (streaming), total =
+⌈n/B⌉·(≤ m) растёт с n. Здесь закрывается вопрос: минимизирует ли выбор s = w,
+B = w·(m−1) суммарное число окон при ограничении peak ≤ m. Ответ: при s = w и w ∣ B total
 равен ⌈n/w⌉ — ИНФОРМАЦИОННОМУ МИНИМУМУ (k окон длины w покрывают
 не более k·w байтов) — и НЕ зависит от B: внутреннего оптимума
 B* нет, выбор certified (любое B, кратное w, в допустимой
@@ -528,7 +526,7 @@ theorem hier_total_floor (L : List ℕ) (w n : ℕ) (hw : 0 < w)
 при s = w и w ∣ B иерархическое чтение даёт total ровно ⌈n/w⌉ —
 информационный минимум из `hier_total_floor`: никакое покрытие
 [0, n) окнами длины w не использует меньше ⌈n/w⌉ окон. Выбор
- (s = w, B = w·(m−1)) certified: внутреннего оптимума B нет —
+(s = w, B = w·(m−1)) certified: внутреннего оптимума B нет —
 total одинаков для любого допустимого B, кратного w. -/
 theorem hier_optimal (n B w : ℕ) (hw : 0 < w) (hB : 0 < B) (hdiv : w ∣ B) :
     (hierStarts n B w w).length = (n + w - 1) / w ∧
@@ -605,9 +603,9 @@ theorem windowCost_linear_near_const (n w1 w2 : ℕ) (hw1 : 0 < w1) (hw2 : 0 < w
   obtain ⟨hle1', hle2'⟩ := windowCost_linear_bounds n w2 hw2
   omega
 
-/-- **Мост к иерархическому чтению **: totalCost(w) в модели
+/-- **Мост к иерархическому чтению**: totalCost(w) в модели
 равен c·(hierStarts n B w w).length — стоимости реального
-полного чтения (total = ⌈n/w⌉ при w ∣ B, делегат `hier_total_min`
+полного чтения (total = ⌈n/w⌉ при w ∣ B, делегат `hier_total_min`;
 иерархия ДОСТИГАЕТ информационного минимума чтений, на
 котором стоит вся модель стоимости этого файла). -/
 theorem windowCost_hier (n B w c : ℕ) (hw : 0 < w) (hB : 0 < B) (hdiv : w ∣ B) :
@@ -708,7 +706,7 @@ gather_all (hagi/lm.py:738-755 @b3740e0: `raw[pos-len .. pos-1]`,
 recency-вес `−lam·(L−1−j)` равен нулю именно на нём. -/
 def slot (k p : ℕ) : Fin k → ℕ := fun j => p + j
 
-/-- Reversed-окно (wave 258 bug, unified.py:297-318 @b3740e0): тот же
+/-- Reversed-окно (баг unified.py:297-318 @b3740e0): тот же
 набор позиций, но слоты идут от НОВОГО к СТАРОМУ: слот `j` держит
 `p + (k − 1 − j)`. -/
 def slotRev (k p : ℕ) : Fin k → ℕ := fun j => p + (k - 1 - j)
@@ -736,7 +734,7 @@ theorem slotRev_first {k p : ℕ} (hk : 0 < k) :
   simp only [slotRev]; omega
 
 /-- Слот-функция окна generation-пути (hagi/lm.py:1041-1054
-@bab8aff, wave 258b): хвост промпта длины `n ≤ k` дополнен СЛЕВА
+ @bab8aff): хвост промпта длины `n ≤ k` дополнен СЛЕВА
 `k − n` паддингами до одной ширины `k`; слоты старше паддинга держат
 позиции `p + (j − (k − n))`. До bab8aff — `ctx[j:i][::-1]`, т.е.
 `slotRev`. -/

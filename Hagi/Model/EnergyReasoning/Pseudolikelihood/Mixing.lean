@@ -20,7 +20,7 @@ set_option linter.style.header false
 /-!
 # Doeblin mixing bound for the heat-bath kernel
 
-Track A8 (E-track audit, addendum A11 context): the Doeblin contraction
+The Doeblin contraction
 route — re-derived in main from first principles (the quarantined
 `Hagi.Research.PPT` module carries the same math for a toy `Seq`
 carrier behind the quarantine boundary; it is NOT imported here).
@@ -29,32 +29,32 @@ carrier behind the quarantine boundary; it is NOT imported here).
   every kernel entry `≥ c`.
 * `vecMul` / `hbChain` — one-step pushforward and the n-step chain of a
   finite kernel.
-* `tv_pair_contraction` — (A8 MAIN, first principles) any two mass
+* `tv_pair_contraction` — (first principles) any two mass
   vectors of EQUAL total mass contract under a row-stochastic kernel
   with entry floor `c`: `TV(μK, νK) ≤ (1 − |S|·c)·TV(μ, ν)`. Elementary
   splitting of the signed difference `μ − ν` into positive/negative
   parts; the pair form needs NO stationarity (stationarity enters only
   through the corollaries `tv_contraction_stationary_sharp` /
-  `tv_contraction_stationary` — the audit-text `(1 − c)` weak form).
+  `tv_contraction_stationary` — the `(1 − c)` weak form).
 * `heatbathWeight_floor` — field-spread premise: if all local-field
   differences at a cell are within `M`, then every heat-bath weight is
   `≥ exp(−M/T)/card α` (each softmax exponent is within `M/T` of the
   best one).
-* `heatbath_doeblin_floor` — (A8 MAIN, premise-form) under the
+* `heatbath_doeblin_floor` — (premise-form) under the
   field-spread bound and the SUPPORT premise (every target `z` is a
   single-cell move — unconditionally true when `ι` is a subsingleton,
   see `heatbath_doeblin_floor_subsingleton`), the heat-bath kernel is
   `doeblinMinorized` with `c = exp(−M/T)/card α`.
 * `stationaryDensity` — the normalized Boltzmann density; stationary
   for the heat-bath kernel (from `heatbath_stationary` by linearity).
-* `heatbath_tv_contraction` — (A8 MAIN) Doeblin premise on the
+* `heatbath_tv_contraction` — Doeblin premise on the
   heat-bath kernel ⇒ `TV(μK, π̂) ≤ (1 − c)·TV(μ, π̂)` (sharp constant
   `(1 − |ι→α|·c)` in `heatbath_tv_contraction_sharp`).
-* `heatbath_mixing` / `heatbath_mixing_time` — (A8 MAIN) geometric
+* `heatbath_mixing` / `heatbath_mixing_time` — geometric
   mixing `TV(μKⁿ, π̂) ≤ (1 − c)ⁿ`, and the explicit mixing-time
   corollary: `n ≥ log e / log(1 − c)` steps suffice for `TV ≤ e`.
 
-## Honest boundaries (A8 scope)
+## Honest boundaries
 
 * The entrywise floor is a PREMISE for the unconditional single-cell
   kernel: for `card ι ≥ 2` the off-support entries are exactly ZERO,
@@ -62,7 +62,7 @@ carrier behind the quarantine boundary; it is NOT imported here).
   scan mixture, or `card ι ≤ 1`). The floor premise subsumes
   irreducibility and aperiodicity — those are NOT claimed for the
   unconditional kernel (names `heatbath_irreducible` /
-  `heatbath_aperiodic` are RootApi negative pins).
+  `heatbath_aperiodic` are nonexistent).
 * The focused (state-dependent) mixture is OUT of scope: showed
   the INVARIANCE premise can fail; only the plain single-cell
   heat-bath kernel is treated.
@@ -150,7 +150,7 @@ theorem hbChain_nonneg (K : S → S → ℝ) (hnn : ∀ x y, 0 ≤ K x y)
         exact vecMul_nonneg K hnn _ ih y
   exact key n y
 
-/-- (A8 MAIN, first principles) One-step Doeblin PAIR contraction: for
+/-- (first principles) One-step Doeblin PAIR contraction: for
 any row-stochastic kernel with entry floor `c` and any two mass
 vectors of EQUAL total mass, `TV(μK, νK) ≤ (1 − |S|·c)·TV(μ, ν)`.
 Elementary proof: split the signed difference `μ − ν` into its
@@ -159,7 +159,7 @@ the kernel stays `≥ c·δ` pointwise (`δ = Σ_A (μ − ν)` is the TV
 value); the identity `|P − Q| = P + Q − 2·min(P, Q)` then shrinks the
 total mass `2δ` by `2·|S|·c·δ`. No stationarity and no nonnegativity
 of `μ`, `ν` is needed — only equal total mass. The constant
-`1 − |S|·c` is sharp; the audit-text `1 − c` is the weak corollary
+`1 − |S|·c` is sharp; `1 − c` is the weak corollary
 below. -/
 theorem tv_pair_contraction (K : S → S → ℝ) (hrow : ∀ x, ∑ y, K x y = 1)
     (c : ℝ) (hc : ∀ x y, c ≤ K x y) (mu nu : S → ℝ)
@@ -299,7 +299,7 @@ theorem tv_pair_contraction (K : S → S → ℝ) (hrow : ∀ x, ∑ y, K x y = 
     _ = (1 - (Fintype.card S : ℝ) * c) * ((∑ y, |mu y - nu y|) / 2) := by
         rw [hL1d]; ring
 
-/-- (A8 MAIN) One-step contraction TO A STATIONARY measure (sharp
+/-- One-step contraction TO A STATIONARY measure (sharp
 constant): if `π` is stationary for a row-stochastic kernel with
 entry floor `c`, then `TV(μK, π) ≤ (1 − |S|·c)·TV(μ, π)` for any `μ`
 with the same total mass as `π`. -/
@@ -323,7 +323,7 @@ theorem one_le_card_fin (S : Type*) [Fintype S] [Nonempty S] :
   rw [← Nat.cast_one, Nat.cast_le]
   exact Finset.one_le_card.2 ⟨a, Finset.mem_univ a⟩
 
-/-- One-step contraction to a stationary measure, audit-text weak
+/-- One-step contraction to a stationary measure, weak
 constant: `TV(μK, π) ≤ (1 − c)·TV(μ, π)` (the sharp constant is
 `(1 − |S|·c)`, see `tv_contraction_stationary_sharp`; `0 ≤ c` and
 nonemptiness make the weak form a corollary). -/
@@ -428,7 +428,7 @@ theorem heatbathWeight_floor (B : ι → α → ℝ) (K : ι → ι → α → �
   rw [div_le_div_iff₀ hcardpos hZpos]
   linarith
 
-/-- (A8 MAIN, premise-form) Doeblin floor for the heat-bath kernel:
+/-- (premise-form) Doeblin floor for the heat-bath kernel:
 under the field-spread bound `hM` at cell `i`, temperature `T > 0`,
 and the SUPPORT premise `hsupp` (every target `z` agrees with the
 source `y` off cell `i` — i.e. every transition is a single-cell
@@ -525,8 +525,8 @@ theorem stationaryDensity_stationary (B : ι → α → ℝ)
     rw [div_mul_eq_mul_div]
   rw [Finset.sum_congr rfl fun y _ => hsplit y, ← Finset.sum_div, hstat]
 
-/-- (A8 MAIN) One-step TV contraction for the heat-bath kernel,
-audit-text weak constant: IF the kernel is Doeblin-minorized with
+/-- One-step TV contraction for the heat-bath kernel,
+weak constant: IF the kernel is Doeblin-minorized with
 floor `c` (a PREMISE — see `heatbath_doeblin_floor` for when it
 holds), THEN `TV(μK, π̂) ≤ (1 − c)·TV(μ, π̂)` for every probability
 vector `μ`, with `π̂` the normalized Boltzmann density. -/
@@ -543,8 +543,8 @@ theorem heatbath_tv_contraction (B : ι → α → ℝ)
     (stationaryDensity_stationary B K hK hT i) mu
     (by rw [hmu, stationaryDensity_sum_one])
 
-/-- (A8 MAIN) One-step TV contraction for the heat-bath kernel, SHARP
-constant `1 − |ι→α|·c` (the audit-text `1 − c` form is
+/-- One-step TV contraction for the heat-bath kernel, SHARP
+constant `1 − |ι→α|·c` (the `1 − c` form is
 `heatbath_tv_contraction`; the row sums force `c ≤ 1/|ι→α|`, so the
 sharp constant is the larger contraction rate). -/
 theorem heatbath_tv_contraction_sharp (B : ι → α → ℝ)
@@ -561,7 +561,7 @@ theorem heatbath_tv_contraction_sharp (B : ι → α → ℝ)
     (stationaryDensity_stationary B K hK hT i) mu
     (by rw [hmu, stationaryDensity_sum_one])
 
-/-- (A8 MAIN) Geometric mixing: under the Doeblin premise, the n-step
+/-- Geometric mixing: under the Doeblin premise, the n-step
 heat-bath chain from ANY start distribution `μ` satisfies
 `TV(μKⁿ, π̂) ≤ (1 − c)ⁿ`. The chain stays a probability vector
 (`hbChain_sum` / `hbChain_nonneg`) and `TV(μ, π̂) ≤ 1`
@@ -619,7 +619,7 @@ theorem heatbath_mixing (B : ι → α → ℝ)
             mul_le_mul_of_nonneg_left ih hc1
         _ = (1 - c) ^ (n + 1) := by rw [pow_succ]; ring
 
-/-- (A8 MAIN) Mixing-time corollary: under the Doeblin premise with
+/-- Mixing-time corollary: under the Doeblin premise with
 `c < 1`, after `n ≥ log e / log (1 − c)` steps the chain is within
 `e` (any `e > 0`) of the stationary density in TV. Route: the
 geometric bound `heatbath_mixing` plus `exp (n · log (1 − c)) ≤ e`
@@ -714,44 +714,42 @@ set_option linter.style.header false
 /-!
 # Greedy finite termination and the focused-policy invariance audit
 
-Track P1-remainder (addendum A11): the two honest closures of the
+The two honest closures of the
 greedy single-cell search story on a FINITE configuration space.
 
-* `greedy_strict_search_terminates` — (A6 MAIN) on a finite space a
+* `greedy_strict_search_terminates` — on a finite space a
   strictly-improving trajectory cannot be long: a list of
   configurations along which the energy `H` strictly decreases at
   every pair has length at most the number of DISTINCT energy values
   `Fintype.card (Set.image H univ)` (the ranking bound: an infinite
   strictly-descending chain would produce arbitrarily long such
   lists). No rate or complexity claim is made.
-* `greedy_search_terminal_is_coordinate_minimum` — (A6 MAIN) a
+* `greedy_search_terminal_is_coordinate_minimum` — a
   terminal state of strict-improvement greedy search — one where NO
   single-cell move has a positive local-field margin — is a
   COORDINATE minimum (`IsCoordinateMinimum` reused verbatim).
 * `focusedDisagreementWeight` — the PRACTICAL focused selection rule
-  of A9-supplement §E4: cell `i` is weighted by its OWN disagreement
+  of the focused search policy: cell `i` is weighted by its OWN disagreement
   `Σ_a max 0 (L_i(y_i) − L_i(a))` (state-dependent through y_i itself).
-* `concrete_focus_policy_violates_invariance` — (A7 MAIN, NEGATIVE
+* `concrete_focus_policy_violates_invariance` — (NEGATIVE
   witness) the disagreement weight CHANGES under a move of its own
   cell (fixture: `3 → 0`), so the INVARIANCE premise
   `w(y^{i←a})_i = w(y)_i` of `focused_mixture_stationary` FAILS for
   this policy: stationarity of the practical focused sampler is NOT
   certified — premise-form only.
 
-## Honest boundaries (A11 'not to adopt')
+## Honest boundaries
 
 * COORDINATE MINIMUM ≠ GLOBAL MINIMUM ≠ VALID SOLUTION: the terminal
   state of greedy search is only a coordinate minimum (ties allowed;
   witness in `Hagi.Energy.SingleCellDescent`: coordinate-min state
-  that is not global); energy says nothing about constraints (E4
-  separation in `EnergyStop`).
+  that is not global); energy says nothing about constraints (see
+  `EnergyStop`).
 * The termination bound is a LIST bound on a finite type; no
   measure-theoretic packaging, no mixing-time, no convergence rate.
-* A7 is a NEGATIVE result by design: it closes the audit question of
-  A11 ("focused-policy invariance check — likely VIOLATES") with a
-  concrete witness; it does NOT define an alternative invariant
-  policy (a y-minus-i-measurable rule would satisfy the premise —
-  that is policy design, out of scope).
+* The negative result closes the invariance question with a concrete
+  witness; it does NOT define an alternative invariant policy (a
+  y-minus-i-measurable rule would satisfy the premise).
 -/
 
 namespace Hagi.Model.EnergyReasoning
@@ -780,7 +778,7 @@ private theorem nodup_map_energy_of_pairwise {H : γ → ℝ} {l : List γ}
     rw [List.map_cons, List.nodup_cons]
     exact ⟨fun hmem => absurd (hlt (H x) hmem) (lt_irrefl (H x)), hnod⟩
 
-/-- (A6 MAIN) Greedy finite termination: on a FINITE configuration
+/-- Greedy finite termination: on a FINITE configuration
 space, a strictly-improving trajectory (a list of configurations
 whose energy `H` strictly decreases along every pair — the
 transitive closure of the per-step strict drop) has length at most
@@ -816,15 +814,14 @@ section Terminal
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*}
 
-/-- (A6 MAIN) The terminal state of strict-improvement greedy search
+/-- The terminal state of strict-improvement greedy search
 is a COORDINATE minimum: if at `y` NO single-cell move has a strictly
 positive local-field margin (`0 < L_i(y_i) − L_i(a)` fails for
 every cell `i` and value `a` — strict improvement is unavailable),
 then `y` is an `IsCoordinateMinimum` (no single-cell move decreases
 the energy; ties allowed). HONEST SCOPE: a coordinate minimum is NOT
 the global minimum (witness in `Hagi.Energy.SingleCellDescent`) and
-NOT a validity certificate (E4 separation in
-`EnergyStop`). -/
+NOT a validity certificate (see `EnergyStop`). -/
 theorem greedy_search_terminal_is_coordinate_minimum (B : ι → α → ℝ)
     (K : ι → ι → α → α → ℝ) (hK : ∀ i j a b, K i j a b = K j i b a)
     (y : ι → α)
@@ -841,7 +838,7 @@ end Terminal
 
 section FocusAudit
 
-/-! ## A7: the practical focused selection rule
+/-! ## The practical focused selection rule
 INVARIANCE premise. The rule weights cell `i` by its OWN
 disagreement — state-dependent through y_i ITSELF, which is
 exactly what the invariance premise forbids. -/
@@ -849,7 +846,7 @@ exactly what the invariance premise forbids. -/
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
-/-- The PRACTICAL focused selection weight of A9-supplement §E4:
+/-- The PRACTICAL focused selection weight:
 cell `i` is weighted by its own disagreement
 `Σ_a max 0 (L_i(y_i) − L_i(a))` with `L` `localField`.
 State-dependent through y_i itself (and through the other cells via the
@@ -881,7 +878,7 @@ example : focusedDisagreementWeight Bex Kex xtt 0 = 3 := by
   simp only [focusedDisagreementWeight, hL, xtt]
   norm_num
 
-/-- (A7 MAIN, NEGATIVE WITNESS) The practical focused selection rule
+/-- (NEGATIVE WITNESS) The practical focused selection rule
 VIOLATES the INVARIANCE premise of `focused_mixture_stationary`
 after the greedy move of cell `0` from `t` to `f` (its local
 field minimizer on the fixture), the weight of cell `0` DROPS from
@@ -941,7 +938,7 @@ set_option linter.style.header false
 /-!
 # Concrete validity separation for penalty energies
 
-Track P1-remainder (addendum A11, item A5): the E4 separation premise
+The separation premise
 "H(y) ≤ τ ⇒ valid(y)" INSTANTIATED for concrete penalty energies —
 proved, not postulated. Primary instance: graph coloring with a
 conflict-count energy realized as the pairwise energy
@@ -963,7 +960,7 @@ conflict-count energy realized as the pairwise energy
   `≤ τ` preserves the givens (unary penalty part, via the core
   lemma) and is a proper coloring (pairwise part: each violated
   undirected edge costs exactly 1 — both ordered indicators under
-  the E1 `½`-ordered-pair convention — so any violation forces
+  the `½`-ordered-pair convention — so any violation forces
   energy ≥ 1 > τ; family-optimal threshold, `τ < 1`).
 * `graph_coloring_stop_sep_valid` — an `EnergyStop` at `τ < 1`
   PRODUCES a `ValidityCertificate` through
@@ -972,9 +969,9 @@ conflict-count energy realized as the pairwise energy
 * `graph_coloring_stop_proper` — the companion theorem carrying the
   FULL proper-coloring content of the same stop.
 
-## Honest boundaries (A11 'not to adopt')
+## Honest boundaries
 
-* The E4 cert-kernel's unary constraint slot `C : ι → α → Prop`
+* The unary constraint slot `C : ι → α → Prop`
   cannot express the binary edge constraint "colors differ along
   every edge"; the `ValidityCertificate` below therefore records the
   unary part (`preserves_givens` + differ from every GIVEN-colored
@@ -982,11 +979,11 @@ conflict-count energy realized as the pairwise energy
   `graph_coloring_stop_proper`. No overclaim is made that the
   certificate alone encodes proper coloring.
 * LEARNED energies have NO such separation: a low learned energy
-  does NOT imply validity (the E4 zero-field witness in
+  does NOT imply validity (the zero-field witness in
   `EnergyStop`: zero energy, invalid
   board). Acceptance of learned-sampler output is only via an
   independent validator — the `CRAMAcceptedSolution` route of the
-  A9-supplement cert-kernel.
+  `CRAMAcceptedSolution` route.
 * `τ < 1` needs the symmetry premise `hsym` on the ordered edge set
   (one violated undirected edge contributes two ordered indicators;
   without symmetry a single directed conflict costs only `½`). The
@@ -1004,7 +1001,7 @@ section General
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
-/-- (A5 CORE, premise-form) Energy-separation for integer penalty
+/-- (premise-form) Energy-separation for integer penalty
 sums: if the energy is the finite sum of nonnegative penalties
 (`hpen`), every nonzero penalty is at least `pmin > 0` (`hviol`),
 and zero penalties imply validity (`hvalid`), then an energy below
@@ -1043,7 +1040,7 @@ def isProperColoring (edges : Finset (ι × ι)) (y : ι → α) : Prop :=
 
 /-- The coloring coupling: the pairwise kernel realizing the
 conflict-count energy — `K i j a b = 1` exactly on ordered edges with
-equal endpoint colors, `0` otherwise. With the E1 convention
+equal endpoint colors, `0` otherwise. With the convention
 (`pairwiseEnergy B K y = Σᵢ B i (y i) + ½·Σ_{i≠j} K i j (y i) (y j)`)
 this energy IS the (half-ordered) conflict count: no separate count
 function is asserted equal to H — H is the conflict count by
@@ -1113,9 +1110,10 @@ theorem graph_coloring_zero_energy_iff_valid (edges : Finset (ι × ι))
 /-- The separation premise PROVED for the coloring family at any
 `τ < 1`: a configuration `y` with conflict-plus-given energy `≤ τ`
 preserves every given value and is a proper coloring. Unary part via
-the A5 core lemma (each given violation costs `1`); pairwise part by
+the core lemma `energy_threshold_lt_min_penalty_implies_valid` (each
+given violation costs `1`); pairwise part by
 symmetric doubling — a violated undirected edge contributes BOTH
-ordered indicators under the E1 `½` convention, so any violation
+ordered indicators under the `½` convention, so any violation
 forces energy `≥ 1 > τ` (family-optimal: one violated undirected
 edge costs exactly `1`). -/
 theorem graph_coloring_separation (givens : ι → Option α)
@@ -1136,7 +1134,7 @@ theorem graph_coloring_separation (givens : ι → Option α)
     fun i => Finset.sum_nonneg fun j _ => hKnn i j
   rw [pairwiseEnergy] at h
   constructor
-  · -- unary given penalties via the A5 core, pmin = 1
+  · -- unary given penalties via the core lemma, pmin = 1
     have hBlt : ∑ i, coloringField givens i (y i) < 1 := by
       have hnn' : (0 : ℝ) ≤ pairwiseInteractionSum (coloringCoupling edges) y :=
         Finset.sum_nonneg fun i _ => hintnn i
@@ -1207,7 +1205,7 @@ theorem graph_coloring_separation (givens : ι → Option α)
     linarith
 
 /-- An `EnergyStop` for the coloring family at `τ < 1` PRODUCES a
-`ValidityCertificate` — the E4 separation transfer with the premise
+`ValidityCertificate` — the separation transfer with the premise
 PROVED (this instance, not an axiom): the unary constraint slot
 records "differ from every GIVEN-colored neighbor" plus
 `preserves_givens`. HONEST BOUNDARY: the unary slot cannot express
@@ -1301,11 +1299,8 @@ set_option linter.style.header false
 /-!
 # Alternating (z, y) round: strict descent with an inexact latent
 
-Track B4 (master-plan-v3 addendum A11 B4: "alternating minimization
-with summable errors ... важно не выдавать текущий frozen-z result
-за joint convergence"). DESIGN-FIRST beat: the joint latent-visible
-descent is organized as ALTERNATING ROUNDS with per-round
-tolerances:
+The joint latent-visible descent is organized as ALTERNATING ROUNDS
+with per-round tolerances:
 
   round t = z-phase (settle `z` toward `z*` to tolerance η_t) +
             y-phase (one guarded visible move on computed
@@ -1318,11 +1313,11 @@ one-way (z → visible through `attentionK`). Route R2 (small-gain
 floor `ε_round/(1−q)`) degenerates to R1's slack inequality in this
 regime (no moving latent target ⇒ no nonzero asymptotic floor);
 route R3 (joint Lyapunov `E_vis + c·‖z−z*‖²`) would need the
-z-differentiability that the E3 protocol forbids claiming.
+z-differentiability that the two-phase protocol forbids claiming.
 
 Main results:
 
-* `alternating_round_nonincreasing` — (B4 MAIN, ROUND THEOREM,
+* `alternating_round_nonincreasing` — (ROUND THEOREM,
   strict form) one full z-then-y round with an INEXACT latent: if
   the z-phase delivers `‖z_t − z*‖ ≤ η` (premise-form: contracted
   through the declared softmax-Lipschitz premise
@@ -1330,63 +1325,60 @@ Main results:
   `LatentEnergy.latent_settle_tolerance`), the computed fields
   `L̂` of the `K(z_t)`-energy carry numerical error ≤ ε (
   premise), and the computed margin clears the COMPOSED slack
-  `2·(ε + |S_i|·2κmax·fmax·L_sm·η)` (C270's 2ε plus C271's coupling
-  bound), then the visible energy at the TRUE frozen-z* kernel
+  `2·(ε + |S_i|·2κmax·fmax·L_sm·η)` (the `guarded_energy_delta` 2ε plus
+  the `latent_attention_guarded_drop` coupling bound), then the visible energy at the TRUE frozen-z* kernel
   `pairwiseEnergy B (attentionK κ w(z*) f)` STRICTLY decreases
   across the round. Composition of `guarded_energy_delta` with
   `latent_error_couples_field` via the triangle inequality — the
-  frozen statements are used, not restated. Additive over C271's
+  frozen statements are used, not restated. Additive over
   `latent_attention_guarded_drop`: the SEPARATE numerical ε on top
   of the coupling η and the round packaging.
-* `alternating_zphase_one_step_error` — (B4 η-bookkeeping brick)
+* `alternating_zphase_one_step_error` — (η-bookkeeping brick)
   one z-phase step from ANY state contracts the latent error:
   `‖latentUpdate N m G z − z*‖ ≤ (Δ/m)·‖z − z*‖` for a fixed point
   `z*` — per-round tolerances satisfy η_t ≤ q·η_{t−1}, q = Δ/m,
   WITHOUT restarting (the summability input of the R1 design).
-* `alternating_round_slack_summable` — (B4 N1) ROUND-ERROR
+* `alternating_round_slack_summable` — ROUND-ERROR
   SUMMABILITY: a round-guard slack sequence with premise-form
   geometric decay `slack (t+1) ≤ (Δ/m)·slack t` (delivered for
   the coupling part by `alternating_zphase_one_step_error`) has
   ALL partial sums bounded by the geometric budget
   `slack 0 · m/(m−Δ)`.
 * `alternating_trajectory_bound` / `alternating_trajectory_
-descent_budget` — (B4 N2) TRAJECTORY TELESCOPING: rounds
+descent_budget` — TRAJECTORY TELESCOPING: rounds
   each dropping `d t` (premise-form) telescope to
   `E (y N) ≤ E (y 0) − Σ d t`; with a bounded-below PREMISE
   `Emin ≤ E (y t)` the total descent is budgeted by
   `E (y 0) − Emin` (the floor is a hypothesis, not a conclusion).
-* `alternating_rounds_converge` — (B4 N3) TERMINAL FINITE
+* `alternating_rounds_converge` — TERMINAL FINITE
   FORM: on a finite configuration space, strictly-decreasing
   alternating rounds terminate (length ≤ card of the energy
   image) — the ranking bound reused; the unconditional
-  analytic convergence stays OPEN (pinned negative).
+  analytic convergence is not claimed.
 
-## Honest boundaries (B4)
+## Honest boundaries
 
 * PREMISE-FORM throughout: the z-phase inexactness (η, `hsoft`) and
   the numerical field error (ε) are HYPOTHESES, not conclusions;
-  the softmax-Lipschitz step remains a declared premise (
-  honesty inherited), and rejection below the slack carries no
-  information (honesty inherited).
+  the softmax-Lipschitz step remains a declared premise, and rejection
+  below the slack carries no information.
 * NO UNCONDITIONAL joint `(z, y)` convergence theorem exists or is
   claimed: the names `alternating_round_converges` and
-  `visible_descent_joint_z` are NONEXISTENT (RootApi negative
-  pins). What is proven: ONE round, strictly, under premises. The
-  chain/summability follow-ups are the recorded next statements
-  (N1 round chain nonincrease, N2 η_t summability, N3 bounded-below
-  round decreases) — none of them claimed here.
+  `visible_descent_joint_z` are NONEXISTENT. What is proven: ONE round,
+  strictly, under premises, plus the premise-form chain/summability
+  statements N1–N3 below.
 * The latent block of a round is inexact but STATIC-TARGETED: the
   y-independence of `z*` is why no `ε_round/(1−q)` floor appears;
   if the latent energy ever becomes y-dependent, R2's small-gain
   machinery becomes necessary and this file's design must be
-  revisited (design doc records the dispositions).
+  revisited.
 * convergence lift (N1–N3) stays PREMISE-FORM and FINITE:
   the geometric slack decay and the per-round drops are HYPOTHESES;
   the energy floor `Emin` is a PREMISE; the terminal statement is
   the FINITE/STRICT form only (length bound via the ranking
   argument). The UNCONDITIONAL analytic convergence statement
   `alternating_round_converges` STILL does not exist and stays
-  OPEN (RootApi negative pin unchanged); the near-name
+  nonexistent; the near-name
   `alternating_rounds_converge` (plural) is the finite terminal
   form and states termination, NOT convergence to a minimizer.
 -/
@@ -1401,7 +1393,7 @@ section Round
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*}
 
-/-- **`alternating_round_nonincreasing`** — (B4 MAIN, ROUND THEOREM,
+/-- **`alternating_round_nonincreasing`** — (ROUND THEOREM,
 strict form) one full z-then-y round with an inexact latent: with
 the z-phase settled-state weights `w1 = w(z_t)` within `Lsm·η` of
 the fixed-point weights `w2 = w(z*)` (premise-form delivery: η is
@@ -1456,7 +1448,7 @@ section ZPhase
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 
-/-- **`alternating_zphase_one_step_error`** — (B4 η-bookkeeping
+/-- **`alternating_zphase_one_step_error`** — (η-bookkeeping
 brick) one z-phase step contracts the latent error toward the
 (y-independent, static) fixed point: for `latentUpdate N m G zstar =
 zstar`, `‖latentUpdate N m G z − zstar‖ ≤ (Δ/m)·‖z − zstar‖`. This
@@ -1502,8 +1494,7 @@ private theorem slack_partial_sum {q : ℝ} (hq0 : 0 ≤ q) (hq1 : q < 1)
           field_simp
           nlinarith [hqn, h5, h3]
 
-/-- **`alternating_round_slack_summable`** — (B4 N1
-ROUND-ERROR SUMMABILITY) the composed round-guard slack with
+/-- **`alternating_round_slack_summable`** — (ROUND-ERROR SUMMABILITY) the composed round-guard slack with
 geometric decay (premise-form `slack (t+1) ≤ (Δ/m)·slack t`; the
 delivery for the C·η_t part is `alternating_zphase_one_step_error`)
 has ALL partial sums bounded by the geometric-series budget
@@ -1541,7 +1532,7 @@ section Trajectory
 
 variable {γ : Type*}
 
-/-- **`alternating_trajectory_bound`** — (B4 N2, TRAJECTORY
+/-- **`alternating_trajectory_bound`** — (TRAJECTORY
 TELESCOPING) a trajectory of rounds `y 0, y 1, …` each satisfying
 the strict-drop premise with per-round drop `d t` (premise-form)
 telescopes: the final visible energy is at most the initial minus
@@ -1568,8 +1559,7 @@ theorem alternating_trajectory_bound {E : γ → ℝ} (y : ℕ → γ)
       linarith
   exact hkey N hstep
 
-/-- **`alternating_trajectory_descent_budget`** — (B4 N2
-floor corollary) with the visible energy BOUNDED BELOW by `Emin`
+/-- **`alternating_trajectory_descent_budget`** — (floor corollary) with the visible energy BOUNDED BELOW by `Emin`
 (the honest floor premise — nonneg or bounded-below by
 construction; a HYPOTHESIS, not a conclusion), the total descent
 of a strictly-dropping trajectory is bounded: Σ drops ≤
@@ -1597,7 +1587,7 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*} [Fintype α] [DecidableEq α]
 
 omit [DecidableEq α] in
-/-- **`alternating_rounds_converge`** — (B4 N3, TERMINAL
+/-- **`alternating_rounds_converge`** — (TERMINAL
 FINITE FORM) on a finite configuration space, a trajectory of
 alternating rounds along which the visible energy at the TRUE
 frozen-z* kernel `pairwiseEnergy B (attentionK κ w f)` strictly
@@ -1609,7 +1599,7 @@ process reaches a round where the composed guard fails (a STALL —
 the honest terminal outcome; NOT a global-minimum claim).
 Relation to the pinned negative: the UNCONDITIONAL analytic
 convergence statement alternating_round_converges does NOT
-exist and stays OPEN; this finite/strict version claims
+exist; this finite/strict version claims
 TERMINATION only. -/
 theorem alternating_rounds_converge (B : ι → α → ℝ) (κ : ι → ι → ℝ)
     (w : ι → ι → ℝ) (f : α → α → ℝ) (l : List (ι → α))

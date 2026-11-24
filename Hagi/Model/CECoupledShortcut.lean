@@ -7,7 +7,7 @@ import Hagi.Model.CEJointScale
 # Zero-certificate shortcut with exact coupled fallback
 
 A supplied complete scale assignment is used when its coupled penalty is zero;
-otherwise Cycle85's complete coupled minimizer is retained.  Thus both branches
+otherwise the complete coupled minimizer of `CEJointScale` is retained.  Thus both branches
 minimize the same declared coupled bound over every complete assignment.  Only
 the zero branch is a one-candidate logical probe; the fallback still performs
 the full exponential finite selection.
@@ -94,7 +94,7 @@ theorem shortcutScales_score_eq_selectedCoupled {G : ℕ} {V : Type} [Fintype V]
   · exact shortcutScales_score_le e X w fast (selectedCoupledScales e X w)
   · exact selectedCoupledScales_score_le e X w (shortcutScales e X w fast)
 
-/-- The shortcut score retains Cycle85's comparison with the selected separable
+/-- The shortcut score retains the `CEJointScale` comparison with the selected separable
 score; this is not an ordering of actual cross-entropy values. -/
 theorem shortcutScales_le_selectedGroupScales_total {G : ℕ} {V : Type}
     [Fintype V] (e : (Fin G × Fin 5) ≃ Fin (5 * G))
@@ -119,7 +119,8 @@ theorem ceOneHot_joint_shortcut_le_coupledPenalty {G : ℕ} {V : Type} [Fintype 
   ceOneHot_joint_le_coupledPenalty e X t w (shortcutScales e X w fast)
 
 /-- A zero supplied candidate makes every joint shortcut logit equal to its
-raw logit; the separable-to-observed implication stays inside Cycle85's lemma. -/
+raw logit; the separable-to-observed implication stays inside the
+`CEJointScale` lemma. -/
 theorem ceLogits_joint_shortcut_eq_of_coupledPenalty_eq_zero {G : ℕ} {V : Type}
     [Fintype V] (e : (Fin G × Fin 5) ≃ Fin (5 * G))
     (X : Matrix V (Fin (5 * G)) ℝ) (w : EuclideanSpace ℝ (Fin (5 * G)))
@@ -143,8 +144,9 @@ theorem ceOneHot_joint_shortcut_eq_of_coupledPenalty_eq_zero {G : ℕ} {V : Type
   rw [shortcutScales_eq_fast_of_coupledPenalty_eq_zero e X w fast h]
   exact ceOneHot_joint_eq_of_coupledPenalty_eq_zero e X t w fast h
 
-/-- A zero candidate at the actual raw safe successor inherits Cycle81's strict
-actual CE descent directly, with no separate eligibility premise. -/
+/-- A zero candidate at the actual raw safe successor inherits the
+`CEDescent` strict actual CE descent directly, with no separate eligibility
+premise. -/
 theorem shortcutScales_strict_descent_of_coupledPenalty_eq_zero {G : ℕ}
     {V : Type} [Fintype V] [Nonempty V]
     (e : (Fin G × Fin 5) ≃ Fin (5 * G))

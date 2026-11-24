@@ -3,9 +3,9 @@ import Hagi.Math.Foundations.GrowthBand
 import Hagi.System.GrowthState
 
 /-!
-# MeasuredEffects — переход реального шага (аудит v10 P0-2/P0-3)
+# MeasuredEffects — переход реального шага
 
-Критика аудита v10: `StageInput` получает `StageEffects`
+`StageInput` получает `StageEffects`
 готовыми числами, а `advance` лишь ПЕРЕНОСИТ их в следующее
 состояние; имена `costGrow` возвращают РИСК, а не FLOPs.
 Здесь закладывается исправленная схема:
@@ -18,7 +18,7 @@ import Hagi.System.GrowthState
 измерителя (теорема trainStep_measured — «никакого
 телепортирования эффектов»), бюджетный баланс считается по
 ИЗМЕРЕННОЙ стоимости, а полоса роста выводится через
-Hagi.Foundations.GrowthBand.growth_band_step из измеренного прироста.
+Hagi.Math.Foundations.GrowthBand.growth_band_step из измеренного прироста.
 -/
 
 namespace Hagi.Model.MeasFx
@@ -63,7 +63,7 @@ def totalCost (e : MeasuredEffects) : ℝ :=
 
 variable (measure : MS → ℕ → MeasuredEffects)
 
-/-- ОБУЧАЮЩИЙ ШАГ (v10 схема): состояние обновляется ТОЛЬКО
+/-- ОБУЧАЮЩИЙ ШАГ: состояние обновляется ТОЛЬКО
 через измеренные эффекты данного измерителя; effects =
 measure S batch по определению — никакие числа не
 передаются извне мимо измерителя. -/
@@ -74,7 +74,7 @@ def trainStep : MS → ℕ → MS × MeasuredEffects
        budget := S.budget - totalCost e }, e)
 
 /-- НЕТ ТЕЛЕПОРТИРОВАНИЯ: эффекты шага — в точности выход
-измерителя (rfl-теорема, контракт схемы v10). -/
+измерителя (rfl-теорема). -/
 theorem trainStep_measured (S : MS) (batch : ℕ) :
     (trainStep measure S batch).2 = measure S batch := rfl
 
@@ -110,10 +110,8 @@ theorem trainStep_capability_band (S : MS) (batch : ℕ)
     (measure S batch).gain.capability αmin αmax
     hC hαmin hband hstep hlo hhi
 
-/-! ### Мосты унификации (аудит v11 P1: StageEffects ↔
-типизированный MeasuredEffects — одна каноническая
-типизированная структура, плоский StageEffects получает
-типизированную проекцию без потери полей). -/
+/-! ### Мост: StageEffects ↔ типизированный MeasuredEffects (плоский
+StageEffects получает типизированную проекцию без потери полей). -/
 
 open Hagi.System
 

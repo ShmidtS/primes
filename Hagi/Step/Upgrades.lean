@@ -70,7 +70,6 @@ the decision variable of the policy. -/
 
 /-- The full softmax weights. -/
 noncomputable def softmaxW (s : B → ℝ) (b : B) : ℝ :=
-  --: = Prelude.softDef (historical name kept)
   Hagi.Prelude.softDef s b
 
 /-- **The uniform-skip bound: the TV regression of skipping is
@@ -178,9 +177,9 @@ namespace Hagi
 
 end Hagi
 /-!
-# SinkCost: the attention-sink budget — the round-27 config's formal core
+# SinkCost: the attention-sink budget
 
-The sink_len attention (round 27, DA synthesis): the
+The sink_len attention: the
 leading sink_len keys stay visible to every query — the
 local window plus the sinks fused in ONE chunked pass,
 O(T·(W+S)) instead of the dense O(T²). The formal questions
@@ -195,7 +194,7 @@ full-attention weights p and the window+sinks weights q
 (the renormalized restriction to the window ∪ sink set),
 the total-variation perturbation is at most 2δ with δ the
 total DROPPED mass (the mass outside the window ∪ sinks —
-exactly `Hagi.ValueOfRead.skip_bound` transported: the
+exactly `Hagi.Data.skip_bound` transported: the
 "skipped" set is the complement of window ∪ sinks, and the
 dropped mass δ is the full attention's own weight on that
 complement — computable from the full attention's mass map
@@ -375,16 +374,12 @@ theorem ns_geometric_envelope (e : ℕ → ℝ) (rho : ℝ)
       _ ≤ rho * ((rho^n) * e0) := mul_le_mul_of_nonneg_left ih (le_of_lt hrho)
       _ = (rho^n) * rho * e0 := by ring
 
--- НЕ ТЕОРЕМА: прежняя rfl-форма была носителем предписания;
--- ниже — честное определение точного рецептивного поля.
 def sinkReceptiveField (W S i : ℕ) : Finset ℕ :=
     Finset.range (min S i) ∪ (Finset.range (i+1)).filter (fun k => k + W > i)
 
 /-- Пер-сэмпльная NCE-коррекция
 `Σ_v q v·(f v − log (q v))` — определение (нотация,
 не теорема). -/
--- Снято ранее: пер-сэмпльная коррекция — нотация, не
--- теорема; оставлена как определение.
 private noncomputable def nce_per_sample_corrected {V : Type} [Fintype V] (f q : V → ℝ) : ℝ :=
   ∑ v, q v * (f v - Real.log (q v))
 

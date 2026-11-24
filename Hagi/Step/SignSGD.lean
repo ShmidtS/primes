@@ -1,9 +1,8 @@
 import Mathlib.Tactic
 
 /-!
-# SignSGD (источник №79: 1-bit compressed SGD,
-# Bernstein et al. "signSGD with majority vote",
-# arXiv 1802.04434)
+# SignSGD (1-bit compressed SGD; Bernstein et al.,
+# "signSGD with majority vote", arXiv 1802.04434)
 
 Компрессия градиента до знаков: g → sign(g) — 1 бит на
 координату (минимальный объём коммуникации).
@@ -16,7 +15,7 @@ import Mathlib.Tactic
    косинус (спуск гарантированно «вправо»);
 3. `sign_idempotent`: sign(sign g) = sign g — повторная
    компрессия бесплатна;
-4. `sign_bits`: каждая координата после компрессии
+4. `sgn1_ternary`: каждая координата после компрессии
    трёхзначна {−1,0,1} — тернарное ядро HAGI совместимо:
    знаковый градиент — уже тернарный вектор.
 -/

@@ -8,7 +8,7 @@ import Hagi.Step.Muon
 
 
 /-!
-# Newton–polar iteration, scalar core (R379)
+# Newton–polar iteration, scalar core
 
 The scalar engine of the Newton polar-factorization
 iteration (Higham 1986 quadratic convergence; plan §2
@@ -44,7 +44,7 @@ theorem newton_error_ratio (x : ℝ) (hx : 1 ≤ x) :
   nlinarith [sq_nonneg (x - 1)]
 
 /-!
-### T-step quadratic convergence (R380)
+### T-step quadratic convergence
 
 Composing the scalar error recursion over `T` Newton steps:
 the error exponent DOUBLES each step —
@@ -112,9 +112,9 @@ theorem newton_polar_convergence (x₀ : ℝ) (hx₀ : 1 ≤ x₀) (T : ℕ) :
         _ ≤ 2 * ((x₀ - 1) / 2) ^ (2 ^ (T + 1)) := hcomb
 
 /-!
-### Convergence (R382)
+### Convergence
 
-Turning the R380 rate into an actual limit: for
+Turning the rate into an actual limit: for
 `1 ≤ x₀ < 3` the iterates converge to the polar factor 1.
 
   newtonIter x₀ T ⟶ 1  (T → ∞)
@@ -166,14 +166,9 @@ theorem newton_polar_tendsto_one (x₀ : ℝ) (hx₀ : 1 ≤ x₀)
 end Hagi.Step
 namespace Hagi.Step
 
-/-- **Монотонный спуск полярного Ньютона (R423)**:
-при x ≥ 1: newtonStep x ≤ x (нестрого),
-при x > 1: строго. Вместе с R380/R382
-(quad-скорость + сходимость)
-траектория полностью
-сертифицирована: монотонно
-спускается и квадратично
-сжимается к 1. -/
+/-- **Монотонный спуск полярного Ньютона**: при x ≥ 1
+newtonStep x ≤ x, при x > 1 строго. С квадратичной скоростью и
+сходимостью траектория монотонно спускается к 1. -/
 theorem newton_step_descent (x : ℝ) (hx : 1 ≤ x) :
     newtonStep x ≤ x := by
   have herr := newton_polar_scalar_error x (by linarith)
@@ -191,14 +186,9 @@ theorem newton_step_descent_lt (x : ℝ) (hx : 1 < x) :
   linarith
 
 
-/-- **Скобка траектории полярного Ньютона (R424)**:
-1 ≤ newtonIter x₀ T ≤ x₀ при x₀ ≥ 1 —
-инвариант вдоль всей
-траектории (индукция:
-спуск R423 + инвариант ≥1
-R53). Траектория живёт в
-отрезке [1, x₀] и монотонно
-спускается к 1 с quad-скоростью. -/
+/-- **Скобка траектории полярного Ньютона**:
+1 ≤ newtonIter x₀ T ≤ x₀ при x₀ ≥ 1 (индукция: спуск +
+инвариант ≥ 1). -/
 theorem newton_iter_bracket (x₀ : ℝ) (hx₀ : 1 ≤ x₀) (T : ℕ) :
     1 ≤ newtonIter x₀ T ∧ newtonIter x₀ T ≤ x₀ := by
   induction T with
@@ -327,8 +317,8 @@ end Hagi.Step
 # Newton–Schulz matrix iterate — diagonal contraction
 
 The matrix Newton–Schulz polar iterate `X ← X(3I − XᵀX)/2`
-(cycle tech-debt TD A8-F6-C254). The scalar certificate is
- (`Hagi.Step.nsStep`); this module lifts it to matrices on
+The scalar certificate is
+`Hagi.Step.nsStep`; this module lifts it to matrices on
 the DIAGONAL subspace and proves orthogonal equivariance of the
 iterate:
 
@@ -475,13 +465,10 @@ end Hagi.Step
 /-!
 # Newton–Schulz spectral-norm SVD transport
 
-The documented follow-up (design note: the orthogonal
-invariance of the spectral norm was the missing transport piece).
-Route: the pinned Mathlib DOES provide a spectral-norm Matrix API
+Route: the pinned Mathlib provides a spectral-norm Matrix API
 — the scoped `Matrix.Norms.L2Operator` norm transported from
 `EuclideanSpace` operator norms (`Mathlib/Analysis/CStarAlgebra/
-Matrix.lean`, a `CStarRing`: `‖Aᴴ * A‖ = ‖A‖²`). C296's "absent
-from Mathlib" verdict was stale for this pin.
+Matrix.lean`, a `CStarRing`: `‖Aᴴ * A‖ = ‖A‖²`).
 
 * `nsOrthogonal_mul_star_self` — companion `V Vᵀ = 1` of an
   orthogonal `VᵀV = 1` (det/unit route);

@@ -46,7 +46,7 @@ theorem ncCertStep_budget (S : NCState) (u : NCInput) :
 theorem ncCertStep_energy (S : NCState) (u : NCInput) :
     (ncCertStep S u).energy = S.energy - u.gain := rfl
 
-/-- ЭНЕРГИЯ ПЛАТИТ ЗА РОСТ (audit v19 §5.4): при спуске
+/-- ЭНЕРГИЯ ПЛАТИТ ЗА РОСТ: при спуске
 d = измеренному приросту capability энергия уменьшается
 ровно на прирост — канал роста связан с энергетическим
 каналом состояния (аналог конъюнкта 2 CorePremises:
@@ -205,7 +205,7 @@ theorem nc_loop_horizon (S : NCState) (u : ℕ → NCInput)
 end Hagi.Unified.NCStepCert
 
 /-!
-# NCTheorem (приоритет 7 «HAGI Neural Computer»)
+# NCTheorem
 
 ГЛОБАЛЬНАЯ ТЕОРЕМА нейрокомпьютера: траектория
 ncAdvance-переходов с честными контрактами шага

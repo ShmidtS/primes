@@ -245,7 +245,7 @@ theorem false_stop_bound {S : ℕ → Ω → ℝ} {lam δ : ℚ}
 /-- Admission-гейт усиленный anytime-стопом: сработавший
 стоп блокирует адмиссию ЛЮБОГО кандидата (certified
 предохранитель роста); без стопа решает точный критерий
-`blockAdmissionRule` . -/
+`blockAdmissionRule`. -/
 def admitWithStop (p : BlockAdmissionChecks) (stop : Bool) :
     Bool := if stop then false else blockAdmissionRule p
 
@@ -280,7 +280,7 @@ theorem admit_with_stop_spec (p : BlockAdmissionChecks)
 /-- **(d) Пин обязательности мартингальной посылки**: для ЛЮБОГО
 holdout-дроу ωs data-dependent выбор модели ПОСЛЕ просмотра holdout
 даёт нулевой измеренный holdout-риск выбранной модели при её
-population-риске 1/2 (C435-паттерн: `selection_bias_holdout_eq_zero`
+population-риске 1/2 (шаблон `selection_bias_holdout_eq_zero`
 / `selection_bias_pop_eq_half`). Инкременты тогда НЕ мартингальные:
 supermartingale-посылка теорем (a)/(c) недоступна, Ville-граница не
 выводится, детектор может не сработать на реальной деградации.

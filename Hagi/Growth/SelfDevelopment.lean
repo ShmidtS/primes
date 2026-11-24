@@ -11,8 +11,8 @@ set_option linter.style.header false
 # SelfDevelopment — детерминированное ядро поиска upgrade и статистическая оболочка
 
 Селекторы сертифицированного argmax (`safeCandidates`,
-`controller_max_exists`, `certified_gain_select`) консолидированы
-в канон `Hagi.Cert.CertifiedArgmax` (R3).
+`controller_max_exists`, `certified_gain_select`) —
+канон `Hagi.Cert.CertifiedArgmax`.
 
 * `self_development_find`: если в safe-наборе есть кандидат с
   `0 < G a₀`, то argmax-кандидат `a'` удовлетворяет

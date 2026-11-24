@@ -1,5 +1,4 @@
 import Hagi.Optimization.MirrorHedge
--- Мост Cortex (2610.20399 §3.3) ↔ MirrorDescent (KL-дистилляция).
 open Hagi.Optimization
 
 namespace Hagi.Model

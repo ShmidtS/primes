@@ -20,7 +20,7 @@ namespace Hagi.External.Flywheel
 open scoped Complex BigOperators
 open Matrix
 
-/-- v4.34 port: Matrix.toEuclideanLin_apply removed; definitional. -/
+/-- `Matrix.toEuclideanLin_apply` (absent from Mathlib): definitional. -/
 lemma toEuclideanLin_apply {m : Type*} [Fintype m] [DecidableEq m]
     {𝕜 : Type*} [RCLike 𝕜] (A : Matrix m m 𝕜) (x : EuclideanSpace 𝕜 m) :
     Matrix.toEuclideanLin A x = A.mulVec x := rfl

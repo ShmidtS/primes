@@ -8,7 +8,7 @@ set_option relaxedAutoImplicit false
 /-!
 # RollbackGate — the exact pre-step rollback gate
 
-Lean bridge for the HAGI_v2 wave199 rollback gate: a validation-
+Lean bridge for the HAGI_v2 rollback gate: a validation-
 gated optimizer step with EXACT rollback. The controller state is
 a three-component snapshot (parameters, optimizer state, RNG); a
 step COMMITS only when the weighted validation gain strictly
@@ -36,8 +36,7 @@ restored — exactly, with no partial borrowing from the candidate.
   backtracking (half-stepping the scale) is search INSIDE the
   step; the gate/rollback semantics above do not depend on it (it
   only affects WHICH candidate reaches the gate). The scale schedule
-  and the per-trial accept predicate ARE modeled below (WAVE 254
-  bridge); the Adam trial step itself is not.
+  and the per-trial accept predicate ARE modeled below; the Adam trial step itself is not.
 - The early HOLD branches (missing tasks, backward failure,
   non-finite gradient, gradient conflict, degenerate direction —
   source: hagi/selfmodel.py:95-124) leave the state untouched in
@@ -46,7 +45,7 @@ restored — exactly, with no partial borrowing from the candidate.
   the scalar potential; the state-unification `hold_rollback_total`
  is a different setting without the gate condition; TTCAT
  restores the last COMMITTED checkpoint, not the
-  pre-step state. None of them covers the wave199 bundle
+  pre-step state. None of them covers this bundle
   (gate condition + full state + budget + telemetry chain).
 -/
 
@@ -238,7 +237,7 @@ theorem weak_gate_loses :
   · unfold commitGate; norm_num
   · unfold guardedStep; norm_num
 
-/-- WAVE 254 backtracking bridge: the trial scale `btScale bt` of the
+/-- Backtracking bridge: the trial scale `btScale bt` of the
 bt-th trial (`scale = 1.0`, then `scale *= 0.5` after every trial that
 did not commit).
 source: hagi/selfmodel.py:133-134 and :174. -/

@@ -4,8 +4,7 @@ import Hagi.Model.CertifiedTransition
 /-!
 # MeasurementCert — двухуровневая сертификация перехода
 (направление TorchLean: Specification → Execution →
-Verification; закрытие рекомендации аудита о разделении
-execution- и measurement-сертификатов)
+Verification; execution- и measurement-сертификаты разделены)
 
 Уровень 1 (execution): `CertifiedTransition.exec` — переход
 действительно выполнен (`S' = advance S u`). Уже есть.

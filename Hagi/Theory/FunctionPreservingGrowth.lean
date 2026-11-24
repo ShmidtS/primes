@@ -9,9 +9,9 @@ import Hagi.Step.AdamDirection
 import Hagi.Theory.BlockLipschitz
 
 /-!
-# FunctionPreservingGrowth — функция-сохраняющее расширение (A19.5)
+# FunctionPreservingGrowth — функция-сохраняющее расширение
 
-Аудит N8: 14 модулей Core/Architecture — острова; центральная идея
+14 модулей Core/Architecture — острова; центральная идея
 «точное слияние/расширение экспертов» (`step0_equivalence` Core/
 BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
 ни к росту (BlockAdmission / `growLM`), ни к циклу. Этот
@@ -69,7 +69,7 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
   отказывает — нейтральность не обходит gate.
 * (d) `zero_init_orthoFiber_identity` — орто-fiber-кандидат
   (`orthoFiberAttn U A`) при A = 0 — step-0 инстанс: инъекция = id;
-  KV-стоимость роста — точный канал `lmKVCost_grow` .
+  KV-стоимость роста — точный канал `lmKVCost_grow`.
 
 Cycle-соответствие: `scripts/bench_bridge.py --mode grow` исполняет
 то же правило `decide (λM·Δcost + λR·Δrisk + ε_cert ≤ gain)`
@@ -236,7 +236,7 @@ def strictGrowthChecks (kv ε : ℚ) : BlockAdmissionChecks where
 /-- **Контр-симметрия (c)**: gate реален — нейтральность не
 обходит его: при ε_cert > 0 правило ОТКАЗЫВАЕТ (0 < ε нарушает
 margin), сколь бы «безвреден» ни был блок. Адмиссия выше — граничный
-случай, не лазейка (симметр `noBlockAdmissionWithoutMargin`). -/
+случай, не лазейка (симметрия `noBlockAdmissionWithoutMargin`). -/
 theorem margin_positivity_refuses (kv ε : ℚ) (hε : 0 < ε) :
     blockAdmissionRule (strictGrowthChecks kv ε) = false := by
   refine decide_eq_false ?_
@@ -251,8 +251,8 @@ theorem margin_positivity_refuses (kv ε : ℚ) (hε : 0 < ε) :
 (любой U). Так `mkOrthoFiberBlock U 0` — step-0 инстанс моста:
 рост начинается функция-сохраняющим орто-блоком, дальнейший сигнал
 идёт строго в ортогональном cortex направлении
-(`fiber_injection_preserves_cortex`, C444/CortexFiber);
-KV-стоимость роста — точный канал `lmKVCost_grow` . -/
+(`fiber_injection_preserves_cortex`, OrthoInjection);
+KV-стоимость роста — точный канал `lmKVCost_grow`. -/
 theorem zero_init_orthoFiber_identity {D C : ℕ}
     (U : Matrix (Fin D) (Fin C) ℝ)
     (x : ℕ → Fin D → ℝ) (t : ℕ) :
@@ -452,7 +452,7 @@ theorem uncertified_step_not_certified (drop : ℝ) :
   · exact absurd heq (by norm_num)
 
 /-- **Негатив (per-batch)**: сертификат шага — на batch-CE СВОЕГО
-минибатча (WAVE 239, lm.py:1002-1005: «per-batch bounds do NOT
+минибатча (lm.py:1002-1005: «per-batch bounds do NOT
  telescope»). Для ДРУГОГО функционала тот же шаг даёт рост:obj_b
 упал на 1/2, а obj вырос на 1. Значит `hcert` с ОДНИМ obj —
 реальное ограничение: телескоп `warmup_safe` законен только если все шаги
@@ -700,8 +700,8 @@ relu(a@W1+b1)@Wo`): градиент CE по Wo идёт через residual-п�
 `Finset.sum_comm`): Σ_v (p_v − y_v)·Σ_i J_{v i} d_i
 = −Σ_i d_i·Σ_v J_{v i}(y_v − p_v). Носитель: индекс параметров
 `P`, якобиан `J : K → P → ℝ`, направление `d : P → ℝ`,
-смещение логитов `D v = Σ_i J v i * d i`. НЕЛИНЕЙНЫЙ носитель
-(b1/W1: нужен HasFDerivAt chain rule) — honest-карточка, открыт. -/
+смещение логитов `D v = Σ_i J v i * d i`. НЕЛИНЕЙНЫЙ носитель `b` дифференцируем вне kink
+(`hasFDerivAt_reluL`); матрица `W1` — не формализована. -/
 
 /-- Градиент `CE ∘ L` по параметрам линейного носителя (chain rule
 для линейной части): `g i = Σ_v J v i * (y v − p v)` = `Jᵀ ∇CE`. -/
@@ -790,7 +790,7 @@ theorem useful_of_adam_first {P K : Type} [Fintype P] [Fintype K] [Nonempty K] [
 СТАНДАРТНАЯ лемма о descent-направлении: если `f = CE_t ∘ L`
 дифференцируема в `b` и `Df(b) d = −c < 0`, то для малых `η > 0`
 `f (b + η • d) < f b` (строгое убывание; БЕЗ certified-величины).
-Носитель — любой `E` (нормированное пространство), `d — направление,
+Носитель — любой `E` (нормированное пространство), `d` — направление,
 `fderiv` — производная Фреше. Связка с Adam-first — та же, что T1:
 `Df(b) d = Σ_v (p v − y v)·(DL(b) d) v = −⟪g, d⟫ < 0`. Инстанс relu:
 `reluL w b wo v = Σ_i relu (w i + b i)·wo i v` дифференцируема по

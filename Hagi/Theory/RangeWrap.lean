@@ -6,7 +6,7 @@ import Hagi.Theory.FactLedger
 set_option relaxedAutoImplicit false
 
 /-!
-# RangeWrap — piecewise range-affine мост (волна 222)
+# RangeWrap — piecewise range-affine мост
 
 Мост к HAGI_v2 piecewise range-affine
 шаблону (`hagi/core.py`, функция `_mod_affine_expr`): синтез
@@ -16,8 +16,7 @@ CAESAR-подобных программ на codepoint-алфавитах по 
 отбраковывает. Python floor-mod для int совпадает с `Int.emod`
 (неположительные аргументы дают неотрицательный остаток).
 
-Fresh-minimal инвариант (KISS, 2 теоремы):
-`rangeWrap lo c x m = (x - lo + c) % m + lo`.
+Ядро: `rangeWrap lo c x m = (x - lo + c) % m + lo`; две теоремы.
 
 - `rangeWrap_inrange` — замкнутость: результат всегда в
   [lo, lo + m) при m > 0 (round-robin перенос, алфавит не
@@ -27,8 +26,7 @@ Fresh-minimal инвариант (KISS, 2 теоремы):
 
 Обе — мост к Mathlib-леммам `Int.emod_nonneg` /
 `Int.emod_lt_of_pos` / `Int.add_emod` / `Int.emod_eq_of_lt`
-(недублирование: леммы переиспользуются как есть; вклад витка =
-framing в range-wrap термины). Идемпотентность композиции wrap
+(недублирование: леммы переиспользуются как есть). Идемпотентность композиции wrap
 честно опущена: ненулевой сдвиг меняет аргумент.
 -/
 

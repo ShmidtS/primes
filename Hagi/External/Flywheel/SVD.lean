@@ -36,7 +36,7 @@ Singular values σᵢ(A) := √λᵢ(Aᴴ A). Standard factorisation A = UΣVᴴ
 ## Implementation Notes
 
 We build SVD from the spectral decomposition of the Gram matrix Aᴴ A which
-is postive semidefinite hence admits real non-negative eigenvalues. The left
+is positive semidefinite hence admits real non-negative eigenvalues. The left
 singular vectors are then constructed via polar decomposition (CFC.sqrt).
 -/
 

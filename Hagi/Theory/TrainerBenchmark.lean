@@ -24,19 +24,16 @@ argmax of the rational midpoint surrogate — coincides with
 the argmax of the true ranking. Both orderings are derived;
 no `ε` is needed.
 
-## Honest pin (measurement premise) — CLOSED
+## Honest pin (measurement premise)
 
-`BandDescribes z lo hi` was a MEASUREMENT premise
-(`Describes`-type). closes the measurement bridge as a
-theorem: it IS implied by the soundness hypotheses of
+`BandDescribes z lo hi` is implied by the soundness hypotheses of
 `Hagi.Theory.RationalSoftmax.rationalSoftmaxCert`
 (`lo v ≤ e ^ z v ≤ hi v`) — `bandDescribes_of_pointwise`
-below — and the bench bands (Bernoulli shape on
-max-shifted logits) satisfy those hypotheses exactly
-(`bernoulliBandDescribes`). The theorem's contribution —
-disjointness transfers the certified forecast to the true
-ranking — is unchanged; the premise is no longer data-
-dependent for genuine certified bands. The `--mode
+(`bandDescribes_of_pointwise` below) and the bench bands (Bernoulli
+shape on max-shifted logits) satisfy those hypotheses exactly
+(`bernoulliBandDescribes`); the contribution of
+`certified_forecast_sound` — disjointness transfers the certified
+forecast to the true ranking. The `--mode
 band-check` bench is the empirical drift detector
 (implementation vs theorem).
 
@@ -62,8 +59,8 @@ variable {V : Type} [Fintype V] [Nonempty V]
 
 /-- The model-reality-inside-band premise: the true softmax
 value of every class lies inside the NORMALIZED certified
-sandwich band `[lo v / ∑ hi, hi v / ∑ lo]`. A measurement
-(`Describes`-type) premise — see the module docstring. -/
+sandwich band `[lo v / ∑ hi, hi v / ∑ lo]`. A premise here; derived
+for certified bands in the measurement bridge below. -/
 def BandDescribes (z lo hi : V → ℝ) : Prop :=
   ∀ v, lo v / ∑ w, hi w ≤ softDef z v ∧
        softDef z v ≤ hi v / ∑ w, lo w
@@ -118,12 +115,12 @@ theorem trainer_benchmark_sep_example :
     hiTB true / ∑ w, loTB w < loTB false / ∑ w, hiTB w := by
   norm_num [loTB, hiTB]
 
-/-- The certified forecast application: given the measured
-band premise on the real holdout model ns_0019, the
+/-- The certified forecast application: given the band
+premise on the real holdout model ns_0019, the
 certified forecast (midpoint argmax) is class `false`, and
 it coincides with the argmax of the true ranking. The
-measurement premise is a hypothesis — the honest pin of this
-module. -/
+band premise is a hypothesis here; it is a theorem for certified
+bands (see the measurement bridge below). -/
 example (z : Bool → ℝ) (hband : BandDescribes z loTB hiTB) :
     ∀ a, a ≠ false →
       sandwichMid loTB hiTB a < sandwichMid loTB hiTB false ∧
@@ -134,11 +131,8 @@ example (z : Bool → ℝ) (hband : BandDescribes z loTB hiTB) :
 
 /-! ## The measurement bridge: BandDescribes is a theorem
 
-The pinned measurement premise closes one layer down: the
-pointwise certified exponential sandwich implies the
-normalized band-describes property, and the bench band shape
-(bench band builder) is an
-instance. -/
+The pointwise certified exponential sandwich implies the normalized
+band-describes property; the bench band shape is an instance. -/
 
 /-- Softmax is shift-invariant: subtracting a constant from
  every logit multiplies numerator and denominator by the
@@ -171,8 +165,7 @@ max-shifted logits — `lo v = (1 + s v / n) ^ n`,
 (`expLower_le_exp`, `exp_le_expUpper_inv`), hence
 `BandDescribes`. The strict range premise `-n < s v` mirrors
 the bench range guard (the cs_terms_nm builder HOLDs outside
-it), and
-gives `0 < lo`. -/
+it) and gives `0 < lo`. -/
 theorem bernoulliBandDescribes {n : ℕ} (hn : 0 < n)
     {z : V → ℝ} {b : V} (hmax : ∀ w, z w ≤ z b)
     (hgt : ∀ w, -n < z w - z b) :

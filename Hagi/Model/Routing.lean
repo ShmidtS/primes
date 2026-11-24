@@ -6,8 +6,7 @@ import Hagi.Math.Info.InfoCore
 /-!
 # Routing dynamics: softmax odds-ratchet, deadlock witness
 
-B6 lane ("Stuck in a Loop", Eyler et al. 2026-09-09, addendum A3):
-the exact algebraic core of router lock-in and its failure mode.
+The exact algebraic core of router lock-in and its failure mode.
 
 1. `softDef_odds` — EXACT odds-ratio update of softmax under an
    arbitrary score shift: a⁺j/a⁺k = (aj/ak)·exp(Δsj − Δsk).
@@ -96,7 +95,7 @@ theorem odds_ratchet (s : κ → ℝ) (c : ℝ) (hc : 0 < c) (j k : κ)
 variable {d : ℕ}
 
 /-- Per-key value update: key `j` receives gradient `a j • δ`
-(the exact B2 identity `grad_v = a·δ`, taken here as the definition
+(`grad_v = a·δ`, taken here as the definition
 of the V-step). -/
 noncomputable def vstep (v : κ → Fin d → ℝ) (a : κ → ℝ) (eta : ℝ)
     (delta : Fin d → ℝ) (j : κ) : Fin d → ℝ :=
@@ -164,9 +163,9 @@ theorem dw_att1 : softDef dwScores 1 = 9 / 20 := by
   unfold softDef dwScores
   norm_num [Fin.sum_univ_three, Real.exp_log]
 
-/-- DEADLOCK WITNESS (negative pinned challenge). Key 0 is the
+/-- DEADLOCK WITNESS (negative). Key 0 is the
 useful key (advantage scale `M`), but its attention is exactly
-ε = 1/10. The query-gradient contribution of key 0 — the exact B2
+ε = 1/10. The query-gradient contribution of key 0 — the
 term `a j • (A j • k j)` — has norm at most ε·M whenever every key
 coordinate is bounded by 1: however large the advantage, the query
 learns from this key at speed at most ε·M. (A per-coordinate /√d

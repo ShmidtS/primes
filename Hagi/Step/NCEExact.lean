@@ -357,11 +357,8 @@ theorem relative_second_moment_floor (z q : V → ℝ) (K : ℕ) (hK : 0 < K)
     mul_le_mul_of_nonneg_left hdiv (by positivity)
   linarith [hmul]
 
--- Заменено ранее: тавтология `anchor_cadence_criterion`
--- (rfl) заменена рекуррентной теоремой
--- `Hagi.Plan41.anchor_recurrence`:
--- `D t ≤ (1−γ)^t·D₀ + ρs/γ` (критерий каденса — конечный
--- по t, а не только стационарная точка).
+-- Конечногоризонтная версия — `Hagi.Audit.anchor_recurrence`:
+-- `D t ≤ (1−γ)^t·D₀ + ρs/γ`.
 
 /-- При `0 < gamma`, `0 < rho`, `0 < eps` и `s ≤ gamma·eps/rho`:
 `rho·s/gamma ≤ eps`. -/

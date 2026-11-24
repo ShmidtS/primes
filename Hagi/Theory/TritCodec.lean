@@ -5,10 +5,10 @@ import Mathlib.Tactic
 set_option linter.style.openClassical false
 
 /-!
-# The wave214 trit codec bridge — 5 trits per byte
+# The trit codec bridge — 5 trits per byte
 
-The wave214 codec (`C:/HAGI_v2/hagi/trunk_ops.py:375`, WAVE 214
-hagi_lab: packed 5-trit/byte codec, «3^5=243<=2^8») packs a group of
+The codec (`hagi/trunk_ops.py:375`:
+packed 5-trit/byte, «3^5=243<=2^8») packs a group of
 five ternary digits into one byte:
 
 * code: `tritPack t = Σ tᵢ · 3^i` (pack_trits5, trunk_ops.py:386);
@@ -16,7 +16,7 @@ five ternary digits into one byte:
   trunk_ops.py:404-408).
 
 Since `3^5 = 243 ≤ 256 = 2^8`, every 5-trit group fits in one byte.
-This module proves the codec core only (fresh-minimal scope):
+This module proves the codec core only:
 
 * `tritPack_lt_243` — the `code < 243` guard (trunk_ops.py:391)
   always holds;
@@ -24,7 +24,7 @@ This module proves the codec core only (fresh-minimal scope):
 * `tritPack_injective` — distinct groups get distinct codes
   (a free corollary of the round-trip).
 
-Adaptive context (the second half of wave214) is out of scope here.
+Adaptive context is out of scope here (see AdaptiveContext).
 -/
 
 namespace Hagi.Theory.TritCodec

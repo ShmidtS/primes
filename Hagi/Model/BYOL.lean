@@ -10,9 +10,8 @@ Self-distillation БЕЗ негативов: loss = 1 − cos(p, z),
 в отличие от NTXent/VicReg здесь нет контрастного члена.
 
 Cos-similarity: cosS u v = Σuᵢvᵢ/(√Σu²·√Σv²); границы
-|cos| ≤ 1 (Cauchy–Schwarz) — здесь КОНТРАКТ-посылка
-(производитель — будущий CS-модуль; для опорных векторов
-это Mathlib inner_mul_le_norm).
+|cos| ≤ 1 (Cauchy–Schwarz) — здесь посылка-контракт
+`CSCarrier`.
 
 Честные свойства:
 1. `bl_bounds`: bl ∈ [0, 2] при |cos| ≤ 1;
@@ -43,8 +42,8 @@ noncomputable def cosS (u v : k → ℝ) : ℝ :=
 /-- BYOL-loss: 1 − cos. -/
 noncomputable def bl (u v : k → ℝ) : ℝ := 1 - cosS u v
 
-/-- CS-контракт: |cos| ≤ 1 (производитель — Cauchy–Schwarz
-модуль; для BYOL-анализа достаточно контракта). -/
+/-- CS-контракт: |cos| ≤ 1. -/
+
 def CSCarrier (u v : k → ℝ) : Prop := |cosS u v| ≤ 1
 
 /-- bl ∈ [0, 2] при CS. -/

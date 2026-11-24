@@ -24,7 +24,6 @@ every rank-`k` approximant.
 [1] Eckart, C. & Young, G. (1936). The approximation of one matrix by
     another of lower rank. Psychometrika 1(3), 211–218.
 
-Created: 2026-11-12
 -/
 
 open Matrix

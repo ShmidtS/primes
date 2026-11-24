@@ -11,10 +11,9 @@ import Hagi.Theory.ExactBypass
 /-!
 # AdapterGrowth — certified low-rank адаптер роста
 
-Существующие механизмы роста добавляют объём ЦЕЛИКОМ: fiber-width
- (`mkOrthoFiberBlock` — widening признаков) и depth-block
- (`benchResidualBlock γ h` — ЦЕЛЫЙ блок,
-~d·d параметров при скрытой ширине ~d). добавляет
+Существующие механизмы роста добавляют объём ЦЕЛИКОМ: fiber-width (`mkOrthoFiberBlock` — widening признаков) и depth-block
+ (`benchResidualBlock γ h` — ЦЕЛЫЙ блок, ~d·d параметров при
+скрытой ширине ~d). Этот модуль добавляет
 МИНИМАЛЬНЫЙ носитель роста: low-rank side-branch адаптер
 (LoRA-форма, Hu et al. 2021, arXiv:2106.09685)
 
@@ -58,8 +57,7 @@ trunk+head certified fd-шаги (phase A), freeze trunk,
 
 ## Карта секций
 
-Файл = четыре macro-секции + honest-хвост (маркеры `## C-bit:`
-между секциями):
+Файл = четыре macro-секции + honest-хвост ):
 
 1. **базис** (секции Adapter · ParamCount · CertifiedStep ·
    SnapCycle · RankAdaptive · Merge · ContinualIsolation) —
@@ -278,8 +276,8 @@ theorem adapter_snap_bound
 /-- Телескоп составного adapter-snap цикла: admission вклад
 ТОЧНО 0 (adapter_obj_invariant), certified fd-шаги вклад ≤ 0
 (measured drop > 0), snap вклад ≤ b_i — потому итог финала
-≤ старта + Σ b_i. Делегат к `grow_snap_cycle_sound` (
-индукция по списку bound'ов) — не копия доказательства. -/
+≤ старта + Σ b_i. Делегат к `grow_snap_cycle_sound`
+(индукция по списку bound'ов) — не копия доказательства. -/
 theorem adapter_snap_cycle_sound (o0 : ℝ) (bs : List ℝ)
     (step : ℕ → ℝ) (h0 : step 0 ≤ o0)
     (hstep : ∀ i, i < bs.length →
@@ -352,7 +350,7 @@ E_i = L (структурный выигрыш: 2·k·d < 2·L·d парамет
 kappaF-Lipschitz). Bench-инстанс: `--mode adapter-merge`
 (точный rational rank + exact merge Δ = C·R при k = ρ; матрёшка
 k < ρ — числовой power-iteration кандидат + ТОЧНЫЙ рациональный
-per-point cert-bound, C489-принцип: числа не доверяем, доверяем
+per-point cert-bound: числа не доверяем, доверяем
 сертификату). -/
 section Merge
 
@@ -523,8 +521,7 @@ end Merge
 
 /-! ## continual через ИЗОЛИРОВАННЫЕ адаптеры
 
-Композиция AdapterGrowth (C532/533/535/536) × Continual
- × WeightDecayLeak: continual-обучение
+Композиция AdapterGrowth × Continual × WeightDecayLeak: continual-обучение
 ЗАДАЧА-ЗА-ЗАДАЧЕЙ, где каждая задача получает СВОЙ адаптер
 (нейтральная инициализация), а trunk и все ЗАВЕРШЁННЫЕ
 адаптеры заморожены. Забывание тогда равно нулю СТРУКТУРНО:
@@ -603,8 +600,7 @@ theorem adapter_per_task_obj_sound
     obj (perTaskVec (s t) i x) = obj (perTaskVec (s 0) i x) := by
   rw [adapter_per_task_sound s i hfroz t]
 
-/-- **(c) trunk_update_needs_projection (композиция с
-)**: если trunk всё же обновляется, то БЕЗ проекции в
+/-- **(c) trunk_update_needs_projection**: если trunk всё же обновляется, то БЕЗ проекции в
 дополнение protected-подпространства происходит утечка: naive
 decay `W' = (1 − c) • W` с `0 < c < 1` и ненулевой
 protected-компонентой строки `i` СТРОГО меняет выход на
@@ -718,7 +714,7 @@ theorem self_compress_params_contrast {k d L : ℕ}
 (admit + certified-шаг + merge) × n итераций даёт
 (а) телескоп-границу `step n ≤ o0 + bs.sum` (admit вклад 0,
 шаги вклад ≤ 0, merge вклад b_i — делегат `grow_snap_cycle_sound`,
-обобщение C533-телескопа на цикл с merge) и (б) параметр-бюджет:
+обобщение `adapter_snap_cycle_sound`-телескопа на цикл с merge) и (б) параметр-бюджет:
 после каждого merge счёт = `selfCompressParams k d` — потому
 `params n ≤ 2·k·d` при ЛЮБОМ n (знание растёт, объём — нет).
 Первая компонента та же, что у `adapter_snap_cycle_sound`
@@ -743,8 +739,7 @@ end SelfCompress
 ## constant cluster distillation (exact → adapter)
 
 Дистилляция констант-кластеров (6 констант,
-106/113 exact-покрытия) из символьного exact-гейта (
-ExactBypass) в АДАПТЕРНЫЕ веса: символьное знание живёт в
+106/113 exact-покрытия) из символьного exact-гейта (ExactBypass) в АДАПТЕРНЫЕ веса: символьное знание живёт в
 нейро-слое, ветвление exact-bypass отключается, контуры
 унифицируются БЕЗ потерь CE.
 
@@ -863,7 +858,7 @@ end ConstantDistill
 ## mini-HAGI v3 — референсная сборка (universal
 self-compressing distill loop)
 
-Финальная композиция C547–C556 в ОДНОМ bench-прогоне
+Финальная композиция в ОДНОМ bench-прогоне
 (`scripts/bench_bridge.py --mode mini-hagi-v3`, один трейс на
 замороженном снапшоте живого корпуса): Ф1 exact-bypass
 (констант-кластеры) → Ф2 distill (θ(c) rank-1 адаптеры,

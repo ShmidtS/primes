@@ -8,7 +8,7 @@ import Hagi.Dynamics.EndpointContraction
 /-!
 # Online PL tracking rate for a frozen extractor (streaming head)
 
- . The streaming counterpart of the static PL convergence theory
+The streaming counterpart of the static PL convergence theory
 data arrive sequentially, the extractor is FROZEN, and only
 the head trains online with gradient descent (`plStep`, step `1/L`).
 The per-round objective changes (`L_t`), so two regimes live here:
@@ -20,7 +20,7 @@ The per-round objective changes (`L_t`), so two regimes live here:
   `θ*_t` with the affine recursion `d(t+1) ≤ q·d t + Δ`,
   `q = 1 - μ/L`, hence the steady-state radius `Δ·L/μ`.
 
-Key honesty points (the plan-review challenges):
+Key honesty points:
 
 * DISTANCE contraction needs STRONG CONVEXITY, not bare PL: PL alone
   bounds the loss gap (`pl_descent_step_at`); the bridge

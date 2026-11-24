@@ -46,7 +46,6 @@ Such that: **A = U * S * Vᴴ**
 
 ### References
 - Horn & Johnson, *Matrix Analysis*, Chapter 7
-- RectangularSVD-TODO.md for implementation plan
 -/
 
 namespace Matrix.SVD.Rectangular

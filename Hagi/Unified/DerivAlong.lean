@@ -9,20 +9,20 @@ import Hagi.Model.BatchCEDescent
 import Mathlib
 open InnerProductSpace
 /-!
-# LipEnergy — градиентная модель липшицевости (R563)
+# LipEnergy — градиентная модель липшицевости
 
 Вывод посылки h_emp_lip-семейства («энергия κ-Липшицева по
 квантованию весов») из градиентной модели: если энергия
 дифференцируема и ‖∇E(x)‖ ≤ κ всюду, то по MVT на сегменте
 |E(w) − E(q)| ≤ κ·‖w − q‖. Это МОДЕЛЬ ВЫПУКЛОСТИ,
-закрывающая открытый пункт STATUS (h_emp_lip) на уровне
+закрывающая пункт h_emp_lip на уровне
 согласованной посылки: измеренный κ = sup‖∇E‖.
 -/
 
 open scoped BigOperators
 
 namespace Hagi.Unified
-/-- **Градиентная липшицевость (R563)**: дифференцируемая
+/-- **Градиентная липшицевость**: дифференцируемая
 энергия с ограниченной производной κ-Липшицева на всём
 пространстве (MVT на сегменте). Это модель h_emp_lip:
 измеренный κ есть sup‖∇E‖. -/
@@ -52,7 +52,7 @@ theorem lip_energy_quantization {W : Type*} [NormedAddCommGroup W]
   lip_energy_from_gradient E kappa hdiff hnorm w (qTern w)
 
 /-- **Разрядка h_emp_lip (евклидова форма)**: мост из
-`lip_energy_from_gradient` (R563) в точную форму биндера
+`lip_energy_from_gradient` в точную форму биндера
 Runtime/TernaryExact (`dE ≤ κ·sqrt(∑ (w i − q i)²)`):
 искажение энергии от квантования весов ограничено
 κ-кратным евклидовым расстоянием до квантованной точки.
@@ -70,7 +70,7 @@ theorem discharge_premise_h_emp_lip_euclidean
   simpa [Real.norm_eq_abs] using h
 
 
-/-- **h_emp_grow из certified descent (R564)**: энергетический
+/-- **h_emp_grow из certified descent**: энергетический
 учёт grow-стадии (growEnergy ≤ energy − growGain) — точная
 форма joint_stage (StageCalculus): upper-quadratic модель
 (h_emp_smooth) + certified descent (dnorm² ≤ inner) + SafeQP-
@@ -82,7 +82,7 @@ alias grow_gain_from_smooth_descent := _root_.Hagi.Foundations.joint_stage
 
 open Real intervalIntegral
 
-/-- Производная энергии вдоль сегмента (chain rule; R565.2). -/
+/-- Производная энергии вдоль сегмента (chain rule). -/
 theorem hasDerivAt_along_segment {W : Type*} [NormedAddCommGroup W]
     [NormedSpace ℝ W] (E : W → ℝ) (dir q : W)
     (hdiff : ∀ w : W, HasFDerivAt E (fderiv ℝ E w) w)
@@ -95,7 +95,7 @@ theorem hasDerivAt_along_segment {W : Type*} [NormedAddCommGroup W]
   exact HasFDerivAt.comp_hasDerivAt (l := E) t h1 h2
 
 /-- Интеграл производной вдоль сегмента = приращение (Newton-
-Leibniz, R565.2). -/
+Leibniz). -/
 theorem integral_deriv_segment {W : Type*} [NormedAddCommGroup W]
     [NormedSpace ℝ W] (E : W → ℝ) (dir q : W)
     (hdiff : ∀ w : W, HasFDerivAt E (fderiv ℝ E w) w)
@@ -112,7 +112,7 @@ theorem integral_deriv_segment {W : Type*} [NormedAddCommGroup W]
 end Hagi.Unified
 
 /-!
-# DerivAlong — точечная оценка производной вдоль сегмента (R565.3)
+# DerivAlong — точечная оценка производной вдоль сегмента
 
 Финальное звено h_emp_smooth-модели: g'(t) ≤ g'(0) + L·t·‖dir‖²
 из L-гладкости (‖∇E(y) − ∇E(x)‖ ≤ L‖y − x‖) + Cauchy–Schwarz
@@ -123,7 +123,7 @@ open Real
 
 namespace Hagi.Unified
 
-/-- **Точечная оценка (R565.3)**: производная вдоль сегмента
+/-- **Точечная оценка**: производная вдоль сегмента
 ограничена начальным направленным градиентом + L·t·‖dir‖². -/
 theorem deriv_along_segment_le {W : Type} [NormedAddCommGroup W]
     [NormedSpace ℝ W]
@@ -170,7 +170,7 @@ theorem deriv_along_segment_le {W : Type} [NormedAddCommGroup W]
 
 
 open intervalIntegral in
-/-- **Гладкость ⟹ верхняя квадратичная модель (R565, h_emp_smooth)**:
+/-- **Гладкость ⟹ верхняя квадратичная модель (h_emp_smooth)**:
 L-гладкость градиента даёт верхнюю квадратичную модель энергии:
 E(q+dir) ≤ E(q) + ⟨∇E(q), dir⟩ + L·‖dir‖²/2.
 Это точная форма h_emp_smooth (StageCalculus) при eta = 1,
@@ -350,7 +350,7 @@ theorem core_premises_compress_operational
   rw [h']
   linarith [hupper, hjoint]
 
-/-- C153's local CE/Jacobian remainder supplies exactly the scalar smoothness
+/-- The local CE/Jacobian remainder supplies exactly the scalar smoothness
 obligation of the existing `GrowthState` joint potential law. -/
 theorem potential_joint_of_ceOneHot_jacobian_remainder
     {X V : Type} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
@@ -509,7 +509,7 @@ theorem potential_joint_of_ceLinear_residualDirection
         S.sp.L * S.sp.eta ^ 2 * ‖S.stepDir‖ ^ 2 / 2 := by
       rw [← hCEold, hLdef, hnormStep]
 
-/-! ## Sharp-range wiring (R2) -/
+/-! ## Sharp-range wiring -/
 
 /-- The sharp single-example logit range square is controlled by the same
 feature-mass constant as `ceStepRange`: transitivity of

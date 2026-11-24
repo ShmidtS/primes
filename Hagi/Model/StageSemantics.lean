@@ -9,9 +9,9 @@ import Hagi.Optimization.DREAM
 set_option linter.style.header false
 
 /-!
-# StageSemantics — per-cycle stage inputs (audit P1 repair)
+# StageSemantics — per-cycle stage inputs
 
-Repair of the two structural defects proven by the audit
+Repair of the two structural defects proven by the
 regressions (`corePremises_two_step_decrease_nonpos`,
 `full_cycle_two_step_growth_inconsistent`):
 
@@ -31,7 +31,7 @@ Main items:
 * `Trajectory` — states linked by `advance` with per-cycle inputs;
 * `advance_energy_drop` — one-cycle energy certificate;
 * `cone_growth_window` — the un-squeezed growth law;
-* ЕДИНАЯ СЕМАНТИКА ПЕРЕХОДА (аудит v4 §3.3): `advance` —
+* ЕДИНАЯ СЕМАНТИКА ПЕРЕХОДА : `advance` —
 канон; compose grow/merge/joint/compress эквивалентен ему
 по всем полям (`advance_decompose`, rfl); CycleCertificate —
 сертификатный контракт (не переход); UnifiedStep —
@@ -51,8 +51,8 @@ variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-- The measured evidence of ONE growth cycle (time-indexed).
 Nonnegativity of spends and activity of the SafeQP step are
-PROOF FIELDS of the type (audit 5.3/5.4: spends cannot be
-negative credits; a non-null direction must act). -/
+PROOF FIELDS of the type (spends cannot be negative credits;
+a non-null direction must act). -/
 structure StageInput (X : Type*) [NormedAddCommGroup X]
     [InnerProductSpace ℝ X] where
   /-- Measured stage constants of this cycle. -/
@@ -66,7 +66,7 @@ structure StageInput (X : Type*) [NormedAddCommGroup X]
   /-- The energy gradient of this cycle. -/
   grad : X
   /-- Compute spends are honest (nonnegative) — ALL four
-  stages (P1.3: merge and compression are not free). -/
+  stages (merge and compression are not free). -/
   h_costs_nn : 0 ≤ eff.growCost ∧ 0 ≤ eff.mergeCost
     ∧ 0 ≤ eff.jointCost ∧ 0 ≤ eff.compressCost
   /-- Protected-risk spends are honest (nonnegative). -/
@@ -112,7 +112,7 @@ structure Trajectory (X : Type*) [NormedAddCommGroup X]
   /-- Every step is an advance over that cycle's input. -/
   h_step : ∀ t < T, state (t + 1) = advance (state t) (input t)
 
-/-! ### State-dependent effects (audit 2 / P2 repair, paid growth)
+/-! ### State-dependent effects (paid growth)
 
 The two-step inconsistency
 (`Examples/Nonvacuity.full_cycle_two_step_growth_inconsistent`)
@@ -221,11 +221,11 @@ theorem grow_strict_productive (alpha mu : ℝ) (S : GrowthState X)
 
 /-! ### Sustained takeoff on the honest paid trajectory
 
-The third clause of the audit's trichotomy: capability growth
+Capability growth
 sustained over the WHOLE horizon by genuine `advance`
 transitions with paid state-dependent effects, on ONE
 trajectory that carries capability, energy AND the budget
-ledger (audit section 3: all metrics from one dynamics). The
+ledger (all metrics from one dynamics). The
 cost honesty `0 <= mu * C_t` is carried CONSTRUCTIVELY at
 every step, so the recursion needs no external invariant. -/
 
@@ -268,7 +268,7 @@ theorem growSeq_capability (alpha mu : ℝ) (hmu : 0 ≤ mu)
       ring
 
 /-- **The unified budget ledger on the same trajectory**
-(audit section 3: capability and budget from ONE dynamics):
+(capability and budget from ONE dynamics):
 after `t` paid cycles the remaining budget plus the total spend
 recorded cycle-by-cycle equals the initial budget exactly
 
@@ -348,7 +348,7 @@ theorem advance_energy_drop (S : GrowthState X) (u : StageInput X)
 
 /-! ### The un-squeezed growth window -/
 
-/-- **Growth window (audit repair of the saturation squeeze)**:
+/-- **Growth window (no saturation squeeze)**:
 under the cone with minimal rate `α_min` (via production
 `γ·D ≤ G`) and an UPPER CAP at a DISTINCT rate `α_cap ≥ α_min`,
 the capability stays in the window
@@ -471,7 +471,7 @@ theorem eta_pos_of_advance (S : GrowthState X) (u : StageInput X) :
     0 < (advance S u).sp.eta := u.h_eta_pos
 
 /-- **Three-cycle witness (the repaired semantics is nonvacuous
-on the audit bar T >= 3)**: three consecutive `advance` cycles
+on three cycles)**: three consecutive `advance` cycles
 over fresh inputs with strictly positive DISTINCT measured gains
 (`1`, `2`, `4`), strictly decreasing energy (`30 - 27 - 23 - 17`),
 geometrically growing capability (`1 - 2 - 4 - 8`, the cone window
@@ -688,7 +688,7 @@ noncomputable def wTraj : Trajectory ℝ where
     interval_cases t
     all_goals simp [advance]
 
-/-- TWO-CYCLE witness trajectory (audit v9 P1 vacuity-gate):
+/-- TWO-CYCLE witness trajectory:
 first two steps of wTraj, horizon T = 2. -/
 noncomputable def wTraj2 : Trajectory ℝ where
   T := 2
@@ -703,10 +703,9 @@ noncomputable def wTraj2 : Trajectory ℝ where
     interval_cases t
     all_goals simp [advance]
 
-/-- VACUITY-GATE WITNESS (audit v9, P1): рост на T = 2
-СТРОГО реализован семантикой Gen-2 — (1+1)^2 * 1 = 4 —
-минимальный горизонт гейта, на котором старый Gen-1
-(linked-форма капстоуна Gen-1) уже противоречив. -/
+/-- VACUITY-GATE WITNESS: рост на T = 2 СТРОГО реализован — (1+1)^2 * 1 = 4
+— минимальный горизонт, на котором старая linked-форма капстоуна
+уже противоречива. -/
 theorem witness_geometric_growth_realized_T2 :
     (1 + (1:ℝ)) ^ 2 * (wTraj2.state 0).capability
       ≤ (wTraj2.state 2).capability := by
@@ -736,7 +735,7 @@ theorem witness_geometric_growth_realized_T2 :
 /-- The amplification theorem instantiated on the witness: the
 state-linked geometric takeoff `(1+1)^3 * 1 = 8` IS REALIZED —
 the repaired semantics proves the capstone growth the OLD model
-could only state vacuously (linked-форма Gen-1 была inconsistent
+could only state vacuously (linked-форма была inconsistent
 at `T >= 2`). -/
 theorem witness_geometric_growth_realized :
     (1 + (1:ℝ)) ^ 3 * (wTraj.state 0).capability
@@ -875,7 +874,7 @@ theorem advance_decompose (S : GrowthState X) (u : StageInput X) :
     advance S u = compress (joint (merge (grow (prepare S u)))) := by
   rfl
 
-/-- СЕРТИФИКАТ ОДНОГО ЦИКЛА (уровень A этапа 4): advance
+/-- СЕРТИФИКАТ ОДНОГО ЦИКЛА: advance
 точно исполняет все три леджеря — бюджетный (полная
 4-стадийная сумма трат), рисковый (накопление защищённого
 риска), качества (прирост измеренной способности) — и это
@@ -900,7 +899,7 @@ theorem advance_cycle_certificate (S : GrowthState X) (u : StageInput X) :
   · rfl
   · rfl
 
-/-- УРОВЕНЬ B: телескопирование траектории через сертификат
+/-- ТЕЛЕСКОПИРОВАНИЕ траектории через сертификат
 одного цикла — бюджетный и качественный леджеря всей
 траектории выводятся из per-cycle сертификатов (единая
 телескопная теорема, а не повторение суммирования). -/
@@ -931,7 +930,7 @@ theorem trajectory_cycle_ledgers (tr : Trajectory X) :
       · rw [hbc, hv, hbud]; ring
       · rw [Finset.sum_range_succ, hcapc, hcap]; ring
 
-/-- РОСТ ОПЛАЧЕН (уровень D): если каждый цикл оплачивает
+/-- РОСТ ОПЛАЧЕН: если каждый цикл оплачивает
 свой прирост качества (c·gain ≤ бюджетная трата цикла) и
 бюджет неотрицателен, то суммарный прирост качества на
 всей траектории ограничен стартовым бюджетом / c —
@@ -964,7 +963,7 @@ theorem growth_pays_budget (tr : Trajectory X) (c : ℝ) (hc : 0 < c)
   rw [hcap]
   linarith
 
-/-- ИНТЕГРАЛЬНЫЙ СЕРТИФИКАТ ТРАЕКТОРИИ (уровень E): единая
+/-- ИНТЕГРАЛЬНЫЙ СЕРТИФИКАТ ТРАЕКТОРИИ: единая
 теорема — точные леджеря (бюджет/качество) И (при оплате
 приростов и неотрицательном бюджете) ресурсная граница
 роста: сертификат цикла → телескоп → оплаченный рост,
@@ -990,7 +989,7 @@ theorem integral_trajectory_certificate (tr : Trajectory X)
   intro hbudk
   exact growth_pays_budget tr c hc k hk hpaid hbudk
 
-/-- КРИТЕРИЙ ОСТАНОВКИ (этап 7): если целевое качество дороже
+/-- КРИТЕРИЙ ОСТАНОВКИ: если целевое качество дороже
 всего бюджета (Qtarget > cap0 + budget0/c) и каждый цикл
 оплачивает свой прирост, то НИ НА КАКОМ горизонте с
 неотрицательным бюджетом цель недостижима — обучение
@@ -1009,8 +1008,8 @@ theorem budget_stops_growth (tr : Trajectory X) (c : ℝ) (hc : 0 < c)
   have h := growth_pays_budget tr c hc k hk hpaid hbudk
   linarith
 
-/-- Структурный рост тоже оплачен (MemT P1: число экспертов —
-структурный масштаб, не счётчик саморазвития): если добавление
+/-- Структурный рост тоже оплачен (число экспертов — структурный
+масштаб, не счётчик саморазвития): если добавление
 эксперта стоит ≥ g и бюджет траектории неотрицателен, то
 число экспертов на горизонте ограничено бюджетом — структурная
 экспансия без ресурса невозможна. -/
@@ -1063,7 +1062,7 @@ theorem experts_pays_budget (tr : Trajectory X) (g : ℝ) (hg : 0 < g)
     (le_div_iff₀ hg).mpr hkg
   linarith
 
-/-- РИСК-КЭП ОСТАНАВЛИВАЕТ (этап 6, третья ось контроллера):
+/-- РИСК-КЭП ОСТАНАВЛИВАЕТ (третья ось контроллера):
 если каждый цикл несёт защищённый риск ≥ ρ и траектория
 удерживает риск-кэп Rmax, то горизонт ограничен
 (Rmax − risk0)/ρ — накопление риска, как и бюджета,
@@ -1109,7 +1108,7 @@ theorem risk_cap_bounds_horizon (tr : Trajectory X) (ρ Rmax : ℝ)
     linarith
   exact (le_div_iff₀ hρ).mpr hkey
 
-/-- ЕДИНЫЙ ИНВАРИАНТ КОНТРОЛЛЕРА (этап 6, композиция): при
+/-- ЕДИНЫЙ ИНВАРИАНТ КОНТРОЛЛЕРА (композиция): при
 оплате структуры (g ≥ стоимость эксперта за цикл) и
 минимальном риске (ρ) с бюджетом ≥ 0 и риск-кэпом Rmax
 горизонт траектории ограничен МИНИМУМОМ структурного и
@@ -1152,7 +1151,7 @@ theorem controller_horizon_bound (tr : Trajectory X)
   have hR := risk_cap_bounds_horizon tr ρ Rmax hρ hrisk k hk hcap
   exact le_min hSk hR
 
-/-- ПОЛОЖИТЕЛЬНЫЙ ЧИСТЫЙ ПРИРОСТ (этап 6 / P5, зеркально
+/-- ПОЛОЖИТЕЛЬНЫЙ ЧИСТЫЙ ПРИРОСТ (зеркально
 MemoryCycle.gainOk): если каждый цикл сертифицирован —
 прирост покрывает взвешенную стоимость, взвешенный риск и
 запас ε (gainOk-контракт), то суммарное развитие траектории
@@ -1269,7 +1268,7 @@ theorem trajectory_potential_nesterov (tr : Trajectory X)
   Hagi.Optimization.nesterov_corrected
     (fun t => potential (tr.state t)) q β hq hq1 hβ hstep k
 
-/-- МНОГОШАГОВЫЙ ПРОДУКТИВНЫЙ WITNESS (аудит §4): на
+/-- МНОГОШАГОВЫЙ ПРОДУКТИВНЫЙ WITNESS: на
 канонической семантике Trajectory существует траектория
 длины 3, каждый шаг которой строго продуктивен:
 growGain > 0, энергия падает не менее чем на 3,
@@ -1289,7 +1288,7 @@ theorem wTraj_productive :
   · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
   · norm_num [wTraj, wS0, wU0, wU1, wU2, advance]
 
-/-- ИНВАРИАНТЫ ПРОДУКТИВНОЙ ТРАЕКТОРИИ (аудит §9): та же
+/-- ИНВАРИАНТЫ ПРОДУКТИВНОЙ ТРАЕКТОРИИ: та же
 wTraj-траектория удовлетворяет сертификатам бюджета и риска
 на всём горизонте: бюджет неотрицателен (100 − 2t), риск
 неотрицателен и не убывает (все риски шагов нулевые —
@@ -1343,7 +1342,7 @@ theorem advance_verify_decrease_pos {X : Type*}
   unfold Hagi.Model.advance
   nlinarith [hgap, hnn, hks]
 
-/-- P0.2 МОСТ (закон роста advance-семантики): для траектории
+/-- МОСТ (закон роста advance-семантики): для траектории
 настоящих advance-циклов с измеряемым потенциалом D
 (k·capability ≤ D на каждом шаге) и конусной отдачей
 (γ·D t ≤ измеренный growGain шага t) capability растёт
@@ -1351,7 +1350,7 @@ theorem advance_verify_decrease_pos {X : Type*}
 состояния gain согласован с конусным законом роста;
 фиксированный (независимый от состояния) gain дал бы лишь
 линейный рост — конфликт семантик разрешён в пользу
-пересчёта (audit two-step inconsistency). -/
+пересчёта. -/
 theorem advance_trajectory_geometric_growth {X : Type*}
     [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     (tr : Trajectory X) (D : ℕ → ℝ) (γ k : ℝ)
@@ -1391,7 +1390,7 @@ theorem advance_trajectory_geometric_growth {X : Type*}
       nlinarith [ih', hkey]
   exact hmain tr.T (le_refl _)
 
-/-- P2/итоговый алгоритм: БЮДЖЕТНЫЙ ПОТОЛОК РОСТА —
+/-- БЮДЖЕТНЫЙ ПОТОЛОК РОСТА —
 честный бюджет (каждый шаг тратит ≥ c, бюджет неотрицателен)
 ограничивает горизонт T·c ≤ B; с C-cap (C(t+1) ≤ (1+α)C t)
 потолок capability: C T ≤ (1+α)^{B/c}·C 0 — рост нельзя
@@ -1641,8 +1640,7 @@ theorem plan_reachability {X : Type*}
   linarith
 
 
-/-- ЗНАКОВЫЙ МОСТ PolyStep → HAGI (пункт 4 анализа
-интеграции): конвенция HAGI — спуск θ⁺ = θ − η•stepDir;
+/-- ЗНАКОВЫЙ МОСТ PolyStep → HAGI: конвенция HAGI — спуск θ⁺ = θ − η•stepDir;
 конвенция PolyStep — приближение θ⁺ = θ + ℓ•D. При
 stepDir := −(ℓ/η)•D (η > 0) обновление advance В ТОЧНОСТИ
 реализует PolyStep-шаг — знаки и теоремы о спуске
