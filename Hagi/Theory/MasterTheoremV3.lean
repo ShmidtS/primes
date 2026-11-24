@@ -10,17 +10,20 @@ import Hagi.Theory.MiniHagiLoop
 import Hagi.Theory.NegativeTransfer
 import Hagi.Theory.GrowSnap
 import Hagi.Theory.CoverageReading
+import Hagi.Theory.FunctionPreservingGrowth
+import Hagi.Theory.HoldoutGateTwoWay
+import Hagi.Step.AdamDirection
 
 /-!
 # MasterTheoremV3 — лестница метатеорем-спецификаций certified-машины v3
 
-Один файл, четыре namespace-блока в порядке зависимости
-(`Hagi.Theory.MasterTheoremV3` → `V31` → `V32` → `V33`; FQN
+Один файл, пять namespace-блоков в порядке зависимости
+(`Hagi.Theory.MasterTheoremV3` → `V31` → `V32` → `V33` → `V34`; FQN
 стабильны). Новых глубоких фактов НЕТ ни на одной ступени: каждый
 клоз — делегат к уже доказанной теореме, конъюнкция берёт её
 hypotheses дословно (без ослабления).
 
-## Карта клозов (все 11, делегаты rg-проверены)
+## Карта клозов (все 14, делегаты rg-проверены)
 
 | Клоз | Гарантия | Делегат |
 |---|---|---|
@@ -35,6 +38,9 @@ hypotheses дословно (без ослабления).
 | (9) | schedule-оптимум: γ* = 1/L, max drop = G²/(2L) | `nl_drop_optimal` |
 | (10) | иерархическое покрытие ЛЮБОГО n (peak ≤ m) | `hier_covers_any_n` |
 | (11) | reading floor: total = ⌈n/w⌉ = floor любого покрытия | `hier_optimal` |
+| (12) | growth: полезный первый шаг (strict CE-улучшение) | `first_step_strict_improves` |
+| (13) | Adam: ⟨g, d⟩ > 0 на первом шаге | `adam_first_step_dot_pos` |
+| (14) | holdout-гейт: принятый ⇒ pop-риск ≤ old + 2ε − margin | `holdout_gate_two_way_delta` |
 
 ## Дельты версий (каждая ступень = предыдущая + добор)
 
@@ -50,6 +56,11 @@ hypotheses дословно (без ослабления).
 - `hagi_master_v33` — += (11): клозы (1)–(10) проведены одним
   делегатом `hagi_master_v32` (`have hV32`); (11) переиспользует
   nB/B из hier-блока v3.2 и добавляет `hw : 0 < w`, `hdiv : w ∣ B`.
+- `hagi_master_v34` — += (12)–(14): клозы (1)–(11) проведены одним
+  делегатом `hagi_master_v33` (`have hV33`); (12)–(14) — три
+  НОВЫХ гипотезных блока trailing (growth / Adam / holdout), между
+  собой независимые. Внутри (12) клоз `exists_useful_eta` следует
+  из тех же гипотез, поэтому в конъюнкцию не дублируется.
 
 НЕ дублирует `MasterTheorem.lean` (центральная теорема A17
 audit'а: certified-or-refuse дихотомия reference-machine noisy-PL
@@ -326,3 +337,113 @@ theorem hagi_master_v33
 #print axioms hagi_master_v33
 
 end Hagi.Theory.MasterTheoremV33
+
+--! v3.4
+namespace Hagi.Theory.MasterTheoremV34
+
+open scoped InnerProductSpace
+
+open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
+  Hagi.Theory.NegativeTransfer Hagi.Theory.CoverageReading
+  Hagi.Theory.GrowSnap Hagi.Theory.FunctionPreservingGrowth
+  Hagi.Theory.HoldoutGateTwoWay Hagi.Theory.HoldoutRisk Hagi.Step
+  Hagi.Probability
+
+/-- **(hagi_master_v34, — консолидация certified-машины v3.4)**:
+все 11 гарантий v3.3 (`hagi_master_v33`) выполняются одновременно, И
+к ним три делегата growth-контура:
+(12) при residual-сигнале `a < 0` и `stepEps < 2a²/R²` единственный
+полезный первый шаг growth-блока даёт STRICT улучшение CE на
+носителе `t` (`first_step_strict_improves`);
+(13) первый шаг Adam — направление спуска: `⟨g, d⟩ > 0` при `g ≠ 0`
+(`adam_first_step_dot_pos`);
+(14) holdout-гейт two-way: при `|Θ| ≤ N`,
+`log(2N/δ) ≤ 2k(ε/B)²` с вероятностью ≥ 1 − δ принятый кандидат
+имеет популяционный риск ≤ old + 2ε − margin
+(`holdout_gate_two_way_delta`).
+Каждая конъюнкта — делегат БЕЗ ослабления гипотез. -/
+theorem hagi_master_v34
+    {d : Type*} [Fintype d] [Nonempty d] {ι : Type}
+    (k dd : ℕ) (_hcard : Fintype.card d = dd)
+    (o0 : ℝ) (bs : List ℝ) (step params : ℕ → ℝ)
+    (h0 : step 0 ≤ o0)
+    (hstep : ∀ i, i < bs.length →
+      step (i + 1) ≤ step i + bs.getD i 0)
+    (hparams : ∀ i, i ≤ bs.length →
+      params i = selfCompressParams k dd)
+    {r : Type*} [Fintype r]
+    (s : ℕ → ι → AdaptState r d) (a : ι)
+    (hfroz : ∀ t', s (t' + 1) a = s t' a) (τ : ℕ)
+    {Prog : Type} (CovP : Prog → ι → Prop) (n : ℕ)
+    (st : ℕ → IterState Prog ι)
+    (hAdd : ∀ k' < n, ∃ new, st (k' + 1) = iterStep (st k') new)
+    (i : ι) (h0c : coversPrim CovP (st 0) i)
+    {m : Type} [Fintype m] (θ tB : EuclideanSpace ℝ m)
+    (Lq dq εq : ℝ) (hεq : 0 < εq) (hLd0 : (0 : ℝ) ≤ Lq * dq)
+    (hLdq : εq < Lq * dq)
+    (nc kc : ℕ) (hkc : 0 < kc)
+    {E : Type} [NormedAddCommGroup E] [InnerProductSpace ℝ E]
+    (f : E → ℝ) (grad : E → E) (L γ G : ℝ)
+    (hγ : 0 < γ) (hγL : γ ≤ 2 / L) (hL : 0 < L)
+    (nE : ℕ) (z : E)
+    (hsm : ∀ x y : E, f y ≤ f x + ⟪grad x, y - x⟫_ℝ
+      + L / 2 * ‖y - x‖ ^ 2)
+    (hG : ∀ k', k' ≤ nE → ‖grad (nlRun k' γ grad z)‖ ≤ G)
+    (nB B w s' : ℕ) (hB : 0 < B) (hs : 0 < s') (hsw : s' ≤ w)
+    (hw : 0 < w) (hdiv : w ∣ B)
+    {K : Type} [Fintype K] [Nonempty K] {Bk : Type}
+    (Lb : Bk → K → ℝ) (b : Bk) (bη : ℝ → Bk) (D : K → ℝ) (t : K)
+    (ag R fOld : ℝ)
+    (hlin : ∀ η u, Lb (bη η) u - Lb b u = η * D u)
+    (hR : 0 < R) (hrange : ∀ u v, D u - D v ≤ R)
+    (ha : ag = ∑ v, Hagi.Energy.smax (Lb b) v * D v - D t)
+    (hdesc : ag < 0) (hmax : stepEps < 2 * ag ^ 2 / R ^ 2)
+    (hce0 : Hagi.ceOneHot t (Lb b) = fOld)
+    {ιA : Type*} [Fintype ιA] [Nonempty ιA]
+    (g : ιA → ℝ) (hg : g ≠ 0) (epsA : ℝ) (hepsA : 0 < epsA)
+    {Θ : Type} [Fintype Θ] {Ω : Type} [Fintype Ω] [Nonempty Ω]
+    {kh : ℕ} (hkh : 0 < kh)
+    (ℓ : Θ → Ω → ℝ) {Bh : ℝ} (hBh : 0 < Bh)
+    (hℓ : ∀ θ ω, 0 ≤ ℓ θ ω ∧ ℓ θ ω ≤ Bh)
+    (old : Θ) (cand : (Fin kh → Ω) → Θ) (margin epsH : ℝ)
+    (hepsH : 0 < epsH) (N delta : ℝ) (hN : 0 < N) (hdelta : 0 < delta)
+    (hcardΘ : (Fintype.card Θ : ℝ) ≤ N)
+    (hbudget : Real.log (2 * N / delta) ≤ 2 * (kh : ℝ) * (epsH / Bh) ^ 2) :
+    params bs.length ≤ 2 * k * dd ∧
+      perTaskVec (s τ) a = perTaskVec (s 0) a ∧
+      step bs.length ≤ o0 + bs.sum ∧
+      coversPrim CovP (st n) i ∧
+      (quadObj tB θ > quadObj tB 0 ↔ 2 * ⟪θ, tB⟫_ℝ < ‖θ‖ ^ 2) ∧
+      (snapK Lq dq εq hεq hLd0
+        = Nat.ceil (Real.logb 2 (Lq * dq / εq)) - 1) ∧
+      (∀ ib < nc, ∃ sw ∈ covStarts nc kc, sw ≤ ib ∧ ib < sw + kc) ∧
+      (f z - nE * nlBudget γ L G ≤ f (nlRun nE γ grad z)
+        ∧ f (nlRun nE γ grad z) ≤ f z) ∧
+      nlDrop (1 / L) L G = G ^ 2 / (2 * L) ∧
+      (∀ ib < nB, ∃ t ∈ hierStarts nB B w s', t ≤ ib ∧ ib < t + w) ∧
+      (hierStarts nB B w w).length = (nB + w - 1) / w ∧
+      (∀ Ll : List ℕ, (∀ ib < nB, ∃ t ∈ Ll, t ≤ ib ∧ ib < t + w) →
+        (nB + w - 1) / w ≤ Ll.length) ∧
+      (∃ η : ℝ, 0 < η ∧ Hagi.ceOneHot t (Lb (bη η)) < fOld) ∧
+      (0 < adamDot g (adamDir g (fun j => g j ^ 2) epsA)) ∧
+      (1 - delta ≤
+        prodPq (fun _ : Fin kh => popDens (Ω := Ω))
+          (fun ωs => holdoutMean (ℓ (cand ωs)) ωs ≤
+              holdoutMean (ℓ old) ωs - margin →
+            popMean (ℓ (cand ωs)) ≤ popMean (ℓ old) + 2 * epsH - margin)) := by
+  have hV33 := Hagi.Theory.MasterTheoremV33.hagi_master_v33 k dd
+    _hcard o0 bs step params h0 hstep hparams s a hfroz τ CovP n st
+    hAdd i h0c θ tB Lq dq εq hεq hLd0 hLdq nc kc hkc f grad L γ G
+    hγ hγL hL nE z hsm hG nB B w s' hB hs hsw hw hdiv
+  obtain ⟨c1, c2, c3, c4, c5, c6, c7, c8, c9, h10, h11⟩ := hV33
+  exact ⟨c1, c2, c3, c4, c5, c6, c7, c8, c9, h10, h11.1,
+    fun Ll hLl => h11.2 Ll hLl,
+    first_step_strict_improves Lb b bη D t ag R fOld hlin hR hrange ha
+      hdesc hmax hce0,
+    adam_first_step_dot_pos g hg hepsA,
+    holdout_gate_two_way_delta hkh ℓ hBh hℓ old cand margin epsH hepsH
+      N delta hN hdelta hcardΘ hbudget⟩
+
+#print axioms hagi_master_v34
+
+end Hagi.Theory.MasterTheoremV34

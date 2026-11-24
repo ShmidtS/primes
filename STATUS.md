@@ -1884,7 +1884,7 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
   `tritPack`/`tritUnpack`, `tritPack_lt_243` (guard недостижим),
   `trit_roundtrip`, `tritPack_injective`. Bench: нет.
 
-## Hagi/Theory/MasterTheoremV3.lean (метатеорема v3 → v3.3)
+## Hagi/Theory/MasterTheoremV3.lean (метатеорема v3 → v3.4)
 
 - `master_theorem_v3` (Hagi/Theory/MasterTheoremV3.lean:81): 5 гарантий
   машины v3 (params-бюджет, zero-forgetting, coverage-монотонность,
@@ -1914,6 +1914,24 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
   L=2, G=1 → drop 1/4; (10): n=8128, B=4032), C622 trajMT33 (клоз
   (11): total 127 = ⌈8128/64⌉). Axioms: propext, Classical.choice,
   Quot.sound.
+- `hagi_master_v34` (Hagi/Theory/MasterTheoremV3.lean:365) — v3.4 =
+  v3.3 + 3 делегата growth-контура; 14 клозов ОДНОЙ теоремой,
+  гипотезы дословно (trailing), ноль новых доказательств:
+
+| # | клоз | делегат | с версии |
+|---|---|---|---|
+| (12) | growth first step: a<0, R>0, stepEps<2a²/R² ⇒ ∃ η>0, CE_t(L(bη η)) < fOld (strict) | `first_step_strict_improves` | v3.4 (C662) |
+| (13) | Adam first step: g≠0, eps>0 ⇒ ⟨g, adamDir g g² eps⟩ > 0 | `adam_first_step_dot_pos` | v3.4 (C662) |
+| (14) | holdout two-way: |Θ|≤N, ln(2N/δ) ≤ 2k(ε/B)² ⇒ P≥1−δ [гейт принял ⇒ pop_new ≤ pop_old + 2ε − margin] | `holdout_gate_two_way_delta` | v3.4 (C662) |
+
+  v3.4 `hagi_master_v34` (:365) = v3.3 + (12)(13)(14); клозы (1)–(11)
+  одним делегатом `hagi_master_v33` (деструкцией конъюнкции). Cycle-аудит C662:
+  MasterTheoremV3 импортирует только Hagi.lean; транзитивные импорты
+  FunctionPreservingGrowth (70 модулей) / AdamDirection (1) /
+  HoldoutGateTwoWay (53) не содержат MasterTheoremV3* ⇒ v3.4 в том же
+  файле. Witness: C662 traj (.tmp/C662/traj.lean, #check 14 клозов;
+  (14): ln 400 ≤ 2·1200·0.05²). Axioms: propext, Classical.choice,
+  Quot.sound. Proposal: docs/PROPOSAL-holdout-size.md (#8).
 
 ## Hagi/Theory/FactLedger.lean (fact-ledger append-only мост)
 
