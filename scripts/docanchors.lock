@@ -20,6 +20,7 @@ Hagi/Core/NonlinearStep0.lean:104	zero_init_identity|decl
 Hagi/Data/PACBayes.lean:99	gibbs_variational|decl
 Hagi/Energy/PoEBound.lean:104	smax_pos|decl
 Hagi/Energy/PoEBound.lean:164	lse_shift_upper|decl
+Hagi/External/Flywheel/MatrixNormRelations.lean:328	spectral_norm_eq_max_singularValue|decl
 Hagi/External/Flywheel/MatrixNormRelations.lean:673	spectral_error_truncatedSVD|decl
 Hagi/External/Flywheel/SVDRectangularDecomposition.lean:185	extendedONB_rectangular|decl
 Hagi/External/Flywheel/SpectralNormGap.lean:508	§/-! ## Spectral vs Frobenius Gap Characterization|inner
@@ -273,6 +274,20 @@ Hagi/Theory/MiniHagiLoop.lean:134	coverage_append_monotone|decl
 Hagi/Theory/MiniHagiLoop.lean:154	iterative_loop_sound|decl
 Hagi/Theory/MiniHagiLoop.lean:190	universal_loop_corpus_mono|decl
 Hagi/Theory/MiniHagiLoop.lean:64	full_loop_sound|decl
+Hagi/Theory/MuonSpectral.lean:118	rank_one_norm_bound|decl
+Hagi/Theory/MuonSpectral.lean:156	rank_one_inner_le|decl
+Hagi/Theory/MuonSpectral.lean:179	rank_one_spectral_norm|decl
+Hagi/Theory/MuonSpectral.lean:231	rank_one_attains|decl
+Hagi/Theory/MuonSpectral.lean:289	rank_one_spectral_step_optimal|decl
+Hagi/Theory/MuonSpectral.lean:46	fdot|decl
+Hagi/Theory/MuonSpectral.lean:49	r1|decl
+Hagi/Theory/MuonSpectral.lean:53	smax|decl
+Hagi/Theory/MuonSpectral.lean:58	Unit|decl
+Hagi/Theory/MuonSpectral.lean:61	smax_nonneg|decl
+Hagi/Theory/MuonSpectral.lean:69	sum_sq_mulVec|decl
+Hagi/Theory/MuonSpectral.lean:81	rank_one_inner|decl
+Hagi/Theory/MuonSpectral.lean:89	ortho_preserves_sq|decl
+Hagi/Theory/MuonSpectral.lean:95	smax_svd|decl
 Hagi/Theory/NadyaOptimal.lean:126	exists_best_mse_scale|decl
 Hagi/Theory/NadyaOptimal.lean:143	cosine_sched_bounds|decl
 Hagi/Theory/NadyaOptimal.lean:151	cosine_sched_start|decl

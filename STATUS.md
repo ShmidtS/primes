@@ -2171,11 +2171,56 @@ rc = 0. Freeze 9054 → 9070 (+16: `batchGrad`, `fdot`, `frobSq`, `rowGrad`,
   доказан: нужна дуальность спектральной/ядерной нормы (hbridge, см.
   `Hagi/Step/FrobeniusLMO.lean`; в репо есть только диагональное ядро
   `muon_alignment_optimal` и `spectral_norm_le_frobenius_norm`). Доказан
-  rank-one срез (T3''). Сравнение с Adam-sign (`‖G‖₁ ≥ ‖G‖_F ≥ σ_max`) не
+  rank-one срез (T3''); spectral: → MuonSpectral (C670: rank-one спектральный
+  оптимум через SVD, полный шаг Muon `U Vᵀ` — hbridge). Сравнение с Adam-sign (`‖G‖₁ ≥ ‖G‖_F ≥ σ_max`) не
   формализовано. Батч здесь — сумма по `τ` без деления на размер (код:
   cross_entropy со средним — множитель `1/|τ|` на градиент). Muon-шаг кода
   (core.py:1755) относится к другой `W1`, чем слой `_block_add` (lm.py:586)
   — bridge to be made.
+## Hagi/Theory/MuonSpectral.lean (rank-one спектральный шаг Muon: σ_max, C670)
+
+Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1350 @ca52eb4 (вызов —
+`W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)` core.py:1755
+@ca52eb4) — приближает полярный фактор `U Vᵀ` градиента (quirk `iters=3` ⇒
+приближённая изометрия; якорь только @sha). Носитель: матрицы `Matrix n n ℝ`
+(квадратный слой), `fdot G Δ = Σ_{ij} G i j·Δ i j`, `r1 u v` = `u ⊗ v`,
+`smax G` = `max_i √(λᵢ(GᵀG))` (Flywheel realSingularValues), `Unit x` =
+`∑ x i² = 1`; норма — операторная `l2` (Matrix.Norms.L2Operator).
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `fdot`, `r1`, `smax`, `Unit`, `smax_nonneg` | Frobenius-спаривание; rank-one `u ⊗ v`; наибольшее сингулярное число; единичный вектор; `σ_max ≥ 0` | Hagi/Theory/MuonSpectral.lean:46, :49, :53, :58, :61 | — |
+| `rank_one_inner` | `⟨G, u ⊗ v⟩ = Σ_i u i·(G v) i` | Hagi/Theory/MuonSpectral.lean:81 | — |
+| `sum_sq_mulVec`, `ortho_preserves_sq`, `smax_svd` | `‖M v‖² = Σ_i v i·(Mᵀ(M v)) i`; ортогональная `M` сохраняет `‖v‖²`; явный SVD `G = U·Σ·Vᵀ` с `σ = realSingularValues G` (обе `U`, `V` ортогональны) | Hagi/Theory/MuonSpectral.lean:69, :89, :95 | — |
+| `rank_one_norm_bound` | Courant–Fischer в форме SVD: `‖G v‖² ≤ σ_max(G)²·‖v‖²` | Hagi/Theory/MuonSpectral.lean:118 | — |
+| `rank_one_inner_le` | T1 (граница): единичные `u`, `v` ⇒ `⟨G, u ⊗ v⟩ ≤ σ_max(G)` | Hagi/Theory/MuonSpectral.lean:156 | — |
+| `rank_one_spectral_norm` | T2: единичные `u`, `v` ⇒ `‖u ⊗ v‖₂ = 1` (rank-one шаг лежит на спектральной сфере) | Hagi/Theory/MuonSpectral.lean:179 | — |
+| `rank_one_attains` | T3 (достижимость): топ-пара (столбцы `U`, `V` с индексом топ-σ) единична и `⟨G, u₁ ⊗ v₁⟩ = σ_max(G)` | Hagi/Theory/MuonSpectral.lean:231 | — |
+| `rank_one_spectral_step_optimal` | T4 (итог): всякий rank-one шаг с единичными `u`, `v` имеет норму 1 и `⟨G, Δ⟩ ≤ σ_max(G)`; граница достигается | Hagi/Theory/MuonSpectral.lean:289 | — |
+
+Witness: `.tmp/C670/traj.lean` (G = diag(3,1), n = 2): для любой единичной
+пары `⟨G, u ⊗ v⟩ ≤ smax G` (T1), `‖u ⊗ v‖ = 1` (T2), топ-пара существует (T3),
+`⟨G, e₁ ⊗ e₁⟩ = G 0 0 = 3`; rc = 0. Freeze 9070 → 9084 (+14: `fdot`, `r1`,
+`smax`, `Unit`, `smax_nonneg`, `sum_sq_mulVec`, `rank_one_inner`,
+`ortho_preserves_sq`, `smax_svd`, `rank_one_norm_bound`, `rank_one_inner_le`,
+`rank_one_spectral_norm`, `rank_one_attains`, `rank_one_spectral_step_optimal`).
+
+- Honest-остаток (down-scope C670): доказан rank-one срез спектрального
+  оптимума, НЕ полный шаг Muon. Полная теорема (max `⟨G, Δ⟩` по всем `Δ` с
+  `‖Δ‖₂ ≤ 1` равна `σ_max`; шаг Muon `U Vᵀ` оптимален по ядерной норме —
+  `⟨G, Δ⟩ ≤ Σσᵢ(G)·σᵢ(Δ)`, von Neumann) требует дуальности спектральной/ядерной
+  норм или неравенства фон Неймана о следе — в Mathlib v4.36 pin
+  (scripts/mathlib-rev.txt) их нет: LinearMap.singularValues есть (sNum0,
+  antitone, без равенства операторной норме), spectral_norm_eq_max_singularValue
+  доказан во Flywheel (Hagi/External/Flywheel/MatrixNormRelations.lean:328,
+  комплексный случай); эквивалентность `smax G = ‖G‖₂` для вещественных матриц
+  здесь НЕ выведена (кандидат на следующий шаг). Характеризация «равенство ⟺
+  топ-пара» (при кратном топ-σ оптимум не единственный) не формализована.
+  Прямоугольный слой (`ι ≠ δ`) не формализован (Flywheel
+  svd_decomposition_rectangular — комплексный). Код: newton_schulz_orthogonalize
+  с `iters=3` — приближённый `U Vᵀ`, связь с формальным `U·Σ·Vᵀ` — только
+  якорь @sha.
+
 ## Hagi/Theory/NadyaOptimal.lean («Надя.txt» HAGI v2 Optimal: BitAlloc, Schedules, LCB, Bypass)
 
 Источник: `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY, 961 строк Python).
@@ -2398,10 +2443,10 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.
 
-## History (C538–C669)
+## History (C538–C670)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C669, якоря `#c638-c640`
-  … `#c665-c667`, `#c668`, `#c669`); более ранние per-beat файлы — `git log`. Журнал
+- Era index: `.omc/analysis/era-index.md` (C591–C670, якоря `#c638-c640`
+  … `#c665-c667`, `#c668`, `#c669`, `#c670`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
   (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
   `git show b3939aa5:STATUS.md`.

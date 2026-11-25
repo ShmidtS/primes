@@ -1,4 +1,4 @@
-# Era index — C591–C669 (2026-11-22/25)
+# Era index — C591–C670 (2026-11-22/25)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat-файлы
@@ -302,3 +302,26 @@
   шаг `U Vᵀ`) не доказан — нужна дуальность спектральной/ядерной нормы
   (hbridge); сравнение с Adam-sign не формализовано; Muon-шаг кода
   (core.py:1755) относится к другой `W1`, чем слой `_block_add` (lm.py:586).
+
+<a id="c670"></a>
+## C670 — rank-one спектральный шаг Muon и σ_max (freeze 9070→9084)
+
+- Коммит: `feat: rank one spectral step optimal via courant fischer muon core`
+  (sha — в receipt `.tmp/C670/receipt.md`).
+- Исследование: пин C669 «спектральный аналог T2 (max ⟨G,Δ⟩ при ‖Δ‖₂ ≤ 1
+  равен σ_max, шаг `U Vᵀ`) не доказан». Код: newton_schulz_orthogonalize
+  core.py:1350 @ca52eb4, вызов core.py:1755 @ca52eb4 (quirk `iters=3` ⇒
+  приближённая изометрия). Инвентаризация Flywheel: вещественный SVD
+  (svd_decomposition, realAV_eq_constructedU_real_mul_sigma в SVDReal.lean),
+  Courant–Fischer (rayleigh_le_eigenvalue_max), Eckart–Young,
+  spectral_norm_eq_max_singularValue (комплексный), `‖A‖_F² = Σσ²`. В
+  Mathlib v4.36 pin: LinearMap.singularValues (sNum0, antitone) без
+  равенства операторной норме; дуальности спектральной/ядерной норм и
+  неравенства фон Неймана нет. Реестр Palomar недоступен (C669 — 404).
+- Результат: `Hagi/Theory/MuonSpectral.lean` — `rank_one_norm_bound`
+  (Courant–Fischer в форме SVD), `rank_one_inner_le` (T1),
+  `rank_one_spectral_norm` (T2: `‖u ⊗ v‖₂ = 1`), `rank_one_attains` (T3:
+  топ-пара достигает σ_max), `rank_one_spectral_step_optimal` (T4).
+- Honest (down-scope): только rank-one срез; полный шаг Muon `U Vᵀ` (von
+  Neumann / спектрально-ядерная дуальность) не доказан; `smax = ‖G‖₂` для
+  вещественных матриц не выведен; прямоугольный слой не формализован.

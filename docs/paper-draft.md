@@ -83,6 +83,7 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | probability | `paired_lcb_false_grow_bound` (Hagi/Theory/NadyaOptimal.lean:270) | LCB gate, Надя.txt:109-112/:884-890 | conditional (deterministic radius r; code uses z·σ̂/√n) | C666 |
 | compression | `bypass_reaches_compression_limit` (Hagi/Theory/NadyaOptimal.lean:304); `ce_covered_zero` (Hagi/Theory/ExactBypass.lean:70) | EXACT_BYPASS, Надя.txt:695-750 | exact for the ideal coder (q = 1 on the support) | C666 |
 | growth | `wlogits_width_preserved` (Hagi/Theory/WidthGrowth.lean:597); `attn_score_scale_preserved` (:329); `rotary_old_pairs_unchanged` (:266) | `grow_width`, Надя.txt (function name) | exact for nh = 1, even width; honest gap: nh > 1, odd width, clip are hypotheses `WGrowth` | C667 |
+| step | `rank_one_inner_le` (Hagi/Theory/MuonSpectral.lean:156); `rank_one_spectral_norm` (:179); `rank_one_attains` (:231) | Newton–Schulz orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350, called with iters=3 at core.py:1755 @ca52eb4) | honest gap: rank-one spectral slice proved; full-rank Muon step (von Neumann) and `smax = ‖G‖₂` for real matrices open | C670 |
 | step | `batch_directional_derivative` (Hagi/Theory/BatchRankOne.lean:65); `sgd_step_attains` (:136); `rank_one_best_v` (:209) | Muon step on `W1`, hagi/core.py:1755/:1350 @ca52eb4 | honest gap: Frobenius ball and rank-one family proved; spectral-norm optimum and the link to the lm.py:586 layer open | C669 |
 | step | `hasFDerivAt_w1L` (Hagi/Theory/FirstLayerGrad.lean:87); `w1_grad_rank_one` (:123); `useful_of_adam_first_w1` (:167) | first layer `W1`, hagi/lm.py:586/:594 @ca52eb4 | strict descent only (no certified drop; single input) | C668 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
@@ -971,12 +972,12 @@ global only probabilistically. Across the era the weak link moved from
 Axioms of every new theorem: propext, Classical.choice, Quot.sound.
 
 
-### 3.20 Later bridges (C651–C669): deltas on the §0 map
+### 3.20 Later bridges (C651–C670): deltas on the §0 map
 
 Rows: §0 (repair, archiver, Adam, useful first step, chain rule,
 holdout gate, window order; C666–C667: BitAlloc, schedule, LCB gate,
 bypass, width growth; C668: first-layer W1 derivative; C669: batch
-gradient and Frobenius-optimal step). Code anchors are `git show`-verified at @e9a96fc
+gradient and Frobenius-optimal step; C670: rank-one spectral optimum). Code anchors are `git show`-verified at @e9a96fc
 (wave 256–257), @b3740e0 (wave 258) and @bab8aff (wave 258b); the
 Nadya.txt anchors are a 2026-11-24 snapshot.
 <!-- source: STATUS.md cards C651, C653–C655, C657, C660, C663, C664, C666, C667;
@@ -1046,6 +1047,20 @@ Honest gap: the spectral-norm statement behind Muon (max `⟨G, Δ⟩` over
 spectral/nuclear duality — and the code's `W1` at core.py:1755 is not
 the growth-block layer of lm.py:586 (bridge to be made). Witness
 .tmp/C669/traj.lean, rc = 0 (batch of 2 inputs).
+
+**(iv-d) The rank-one spectral optimum (C670).** Over the rank-one family
+`Δ = u ⊗ v` with unit `u`, `v` (so `‖Δ‖₂ = 1`, `rank_one_spectral_norm`)
+the pairing is `⟨G, u ⊗ v⟩ = Σ_i u i·(G v) i` (`rank_one_inner`), the SVD
+`G = U Σ Vᵀ` gives `‖G v‖² ≤ σ_max(G)²·‖v‖²` (`rank_one_norm_bound`, the
+Courant–Fischer bound for `GᵀG`), hence `⟨G, u ⊗ v⟩ ≤ σ_max(G)` for every
+unit pair (`rank_one_inner_le`), and the top pair of singular vectors
+attains it (`rank_one_attains`, `rank_one_spectral_step_optimal`). Code: the
+consumer's orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350
+@ca52eb4, called at core.py:1755 with iters=3) approximates the polar
+factor `U Vᵀ` of the gradient. Honest gap: only the rank-one slice is
+proved; the full Muon step (all ranks, von Neumann trace inequality /
+spectral–nuclear duality) is not in the Mathlib pin, and `smax G = ‖G‖₂`
+for real matrices is not derived here. Witness .tmp/C670/traj.lean, rc = 0.
 
 **(v) Window order (C651 → C664).** After wave 258 the context is
 `idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;
