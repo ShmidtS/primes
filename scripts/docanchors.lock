@@ -274,6 +274,13 @@ Hagi/Theory/MiniHagiLoop.lean:134	coverage_append_monotone|decl
 Hagi/Theory/MiniHagiLoop.lean:154	iterative_loop_sound|decl
 Hagi/Theory/MiniHagiLoop.lean:190	universal_loop_corpus_mono|decl
 Hagi/Theory/MiniHagiLoop.lean:64	full_loop_sound|decl
+Hagi/Theory/MuonAlignment.lean:104	muon_alignment_exact|decl
+Hagi/Theory/MuonAlignment.lean:125	kept|decl
+Hagi/Theory/MuonAlignment.lean:131	muon_near_optimal|decl
+Hagi/Theory/MuonAlignment.lean:162	muon_alignment_ge_gradient|decl
+Hagi/Theory/MuonAlignment.lean:45	ns_step_svd|decl
+Hagi/Theory/MuonAlignment.lean:86	ns_iter|decl
+Hagi/Theory/MuonAlignment.lean:91	ns_iter_svd|decl
 Hagi/Theory/MuonIsometry.lean:115	isometry_conj|decl
 Hagi/Theory/MuonIsometry.lean:128	isometry_inner_le_ssum|decl
 Hagi/Theory/MuonIsometry.lean:146	uv_transpose_isometry|decl
