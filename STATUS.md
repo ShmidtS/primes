@@ -2704,9 +2704,9 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.
 
-## History (C538–C676)
+## History (C538–C677)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C671, якоря `#c638-c640`
+- Era index: `.omc/analysis/era-index.md` (C591–C677, сводка `#c668-c676`, якоря `#c638-c640`
   … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
   (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —

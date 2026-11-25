@@ -12,7 +12,7 @@ comparator.json, formalization.yaml (arXiv-категории, MSC2020,
 редакционный вердикт («no blocking problem»). Реестр не
 ранжирует и не одобряет результаты.
 
-Этот файл — подготовительные карточки (draft entries) семнадцати
+этот файл — подготовительные карточки (draft entries) девятнадцати
 machine-checked результатов C5XX–C6XX-витков: самодостаточные
 математические формулировки без контекстной терминологии,
 точные FQN-якоря и честный статус. Все доказательства
@@ -583,6 +583,91 @@ one iff there is residual signal
 
 ---
 
+## Card 18 — Muon step optimality without von Neumann
+
+- **Statement.** Пусть `G ≠ 0` — действительная квадратная матрица,
+  `normed G = (1/‖G‖_F)·G`, `ns_iter k` — `k` итераций схемы
+  `X ↦ ½·X(3I − XᵀX)`. Тогда:
+
+  `theorem muon_step_optimal_in_isometry_group (G : Matrix n n ℝ) :`
+  `  (∀ Δ, Isometry Δ → fdot G Δ ≤ ssum G) ∧ ∃ Δ, Isometry Δ ∧ fdot G Δ = ssum G`
+
+  `theorem muon_alignment_exact (G : Matrix n n ℝ) (k : ℕ) :`
+  `  fdot G (ns_iter k G) = ∑ i, realSingularValues G i * ns_seq k (realSingularValues G i)`
+
+  `theorem muon_near_optimal (G : Matrix n n ℝ)`
+  `  (hnorm : ∀ i, realSingularValues G i ≤ 1) :`
+  `  39 / 40 * ∑ i ∈ kept G, realSingularValues G i ≤ fdot G (ns_iter 3 G)`
+
+  `theorem normed_near_optimal [Nonempty n] {G : Matrix n n ℝ} (hG : G ≠ 0) :`
+  `  39 / 40 * ∑ i ∈ kept (normed G), realSingularValues (normed G) i`
+  `    ≤ fdot (normed G) (ns_iter 3 (normed G))`
+
+  где `fdot` — фробениусово скалярное произведение, `ssum` — сумма
+  сингулярных чисел (nuclear norm), `kept` — индексы с `σ i ≥ 1/2`.
+  Максимум `⟨G, Δ⟩` по группе изометрий `ΔᵀΔ = I` равен `‖G‖_*` и
+  достигается на `U Vᵀ`; доказательство идёт через диагональ
+  `Q = UᵀΔV` (изометрия ⇒ единичные столбцы ⇒ `Q i i ≤ 1`), без
+  неравенства фон Неймана / спектрально-ядерной двойственности.
+- **Наглядность.** Идеальный шаг Muon (ортогонализованный градиент)
+  — точный оптимум на группе изометрий; итерации Ньютона–Шульца
+  сохраняют сингулярные векторы градиента, и три итерации дают не
+  менее 39/40 оптимума на спектре `σ ≥ 1/2` — уже для той матрицы,
+  которую код подаёт в итерацию (фробениусова нормировка).
+- **Anchor.**
+  `Hagi.Theory.MuonIsometry.muon_step_optimal_in_isometry_group`
+  (Hagi/Theory/MuonIsometry.lean:175);
+  `Hagi.Theory.MuonAlignment.muon_alignment_exact`
+  (Hagi/Theory/MuonAlignment.lean:104); `muon_near_optimal` (:131);
+  `Hagi.Theory.MuonDescent.normed_near_optimal`
+  (Hagi/Theory/MuonDescent.lean:156); `normed_sigma_le_one` (:122);
+  определения `ns_iter` (Hagi/Theory/MuonAlignment.lean:86), `ns_p`
+  (Hagi/Theory/NewtonSchulzSigma.lean:42), `ns_seq` (:45).
+- **Dependencies.** Mathlib; собственный `smax_svd`
+  (Hagi/Theory/MuonSpectral.lean) и SVD-файлы Flywheel
+  (`Hagi.External.Flywheel.Matrix.SVD.Real`).
+- **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
+  три Lean. Honest: максимум по всему спектральному шару `‖Δ‖₂ ≤ 1`
+  не доказан (нужен фон Нейман); прямоугольный случай не
+  формализован; `σ i < 1/2` после трёх итераций без нижней границы.
+  Проверка ниши: в реестре нет backprop / trace-inequality /
+  Muon формализаций — «niche 0/N» по данным receipts C668–C675
+  (C668: 1351 entries, revision 1194, 0 cards по HasFDerivAt /
+  fderiv / chain rule / backprop; C674: 0 по «muon / newton»);
+  API в C677 не запрашивался.
+- **Category.** Optimization / matrix analysis (arXiv math.OC,
+  cs.LG); MSC2020 15A18 (singular values), 90C25, 68T05.
+
+## Card 19 — Newton–Schulz quadratic defect 39/40
+
+- **Statement.** Скалярная динамика итерации `X ↦ ½·X(3I − XᵀX)`:
+  `ns_p t = t(3 − t²)/2`, `ns_seq 0 t = t`,
+  `ns_seq (k+1) t = ns_p (ns_seq k t)`.
+
+  `theorem ns_defect_bound {d : ℝ} (h0 : 0 ≤ d) (h1 : d ≤ 1 / 2) (k : ℕ) :`
+  `  1 - ns_seq k (1 - d) ≤ 2 / 3 * (3 / 4) ^ (2 ^ k)`
+
+  `theorem ns_sigma_min_three {σ : ℝ} (h0 : 1 / 2 ≤ σ) (h1 : σ ≤ 1) :`
+  `  39 / 40 ≤ ns_seq 3 σ`
+
+  Дефект `d = 1 − σ` сжимается квадратично, `d ← d²(3 − d)/2`, с
+  явной двойной экспонентой; три итерации поднимают `σ₀ ≥ 1/2` до
+  `σ₃ ≥ 39/40`.
+- **Наглядность.** Явная константа близости трёх итераций
+  Ньютона–Шульца к полярному фактору: `1/2 → 11/16 → 1 − 1075/8192
+  → ≈ 0.975300` (точная траектория от `1/2`, receipt C673).
+- **Anchor.** `Hagi.Theory.NewtonSchulzSigma.ns_defect_bound`
+  (Hagi/Theory/NewtonSchulzSigma.lean:83); `ns_sigma_min_three` (:126);
+  `ns_quadratic_invariant` (:51); `ns_step_eigenvalue_sigma` (:200);
+  определения `ns_p` (:42), `ns_seq` (:45).
+- **Dependencies.** Mathlib; statement — только `ℝ`.
+- **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
+  три Lean. Honest: `σ₀ ≥ 1/2` — посылка; малые `σ` не поднимаются.
+- **Category.** Numerical analysis / optimization (arXiv math.NA,
+  cs.LG); MSC2020 65F25 (orthogonalization), 65H05.
+
+---
+
 ## Submission requirements (что нужно для реальной отправки)
 
 По /how-to-submit реестра, для каждой карточки требуется
@@ -660,8 +745,12 @@ query_summary.json, llms.txt), `.tmp/C630/research.md`.
 
 Повторение внешней проверки C630 против тем Cards 15–17 (Adam
 first step / sign-flip momentum, Kraft codelength ↔ cross-entropy,
-useful first warm-up step function-preserving growth) плюс прежние
-24 темы C630.
+useful first warm-up step function-preserving growth; Cards 18–19
+Muon / Newton–Schulz — по данным receipts C668–C675, без нового
+fetch) плюс прежние
+24 темы C630 (muon, newton schulz, orthogonalization, singular value,
+ polar factor, nuclear norm, spectral norm, isometry: по данным
+ receipts C668–C675 — 0 тематических; в C677 API не запрашивался).
 
 Метод: полный обход `data.palomar-registry.org/api/v1/results`
 (curl --http1.1; urllib на этой машине рвёт TLS — WinError 10054)

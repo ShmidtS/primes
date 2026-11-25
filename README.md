@@ -176,17 +176,17 @@ allowlist LAYER_EXCEPTIONS.
   по каждому Lean-файлу Root, с существенными условиями.
 - **[Hagi.lean](Hagi.lean)** — карта импортов для перехода к
   непосредственным определениям и теоремам в дереве `Hagi/`.
-- **[docs/PALOMAR-CARDS.md](docs/PALOMAR-CARDS.md)**   — карточки
-  семнадцати C5XX–C6XX-результатов для [Palomar](https://palomar-registry.org/)
-  (реестр Lean-верифицированной математики). Карточки готовы;
+- **[docs/PALOMAR-CARDS.md](docs/PALOMAR-CARDS.md)**   —   карточки девятнадцати C5XX–C6XX-результатов для [Palomar](https://palomar-registry.org/)
+  (реестр Lean-верифицированной математики; Cards 18–19 — Muon chain,
+  C677). Карточки готовы;
   отправка — внешний user-шаг: форма
   [submit.palomar-registry.org](https://submit.palomar-registry.org/)
   требует публичного GitHub-репозитория с выделенным
   Challenge/Solution comparator-проектом (см. секцию Submission
   requirements в файле карточек). Все 17 карточек внешне
   уникальны (сверка с полным дампом реестра, 1331 results —
-  0 пересечений; recheck C658).
-
+  0 пересечений; recheck C658). Cards 18–19: 0 пересечений по данным
+  receipts C668–C675 (API не перезапрашивался).
 ## Сборка
 
 Версия Lean закреплена в `lean-toolchain`, зависимости и цели — в

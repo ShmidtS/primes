@@ -1,12 +1,13 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v1.1 (release). Все утверждения — либо Lean-якорь (FQN, файл, строка;
-сверены на HEAD e160b7ec, freeze identity 9043), либо
+Draft v1.2 (release). Все утверждения — либо Lean-якорь (FQN, файл, строка;
+сверены `scripts/DocAnchorCheck.py` на дереве 57483f97, freeze identity
+9149; предыдущая сверка e160b7ec, 9043), либо
 измеренный результат прогона с указанием витка (Cn), либо PIN в §5.
 Якоря кода HAGI_v2 (python `file:line@sha`) сверены `git show` на
 указанном sha (мосты C638–C648: @1ae924e / @ca52eb4, волны 254–255;
 мосты C651–C657: @e9a96fc / @b3740e0, волны 256–258; мост C664:
-@bab8aff, волна 258b). Карта «слой машины ↔ теорема ↔ код» — единственная, §0.
+@bab8aff, волна 258b; мост Muon C668–C676: @ca52eb4). Карта «слой машины ↔ теорема ↔ код» — единственная, §0.
 Никаких недоказанных клеймов. Теоремный счётчик abstract остаётся от
 e40aa426: новый индекс не генерировался.
 
@@ -16,7 +17,7 @@ e40aa426: новый индекс не генерировался.
 step is taken only after a machine-checked certificate: PROPOSE →
 CERTIFY → ADMIT → COMMIT/HOLD/ROLLBACK → LOG, formalized in Lean 4
 against Mathlib (**12 875 theorems in 543 modules, 0 `sorry`**, count at
-e40aa426; freeze identity **9043** declarations at e160b7ec). The cycle
+e40aa426; freeze identity **9149** declarations). The cycle
 theorem `certify_then_commit_sound` gives, per T-round run, objective
 telescoping, a 1 − δtotal bound on false commits, an ε-bound on
 holdout-risk growth and exact budget balance; the consolidated statement
@@ -30,8 +31,11 @@ and a 2-level hierarchy cuts the peak window budget 127 → 63 at n = 8128
 the optimal snap grid k* = ⌈log₂(L·d/ε)⌉ − 1, the useful first warm-up
 step **η* = 4|a|/R² with drop_max = 2a²/R²**, and the codelength sandwich
 **H(p) ≤ E[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1** via Kraft–McMillan.
-Release feature: **17 PALOMAR cards** and a **§0 map of 31 code
-bridges** (C521–C668) in which the consumer's own code (HAGI_v2, python
+Optimizer side: for the first layer `W1` the consumer's Muon step
+`W1 − η·ns₃(Ĝ)` is a proved strict descent step with first-order drop
+≥ ‖G‖_F, and the three-iteration Newton–Schulz iterate keeps ≥ 39/40 of
+the optimum on the spectrum σ ≥ ½‖G‖_F. Release feature: **19 PALOMAR
+cards** and a **§0 map of 35 code bridges** (C521–C676) in which the consumer's own code (HAGI_v2, python
 `file:line@sha`) is checked against the canon and labelled exact,
 conditional or honest-gap. We state the open hypotheses as pins (§5,
 pins 30–34): U2 global reachability, the chain rule behind a < 0 (closed
@@ -83,14 +87,10 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | probability | `paired_lcb_false_grow_bound` (Hagi/Theory/NadyaOptimal.lean:270) | LCB gate, Надя.txt:109-112/:884-890 | conditional (deterministic radius r; code uses z·σ̂/√n) | C666 |
 | compression | `bypass_reaches_compression_limit` (Hagi/Theory/NadyaOptimal.lean:304); `ce_covered_zero` (Hagi/Theory/ExactBypass.lean:70) | EXACT_BYPASS, Надя.txt:695-750 | exact for the ideal coder (q = 1 on the support) | C666 |
 | growth | `wlogits_width_preserved` (Hagi/Theory/WidthGrowth.lean:597); `attn_score_scale_preserved` (:329); `rotary_old_pairs_unchanged` (:266) | `grow_width`, Надя.txt (function name) | exact for nh = 1, even width; honest gap: nh > 1, odd width, clip are hypotheses `WGrowth` | C667 |
-| step | `rank_one_inner_le` (Hagi/Theory/MuonSpectral.lean:156); `rank_one_spectral_norm` (:179); `rank_one_attains` (:231) | Newton–Schulz orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350, called with iters=3 at core.py:1755 @ca52eb4) | honest gap: rank-one spectral slice proved; full-rank Muon step (von Neumann) open; C671: `smax = ‖G‖₂` for real matrices closed (`smax_eq_opNorm`, Hagi/Theory/MuonSpectral.lean:333) | C670/C671 |
-| step | `isometry_inner_le_ssum` (Hagi/Theory/MuonIsometry.lean:128); `uv_transpose_attains_ssum` (:156); `muon_step_optimal_in_isometry_group` (:175) | Newton–Schulz orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350, iteration core.py:1363, Frobenius normalisation core.py:1353, called with iters=3 at core.py:1755 @ca52eb4) | max over the isometry group ΔᵀΔ = I proved without von Neumann; honest gap: the code's output is an approximate isometry (iters=3, σ_min lower bound not formalised), rectangular G and the convergence of the iteration to U Vᵀ not formalised | C672 |
-| step | `ns_quadratic_invariant` (Hagi/Theory/NewtonSchulzSigma.lean:51); `ns_defect_bound` (:83); `ns_sigma_min_three` (:126); `ns_step_eigenvalue_sigma` (:200) | Newton–Schulz iteration `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` (hagi/core.py:1363, Frobenius normalisation core.py:1353, called with iters=3 at core.py:1755 @ca52eb4) | scalar dynamics σ ← σ(3 − σ²)/2 of the code's quadratic scheme and the double-exponential defect bound proved; at σ₀ ≥ 1/2: σ₃ ≥ 39/40 after iters=3; honest gap: σ₀ ≥ 1/2 is a hypothesis (the code only gives σ₀ ≤ 1), the link from σ_min(Δ_k) to ⟨G, Δ_k⟩ ≥ (1 − ε)·ssum G is open | C673 |
-| step | `ns_step_svd` (Hagi/Theory/MuonAlignment.lean:45); `muon_alignment_exact` (:104); `muon_near_optimal` (:131); `muon_alignment_ge_gradient` (:162) | Newton–Schulz iteration `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` (hagi/core.py:1363, Frobenius normalisation core.py:1353, called with iters=3 at core.py:1755 @ca52eb4) | every iterate shares the singular vectors of G and ⟨G, X_k⟩ = Σ σ i·ns_seq k (σ i) proved; with σ i ≤ 1: ⟨G, X₃⟩ ≥ (39/40)·Σ_{σ i ≥ 1/2} σ i and ⟨G, X_k⟩ ≥ ⟨G, G⟩; honest gap: σ i ≤ 1 for the normalised gradient is a hypothesis, singular values below 1/2 carry no lower bound, rectangular G and the layer update not formalised | C674 |
-| step | `smax_smul` (Hagi/Theory/MuonDescent.lean:105); `normed_sigma_le_one` (:122); `muon_step_inner_ge_frob` (:136); `muon_step_useful` (:176); `muon_vs_sign_first_order` (:196) | Muon layer update `W1 -= (cos_lr*0.7)*newton_schulz_orthogonalize(m1, iters=3)` (hagi/core.py:1755, Frobenius normalisation core.py:1353 @ca52eb4; layer hagi/lm.py:586) | for G ≠ 0 every singular value of G/‖G‖_F is ≤ 1 (the σ ≤ 1 hypothesis of C674 is discharged), ⟨G, ns_iter k (G/‖G‖_F)⟩ ≥ ‖G‖_F, and a differentiable f with f'(W)[Δ] = ⟨g, Δ⟩, g ≠ 0, strictly decreases along W − η·ns_iter k (g/‖g‖_F) for small η; honest gap: the derivative identity on the Matrix carrier is a hypothesis (proved in C668/C669 only for the functional carrier), the step size, momentum, Lipschitz descent lemma and convergence are not formalised, Muon-vs-sign is compared only by first-order drop (not per unit step norm) | C675 |
-| step | `w1_fderiv_apply` (Hagi/Theory/MuonDescentW1.lean:65); `w1Grad_ne` (:79); `muon_step_useful_w1` (:104); `w1Batch_fderiv_apply` (:156); `muon_step_useful_w1_batch` (:193) | Muon layer update `W1 -= (cos_lr*0.7)*newton_schulz_orthogonalize(m1, iters=3)` (hagi/core.py:1755, layer hagi/lm.py:586, batch cross_entropy mean lm.py:688 @ca52eb4) | the derivative-identity hypothesis of C675 is discharged for the growth-block layer W1: outside the kink, f'(W1)[Δ] = ⟨G, Δ⟩ with G = −(g ⊗ x) for one input and G = −Σ_t g_t ⊗ x_t for a batch, hence (g ≠ 0, x ≠ 0 resp. G ≠ 0) CE strictly decreases along W1 − η·ns_iter k (G/‖G‖_F) for small η; honest gap: square layer only (the code has dim × hidden), batch G ≠ 0 is a premise, step size, momentum, Lipschitz bound and convergence not formalised | C676 |
-| step | `batch_directional_derivative` (Hagi/Theory/BatchRankOne.lean:65); `sgd_step_attains` (:136); `rank_one_best_v` (:209) | Muon step on `W1`, hagi/core.py:1755/:1350 @ca52eb4 | honest gap: Frobenius ball and rank-one family proved; spectral-norm optimum and the link to the lm.py:586 layer open | C669 |
-| step | `hasFDerivAt_w1L` (Hagi/Theory/FirstLayerGrad.lean:87); `w1_grad_rank_one` (:123); `useful_of_adam_first_w1` (:167) | first layer `W1`, hagi/lm.py:586/:594 @ca52eb4 | strict descent only (no certified drop; single input) | C668 |
+| step | `hasFDerivAt_w1L` (Hagi/Theory/FirstLayerGrad.lean:87); `w1_grad_rank_one` (:123); `batch_directional_derivative` (Hagi/Theory/BatchRankOne.lean:65); `sgd_step_attains` (:136) | first layer `W1`, hagi/lm.py:586/:594 @ca52eb4 | GradLayer (C668–C669): outside the kink `f'(W1)[Δ] = ⟨G, Δ⟩` with the rank-one `G = g ⊗ x` (batch `Σ_t g_t ⊗ x_t`), and the SGD step is the steepest descent in the Frobenius ball; honest gap: strict descent only (no certified drop), square layer | C668–C669 |
+| step | `rank_one_inner_le` (Hagi/Theory/MuonSpectral.lean:156); `rank_one_attains` (:231); `smax_eq_opNorm` (Hagi/Theory/MuonSpectral.lean:333); `smax_le_frobenius` (:354) | Newton–Schulz orthogonalizer `newton_schulz_orthogonalize` (hagi/core.py:1350, called with iters=3 at core.py:1755 @ca52eb4) | OptimalStep (C670–C671): the rank-one step attains `σ_max` = `‖G‖₂` ≤ `‖G‖_F`; honest gap: rank-one slice of the spectral ball, the optimum over the whole ball needs von Neumann | C670–C671 |
+| step | `muon_step_optimal_in_isometry_group` (Hagi/Theory/MuonIsometry.lean:175); `ns_sigma_min_three` (Hagi/Theory/NewtonSchulzSigma.lean:126); `muon_alignment_exact` (Hagi/Theory/MuonAlignment.lean:104); `muon_step_useful` (Hagi/Theory/MuonDescent.lean:176) | Newton–Schulz iteration (hagi/core.py:1363, Frobenius normalisation core.py:1353, called with iters=3 at core.py:1755 @ca52eb4) | Muon (C672–C675): `max_{ΔᵀΔ = I} ⟨G, Δ⟩ = ssum G` at `U Vᵀ` without von Neumann; the code's quadratic scheme keeps the singular vectors of `G` and gives `σ₃ ≥ 39/40` for `σ₀ ≥ 1/2`, `⟨G, ns₃(Ĝ)⟩ ≥ ‖G‖_F`; honest gap: the derivative identity was a hypothesis here (discharged in the next row), `η` only exists | C672–C675 |
+| step | `w1_fderiv_apply` (Hagi/Theory/MuonDescentW1.lean:65); `muon_step_useful_w1` (:104); `muon_step_useful_w1_batch` (:193) | Muon layer update `W1 -= (cos_lr*0.7)*newton_schulz_orthogonalize(m1, iters=3)` (hagi/core.py:1755 @ca52eb4; layer hagi/lm.py:586; batch cross_entropy mean lm.py:688) | W1 certificate (C676): for the layer itself (`G ≠ 0`, one input or batch) CE strictly decreases along `W1 − η·ns_k(Ĝ)` for small `η`; honest gap: square layer, momentum `m1`, `cos_lr·0.7`, Lipschitz bound and convergence not formalised | C676 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
 
 **What is proved end to end.** Inside Lean, with no code hypothesis:
@@ -105,8 +105,12 @@ growth of the trunk, the MGDA direction at ε = 0, and three control-flow
 predicates (backtracking, repair, window order) — repair with a linear,
 not geometric, bound. Two rows are exact only as *verdicts*: the
 wave-258 window fix leaves a k-byte gap between context and target, and
-Adam is a descent step only at t = 1.
-<!-- source: STATUS.md cards C638–C667; §3.19/§3.20 carry only deltas -->
+Adam is a descent step only at t = 1. The Muon chain
+(§3.20.x) is the one bridge that reaches the consumer's optimizer:
+the code's Newton–Schulz step on the layer `W1` strictly decreases
+CE for small `η`, with no code hypothesis except the square shape of
+the layer, `G ≠ 0` and the kink premise.
+<!-- source: STATUS.md cards C638–C676; §3.19/§3.20 carry only deltas -->
 
 **What remains a hypothesis or a model.** (1) h1 for the real warm-up:
 the code warms the block with bare Adam and never calls the certified
@@ -122,7 +126,9 @@ plus a measured 11/11 (pin 33). (5) Every holdout gate compares
 measured values; no theorem relates train objective to holdout CE (pin
 29, 34). (6) No bridge at all for the snap grid, adaptive-span and
 hierarchical reading, the auto transfer gate, or constant distillation
-— bench twins only.
+— bench twins only. (7) The Muon step is certified for the square
+layer only, with a step size that merely exists and without momentum
+(§3.20.x); the code-side guards are proposed, not implemented.
 
 ## 1. Related Work
 
@@ -981,12 +987,12 @@ Axioms of every new theorem: propext, Classical.choice, Quot.sound.
 
 Rows: §0 (repair, archiver, Adam, useful first step, chain rule,
 holdout gate, window order; C666–C667: BitAlloc, schedule, LCB gate,
-bypass, width growth; C668: first-layer W1 derivative; C669: batch
-gradient and Frobenius-optimal step; C670: rank-one spectral optimum; C671: real spectral-norm bridge; C672: full step over the isometry group; C673: Newton–Schulz scalar dynamics and the σ_min bound; C674: exact alignment of the Newton–Schulz iterate with the gradient; C675: normalised gradient and the descent certificate; C676: the derivative identity of the layer W1, discharging the hypothesis of C675). Code anchors are `git show`-verified at @e9a96fc
+bypass, width growth; C668–C676: the
+Muon chain, folded into §3.20.x). Code anchors are `git show`-verified at @e9a96fc
 (wave 256–257), @b3740e0 (wave 258) and @bab8aff (wave 258b); the
 Nadya.txt anchors are a 2026-11-24 snapshot.
 <!-- source: STATUS.md cards C651, C653–C655, C657, C660, C663, C664, C666, C667, C672, C673, C674, C675, C676;
-     era-index #c650-c651 .. #c665-c667, #c672, #c673, #c674, #c675; receipts .tmp/C651–C667, C672, C673, C674, C675, C676 -->
+     era-index #c650-c651 .. #c665-c667, #c668 .. #c676; receipts .tmp/C651–C667, C668–C676 -->
 
 **(i) Repair (C651) — linear, not geometric.** The loop accepts any
 improvement > 1e-4 (no contraction factor ρ), so the theorem gives
@@ -1020,99 +1026,79 @@ LINEAR carrier in C663 (`chain_linear`, `useful_of_adam_first`) and
 for the relu block only as strict descent for small η (C665); the
 nonlinear certified drop is open.
 
-**(iv-b) First layer `W1` (C668).** The pin “derivative w.r.t. W1 not
-formalized” is closed for a single input x: outside the kink the logits
-`reluL (W1ᵀx) b wo` are differentiable in the matrix (`hasFDerivAt_w1L`,
-chain rule of the linear `W1 ↦ W1ᵀx` with `hasFDerivAt_reluL`), the
-gradient is rank one, `g (i,j) = g i · x j` with
-`g i = Σ_v (y v − p v)·mask i·wo i v` (`w1_grad_rank_one`), its pairing
-with a perturbation Δ is `⟨p − y, J·Δ⟩ = −Σ_{ij} (g i · x j)·Δ i j`
-(`w1_directional_derivative`), Adam-first on the matrix gives strict
-descent for small η (`useful_of_adam_first_w1`), and the rank-one update
-`(c/Σx²)·(u ⊗ x)` equals the bias shift `b + c·u`
-(`w1_rank_one_step_eq_bias`). Witness .tmp/C668/traj.lean, rc = 0
-(d = 3, d_ff = 4, one dead unit). Code: `_block_add`, lm.py:586 and the
-`W1` parameter, lm.py:594 @ca52eb4. Still open: certified drop on W1,
-**(iv-c) Batch gradient and the optimal step (C669).** Over a batch of
-inputs x_t the pairing is `Σ_t⟨p_t − y_t, J_t·Δ⟩ = −Σ_{ij} G i j·Δ i j`
-with the batch gradient `G i j = Σ_t g_t i · x_t j`, i.e. `Σ_t g_t ⊗ x_t`
-(`batch_directional_derivative`). By Cauchy–Schwarz in the Frobenius
-form, `⟨G, Δ⟩ ≥ −R·‖G‖_F` for every `Δ` with `‖Δ‖²_F ≤ R²`
-(`frob_step_le`), and `Δ = −(R/‖G‖_F)·G` is admissible and attains the
-bound (`sgd_step_attains`): the SGD direction is the steepest descent in
-the Frobenius ball. Inside the rank-one family `Δ = u ⊗ v` (fixed u) the
-pairing is `⟨v, Gᵀu⟩` (`rank_one_inner`), it is at most `‖v‖·‖Gᵀu‖ ≤
-‖v‖·‖u‖·‖G‖_F` (`rank_one_le`), and `v = Gᵀu/‖Gᵀu‖` attains `‖Gᵀu‖`
-(`rank_one_best_v`). Code: the consumer's Muon step on `W1`,
-`W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)`,
-hagi/core.py:1755 with `newton_schulz_orthogonalize` at core.py:1350
-@ca52eb4; the loss is the batch `cross_entropy` (lm.py:688 @ca52eb4).
-Honest gap: the spectral-norm statement behind Muon (max `⟨G, Δ⟩` over
-`‖Δ‖₂ ≤ 1` is `σ_max`, attained at `U Vᵀ`) is not proved — it needs the
-spectral/nuclear duality — and the code's `W1` at core.py:1755 is not
-the growth-block layer of lm.py:586 (bridge to be made). Witness
-.tmp/C669/traj.lean, rc = 0 (batch of 2 inputs).
+#### 3.20.x Optimizer theory: the Muon chain (C668–C676)
 
-**(iv-d) The rank-one spectral optimum (C670).** Over the rank-one family
-`Δ = u ⊗ v` with unit `u`, `v` (so `‖Δ‖₂ = 1`, `rank_one_spectral_norm`)
-the pairing is `⟨G, u ⊗ v⟩ = Σ_i u i·(G v) i` (`rank_one_inner`), the SVD
-`G = U Σ Vᵀ` gives `‖G v‖² ≤ σ_max(G)²·‖v‖²` (`rank_one_norm_bound`, the
-Courant–Fischer bound for `GᵀG`), hence `⟨G, u ⊗ v⟩ ≤ σ_max(G)` for every
-unit pair (`rank_one_inner_le`), and the top pair of singular vectors
-attains it (`rank_one_attains`, `rank_one_spectral_step_optimal`). Code: the
-consumer's orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350
-@ca52eb4, called at core.py:1755 with iters=3) approximates the polar
-factor `U Vᵀ` of the gradient. Honest gap: only the rank-one slice is
-proved; the full Muon step (all ranks, von Neumann trace inequality /
-spectral–nuclear duality) is not in the Mathlib pin, and `smax G = ‖G‖₂`
-for real matrices is not derived here. Witness .tmp/C670/traj.lean, rc = 0.
+Nine cycles, ten commits (`git log --oneline c85d35bf^..57483f97`: C668
+`c85d35bf`, C669 `3c1fb372`, C670 `a3f7c669`, C671 `ff584ffb`, C672
+`f7972b11`, the docs-only fix `ecacde41`, C673 `42db5e61`, C674
+`c34f4e43`, C675 `9efa9dc1`, C676 `57483f97`). The deltas iv-b..iv-j
+of v1.1 are folded into this subsection; the carriers live in the
+STATUS cards of the seven modules. The chain, one line per node
+(each arrow is a theorem of the module named, not a code fact):
 
-**(iv-e) The real spectral-norm bridge (C671).** For a real square `G`,
-`smax G = ‖G‖₂` (`smax_eq_opNorm`, Hagi/Theory/MuonSpectral.lean:333):
-writing `G = U Σ Vᵀ` (`smax_svd`), the operator norm is invariant under the
-orthogonal factors (`l2_opNorm_mul_orth`, via `Matrix.l2_opNorm_conjTranspose`
-and `l2_opNorm_conjTranspose_mul_self`) and `‖Σ‖₂ = max_i σ i` for `σ ≥ 0`
-(`l2_opNorm_diagonal_nonneg`). Consequences: `σ_max(G) ≤ ‖G‖_F`
-(`smax_le_frobenius`, :354 — the spectral ball contains the Frobenius ball
-of the same radius) and `‖G v‖₂ ≤ σ_max(G)·‖v‖₂` (`opNorm_mulVec_le`, :383).
-Route (b) — direct, via the SVD — was used; the transfer of the complex
-Flywheel theorem `spectral_norm_eq_max_singularValue` through
-`Matrix.map (ofReal)` (route (a)) was not needed. Honest gap: with the bridge,
-C670's statement reads «the rank-one step is optimal inside the spectral ball
-among rank-one steps»; the full Muon step `U Vᵀ` still needs von Neumann /
-spectral–nuclear duality; `‖u ⊗ v‖₂ = ‖u‖₂·‖v‖₂` for non-unit `u`, `v` is
-not stated (only the unit case). Witness .tmp/C671/traj.lean, rc = 0.
+```
+C668 FirstLayerGrad     w1_grad_rank_one            derivative w.r.t. W1 exists outside the kink; gradient = g ⊗ x (rank one)
+      ↓
+C669 BatchRankOne       batch_directional_derivative, sgd_step_attains   G = Σ_t g_t ⊗ x_t; −G/‖G‖_F is the steepest step in the Frobenius ball
+      ↓
+C670 MuonSpectral       rank_one_attains            the rank-one step attains σ_max (Courant–Fischer)
+C671 MuonSpectral       smax_eq_opNorm, smax_le_frobenius   σ_max = ‖G‖₂ ≤ ‖G‖_F for a real square G
+      ↓
+C672 MuonIsometry       muon_step_optimal_in_isometry_group   max over ΔᵀΔ = I of ⟨G, Δ⟩ = ssum G, attained at U Vᵀ — no von Neumann
+      ↓
+C673 NewtonSchulzSigma  ns_defect_bound, ns_sigma_min_three   the code's scheme is σ ↦ σ(3 − σ²)/2; σ₀ ≥ 1/2 ⇒ σ₃ ≥ 39/40
+      ↓
+C674 MuonAlignment      muon_alignment_exact       the iterates keep the singular vectors of G: ⟨G, ns_k G⟩ = Σ σ i·ns_seq k (σ i)
+      ↓
+C675 MuonDescent        normed_sigma_le_one, muon_step_useful   the Frobenius-normalised Ĝ has σ i ≤ 1; abstract descent certificate
+C676 MuonDescentW1      w1_fderiv_apply, muon_step_useful_w1, muon_step_useful_w1_batch   the derivative identity for the layer W1 (one input, batch); certificate instantiated
+```
 
-**(iv-f) The full Muon step over the isometry group (C672).** The
-orthogonalizer's ideal output is a matrix with orthonormal columns, i.e.
-an isometry `ΔᵀΔ = I`. Over that group the maximum of `⟨G, Δ⟩` equals the
-sum of the singular values `ssum G` (the nuclear norm `‖G‖_*`), and it is
-attained at `Δ = U Vᵀ` — with no von Neumann inequality. Proof
-(Hagi/Theory/MuonIsometry.lean): `⟨G, Δ⟩ = tr(GᵀΔ) = Σ_i σ i·Q i i` with
-`Q = UᵀΔV` (`inner_eq_sigma_weighted_diag`, :93); `Q` is again an
-isometry (`isometry_conj`, :115), hence `Q i i ≤ 1` because the column is
-a unit vector (`isometry_diag_le_one`, :65), and `σ i ≥ 0`. So
-`⟨G, Δ⟩ ≤ ssum G` (`isometry_inner_le_ssum`, :128) with equality at
-`Δ = U Vᵀ`, where `Q = I` (`uv_transpose_attains_ssum`, :156;
-`muon_step_optimal_in_isometry_group`, :175). Code bridge (read-only
-@ca52eb4): the iteration `X = 0.5 * (3.0 * I_m - X @ X.T) @ X`
-(core.py:1363) is started from the Frobenius-normalised gradient
-(`np.linalg.norm`, core.py:1353), not the spectral one, and is run with
-`iters = 3` (core.py:1755); the ideal limit is the polar factor `U Vᵀ`.
-Honest gap: the theorem is about the exact isometry group — the bound on
-how far three iterations are from it (a lower bound on σ_min), the
-rectangular case (transpose at core.py:1358) and the convergence of the
-iteration to `U Vᵀ` are not formalised; the maximum over the whole
-spectral ball `‖Δ‖₂ ≤ 1` still needs von Neumann. Witness
-.tmp/C672/traj.lean (rotation picture `⟨diag(3,1), R(θ)⟩ = 4·cos θ`), rc = 0.
+**Result (one box).** For the square first layer `W1 : n → n → ℝ`
+of the growth block, outside the relu kink, with the batch gradient
+`G = −Σ_t g_t ⊗ x_t ≠ 0`:
 
-**(iv-g) Newton–Schulz scalar dynamics and the σ_min bound (C673).** The code's orthogonalizer is the quadratic scheme: read-only @ca52eb4, the iteration is `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` (core.py:1363) — no cubic `(3.4445, −4.7750, 2.0315)` term — started from the Frobenius-normalised gradient (core.py:1353) and run with `iters = 3` (core.py:1755). Hagi/Theory/NewtonSchulzSigma.lean formalises the scalar dynamics: for `Y = ns_step X = (1/2)·X(3I − XᵀX)` and an eigenvector `v` of `XᵀX` with eigenvalue `σ²`, `(YᵀY) v = (ns_p σ)²•v` with `ns_p σ = σ(3 − σ²)/2` (`ns_step_eigenvalue`, :163; `ns_step_eigenvalue_sigma`, :200). On `[0, 1]` the step is increasing and stays in `[t, 1]` (`ns_quadratic_invariant`, :51; `ns_seq_bounds`, :62), and the defect `d = 1 − σ` contracts quadratically, `d ← d²(3 − d)/2` (`ns_defect_contraction`, :73), hence `d_k ≤ (2/3)·(3/4)^(2^k)` whenever `d₀ ≤ 1/2` (`ns_defect_bound`, :83). Explicit number for `iters = 3`: if `σ₀ ∈ [1/2, 1]` then `σ₃ ≥ 39/40` (`ns_sigma_min_three`, :126); the exact trajectory from `σ₀ = 1/2` is `1/2 → 11/16 → 1 − 1075/8192 → ≈ 0.975300` (witness .tmp/C673/traj.lean, rc = 0), and the generic bound at `k = 3` gives only `σ₃ ≥ 1 − 2187/32768 ≈ 0.933258`. Honest gap: `σ₀ ≥ 1/2` is a hypothesis — the code's normalisation gives only `σ₀ ≤ 1`, and small singular values are not lifted by three iterations (Shulgin et al., arXiv 2610.30280); the step from `σ_min(Δ_k) ≥ 1 − ε` to `⟨G, Δ_k⟩ ≥ (1 − ε)·ssum G` (C672) needs a bound on the diagonal of `UᵀΔ_kV`, not on `σ_min`, and is not formalised; the rectangular case and convergence to `U Vᵀ` remain open.
+1. `CE(W1 − η·ns_k(Ĝ)) < CE(W1)` for all small `η > 0`, `Ĝ = G/‖G‖_F`,
+   any `k` (`muon_step_useful_w1`, Hagi/Theory/MuonDescentW1.lean:104;
+   batch `muon_step_useful_w1_batch`, Hagi/Theory/MuonDescentW1.lean:193).
+2. First-order drop: `f'(W1)[−η·ns_k(Ĝ)] ≤ −η·‖G‖_F`
+   (`muon_step_inner_ge_frob`, Hagi/Theory/MuonDescent.lean:136);
+   the sign step gives the same bound
+   (`muon_vs_sign_first_order`, Hagi/Theory/MuonDescent.lean:196).
+3. How close three iterations are to the optimum: on the part of the
+   spectrum with `σ i ≥ 1/2` (in Ĝ units, i.e. `σ i(G) ≥ ½‖G‖_F`),
+   `⟨Ĝ, ns₃(Ĝ)⟩ ≥ (39/40)·Σ_{σ i ≥ 1/2} σ i` (`muon_near_optimal`,
+   Hagi/Theory/MuonAlignment.lean:131; `ns_sigma_min_three`,
+   Hagi/Theory/NewtonSchulzSigma.lean:126). The ideal `U Vᵀ` is
+   optimal on the whole isometry group (`muon_step_optimal_in_isometry_group`,
+   Hagi/Theory/MuonIsometry.lean:175).
 
-**(iv-h) Exact alignment of the Newton–Schulz iterate with the gradient (C674).** This closes the chain batch gradient (C669) → optimal isometric step (C672) → three-iteration approximation (C673) → alignment. The σ_min route proposed after C673 is not available in general: for a non-symmetric `Q`, `tr(B·Q) ≥ σ_min(Q)·tr(B)` is false (a 90° rotation has trace 0), so `σ_min(Δ) ≥ 1 − ε` alone does not bound `⟨G, Δ⟩`. The code's iterate does not need it. Read-only @ca52eb4, the iteration is `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` (core.py:1363), a right multiplication of `X` by a symmetric factor, so every iterate keeps the singular vectors of the starting matrix. Hagi/Theory/MuonAlignment.lean proves: `X = U·diag τ·Vᵀ ⇒ ns_step X = U·diag (ns_p∘τ)·Vᵀ` (`ns_step_svd`, :45), hence `ns_iter k G = U·diag (ns_seq k∘σ)·Vᵀ` (`ns_iter_svd`, :91) for `G = U·diag σ·Vᵀ`, and therefore `⟨G, ns_iter k G⟩ = Σ_i σ i·ns_seq k (σ i)` (`muon_alignment_exact`, :104), with `Uᵀ·X_k·V` diagonal. With C673 this gives `∀ i, σ i ≤ 1 ⇒ ⟨G, ns_iter 3 G⟩ ≥ (39/40)·Σ_{σ i ≥ 1/2} σ i` (`muon_near_optimal`, :131) and `⟨G, G⟩ ≤ ⟨G, ns_iter k G⟩` (`muon_alignment_ge_gradient`, :162). Witness .tmp/C674/traj.lean (spectrum `diag(1, 3/4, 1/2, 1/10)`), rc = 0: the exact trajectory of 3/4 is `3/4 → 117/128 → 4149171/4194304 → ≈ 0.999827`, the bound is `(39/40)·(9/4) = 351/160 = 2.19375`; an external rational computation (not in Lean) gives `⟨G, X₃⟩ ≈ 2.270356` against `ssum G = 2.35`. Honest gap: `σ i ≤ 1` for the Frobenius-normalised gradient is a hypothesis (only `smax ≤ ‖G‖_F` is formalised); singular values below 1/2 contribute without a lower bound; the rectangular case, the step scale `η = cos_lr·0.7` and the layer update (core.py:1755) are not formalised.
+Witnesses (receipts .tmp/C673–C676, all rc = 0): C673 `σ₀ = 1/2 ⇒
+σ₃ ≈ 0.975300`; C674 spectrum `diag(1, 3/4, 1/2, 1/10)`: the bound
+`(39/40)·(9/4) = 351/160`, external rational value `⟨G, X₃⟩ ≈ 2.270356`
+against `ssum G = 2.35`; C675 `G = diag(3, 3/2, 1/2, 1/5)`: Lean
+checks `‖G‖_F² = 577/50`, `⟨G, sign G⟩ = 26/5`; external
+floating-point (not in Lean): `⟨Ĝ, X₃⟩ = 1.38284`, per unit of step
+norm Muon `0.941038` against sign `0.765368`; C676: one neuron, two
+classes, `f'(W1)[1] = −g 0` both through `w1_fderiv_apply` and
+directly.
 
-**(iv-i) Normalised gradient and the descent certificate of the Muon step (C675) — result of the chain C668–C675.** The chain reads: batch gradient and a descent direction for the first layer (C668) → Frobenius-optimal SGD step (C669) → rank-one spectral optimum (C670/C671) → optimum over the isometry group (C672) → three-iteration Newton–Schulz approximation (C673) → exact alignment of the iterate with the gradient (C674) → normalisation and descent (C675). Hagi/Theory/MuonDescent.lean closes the σ ≤ 1 gap left by C674 without assuming it: `smax (c•G) = |c|·smax G` (`smax_smul`, :105, via `smax_eq_opNorm`), hence with `smax ≤ ‖G‖_F` (C671) every singular value of the Frobenius-normalised gradient is at most 1 (`normed_sigma_le_one`, :122), so the theorems of C674 apply to the matrix the code actually feeds to the iteration (core.py:1353): `1 ≤ ⟨Ĝ, ns_iter k Ĝ⟩` and `‖G‖_F ≤ ⟨G, ns_iter k Ĝ⟩` (`muon_step_inner_ge_frob`, :136), and `⟨Ĝ, ns_iter 3 Ĝ⟩ ≥ (39/40)·Σ_{σ i ≥ 1/2} σ i` (`normed_near_optimal`, :156). The descent certificate is the abstract lemma of C642 re-used on the matrix carrier: if `f` is differentiable at `W` with differential `φ` and `φ Δ = ⟨g, Δ⟩` for `g ≠ 0`, then for small `η > 0` the code's step `W − η·ns_iter k (g/‖g‖_F)` strictly decreases `f` (`useful_of_neg_fderiv`, :164; `muon_step_useful`, :176). First-order drop of both steps is bounded below by `‖G‖_F` (`muon_vs_sign_first_order`, :196): Muon by the alignment above, sign because `⟨G, sign G⟩ = Σ|G i j|`. Witness .tmp/C675/traj.lean, rc = 0: for `G = diag(3, 3/2, 1/2, 1/5)` Lean checks `‖G‖_F² = 577/50` and `⟨G, sign G⟩ = 26/5`; an external floating-point computation (not in Lean) gives singular values of Ĝ `0.883117, 0.441559, 0.147186, 0.058874`, `⟨Ĝ, X₃⟩ = 1.38284`, and per unit of step norm `0.941038` for Muon against `0.765368` for sign. Honest gap: the derivative identity on the `Matrix` carrier is a hypothesis — C668/C669 prove it for the functional carrier as `f'(W)[Δ] = −⟨batchGrad, Δ⟩`, so `g = −batchGrad` — and the bridge to the layer at lm.py:586 is not built; `η` is only shown to exist (the code's `cos_lr·0.7`, the momentum buffer, the Lipschitz descent lemma and convergence are outside the theory); Muon versus sign is compared by first-order drop only, not per unit of step norm; the gradient is square and real.
+**Honest boundaries.** (a) The layer is square; the code's `W1` is
+`dim × hidden`, and the rectangular Newton–Schulz iterate is not
+formalised. (b) The maximum over the whole spectral ball `‖Δ‖₂ ≤ 1`
+is not proved (von Neumann / spectral–nuclear duality); the optimum
+is proved over the isometry group only. (c) `η` is only shown to
+exist: the code's `cos_lr·0.7`, the momentum buffer `m1` (the code
+orthogonalises `m1`, not `G`), a Lipschitz descent lemma and
+convergence are outside the theory. (d) The loss is the CE of one
+input or the sum over a batch; the mean of lm.py:688 differs by a
+positive constant and has no theorem of its own; in the batch theorem
+`G ≠ 0` is a premise. (e) Singular values below `1/2` carry no lower
+bound after three iterations. (f) Muon versus sign is compared by the
+first-order drop, not per unit of step norm (those numbers are
+witnesses). The guards this gap asks of the code are in
+docs/PROPOSAL-muon-guards.md (code-side pending).
 
-**(iv-j) The derivative identity of the layer W1 — the hypothesis of C675 discharged (C676).** C675 stated the descent certificate of the Muon step with the derivative identity as a hypothesis: `φ Δ = ⟨g, Δ⟩`, because C668/C669 proved the identity on the functional carrier and the abstract certificate lived on another one. Hagi/Theory/MuonDescentW1.lean keeps the functional carrier of C668 (`W1 : n → n → ℝ`) and instantiates the certificate there, so no bridge between carriers is needed: outside the kink, with `f = CE_t ∘ w1L`, `f'(W1)[Δ] = ⟨G, Δ⟩` where `G = −(g ⊗ x)` and `g = rowGrad` (`w1_fderiv_apply`, :65; chain rule `hasFDerivAt_w1L` of C668, then `fderiv_ceOneHot_comp_apply`, then the pairing `w1_directional_derivative` of C668). The minus sign is the one recorded in C675: the chain rule gives `f'(W1)[Δ] = −Σ (g i·x j)·Δ i j`, so the gradient of `f` is `−(g ⊗ x)`. For a batch of inputs the sum of CE over the batch satisfies the same identity with `G = −Σ_t g_t ⊗ x_t` (`w1Batch_fderiv_apply`, :156; `HasFDerivAt.sum` and `batch_directional_derivative` of C669). With `G ≠ 0` (`w1Grad_ne`, :79: for one input it follows from `g ≠ 0`, `x ≠ 0`) the certificate of C675 applies verbatim: for small `η > 0`, `CE_t (w1L (W1 − η·ns_iter k Ĝ)) < CE_t (w1L W1)` (`muon_step_useful_w1`, :104) and the batch sum decreases likewise (`muon_step_useful_w1_batch`, :193). Witness .tmp/C676/traj.lean, rc = 0: on a one-neuron, two-class layer with input 1 and weight 1, Lean checks that the derivative in the direction `Δ = 1` equals `−g 0` both through `w1_fderiv_apply` and directly. Honest gap: the layer is square (`n × n`; the code's `W1` is `dim × hidden` and the Newton–Schulz machinery of C674/C675 is stated for square matrices); in the batch theorem `G ≠ 0` is a premise; the mean loss of lm.py:688 differs from the proved sum by a positive constant and has no theorem of its own; `η` only exists (the code's `cos_lr·0.7`, the momentum buffer, a Lipschitz bound and convergence are outside the theory); the kink condition is a premise.
 **(v) Window order (C651 → C664).** After wave 258 the context is
 `idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;
 measured CE 7.307 against 0.181 with the adjacent target
@@ -1354,7 +1340,8 @@ Two more cards joined the registry draft in the reading era
 (docs/PALOMAR-CARDS.md, C621/C625; anchors rg-verified,
 statements Lean-verbatim). Honest scope: the C616 niche check
 covered Cards 9–11 only; the C630 recheck covered all 13 cards
-and C658 all 17 (docs/PALOMAR-CARDS.md) — 0 overlaps.
+and C658 all 17; C677 adds Cards 18–19 by receipt data
+(no new API fetch) — 0 overlaps.
 <!-- source: receipt C621 (Card 12, DocLint/freeze logs);
      receipt C625 (Card 13); receipt C616
      (ниша-проверка — только Cards 9–11) -->
@@ -1768,4 +1755,7 @@ not a Lean clause.
      .tmp/C664/repin.py against 85c7c670; rows C660/C662/C663/C664 added.
      v1.1a (C667): FunctionPreservingGrowth.lean rows +22 (C665) at e160b7ec.
      v1.1b (C668): FunctionPreservingGrowth.lean rows +5 (docstring C668);
-     row C668 (FirstLayerGrad.lean) added. -->
+     row C668 (FirstLayerGrad.lean) added.
+     v1.2 (C677, docs-only): no Appendix row moved; the 431 doc anchors
+     re-checked by scripts/DocAnchorCheck.py on 57483f97 (freeze 9149).
+     Muon rows of §0 collapsed to four (GradLayer, OptimalStep, Muon, W1). -->
