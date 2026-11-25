@@ -462,6 +462,7 @@ import Hagi.Theory.MuonDescent
 import Hagi.Theory.MuonDescentW1
 import Hagi.Theory.MuonDescentW1Rect
 import Hagi.Theory.MuonWide
+import Hagi.Theory.MomentumAlign
 import Hagi.Theory.WideSVD
 import Hagi.Theory.HoldoutGateTwoWay
 import Hagi.Theory.GrowTrunkBlock

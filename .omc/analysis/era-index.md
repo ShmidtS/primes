@@ -754,3 +754,37 @@
 - Следующий шаг: momentum `m1` (код применяет NS к `m1`) или поворот к
   WidthGrowth + Muon.
 
+<a id="c686"></a>
+## C686 — Шаг вдоль направления, момент `m1`, Muon с моментом (freeze →9277)
+
+- Коммит: `feat: optimal step along arbitrary direction momentum alignment and muon momentum bound`
+  (sha — в receipt `.tmp/C686/receipt.md`); HEAD^ = 31a1e236 (C685).
+- Код @ca52eb4 (core.py:1754–1755): `m1 = 0.85·m1 + 0.15·gW1` — EMA, без
+  nesterov, без поправки смещения; NS применяется к `m1`.
+- Lean (новый `Hagi/Theory/MomentumAlign.lean`, 28 деклараций: 27 теорем + `mom`; Freeze 9249 → 9277): T1
+  `dir_drop_of_step` (:71), `dir_drop_le_optimal` (:89), `dir_drop_is_nlDrop`
+  (:103), `dir_drop_optimal` (:112); T2 `mom` (:136), `momentum_align`
+  (:140), `momentum_align_cs` (:149), `momentum_align_ge` (:169),
+  `momentum_align_ge_grad` (:179), `momentum_residual` (:187),
+  `momentum_dir_drop` (:196), `momentum_dir_drop_le_gd` (:207); слой
+  `w1BatchCE_dir_drop_of_step` (:230), `w1BatchCE_dir_optimal_step_drop`
+  (:261); T3 `parNorm_eq_sqrt_wfrobSq` (:311), `fdot_wide_add_left` (:317),
+  `wfrobSq_neg` (:323), `fdot_wide_comm` (:328), `fdot_wide_self` (:333),
+  `wfrob_cauchy` (:340), `wfrob_abs_cauchy` (:359), `wfrob_triangle` (:370),
+  `momStep` (:388), `momStep_apply` (:391), `momStep_norm_ge_one` (:396),
+  `muon_momentum_bound` (:419), `muon_momentum_third` (:442),
+  `wfdot_mom_align` (:482). Аксиомы ≤ 3.
+- Расхождение с ТЗ: «⟨G,m⟩ ≥ (1−μ)‖G‖² всегда» ложно (верна оценка
+  Коши–Шварца); `‖G‖²`-порог — `⟪G,m_prev⟫ ≥ ‖G‖²`; «половина» → `‖G‖/3`;
+  `dir_drop_le_optimal` не выводится из `nlDrop_le_optimal` (другая
+  парабола), `nlDrop` — частный случай.
+- Witness `.tmp/C686/traj.lean`, rc = 0: G = (2,0), μ = 0.9: m_prev = (1,0)
+  ⇒ 2.2; (5,0) ⇒ 9.4; (−1,0) ⇒ −1.4. Muon 1×1: 11/30 ≤ 11/10.
+- Docs: DERIVED-CONFIG (+3 строки: alignment, half-residual; μ — HONEST-GAP),
+  derive_config.py (+3), PROPOSAL-muon-guards (b)/(e)/(f)(2) — телеметрия
+  `⟨G,m1⟩/‖G‖²`, `‖G−m1‖_F‖X₃‖_F/‖m1‖_F`; STATUS-карточка; paper §0 +1 мост.
+- Honest: остаток — произведение норм (знак ⟨G−m,X⟩ неизвестен); условие
+  третьего код не проверяет; kink; `cos_lr·0.7`; значение μ; телеметрия.
+- Следующий шаг: (1) связать шаг кода `cos_lr·0.7` с `γ*` (оценка `L` вдоль
+  `X₃`); (2) Adam-часть (`m2/√v2`) как направление `d` с нормой; (3) порт
+  телеметрии (e) в код и bench-числа `align`, `resid`.

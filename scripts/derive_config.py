@@ -190,7 +190,16 @@ add("σ₃(1) bound", "—", f"{float(Fraction(39, 40)):.4f} ≤ {ns(1.0, 3):.4f
 add("Muon effective step (t=1)", f"{CODE['lr0_hybrid']}·sched·{CODE['muon_scale']}",
     f"{CODE['lr0_hybrid'] * 0.5 * (1 + math.cos(math.pi / CODE['steps_hybrid'])) * CODE['muon_scale']:.5f}",
     "step = cos_lr·0.7·X₃ (core.py:1755)", "DERIVED")
-add("Muon momentum", f"{CODE['muon_ema_old']}/{CODE['muon_ema_new']}", "не формализовано", "—", "HONEST-GAP", "—")
+# C686: m1 = 0.85*m1 + 0.15*gW1 (core.py:1754), NS применяется к m1 (core.py:1755).
+# Доказано (MomentumAlign.lean): выравнивание и граница drop; значение 0.85 не выводится.
+add("Muon momentum alignment", f"m1 = {CODE['muon_ema_old']}·m1 + {CODE['muon_ema_new']}·gW1",
+    "⟨G,m1⟩ = 0.15·‖G‖² + 0.85·⟨G,m1_prev⟩ ≥ 0.15·‖G‖² (если ⟨G,m1_prev⟩ ≥ 0)",
+    "momentum_align, momentum_align_ge MomentumAlign.lean:140/:169", "BOUNDED", "—")
+add("Muon momentum half-residual", "‖G−m1‖_F·‖X₃‖_F",
+    "≤ ‖m1‖_F/2 ⇒ ⟨G,X₃⟩ ≥ ‖G‖_F/3 (X₃ = ns₃(m1/‖m1‖_F))",
+    "muon_momentum_bound :419; muon_momentum_third :442", "BOUNDED", "—")
+add("Muon momentum", f"{CODE['muon_ema_old']}/{CODE['muon_ema_new']}", "значение 0.85 не выводится",
+    "momentum_align_cs MomentumAlign.lean:149 (⟨G,m⟩ ≥ (1−μ)‖G‖² − μ‖G‖‖m_prev‖)", "HONEST-GAP", "—")
 
 # ---- cosine -------------------------------------------------------------
 for T, name in ((CODE["steps_hybrid"], "hybrid"), (CODE["steps_mini"], "minibatch")):

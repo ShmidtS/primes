@@ -2485,8 +2485,9 @@ Honest (границы):
 - Mean-лосс lm.py:688: доказано для суммы CE по батчу; mean отличается
   положительным множителем `1/|τ|` (неравенство сохраняется), отдельной
   теоремы про mean нет.
-- `η` только существует; `cos_lr·0.7`, momentum-буфер `m1`, липшицева оценка,
-  сходимость — вне теории. Условие «вне kink» (`w1Pre + b ≠ 0`) — посылка.
+- `η` только существует; `cos_lr·0.7`, липшицева оценка, сходимость — вне теории;
+  momentum-буфер `m1` — с C686 граница через невязку `G − m1`
+  (`muon_momentum_bound`, MomentumAlign.lean:419), значение 0.85 не выводится. Условие «вне kink» (`w1Pre + b ≠ 0`) — посылка.
 - Внешний источник (ask.sciencemadereadable.com, 2026-11-25): Fu, Chi, Liang
   (ISIT 2019) — локальная сильная выпуклость/гладкость CE у истинных весов
   для one-hidden-layer сети (sigmoid, гауссовы входы) — релевантно только
@@ -2794,10 +2795,13 @@ Honest (границы):
   положительным множителем (тот же аргмин, теоремы о mean нет).
   C685: для plain batch-gradient шага mean-версия доказана —
   `w1MeanCE_optimal_step_drop`, `w1BatchCE_descent_lemma` (FirstLayerLipBatch.lean);
+  шаг вдоль любого направления `d` — `w1BatchCE_dir_optimal_step_drop`
+  (MomentumAlign.lean:261, C686);
   для Muon-шага по-прежнему сумма.
 - `η` только существует; `cos_lr·0.7`, momentum `m1` (код
   ортогонализирует буфер, не градиент), zero-norm guard core.py:1355,
-  фиксированные `iters = 3` — вне теории.
+  фиксированные `iters = 3` — вне теории. C686: момент `m1` — граница
+  `‖m1‖_F − ‖G−m1‖_F·‖X₃‖_F ≤ ⟨G,X₃⟩` (`muon_momentum_bound`).
 - Фон Нейман: оптимум доказан на строчных изометриях, не на шаре.
 
 ## Hagi/Theory/FirstLayerLip.lean (константа L для CE relu-блока по W1: Lipschitz и гладкость, C684)
@@ -3023,11 +3027,74 @@ Freeze 9235 → 9249 (+14: `w1BatchCE`, `xMaxSq`, `S_batch`,
   граница `‖wo‖_F²·max_t‖x t‖₂²`); глобальной гладкости нет (kink); шаг —
   plain batch gradient, код применяет Muon/Adam к momentum `m1`; Adam-шаг
   нормирован; код не логирует `‖wo‖_F²`, `‖x t‖₂²` ⇒ число — только на
-  witness (PROPOSAL `docs/PROPOSAL-smoothness-logging.md`, #11).
+  witness (PROPOSAL `docs/PROPOSAL-smoothness-logging.md`, #11). C686:
+  шаг вдоль произвольного направления и момент `m1` — MomentumAlign.lean.
 
-## History (C538–C685)
+## Hagi/Theory/MomentumAlign.lean (шаг вдоль направления, момент `m1`, Muon с моментом, C686)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C685, сводка `#c668-c682`, `#c684`, `#c685`
+Код-якорь HAGI_v2 @ca52eb4, Muon-гибрид hagi/core.py:1715–1765: `m1 = 0.85·m1 + 0.15·(градиент W1)`
+(core.py:1754) — EMA, без nesterov-члена, без поправки смещения;
+`W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)`
+(core.py:1755) — NS применяется к моменту `m1`, а не к градиенту слоя.
+Носитель: T1/T2 — любое `E` со скалярным произведением (как
+NegativeTransfer), слой — `ι → δ → ℝ` (FirstLayerLipBatch), T3 —
+`Matrix ι δ ℝ` (MuonDescentW1Rect/WideSVD).
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `dir_drop_of_step` | `L`-smooth ⇒ шаг `z + γ•d` по ЛЮБОМУ `d`: `f (z + γ•d) ≤ f z − (γ·a − L·γ²·‖d‖²/2)`, `a = −⟪grad z, d⟫` | Hagi/Theory/MomentumAlign.lean:71 | — |
+| `dir_drop_le_optimal` | `0 < L`, `0 < D`: `γ·a − L·γ²·D²/2 ≤ a²/(2L·D²)` — полный квадрат, для любого `γ` | Hagi/Theory/MomentumAlign.lean:89 | — |
+| `dir_drop_is_nlDrop` | при `d = −c•grad`: drop `= nlDrop (cγ) L ‖g‖` (`nlDrop` — частный случай) | Hagi/Theory/MomentumAlign.lean:103 | — |
+| `dir_drop_optimal` | `d ≠ 0`: `γ* = a/(L‖d‖²)`, `f (z + γ*•d) ≤ f z − a²/(2L‖d‖²)` | Hagi/Theory/MomentumAlign.lean:112 | — |
+| `mom` | `mom μ mPrev G = μ•mPrev + (1−μ)•G` — буфер кода (core.py:1754) | Hagi/Theory/MomentumAlign.lean:136 | — |
+| `momentum_align` | `⟪G, mom μ mPrev G⟫ = (1−μ)‖G‖² + μ⟪G, mPrev⟫` — точно | Hagi/Theory/MomentumAlign.lean:140 | — |
+| `momentum_align_cs` | ВСЕГДА: `(1−μ)‖G‖² − |μ|·‖G‖·‖mPrev‖ ≤ ⟪G,m⟫` (Коши–Шварц) | Hagi/Theory/MomentumAlign.lean:149 | — |
+| `momentum_align_ge` | `0 ≤ μ`, `0 ≤ ⟪G,mPrev⟫` ⇒ `(1−μ)‖G‖² ≤ ⟪G,m⟫` | Hagi/Theory/MomentumAlign.lean:169 | — |
+| `momentum_align_ge_grad` | `0 ≤ μ`, `‖G‖² ≤ ⟪G,mPrev⟫` ⇒ `‖G‖² ≤ ⟪G,m⟫` | Hagi/Theory/MomentumAlign.lean:179 | — |
+| `momentum_residual` | `G − mom μ mPrev G = μ•(G − mPrev)` | Hagi/Theory/MomentumAlign.lean:187 | — |
+| `momentum_dir_drop` | цель с дифференциалом `⟪G,·⟫`: шаг вдоль `m ≠ 0` с `γ* = −⟪G,m⟫/(L‖m‖²)` даёт drop `⟪G,m⟫²/(2L‖m‖²)` | Hagi/Theory/MomentumAlign.lean:196 | — |
+| `momentum_dir_drop_le_gd` | certified drop вдоль `m` ≤ `‖G‖²/(2L)` — по гарантированной оценке момент не лучше оптимального GD | Hagi/Theory/MomentumAlign.lean:207 | — |
+| `w1BatchCE_dir_drop_of_step` | шаг `W1 + γ•d` (любое `d`, маски равны): `CE_batch' ≤ CE_batch − (γ·a − S_batch·γ²·‖d‖²/2)`, `a = Σᵢⱼ D_batch i j·d i j` | Hagi/Theory/MomentumAlign.lean:230 | — |
+| `w1BatchCE_dir_optimal_step_drop` | `S_batch > 0`, `d ≠ 0`: `γ* = a/(S_batch‖d‖²)`, drop `a²/(2·S_batch·‖d‖²)` | Hagi/Theory/MomentumAlign.lean:261 | — |
+| `parNorm_eq_sqrt_wfrobSq`, `fdot_wide_add_left`, `wfrobSq_neg`, `fdot_wide_comm`, `fdot_wide_self` | технические: одна норма; `⟨A+B,X⟩ = ⟨A,X⟩+⟨B,X⟩`; `‖−A‖_F = ‖A‖_F`; `⟨A,B⟩ = ⟨B,A⟩`; `⟨A,A⟩ = ‖A‖_F²` | Hagi/Theory/MomentumAlign.lean:311, :317, :323, :328, :333 | — |
+| `wfrob_cauchy`, `wfrob_abs_cauchy` | `⟨A,B⟩ ≤ ‖A‖_F‖B‖_F`; `|⟨A,B⟩| ≤ ‖A‖_F‖B‖_F` | Hagi/Theory/MomentumAlign.lean:340, :359 | — |
+| `wfrob_triangle` | `‖A+B‖_F ≤ ‖A‖_F + ‖B‖_F` | Hagi/Theory/MomentumAlign.lean:370 | — |
+| `momStep`, `momStep_apply` | `momStep m k = ns_k (m/‖m‖_F)` — шаг кода для буфера; `momStep m k i j = w1StepR m k i j` (rfl) | Hagi/Theory/MomentumAlign.lean:388, :391 | — |
+| `momStep_norm_ge_one` | `m ≠ 0` ⇒ `1 ≤ ‖ns_k m̂‖_F` | Hagi/Theory/MomentumAlign.lean:396 | — |
+| `muon_momentum_bound` | `m ≠ 0`, `X = ns_k m̂`: `‖m‖_F − ‖G−m‖_F·‖X‖_F ≤ ⟨G, X⟩` | Hagi/Theory/MomentumAlign.lean:419 | — |
+| `muon_momentum_third` | `‖G−m‖_F·‖X‖_F ≤ ‖m‖_F/2` ⇒ `‖G‖_F/3 ≤ ⟨G, X⟩` | Hagi/Theory/MomentumAlign.lean:442 | — |
+| `wfdot_mom_align` | матричная форма `momentum_align`: `⟨G, μ•m_prev + (1−μ)•G⟩ = (1−μ)‖G‖_F² + μ⟪G,m_prev⟫` | Hagi/Theory/MomentumAlign.lean:482 | — |
+
+Witness: `.tmp/C686/traj.lean`, rc = 0. Момент `G = (2,0)`, `μ = 0.9`:
+`m_prev = (1,0)` ⇒ `m = 1.1`, `⟪G,m⟫ = 2.2 = 0.4 + 0.9·2` (`< ‖G‖² = 4`);
+`m_prev = (5,0)` ⇒ `⟪G,m⟫ = 9.4 ≥ 4` (`momentum_align_ge_grad`);
+`m_prev = (−1,0)` ⇒ `⟪G,m⟫ = −1.4 < 0.4` — безусловное `(1−μ)‖G‖² ≤ ⟪G,m⟫`
+неверно. Muon с моментом 1×1, `k = 0`: `m = 1`, `G = 11/10`, `X = 1`,
+`‖G−m‖·‖X‖ = 1/10 ≤ 1/2` ⇒ `11/30 ≤ ⟨G,X⟩ = 11/10`. Аксиомы 7 главных
+теорем: [propext, Classical.choice, Quot.sound].
+
+Расхождение с ТЗ C686 (доказано, что утверждение ТЗ неверно):
+(1) «`a_m ≥ (1−β)‖G‖² ВСЕГДА» — ложно (пример выше); верна оценка с
+Коши–Шварцем `momentum_align_cs`; `(1−μ)‖G‖²` — при `⟪G,m_prev⟫ ≥ 0`
+(`momentum_align_ge`), `‖G‖²` — при `⟪G,m_prev⟫ ≥ ‖G‖²`
+(`momentum_align_ge_grad`), а не при `≥ 0` (пример: 2.2 < 4).
+(2) «`‖G‖/2`-следствие» — ложно: `‖G‖ ≤ ‖m‖ + ‖G−m‖ ≤ (3/2)‖m‖` ⇒ `‖G‖/3`.
+(3) «`γ* = a/(S‖d‖²)` выводится из `nl_drop_optimal` тривиально» — нет:
+`nlDrop γ L G = G²(γ − Lγ²/2)`, у общего направления `γa − Lγ²‖d‖²/2`
+(разные параболы); `nlDrop` — частный случай `d ∝ grad` (`dir_drop_is_nlDrop`),
+общий случай доказан полным квадратом.
+(4) Числа witness в ТЗ (`m = 1.9`, `a = 3.8`) — арифметическая ошибка:
+`0.9·1 + 0.1·2 = 1.1`.
+
+- Honest: знак `⟨G−m, X⟩` неизвестен ⇒ остаток — произведение норм
+  (`muon_momentum_bound`), а не нуль; условие `muon_momentum_third` код не
+  проверяет; глобальной гладкости нет (kink); `cos_lr·0.7` и связь `η` с `γ*`
+  вне утверждения; значение `μ = 0.85` не выводится; код не логирует
+  `⟨G,m1⟩`, `‖G−m1‖_F` (PROPOSAL `docs/PROPOSAL-muon-guards.md`, (e)).
+
+## History (C538–C686)
+
+- Era index: `.omc/analysis/era-index.md` (C591–C686, сводка `#c668-c682`, `#c684`, `#c685`, `#c686`
   (заголовок эры C668–C682; старый якорь `#c668-c676` сохранён), якоря `#c638-c640`
   … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`, `#c679`, `#c680`, `#c681`, `#c682`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу

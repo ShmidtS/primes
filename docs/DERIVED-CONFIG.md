@@ -1,4 +1,4 @@
-# DERIVED-CONFIG — выводимая конфигурация обучения (C683–C685)
+# DERIVED-CONFIG — выводимая конфигурация обучения (C683–C686)
 
 PROPOSAL-уровень: код HAGI_v2 не менялся. Факты кода — `hagi/` @ca52eb4
 (только чтение). Lean-сборка — `Hagi/Theory/DerivedConfig.lean`
@@ -22,6 +22,7 @@ PROPOSAL-уровень: код HAGI_v2 не менялся. Факты кода
 | Шаг | γ* = 1/L, drop = G²/(2L) | `Hagi.Theory.NegativeTransfer.nl_drop_optimal`, NegativeTransfer.lean:481; максимум — `nlDrop_le_optimal`, NegativeTransfer.lean:467 | DERIVED (γ_auto = 1/(2·trH̄), receipt C609); Adam lr — HONEST-GAP-число: для relu-блока по `W1` гладкость `S = ‖wo‖_F²·‖x‖₂²` ДОКАЗАНА (C684, `w1CE_descent_lemma`), но код не логирует `‖wo‖_F`, `‖x‖₂` и Adam-шаг нормирован (не `1/S·∇`) |
 | Шаг (W1) | S = ‖wo‖_F²·‖x‖₂²; Lfun = 2·‖wo‖_F·‖x‖₂ | `Hagi.Theory.FirstLayerLip.w1CE_descent_lemma`, FirstLayerLip.lean:258; `w1CE_optimal_step_drop`, FirstLayerLip.lean:392; `w1CE_lipschitz_param`, FirstLayerLip.lean:182 | DERIVED-формула (witness 35, 1/35) / HONEST-GAP-число кода (‖wo‖, ‖x‖ не логируются) |
 | Шаг (W1, батч) | S_batch = ‖wo‖_F²·Σ_t‖x t‖₂²; mean: S_batch/B | `Hagi.Theory.FirstLayerLipBatch.w1BatchCE_descent_lemma`, FirstLayerLipBatch.lean:113; `w1BatchCE_optimal_step_drop`, FirstLayerLipBatch.lean:218; `w1MeanCE_optimal_step_drop`, FirstLayerLipBatch.lean:247 | DERIVED-формула (witness 49, 1/49; mean 2/49) / HONEST-GAP-число до телеметрии PROPOSAL #11 |
+| Направление / момент (Muon) | вдоль любого `d`: γ* = a/(L‖d‖²), drop a²/(2L‖d‖²), `a = ⟨G,d⟩`; момент: `⟨G,m1⟩ = 0.15‖G‖² + 0.85⟨G,m1_prev⟩`; Muon с моментом: `⟨G,X₃⟩ ≥ ‖m1‖_F − ‖G−m1‖_F‖X₃‖_F` | `Hagi.Theory.MomentumAlign.dir_drop_optimal`, MomentumAlign.lean:112; `w1BatchCE_dir_optimal_step_drop`, MomentumAlign.lean:261; `momentum_align`, MomentumAlign.lean:140; `muon_momentum_bound`, MomentumAlign.lean:419 | BOUNDED (формулы; числа — из телеметрии PROPOSAL-muon-guards (e)); значение 0.85 — HONEST-GAP |
 | Шаг (certified) | L_dir = denom (кривизна направления) | `Hagi.Theory.AdaptiveMajorizer.ce_range_code_drop`, AdaptiveMajorizer.lean:1497; `ce_adaptive_code_drop`, AdaptiveMajorizer.lean:1473 | DERIVED: `denom = Q' + 4·curv_reg` (core.py:1314-1319) — код ИЗМЕРЯет L_dir, majorizer `η·A − η²·R²/8` |
 | Шаг | η* = −4a/R², drop = 2a²/R² | `Hagi.Theory.FunctionPreservingGrowth.useful_first_step`, FunctionPreservingGrowth.lean:584 | DERIVED: код `eta = 4A/denom`, `cert_drop = 2A²/denom` (core.py:1320-1321, lm.py:861) — та же формула при d = −ḡ (a = −A, R² = denom) |
 | Warm-up | COMMIT iff drop > 0 | `warmup_h1_of_certified_steps`, FunctionPreservingGrowth.lean:410 | BOUNDED: теорема требует drop > stepEps > 0; порог 1e-12 (core.py:1333) — любое положительное |
@@ -92,7 +93,9 @@ wo = [[1,0],[0,2],[1,1]]), НЕ на коде: код не логирует `‖
 | σ₃(σ₀) table | iters=3 | 0.1:0.3284, 0.3:0.8045, 0.5:0.9753, 0.7:0.9993, 0.9:1.0000, 1.0:1.0000 | — | DERIVED | ns_sigma_min_three NewtonSchulzSigma.lean:126 (σ₀≥½ ⇒ ≥39/40) |
 | σ₃(1) bound | — | 0.9750 ≤ 1.0000 | — | DERIVED | ns_sigma_min_three :126 |
 | Muon effective step (t=1) | 0.04·sched·0.7 | 0.02800 | — | DERIVED | step = cos_lr·0.7·X₃ (core.py:1755) |
-| Muon momentum | 0.85/0.15 | не формализовано | — | HONEST-GAP | — |
+| Muon momentum alignment | m1 = 0.85·m1 + 0.15·gW1 | ⟨G,m1⟩ = 0.15·‖G‖² + 0.85·⟨G,m1_prev⟩ ≥ 0.15·‖G‖² (если ⟨G,m1_prev⟩ ≥ 0) | — | BOUNDED | momentum_align, momentum_align_ge MomentumAlign.lean:140/:169 |
+| Muon momentum half-residual | ‖G−m1‖_F·‖X₃‖_F | ≤ ‖m1‖_F/2 ⇒ ⟨G,X₃⟩ ≥ ‖G‖_F/3 (X₃ = ns₃(m1/‖m1‖_F)) | — | BOUNDED | muon_momentum_bound :419; muon_momentum_third :442 |
+| Muon momentum | 0.85/0.15 | значение 0.85 не выводится | — | HONEST-GAP | momentum_align_cs MomentumAlign.lean:149 (⟨G,m⟩ ≥ (1−μ)‖G‖² − μ‖G‖‖m_prev‖) |
 | sched(T) hybrid | 0.0 (eta_min=0) | 3/20 = 0.15 | — | BOUNDED | cosine_sched_bounds NadyaOptimal.lean:143 |
 | sched(1)/sched(0) hybrid | 0.999969 | ≤1 | — | BOUNDED | cosine_sched_bounds :143 |
 | sched(T) minibatch | 0.0 (eta_min=0) | 3/20 = 0.15 | — | BOUNDED | cosine_sched_bounds NadyaOptimal.lean:143 |
@@ -107,7 +110,7 @@ wo = [[1,0],[0,2],[1,1]]), НЕ на коде: код не логирует `‖
 | adapter min gain | 0.005 | — | — | HONEST-GAP | теоремы нет |
 | ternary grid | 3 levels, row scale mean|W| | — | — | HONEST-GAP | теоремы оптимальности нет |
 
-STATUS COUNTS: BOUNDED=16 DERIVED=22 HONEST-GAP=16
+STATUS COUNTS: BOUNDED=18 DERIVED=22 HONEST-GAP=16
 
 
 ## 3. Расхождения кода с выведенным (top)
@@ -144,12 +147,13 @@ STATUS COUNTS: BOUNDED=16 DERIVED=22 HONEST-GAP=16
 |---|---|
 | Adam lr (число) | γ* = 1/S_batch (mean: B/S_batch) доказана (C684–C685), но: Adam-шаг нормирован (`m̂/√v̂`), теорема — про `γ·∇`; код не логирует ‖wo‖_F², Σ_t‖x t‖₂² — до телеметрии PROPOSAL #11 |
 | Adam β₁, β₂, eps | нет теоремы об оптимальности моментов/дисперсии в репозитории |
+| Muon μ = 0.85 | выравнивание и граница drop доказаны (C686, MomentumAlign.lean); оптимальности значения μ нет, код не логирует ⟨G,m1⟩, ‖G−m1‖_F |
 | weight decay λ | `naive_decay_leak` описывает механизм leak, не оптимальное λ |
 | batch B | формула `amgm_equality` есть, входов Bn, t0, c в коде нет |
 | steps / epochs, T_max | нет теоремы о длине цикла |
 | k_ctx, dim, hidden, seed, init scale | нет теоремы о ёмкости/ширины |
 | backtrack β, число проб | нет теоремы |
-| Muon momentum 0.85, scale 0.7 | нет теоремы; доказано лишь σ₃ ≥ 39/40 |
+| Muon momentum 0.85 (значение), scale 0.7 | значения не выводятся; доказаны: σ₃ ≥ 39/40, выравнивание ⟨G,m1⟩ (C686), граница drop при близком моменте |
 | LCB z | r — свободный параметр теоремы; z не выводится |
 | adapter min gain, ternary grid | нет теоремы оптимальности |
 | holdout k, LCB | таблица чисел не доказана (BOUNDED) |
@@ -157,7 +161,7 @@ STATUS COUNTS: BOUNDED=16 DERIVED=22 HONEST-GAP=16
 ## 5. Ссылки
 
 - STATUS.md: NegativeTransfer, GrowSnap, CoverageReading, NadyaOptimal,
-  MuonDescentW1Rect (C668–C682), NewtonSchulzSigma, FirstLayerLipBatch (C685), FirstLayerLip (C684:
+  MuonDescentW1Rect (C668–C682), NewtonSchulzSigma, FirstLayerLipBatch (C685), MomentumAlign (C686: шаг вдоль направления, момент `m1`, Muon с моментом), FirstLayerLip (C684:
   `w1CE_lipschitz_param`, `w1CE_descent_lemma`, `w1CE_optimal_step_drop`).
 - docs/paper-draft.md: таблица «доказано vs код» (receipts C597, C609, C623).
 - docs/PROPOSAL-holdout-size.md (#8), docs/PROPOSAL-certified-warmup.md (#7),

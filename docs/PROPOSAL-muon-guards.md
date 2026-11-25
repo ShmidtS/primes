@@ -43,6 +43,21 @@ Hagi/Theory/MuonDescentW1Rect.lean:348/:369).
   `⟨G, ns_k(Ĝ)⟩ ≥ ‖G‖_F` — first-order drop at least that of the
   sign step (`muon_vs_sign_first_order`, :196).
 - `muon_near_optimal` (Hagi/Theory/MuonAlignment.lean:131) with
+- Momentum (C686, `Hagi/Theory/MomentumAlign.lean`): the code keeps
+  `m1 = 0.85·m1 + 0.15·gW1` (core.py:1754 @ca52eb4; no Nesterov term,
+  no bias correction) and orthogonalises `m1`. Proved:
+  `momentum_align` (:140): `⟪G,m⟫ = 0.15‖G‖² + 0.85⟪G,m_prev⟫`;
+  `momentum_align_ge` (:169): if `⟪G,m_prev⟫ ≥ 0` then
+  `⟪G,m⟫ ≥ 0.15‖G‖²`; `momentum_align_ge_grad` (:179): if
+  `⟨G,m_prev⟫ ≥ ‖G‖²` then `⟪G,m⟫ ≥ ‖G‖²`; `momentum_align_cs` (:149):
+  always `⟪G,m⟫ ≥ (1−μ)‖G‖² − |μ|·‖G‖·‖m_prev‖` (so the unconditional
+  lower bound `(1−μ)‖G‖²` is false — witness `m_prev = −G/2`);
+  `muon_momentum_bound` (:419): with `X = ns_k(m̂)`,
+  `‖m‖_F − ‖G−m‖_F·‖X‖_F ≤ ⟨G, X⟩`; `muon_momentum_third` (:442): if
+  `‖G−m‖_F·‖X‖_F ≤ ‖m‖_F/2` then `‖G‖_F/3 ≤ ⟨G, X⟩` (the step keeps at
+  least a third of the first-order drop of the gradient Muon step;
+  `‖X‖_F ≥ 1`, `momStep_norm_ge_one`); `dir_drop_optimal` (:112): along
+  any direction `d`, `γ* = a/(L‖d‖²)`, drop `a²/(2L‖d‖²)`, `a = −⟪∇f,d⟫`.
   `normed_sigma_le_one` (MuonDescent.lean:122):
   `⟨Ĝ, ns₃(Ĝ)⟩ ≥ (39/40)·Σ_{σ i ≥ 1/2} σ i(Ĝ)`
   (`ns_sigma_min_three`, NewtonSchulzSigma.lean:126).
@@ -96,10 +111,17 @@ matrix or skip the check when the layer is large.
 
 ## (e) Validation criterion (loop-5 style)
 
-Log per step `inner = ⟨G, X₃⟩/‖X₃‖_F`, `frob = ‖G‖_F`, `real_drop`.
-Accept the port iff on a full run: `inner ≥ frob − 1e-5` whenever
-guard (b) did not fire; `real_drop > 0` on every accepted step;
-skipped steps are counted and reported (no target).
+Log per step `inner = ⟨G, X₃⟩/‖X₃‖_F`, `frob = ‖G‖_F`, `real_drop`, and
+since C686 the momentum telemetry `align = ⟨G, m1⟩/‖G‖²` (witnessed by
+`momentum_align`: `align = 0.15 + 0.85·⟨G,m1_prev⟩/‖G‖²`),
+`resid = ‖G−m1‖_F·‖X₃‖_F/‖m1‖_F` and `frob_m = ‖m1‖_F`. Accept the port
+iff on a full run: `real_drop > 0` on every accepted step; skipped steps
+are counted and reported (no target). Momentum criterion (C686,
+`muon_momentum_third`): whenever `resid ≤ 1/2` (and guard (b) did not
+fire), `inner ≥ ‖G‖_F/3`; whenever `align ≥ 1`, `inner` is compared
+against `‖m1‖_F`, not `‖G‖_F`. The C676 criterion `inner ≥ frob − 1e-5`
+is no longer the right reference: the direction is `ns₃(m1)`, the proved
+bound is `inner ≥ ‖m1‖_F − resid·‖m1‖_F`, which can be below `‖G‖_F`.
 
 ## (f) Honest limits
 
@@ -119,8 +141,11 @@ skipped steps are counted and reported (no target).
   (C681); C682 removes the dimension premise
   (`tall_alignment_ge_gradient`, `alignment_ge_gradient_any`,
   `muon_step_useful_w1_rect'`): a layer of any shape is covered.
-- (2) The code orthogonalises `m1`, not `G`; momentum is outside the
-  theory.
+- (2) The code orthogonalises `m1`, not `G`. Since C686 the moment is
+  inside the theory up to the residual `G − m1` (`muon_momentum_bound`,
+  `muon_momentum_third`); what stays outside: the value `0.85` is not
+  derived, the code does not log `⟪G,m1⟫` and `‖G−m1‖_F`, and the
+  certificate is conditional on the residual being small (telemetry (e)).
 - (3) `cos_lr·0.7` is not the proved `η`; guard (c) is a runtime
   substitute, not a theorem.
 - (4) Check batch ≠ full distribution: acceptance on one batch says
