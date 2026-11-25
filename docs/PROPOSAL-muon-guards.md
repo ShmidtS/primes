@@ -29,12 +29,14 @@ code never checks the premises the proof needs.
 
 ## (b) What is proved (and what it assumes)
 
-For the square first layer `W1 : n → n → ℝ`, outside the relu kink,
+For the first layer `W1 : ι → δ → ℝ` (code shape `dim × hidden`,
+`card ι ≤ card δ`; square case C676), outside the relu kink,
 with the batch gradient `G = −Σ_t g_t ⊗ x_t ≠ 0` and `Ĝ = G/‖G‖_F`:
 
 - `muon_step_useful_w1`, `muon_step_useful_w1_batch`
   (Hagi/Theory/MuonDescentW1.lean:104/:193):
-  `∃ η > 0, CE(W1 − η·ns_k(Ĝ)) < CE(W1)`.
+  `∃ η > 0, CE(W1 − η·wide_iter k Ĝ) < CE(W1)`
+(Hagi/Theory/MuonDescentW1Rect.lean:134/:203).
 - `muon_step_inner_ge_frob` (Hagi/Theory/MuonDescent.lean:136):
   `⟨G, ns_k(Ĝ)⟩ ≥ ‖G‖_F` — first-order drop at least that of the
   sign step (`muon_vs_sign_first_order`, :196).
@@ -47,7 +49,8 @@ Axioms of every theorem: `propext`, `Classical.choice`, `Quot.sound`.
 
 Premises the code does not check: `G ≠ 0`; `G` is what is
 orthogonalised (the code orthogonalises the momentum buffer `m1`);
-the layer is square (the code's `W1` is `dim × hidden`); the step
+the layer has `card ι ≤ card δ` (the code's `W1` is `dim × hidden`;
+tall layers are not covered); the step
 size `cos_lr·0.7` is the `η` that only exists; a descent lemma
 (`L(W − ηX) ≤ L(W) − η⟨G,X⟩ + η²L/2·‖X‖²`) is not formalised.
 
@@ -108,9 +111,9 @@ skipped steps are counted and reported (no target).
   for a wide `G ≠ 0` (`wnormed_sigma_le_one`, `wide_alignment_ge_gradient'`,
   `muon_step_useful_wide`, Hagi/Theory/WideSVD.lean; the tall buffer is
   the same `wide_iter k G` by `ns_step_transpose`,
-  Hagi/Theory/MuonWide.lean); that certificate is on the coordinate
-  carrier `m → n → ℝ`, the bridge from the layer (`dim × hidden`,
-  C676 carrier) to the wide carrier is not formalised.
+  Hagi/Theory/MuonWide.lean); the bridge from the layer (`dim × hidden`,
+  `card ι ≤ card δ`) to the wide carrier is Hagi/Theory/MuonDescentW1Rect.lean
+  (C681); a tall layer is not covered.
 - (2) The code orthogonalises `m1`, not `G`; momentum is outside the
   theory.
 - (3) `cos_lr·0.7` is not the proved `η`; guard (c) is a runtime

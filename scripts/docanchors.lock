@@ -296,6 +296,17 @@ Hagi/Theory/MuonDescentW1.lean:193	muon_step_useful_w1_batch|decl
 Hagi/Theory/MuonDescentW1.lean:56	fdot_neg_of|decl
 Hagi/Theory/MuonDescentW1.lean:65	w1_fderiv_apply|decl
 Hagi/Theory/MuonDescentW1.lean:79	w1Grad_ne|decl
+Hagi/Theory/MuonDescentW1Rect.lean:100	w1StepR|decl
+Hagi/Theory/MuonDescentW1Rect.lean:105	fdot_wide_w1StepR_pos|decl
+Hagi/Theory/MuonDescentW1Rect.lean:113	muon_step_rect_of_fderiv|decl
+Hagi/Theory/MuonDescentW1Rect.lean:134	muon_step_useful_w1_rect|decl
+Hagi/Theory/MuonDescentW1Rect.lean:154	w1BatchObjR|decl
+Hagi/Theory/MuonDescentW1Rect.lean:166	w1Batch_fderiv_apply_R|decl
+Hagi/Theory/MuonDescentW1Rect.lean:203	muon_step_useful_w1_rect_batch|decl
+Hagi/Theory/MuonDescentW1Rect.lean:47	w1GradR|decl
+Hagi/Theory/MuonDescentW1Rect.lean:55	fdot_wide_neg_of|decl
+Hagi/Theory/MuonDescentW1Rect.lean:63	w1_fderiv_apply_R|decl
+Hagi/Theory/MuonDescentW1Rect.lean:77	w1GradR_ne|decl
 Hagi/Theory/MuonIsometry.lean:115	isometry_conj|decl
 Hagi/Theory/MuonIsometry.lean:128	isometry_inner_le_ssum|decl
 Hagi/Theory/MuonIsometry.lean:146	uv_transpose_isometry|decl

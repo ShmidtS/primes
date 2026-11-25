@@ -1,4 +1,4 @@
-# Era index — C591–C680 (2026-11-22/25)
+# Era index — C591–C681 (2026-11-22/25)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat-файлы
@@ -271,7 +271,9 @@
   C679 — вещественный прямоугольный SVD (pad-to-square), гипотеза
   MuonWide снята (sha — в receipt `.tmp/C679/receipt.md`);
   C680 — wide Muon безусловно: нормировка, транспонирование, сертификат
-  (sha — в receipt `.tmp/C680/receipt.md`).
+  (sha — в receipt `.tmp/C680/receipt.md`);
+  C681 — прямоугольный слой `W1 : dim × hidden` → широкий Muon-шаг, мост
+  к слою (sha — в receipt `.tmp/C681/receipt.md`).
 - Цепочка: градиент W1 = g ⊗ x вне излома (C668) → батч, F-оптимальный
   SGD (C669) → rank-one оптимум σ_max (C670/671) → оптимум на
   изометриях без фон Неймана (C672) → NS-схема σ ↦ σ(3−σ²)/2, σ₃ ≥ 39/40
@@ -286,8 +288,12 @@
 - C680: для широкой `G ≠ 0` `σ i(Ĝ) ≤ 1` (`‖G‖_F² = Σ σ i²`) ⇒ T3 и
   сертификат спуска без единой посылки о структуре `G`; для любой формы
   (в т.ч. высокой) код-выход = `wide_iter k G` (`ns_step_transpose`).
-- Honest: слой `dim × hidden` (сертификат C676 — квадрат; сертификат
-  C680 — координатный носитель `m → n → ℝ`, мост к слою не формализован),
+- C681: мост к слою — `muon_step_useful_w1_rect(_batch)`: для
+  прямоугольного слоя `ι → δ → ℝ`, вне излома, `G ≠ 0`, `card ι ≤ card δ`
+  шаг `W1 − η·wide_iter k Ĝ` строго убывает CE (один вход / батч).
+- Honest: слой `dim × hidden` покрыт при `dim ≤ hidden` (высокий слой
+  не сведён; сертификат C676 — квадрат; сертификат C680 — координатный
+  носитель `m → n → ℝ`, мост к слою — C681),
   фон Нейман, η только существует (`cos_lr·0.7`, momentum `m1`), малые σ,
   mean-лосс.
 - Следующий шаг: мост «слой `W1 : dim × hidden` → широкий `G`» и
@@ -518,6 +524,34 @@
 - Следующий шаг: (1) `normed_sigma_le_one` в широком случае ⇒ T3 без
   гипотезы; (2) мост «слой `W1 : ι → δ → ℝ` → широкий `G`» и сертификат
   спуска C676 на нём; (3) транспонирование (высокий случай).
+
+<a id="c681"></a>
+## C681 — Прямоугольный слой W1 → широкий Muon-шаг: мост в кодовой размерности (freeze →9207)
+
+- Коммит: `feat: rectangular w1 layer muon descent in code dimension`
+  (sha — в receipt `.tmp/C681/receipt.md`).
+- Исследование: носитель `muon_step_useful_wide` (WideSVD:446) — `W, G :
+  Matrix m n ℝ`, `f : (m → n → ℝ) → ℝ`, `φ` — CLM на Pi-типе; квадратность
+  C676 сидит только в `muonStep`/`fdot`. `w1_fderiv_apply` и
+  `w1Batch_fderiv_apply` переносятся заменой `Matrix n n ℝ` → `Matrix ι δ ℝ`,
+  `fdot` → `fdot_wide`; спуск — `useful_of_neg_fderiv` (generic по `E`)
+  на носителе `ι → δ → ℝ`; sup vs ℓ² не возникает — лемма одномерна вдоль
+  луча. Down-scope не потребовался (ветка B5 не сработала).
+- Результат: новый `Hagi/Theory/MuonDescentW1Rect.lean` (12 деклараций):
+  `w1GradR`, `fdot_wide_neg_of`, `w1_fderiv_apply_R`, `w1GradR_ne`,
+  `w1StepR`, `fdot_wide_w1StepR_pos`, `muon_step_rect_of_fderiv`,
+  `muon_step_useful_w1_rect`, `w1BatchObjR`, `w1BatchGradR`,
+  `w1Batch_fderiv_apply_R`, `muon_step_useful_w1_rect_batch`.
+  Freeze 9195 → 9207 (+12, identity).
+- Witness `.tmp/C681/traj.lean`, rc = 0: слой 3×4 вне излома,
+  `w1GradR = −(g ⊗ x)`; Float-реплика: `‖G‖_F² = 3.5`,
+  `⟨G, wide_iter 3 Ĝ⟩ = ‖G‖_F = 1.870829`. Аксиомы 7 теорем ≤ 3.
+- Источники: ask.sciencemadereadable.com — 403; palomar (ddg) — 0
+  результатов. Ссылок не добавлено.
+- Honest: `card ι ≤ card δ` (посылка, высокий слой не сведён); `G ≠ 0`
+  в батче — посылка; η; momentum; mean; фон Нейман.
+- Следующий шаг: высокий слой (`card ι > card δ`) через
+  `wide_iter_transpose`; липшицева оценка для `η`; momentum `m1`.
 
 <a id="c680"></a>
 ## C680 — Wide Muon безусловно: нормировка (S1), транспонирование (S2), сертификат спуска (S3) (freeze →9195)

@@ -2475,9 +2475,9 @@ Classical.choice, Quot.sound.
 
 Honest (границы):
 - Слой квадратный (`ι = δ = n`): `muonStep`/`ns_iter` (C674/C675) определены
-  для `Matrix n n ℝ`; в коде `W1 : dim × hidden`. Прямоугольный шаг
-  (NS для `Matrix m n`, сингулярные базисы, оптимум) — wide → MuonWide
-  (C678); мост «функциональный слой → широкий `G`» по-прежнему открыт.
+  для `Matrix n n ℝ`; в коде `W1 : dim × hidden`. Прямоугольный слой
+  (`ι → δ → ℝ`, кодовая размерность `dim × hidden`) — MuonDescentW1Rect
+  (C681): тот же мост с шагом `wide_iter k Ĝ` при `card ι ≤ card δ`.
 - В батче `G ≠ 0` — посылка (для одного входа выведена: `g ≠ 0`, `x ≠ 0`).
 - Mean-лосс lm.py:688: доказано для суммы CE по батчу; mean отличается
   положительным множителем `1/|τ|` (неравенство сохраняется), отдельной
@@ -2711,6 +2711,61 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.
 
+## Hagi/Theory/MuonDescentW1Rect.lean (мост «прямоугольный слой W1 → широкий Muon-шаг», C681)
+
+Код-якорь тот же, что в карточке MuonDescentW1 (lm.py:586 @ca52eb4,
+core.py:1755), но слой — кодовой размерности: `W1 : ι → δ → ℝ`
+(`dim × hidden`, строки — нейроны блока, столбцы — вход `a`). Карточка
+MuonDescentW1 (C676) сужена к `ι = δ = n` только из-за квадратного
+`muonStep`. Здесь шаг — `wide_iter k Ĝ` (MuonWide, C678–C680) на
+`Matrix ι δ ℝ`, `Ĝ = wnormed G = G/‖G‖_F`. Исследование (B1): квадратность
+в C676 сидит только в `muonStep`/`fdot` — `w1_fderiv_apply`,
+`w1Batch_fderiv_apply` переносятся заменой `Matrix n n ℝ` →
+`Matrix ι δ ℝ` и `fdot` → `fdot_wide`; `useful_of_neg_fderiv` generic
+по `E`, носитель параметра — координатный `ι → δ → ℝ` (Pi-тип, как в
+FirstLayerGrad); проблемы sup vs ℓ² не возникает: лемма спуска
+одномерная вдоль луча `W1 − η·d` и нормы носителя не использует.
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `w1GradR` | `G = −(g ⊗ x)` на `Matrix ι δ ℝ` (тот же объект, что `w1Grad`) | Hagi/Theory/MuonDescentW1Rect.lean:47 | — |
+| `fdot_wide_neg_of` | `⟨−A, Δ⟩ = −Σ A i j·Δ i j` (широкое спаривание) | Hagi/Theory/MuonDescentW1Rect.lean:55 | — |
+| `w1_fderiv_apply_R` | вне kink: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −(g ⊗ x)`, `f = CE_t ∘ w1L` | Hagi/Theory/MuonDescentW1Rect.lean:63 | — |
+| `w1GradR_ne` | `g ≠ 0`, `x ≠ 0 ⇒ G ≠ 0` | Hagi/Theory/MuonDescentW1Rect.lean:77 | — |
+| `w1StepR` | `d = wide_iter k Ĝ` как элемент носителя `ι → δ → ℝ` | Hagi/Theory/MuonDescentW1Rect.lean:100 | — |
+| `fdot_wide_w1StepR_pos` | `G ≠ 0`, `card ι ≤ card δ ⇒ 0 < ⟨G, wide_iter k Ĝ⟩` | Hagi/Theory/MuonDescentW1Rect.lean:105 | — |
+| `muon_step_rect_of_fderiv` | ядро: `f` дифф., `f'(W1)[Δ] = ⟨G, Δ⟩`, `G ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0, f (W1 − η·d) < f W1` | Hagi/Theory/MuonDescentW1Rect.lean:113 | — |
+| `muon_step_useful_w1_rect` | вне kink, `g ≠ 0`, `x ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0, CE_t (w1L (W1 − η·wide_iter k Ĝ)) < CE_t (w1L W1)` | Hagi/Theory/MuonDescentW1Rect.lean:134 | — |
+| `w1BatchObjR` / `w1BatchGradR` | батч-лосс и `G = −Σ_t g_t ⊗ x_t` на `Matrix ι δ ℝ` | Hagi/Theory/MuonDescentW1Rect.lean:154/:158 | — |
+| `w1Batch_fderiv_apply_R` | по батчу: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −Σ_t g_t ⊗ x_t` | Hagi/Theory/MuonDescentW1Rect.lean:166 | — |
+| `muon_step_useful_w1_rect_batch` | вне kink, `G ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0`, сумма CE по батчу строго убывает вдоль `W1 − η·wide_iter k Ĝ` | Hagi/Theory/MuonDescentW1Rect.lean:203 | — |
+
+Freeze 9195 → 9207 (+12, identity существующих). Witness
+`.tmp/C681/traj.lean`, rc = 0: аксиомы 7 теорем — propext,
+Classical.choice, Quot.sound. Слой `ι = Fin 3` (dim), `δ = Fin 4`
+(hidden): все три pre-activations вне kink (norm_num);
+поэлементно `w1GradR = −(g ⊗ x)`; `3 ≤ 4`;
+`fdot_wide_w1StepR_pos` и `muon_step_useful_w1_rect` инстанцируются на
+этом слое (при посылке `g ≠ 0`). Числовая Float-реплика муон-части
+(не теорема): `G = −(g ⊗ x)`, `g = (0.2, 0.4, 0.6)`,
+`x = (1, 2, −1, 0.5)`: `‖G‖_F² = 3.5`, `‖G‖_F = 1.870829`,
+`⟨G, wide_iter 3 Ĝ⟩ = 1.870829` (rank-one: шаг сходится к
+`±vᵀ`; `X₃ ≈ −0.1069·(1, 2, 3)ᵀ(1, 2, −1, 0.5)`).
+
+Honest (границы):
+- `card ι ≤ card δ` (строк не больше, чем столбцов: `dim ≤ hidden`) —
+  посылка обоих сертификатов (`wide_alignment_ge_gradient'`, C680 —
+  широкая форма). Высокий слой (`dim > hidden`) — через
+  `ns_step_transpose`/`code_ns_eq_wide_iter` (C680) формально не сведён
+  — следующий шаг.
+- В батче `G ≠ 0` — посылка (для одного входа выведена: `g ≠ 0`, `x ≠ 0`).
+- Mean-лосс lm.py:688: доказано для суммы CE по батчу; mean отличается
+  положительным множителем (тот же аргмин, теоремы о mean нет).
+- `η` только существует; `cos_lr·0.7`, momentum `m1` (код
+  ортогонализирует буфер, не градиент), zero-norm guard core.py:1355,
+  фиксированные `iters = 3` — вне теории.
+- Фон Нейман: оптимум доказан на строчных изометриях, не на шаре.
+
 ## Hagi/Theory/MuonWide.lean (прямоугольный шаг Muon: широкая форма, сингулярные базисы, оптимум на строчных изометриях, C678)
 
 Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1349 @ca52eb4 —
@@ -2777,9 +2832,9 @@ Honest (границы):
 - `σ ≤ 1` для нормированного `Ĝ` в широком случае доказано (C680,
   `WideSVD.wnormed_sigma_le_one`); сходимость `σ → 1` — только
   скалярная (C673).
-- Мост к функциональному носителю слоя (`W1 : ι → δ → ℝ`, C676) и
-  обновление `W1` для прямоугольного слоя не формализованы; сертификат
-  C680 — на координатном носителе `m → n → ℝ`, не на носителе C676.
+- Мост к слою формализован (C681, MuonDescentW1Rect): сертификат
+  спуска для прямоугольного слоя `ι → δ → ℝ` при `card ι ≤ card δ`;
+  высокий слой (`card ι > card δ`) — не сведён (следующий шаг).
 
 ## Hagi/Theory/WideSVD.lean (вещественный прямоугольный SVD из квадратного: pad-to-square, C679)
 
@@ -2847,15 +2902,15 @@ Honest (границы):
   транспонированием (`MuonWide.code_ns_eq_wide_iter`, C680).
 - Сертификат `muon_step_useful_wide` — на координатном носителе
   `m → n → ℝ` (нормированного пространства для прямоугольной
-  `Matrix m n ℝ` в репо нет); мост к слою `W1` (носитель C676,
-  `dim × hidden`) не формализован.
+  `Matrix m n ℝ` в репо нет); мост к слою `W1` (`dim × hidden`) —
+  MuonDescentW1Rect (C681), через `wide_alignment_ge_gradient'`.
 - `η` только существует; `cos_lr·0.7`, momentum `m1` — вне теории.
 - Пустой `m` разобран отдельно (`IsEmpty m`); witness для `m = 0` нет.
 
-## History (C538–C680)
+## History (C538–C681)
 
 - Era index: `.omc/analysis/era-index.md` (C591–C680, сводка `#c668-c676`, якоря `#c638-c640`
-  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`, `#c679`, `#c680`); более ранние per-beat файлы — `git log`. Журнал
+  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`, `#c679`, `#c680`, `#c681`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
   (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
   `git show b3939aa5:STATUS.md`.

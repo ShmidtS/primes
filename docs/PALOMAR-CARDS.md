@@ -609,6 +609,21 @@ one iff there is residual signal
   достигается на `U Vᵀ`; доказательство идёт через диагональ
   `Q = UᵀΔV` (изометрия ⇒ единичные столбцы ⇒ `Q i i ≤ 1`), без
   неравенства фон Неймана / спектрально-ядерной двойственности.
+  Прямоугольное дополнение (C680–C681), `G : Matrix m n ℝ`,
+  `card m ≤ card n`, `wnormed G = (1/‖G‖_F)•G`, `wide_iter k` — `k`
+  итераций того же `ns_step` на `m×n`:
+
+  `theorem wide_alignment_ge_gradient' (G : Matrix m n ℝ) (hmn) (hG : G ≠ 0) (k : ℕ) :`
+  `  fdot_wide (wnormed G) (wnormed G) ≤ fdot_wide (wnormed G) (wide_iter k (wnormed G)) ∧`
+  `    Real.sqrt (wfrobSq G) ≤ fdot_wide G (wide_iter k (wnormed G))`
+
+  `theorem muon_step_useful_w1_rect (x b wo W1 t k) (hact) (hg : rowGrad … ≠ 0) (hx : x ≠ 0) (hmn) :`
+  `  ∃ η, 0 < η ∧ ceOneHot t (w1L (fun i j => W1 i j - η * wide_iter k (wnormed G) i j) b wo x)`
+  `    < ceOneHot t (w1L W1 b wo x)`
+
+  где `G = w1GradR x b wo W1 t = −(g ⊗ x)` — градиент слоя `W1 : ι → δ → ℝ`
+  кодовой размерности (`dim × hidden`, lm.py:586), `hmn : card ι ≤ card δ`;
+  батч: `muon_step_useful_w1_rect_batch`.
 - **Наглядность.** Идеальный шаг Muon (ортогонализованный градиент)
   — точный оптимум на группе изометрий; итерации Ньютона–Шульца
   сохраняют сингулярные векторы градиента, и три итерации дают не
@@ -621,6 +636,11 @@ one iff there is residual signal
   (Hagi/Theory/MuonAlignment.lean:104); `muon_near_optimal` (:131);
   `Hagi.Theory.MuonDescent.normed_near_optimal`
   (Hagi/Theory/MuonDescent.lean:156); `normed_sigma_le_one` (:122);
+  `Hagi.Theory.WideSVD.wide_alignment_ge_gradient'`
+  (Hagi/Theory/WideSVD.lean:418);
+  `Hagi.Theory.MuonDescentW1Rect.muon_step_useful_w1_rect`
+  (Hagi/Theory/MuonDescentW1Rect.lean:134),
+  `muon_step_useful_w1_rect_batch` (:203);
   определения `ns_iter` (Hagi/Theory/MuonAlignment.lean:86), `ns_p`
   (Hagi/Theory/NewtonSchulzSigma.lean:42), `ns_seq` (:45).
 - **Dependencies.** Mathlib; собственный `smax_svd`
@@ -628,8 +648,9 @@ one iff there is residual signal
   (`Hagi.External.Flywheel.Matrix.SVD.Real`).
 - **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
   три Lean. Honest: максимум по всему спектральному шару `‖Δ‖₂ ≤ 1`
-  не доказан (нужен фон Нейман); прямоугольный случай не
-  формализован; `σ i < 1/2` после трёх итераций без нижней границы.
+  не доказан (нужен фон Нейман); прямоугольный слой покрыт при
+  `card ι ≤ card δ` (высокий — нет); `σ i < 1/2` после трёх итераций без
+  нижней границы; `η` только существует; momentum и mean-лосс вне теории.
   Проверка ниши: в реестре нет backprop / trace-inequality /
   Muon формализаций — «niche 0/N» по данным receipts C668–C675
   (C668: 1351 entries, revision 1194, 0 cards по HasFDerivAt /
