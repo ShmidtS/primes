@@ -327,6 +327,17 @@ Hagi/Theory/MuonSpectral.lean:69	sum_sq_mulVec|decl
 Hagi/Theory/MuonSpectral.lean:81	rank_one_inner|decl
 Hagi/Theory/MuonSpectral.lean:89	ortho_preserves_sq|decl
 Hagi/Theory/MuonSpectral.lean:95	smax_svd|decl
+Hagi/Theory/MuonWide.lean:112	wide_iter|decl
+Hagi/Theory/MuonWide.lean:116	ns_iter_wide_svd|decl
+Hagi/Theory/MuonWide.lean:131	fdot_wide|decl
+Hagi/Theory/MuonWide.lean:163	wide_alignment_exact|decl
+Hagi/Theory/MuonWide.lean:178	wide_alignment_ge_gradient|decl
+Hagi/Theory/MuonWide.lean:193	wide_row_isometry|decl
+Hagi/Theory/MuonWide.lean:210	wide_inner_le_sigma_sum|decl
+Hagi/Theory/MuonWide.lean:245	wide_step_optimal|decl
+Hagi/Theory/MuonWide.lean:47	code_step|decl
+Hagi/Theory/MuonWide.lean:52	code_step_eq_ns_step|decl
+Hagi/Theory/MuonWide.lean:61	ns_step_wide_svd|decl
 Hagi/Theory/NadyaOptimal.lean:126	exists_best_mse_scale|decl
 Hagi/Theory/NadyaOptimal.lean:143	cosine_sched_bounds|decl
 Hagi/Theory/NadyaOptimal.lean:151	cosine_sched_start|decl

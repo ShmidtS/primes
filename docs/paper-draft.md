@@ -34,8 +34,11 @@ step **η* = 4|a|/R² with drop_max = 2a²/R²**, and the codelength sandwich
 Optimizer side: for the first layer `W1` the consumer's Muon step
 `W1 − η·ns₃(Ĝ)` is a proved strict descent step with first-order drop
 ≥ ‖G‖_F, and the three-iteration Newton–Schulz iterate keeps ≥ 39/40 of
-the optimum on the spectrum σ ≥ ½‖G‖_F. Release feature: **19 PALOMAR
-cards** and a **§0 map of 35 code bridges** (C521–C676) in which the consumer's own code (HAGI_v2, python
+the optimum on the spectrum σ ≥ ½‖G‖_F. For a rectangular buffer the
+code's transposed iteration is the same proved step on `m×n`: it keeps
+the singular bases and the optimum over row isometries `ΔΔᵀ = I` is
+`Σ σ i` — under a wide SVD hypothesis (C678). Release feature: **19 PALOMAR
+cards** and a **§0 map of 36 code bridges** (C521–C678) in which the consumer's own code (HAGI_v2, python
 `file:line@sha`) is checked against the canon and labelled exact,
 conditional or honest-gap. We state the open hypotheses as pins (§5,
 pins 30–34): U2 global reachability, the chain rule behind a < 0 (closed
@@ -91,6 +94,7 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | step | `rank_one_inner_le` (Hagi/Theory/MuonSpectral.lean:156); `rank_one_attains` (:231); `smax_eq_opNorm` (Hagi/Theory/MuonSpectral.lean:333); `smax_le_frobenius` (:354) | Newton–Schulz orthogonalizer `newton_schulz_orthogonalize` (hagi/core.py:1350, called with iters=3 at core.py:1755 @ca52eb4) | OptimalStep (C670–C671): the rank-one step attains `σ_max` = `‖G‖₂` ≤ `‖G‖_F`; honest gap: rank-one slice of the spectral ball, the optimum over the whole ball needs von Neumann | C670–C671 |
 | step | `muon_step_optimal_in_isometry_group` (Hagi/Theory/MuonIsometry.lean:175); `ns_sigma_min_three` (Hagi/Theory/NewtonSchulzSigma.lean:126); `muon_alignment_exact` (Hagi/Theory/MuonAlignment.lean:104); `muon_step_useful` (Hagi/Theory/MuonDescent.lean:176) | Newton–Schulz iteration (hagi/core.py:1363, Frobenius normalisation core.py:1353, called with iters=3 at core.py:1755 @ca52eb4) | Muon (C672–C675): `max_{ΔᵀΔ = I} ⟨G, Δ⟩ = ssum G` at `U Vᵀ` without von Neumann; the code's quadratic scheme keeps the singular vectors of `G` and gives `σ₃ ≥ 39/40` for `σ₀ ≥ 1/2`, `⟨G, ns₃(Ĝ)⟩ ≥ ‖G‖_F`; honest gap: the derivative identity was a hypothesis here (discharged in the next row), `η` only exists | C672–C675 |
 | step | `w1_fderiv_apply` (Hagi/Theory/MuonDescentW1.lean:65); `muon_step_useful_w1` (:104); `muon_step_useful_w1_batch` (:193) | Muon layer update `W1 -= (cos_lr*0.7)*newton_schulz_orthogonalize(m1, iters=3)` (hagi/core.py:1755 @ca52eb4; layer hagi/lm.py:586; batch cross_entropy mean lm.py:688) | W1 certificate (C676): for the layer itself (`G ≠ 0`, one input or batch) CE strictly decreases along `W1 − η·ns_k(Ĝ)` for small `η`; honest gap: square layer, momentum `m1`, `cos_lr·0.7`, Lipschitz bound and convergence not formalised | C676 |
+| step | `code_step_eq_ns_step` (Hagi/Theory/MuonWide.lean:52); `ns_step_wide_svd` (:61); `wide_alignment_exact` (:163); `wide_step_optimal` (:245) | newton_schulz_orthogonalize on a rectangular buffer: transpose to the wide form when rows > columns (hagi/core.py:1358), iterate `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` (core.py:1363), transpose back; zero-norm guard core.py:1355; iters = 4 by default, 3 at the call site core.py:1755 @ca52eb4 | the code line equals the proved rectangular step `ns_step` for an `m×n` matrix; if `G = U·diag σ·Vᵀ` with `UᵀU = VᵀV = I`, every iterate keeps the singular bases (`X_k = U·diag (ns_seq k∘σ)·Vᵀ`), `⟨G, X_k⟩ = Σ σ i·ns_seq k (σ i)`, `⟨G, X_k⟩ ≥ ⟨G, G⟩` for `σ i ≤ 1`, and the maximum of `⟨G, Δ⟩` over the row isometries `ΔΔᵀ = I` is `Σ σ i`, attained at `U Vᵀ`; honest gap: the real wide SVD of `G` is a hypothesis of every statement (no real rectangular SVD in primes), the zero-norm guard is a code fact without a theorem, the descent certificate of C676 is not instantiated on the wide carrier | C678 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
 
 **What is proved end to end.** Inside Lean, with no code hypothesis:
@@ -109,8 +113,10 @@ Adam is a descent step only at t = 1. The Muon chain
 (§3.20.x) is the one bridge that reaches the consumer's optimizer:
 the code's Newton–Schulz step on the layer `W1` strictly decreases
 CE for small `η`, with no code hypothesis except the square shape of
-the layer, `G ≠ 0` and the kink premise.
-<!-- source: STATUS.md cards C638–C676; §3.19/§3.20 carry only deltas -->
+the layer, `G ≠ 0` and the kink premise. The rectangular
+Newton–Schulz iterate (C678) is proved under a hypothesis of its own:
+a real wide SVD of the matrix it is applied to.
+<!-- source: STATUS.md cards C638–C678; §3.19/§3.20 carry only deltas -->
 
 **What remains a hypothesis or a model.** (1) h1 for the real warm-up:
 the code warms the block with bare Adam and never calls the certified
@@ -128,7 +134,9 @@ measured values; no theorem relates train objective to holdout CE (pin
 hierarchical reading, the auto transfer gate, or constant distillation
 — bench twins only. (7) The Muon step is certified for the square
 layer only, with a step size that merely exists and without momentum
-(§3.20.x); the code-side guards are proposed, not implemented.
+(§3.20.x); the rectangular iterate is proved only under a wide SVD
+hypothesis (C678); the code-side guards are proposed, not implemented
+(the zero-norm guard already is in the code).
 
 ## 1. Related Work
 
@@ -1026,12 +1034,13 @@ LINEAR carrier in C663 (`chain_linear`, `useful_of_adam_first`) and
 for the relu block only as strict descent for small η (C665); the
 nonlinear certified drop is open.
 
-#### 3.20.x Optimizer theory: the Muon chain (C668–C676)
+#### 3.20.x Optimizer theory: the Muon chain (C668–C678)
 
 Nine cycles, ten commits (`git log --oneline c85d35bf^..57483f97`: C668
 `c85d35bf`, C669 `3c1fb372`, C670 `a3f7c669`, C671 `ff584ffb`, C672
 `f7972b11`, the docs-only fix `ecacde41`, C673 `42db5e61`, C674
-`c34f4e43`, C675 `9efa9dc1`, C676 `57483f97`). The deltas iv-b..iv-j
+`c34f4e43`, C675 `9efa9dc1`, C676 `57483f97`; plus C678 on the
+rectangular iterate). The deltas iv-b..iv-j
 of v1.1 are folded into this subsection; the carriers live in the
 STATUS cards of the seven modules. The chain, one line per node
 (each arrow is a theorem of the module named, not a code fact):
@@ -1052,6 +1061,8 @@ C674 MuonAlignment      muon_alignment_exact       the iterates keep the singula
       ↓
 C675 MuonDescent        normed_sigma_le_one, muon_step_useful   the Frobenius-normalised Ĝ has σ i ≤ 1; abstract descent certificate
 C676 MuonDescentW1      w1_fderiv_apply, muon_step_useful_w1, muon_step_useful_w1_batch   the derivative identity for the layer W1 (one input, batch); certificate instantiated
+      |
+C678 MuonWide           code_step_eq_ns_step, ns_step_wide_svd, wide_alignment_exact, wide_step_optimal   [HYPOTHESIS: real wide SVD of G] the transposed code line is the same step on m×n; iterates keep the singular bases; max over ΔΔᵀ = I of ⟨G, Δ⟩ = Σ σ i
 ```
 
 **Result (one box).** For the square first layer `W1 : n → n → ℝ`
@@ -1083,9 +1094,38 @@ norm Muon `0.941038` against sign `0.765368`; C676: one neuron, two
 classes, `f'(W1)[1] = −g 0` both through `w1_fderiv_apply` and
 directly.
 
-**Honest boundaries.** (a) The layer is square; the code's `W1` is
-`dim × hidden`, and the rectangular Newton–Schulz iterate is not
-formalised. (b) The maximum over the whole spectral ball `‖Δ‖₂ ≤ 1`
+**Rectangular iterate (C678, delta).** The code does not apply the
+square iteration to `W1`'s gradient: `newton_schulz_orthogonalize`
+(hagi/core.py:1349 @ca52eb4) returns `X` unchanged when
+`norm(X) < 1e-12` (core.py:1355), transposes to the wide shape when
+there are more rows than columns (core.py:1358), iterates
+`X = 0.5 * (3.0 * I_m - X @ X.T) @ X` (core.py:1363) and transposes
+back. Hagi/Theory/MuonWide.lean keeps the wide shape `X : m×n`:
+`(3I − XXᵀ)X = X(3I − XᵀX)`, so the code line is the rectangular
+`ns_step` (`code_step_eq_ns_step`, :52) and, given
+`G = U·diag σ·Vᵀ` with `U : m×m`, `V : n×m`, `UᵀU = VᵀV = I`, the
+step multiplies each singular value by `ns_p`
+(`ns_step_wide_svd`, :61), hence `X_k = U·diag (ns_seq k∘σ)·Vᵀ`
+(`ns_iter_wide_svd`, :116) and `⟨G, X_k⟩ = Σ σ i·ns_seq k (σ i)`
+(`wide_alignment_exact`, :163), `⟨G, X_k⟩ ≥ ⟨G, G⟩` for `σ i ≤ 1`
+(`wide_alignment_ge_gradient`, :178). The optimum of C672 carries over
+to row isometries: for `ΔΔᵀ = I`, `(UᵀΔV) i i = ⟨Δᵀu_i, v_i⟩ ≤ 1` by
+Cauchy–Schwarz (`Δᵀ` is an isometry), so `⟨G, Δ⟩ ≤ Σ σ i`, attained at
+`U Vᵀ` (`wide_step_optimal`, :245). Witness .tmp/C678/traj.lean, rc = 0:
+on the `2×3` matrix `diag(3/4, 1/2)` padded with a zero column, Lean
+checks `ns_step G = U·diag(117/128, 11/16)·Vᵀ`, `⟨G, G⟩ = 13/16`,
+`(UVᵀ)(UVᵀ)ᵀ = I` and `⟨G, UVᵀ⟩ = 3/4 + 1/2`. Honest gap: the wide SVD
+of `G` is a hypothesis of every statement (primes has a real square
+SVD and a complex rectangular one only; the "pad-to-square" existence
+proof is the next step); the zero-norm guard and `iters = 3` are code
+facts without a theorem; `σ i ≤ 1` for the normalised wide gradient is
+not proved; the descent certificate of C676 is not instantiated on the
+wide carrier.
+
+**Honest boundaries.** (a) The descent certificate is for the square
+layer; the code's `W1` is `dim × hidden`, and the rectangular
+Newton–Schulz iterate is proved under a wide SVD hypothesis only
+(C678). (b) The maximum over the whole spectral ball `‖Δ‖₂ ≤ 1`
 is not proved (von Neumann / spectral–nuclear duality); the optimum
 is proved over the isometry group only. (c) `η` is only shown to
 exist: the code's `cos_lr·0.7`, the momentum buffer `m1` (the code
@@ -1097,7 +1137,8 @@ positive constant and has no theorem of its own; in the batch theorem
 bound after three iterations. (f) Muon versus sign is compared by the
 first-order drop, not per unit of step norm (those numbers are
 witnesses). The guards this gap asks of the code are in
-docs/PROPOSAL-muon-guards.md (code-side pending).
+docs/PROPOSAL-muon-guards.md (code-side pending; the zero-norm guard
+(a) is already in the code at core.py:1355).
 
 **(v) Window order (C651 → C664).** After wave 258 the context is
 `idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;
