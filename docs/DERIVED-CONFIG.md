@@ -25,7 +25,7 @@ PROPOSAL-уровень: код HAGI_v2 не менялся. Факты кода
 | Holdout | k ≥ ln(2N/δ)/(2(ε/B)²) | `holdout_gate_two_way_delta`, HoldoutGateTwoWay.lean:109 | BOUNDED: таблица 877/1199 не доказана в Lean (PROPOSAL 8) |
 | LCB | P[ложный GROW] ≤ 2·exp(−2k(r/2B)²) | `paired_lcb_false_grow_bound`, NadyaOptimal.lean:270 | BOUNDED: r детерминированный в теореме, z·σ̂/√n в коде — случайная |
 | Muon | σ₃ ≥ 39/40 при σ₀ ≥ 1/2 | `ns_sigma_min_three`, NewtonSchulzSigma.lean:126 | DERIVED (iters = 3, core.py:1755) |
-| Cosine | 3/20 ≤ sched ≤ 1 | `cosine_sched_bounds`, NadyaOptimal.lean:143 | BOUNDED: код вне коридора (eta_min = 0) |
+| Cosine | 3/20 ≤ sched ≤ 1 | `cosine_sched_bounds`, NadyaOptimal.lean:143 | BOUNDED (описание, не оптимум): относится к schedule «Надя» (floor 0.15·lr₀); `train_minibatch` использует PyTorch-косинус с eta_min = 0 (lm.py:404) — другой schedule, floor не выводится |
 | Batch | B² = Bn·t0/c | `amgm_equality`, Audit.lean:651 | HONEST-GAP-число: Bn, t0, c не измерены |
 | Decay | (1−ηλ)-leak | `naive_decay_leak`, WeightDecayLeak.lean:126 | HONEST-GAP: значение λ не выводится |
 
