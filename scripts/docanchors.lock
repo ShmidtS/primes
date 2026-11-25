@@ -281,6 +281,14 @@ Hagi/Theory/MuonAlignment.lean:162	muon_alignment_ge_gradient|decl
 Hagi/Theory/MuonAlignment.lean:45	ns_step_svd|decl
 Hagi/Theory/MuonAlignment.lean:86	ns_iter|decl
 Hagi/Theory/MuonAlignment.lean:91	ns_iter_svd|decl
+Hagi/Theory/MuonDescent.lean:105	smax_smul|decl
+Hagi/Theory/MuonDescent.lean:115	sigma_le_smax|decl
+Hagi/Theory/MuonDescent.lean:122	normed_sigma_le_one|decl
+Hagi/Theory/MuonDescent.lean:136	muon_step_inner_ge_frob|decl
+Hagi/Theory/MuonDescent.lean:156	normed_near_optimal|decl
+Hagi/Theory/MuonDescent.lean:164	useful_of_neg_fderiv|decl
+Hagi/Theory/MuonDescent.lean:176	muon_step_useful|decl
+Hagi/Theory/MuonDescent.lean:196	muon_vs_sign_first_order|decl
 Hagi/Theory/MuonIsometry.lean:115	isometry_conj|decl
 Hagi/Theory/MuonIsometry.lean:128	isometry_inner_le_ssum|decl
 Hagi/Theory/MuonIsometry.lean:146	uv_transpose_isometry|decl

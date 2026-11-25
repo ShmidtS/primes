@@ -2366,9 +2366,10 @@ core.py:1363 @ca52eb4 — ПРАВОЕ умножение `X` на симмет�
 propext, Classical.choice, Quot.sound. Freeze 9115 → 9122 (+7).
 
 Honest (границы):
-- Гипотеза `∀ i, σ i ≤ 1` (T3, T4): нормировка Frobenius формализована лишь
-  как `smax ≤ ‖G‖_F` (C671), не как `σ i ≤ 1` для `G/‖G‖_F` (деление на
-  `‖G‖_F` и `realSingularValues (c•G) = |c|·σ` не формализованы).
+- ~~Гипотеза `∀ i, σ i ≤ 1` (T3, T4)~~ — СНЯТА в C675 для нормированного
+  градиента: `Hagi/Theory/MuonDescent.lean` (`smax_smul`, `sigma_le_smax`,
+  `normed_sigma_le_one`: `G ≠ 0 ⇒ ∀ i, σ i (G/‖G‖_F) ≤ 1`); сами T3/T4
+  остаются с гипотезой (применимы к любой `G` с `σ ≤ 1`).
 - T3 учитывает только `σ i ≥ 1/2` (масса `σ < 1/2` входит в `⟨G, X₃⟩` с
   весом `ns_seq 3 σ i`, но без нижней границы `39/40`); доля
   `Σ_{kept} σ / ssum G` — величина данных, не константа.
@@ -2378,6 +2379,57 @@ Honest (границы):
 - `kept` определён через `realSingularValues G`; индексное множество в T3
   не сопоставлено с сингулярными векторами `U` (для кратного спектра
   выбор `U` не единственен) — на утверждение T3 не влияет.
+
+## Hagi/Theory/MuonDescent.lean (нормировка градиента, сертификат спуска Muon-шага, C675 — ИТОГ ЦЕПОЧКИ C668–C675)
+
+Код-якорь HAGI_v2: нормировка `G / (G.norm() + eps)` core.py:1353, итерация
+core.py:1363, обновление слоя `W1 -= (cos_lr*0.7)*newton_schulz_orthogonalize(m1,
+iters=3)` core.py:1755 @ca52eb4 (слой — lm.py:586). Цепочка: batch-градиент
+(C668/C669: `f'(W)[Δ] = −⟨batchGrad, Δ⟩`) → F-оптимальный SGD (C669) →
+rank-one спектральный оптимум (C670/671) → изометрический оптимум (C672) →
+NS-3 приближение (C673) → точное выравнивание (C674) → нормировка и спуск
+(C675, этот файл).
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `smax_smul` | S1: `smax (c • G) = |c|·smax G` (через `smax_eq_opNorm`) | Hagi/Theory/MuonDescent.lean:105 | — |
+| `sigma_le_smax` | `σ i ≤ smax G` | Hagi/Theory/MuonDescent.lean:115 | — |
+| `normed_sigma_le_one` | S1: `G ≠ 0 ⇒ ∀ i, σ i (G/‖G‖_F) ≤ 1` — гипотеза `σ ≤ 1` снята | Hagi/Theory/MuonDescent.lean:122 | — |
+| `muon_step_inner_ge_frob` | S1: `G ≠ 0 ⇒ 1 ≤ ⟨Ĝ, ns_iter k Ĝ⟩ ∧ ‖G‖_F ≤ ⟨G, ns_iter k Ĝ⟩` | Hagi/Theory/MuonDescent.lean:136 | — |
+| `normed_near_optimal` | S1: `G ≠ 0 ⇒ (39/40)·Σ_{kept(Ĝ)} σ ≤ ⟨Ĝ, ns_iter 3 Ĝ⟩` | Hagi/Theory/MuonDescent.lean:156 | — |
+| `useful_of_neg_fderiv` | S2: `HasFDerivAt f φ x`, `φ d < 0 ⇒ ∃ η > 0, f (x + η•d) < f x` (перенос `useful_step_of_fderiv` с `x + η•d`) | Hagi/Theory/MuonDescent.lean:164 | — |
+| `muon_step_useful` | S2: `HasFDerivAt f φ W`, `∀ Δ, φ Δ = ⟨g, Δ⟩`, `g ≠ 0 ⇒ ∃ η > 0, f (W − η•ns_iter k Ĝ) < f W` | Hagi/Theory/MuonDescent.lean:176 | — |
+| `muon_vs_sign_first_order` | S3: `G ≠ 0 ⇒ ‖G‖_F ≤ ⟨G, ns_iter k Ĝ⟩ ∧ ‖G‖_F ≤ ⟨G, sign G⟩` | Hagi/Theory/MuonDescent.lean:196 | — |
+
+Числа (witness `.tmp/C675/traj.lean`, rc = 0; `G = diag(3, 3/2, 1/2, 1/5)`):
+`frobSq G = 577/50` (Lean); sign-шаг `⟨G, sign G⟩ = 26/5`, `frobSq (sign G) = 4`
+(Lean). Внешний расчёт (не в Lean): `σ(Ĝ) = 0.883117, 0.441559, 0.147186,
+0.058874` (все `≤ 1`), `ns₃(σ) = 0.999999, 0.949373, 0.468339, 0.196808`,
+`⟨Ĝ, X₃⟩ = 1.38284 ≥ 1`, `‖X₃‖_F = 1.46948`; на единицу нормы шага (в
+единицах `Ĝ`): Muon `1.38284/1.46948 = 0.941038`, sign `2.6/3.39706 = 0.765368`.
+Аксиомы всех 8 теорем: propext, Classical.choice, Quot.sound.
+Freeze 9122 → 9139 (+17).
+
+Honest (границы):
+- Носитель `muon_step_useful` — `Matrix n n ℝ` (sup-норма Mathlib); связь
+  `φ Δ = ⟨g, Δ⟩` — ГИПОТЕЗА: C668/C669 доказали её для функционального
+  носителя `ι → δ → ℝ` в виде `f'(W)[Δ] = −⟨batchGrad, Δ⟩` (т.е. `g = −batchGrad`);
+  мост `Matrix` ↔ функциональный носитель и конструкция дифференциала слоя
+  `lm.py:586` не формализованы. Инстанс теоремы на слое — свидетельство
+  только для `f = x²` (абстрактная часть).
+- Существование `η` — локальное (без величины шага); `η = cos_lr·0.7`,
+  momentum-буфер `m1`, расписание, липшицева оценка `L(W − ηX) ≤ L(W) −
+  η⟨g,X⟩ + η²L/2‖X‖²` и сходимость — вне теории.
+- S3 — только first-order спуск (нижняя граница `‖G‖_F` для обоих шагов);
+  сравнение «на единицу нормы шага» (Muon `√n` vs sign `√(mn)`) НЕ доказано:
+  нужно `‖ns_iter k Ĝ‖_F` через SVD и `‖sign G‖_F = √(mn)`; witness-числа
+  выше — внешний расчёт, не теорема.
+- Квадратный вещественный `G`, `Nonempty n`; прямоугольный `G` — не формализован.
+- Внешние источники (ask.sciencemadereadable, 2026-11-25): Roy & Chakraborty
+  arXiv 2610.03306 (finite-step NS сохраняет выравнивание с momentum-буфером
+  при ограниченной спектральной норме — та же связка «выравнивание + спуск»,
+  но с momentum и для их набора коэффициентов); Shulgin et al. 2610.30280,
+  Wang et al. 2609.33152. Формализации не добавили, ссылок в Lean нет.
 ## Hagi/Theory/NadyaOptimal.lean («Надя.txt» HAGI v2 Optimal: BitAlloc, Schedules, LCB, Bypass)
 
 Источник: `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY, 961 строк Python).
@@ -2600,10 +2652,10 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.
 
-## History (C538–C674)
+## History (C538–C675)
 
 - Era index: `.omc/analysis/era-index.md` (C591–C671, якоря `#c638-c640`
-  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`); более ранние per-beat файлы — `git log`. Журнал
+  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
   (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
   `git show b3939aa5:STATUS.md`.

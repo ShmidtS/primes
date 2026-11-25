@@ -423,3 +423,33 @@
   слоя» (core.py:1755 ↔ lm.py:586): доказать, что `W ← W − η·X₃` с
   `⟨∇_W L, X₃⟩ ≥ 0` даёт спуск (first-order, липшицева константа); и
   `realSingularValues (c•G) = |c|·σ`, чтобы снять гипотезу `σ ≤ 1`.
+
+<a id="c675"></a>
+## C675 — Нормировка градиента и сертификат спуска Muon-шага: итог цепочки C668–C675 (freeze →9139)
+
+- Коммит: `feat: muon step descent certificate and normalized gradient scaling`
+  (sha — в receipt `.tmp/C675/receipt.md`).
+- Исследование: носитель `Matrix` не имеет `Inner`-инстанта с `fdot`; мост
+  «функциональный носитель C669 ↔ Matrix» дороже 150 строк ⇒ сертификат
+  сформулирован абстрактно (`useful_of_neg_fderiv`, перенос
+  `useful_step_of_fderiv` C642) со связью дифференциала как гипотезой.
+  Проверка знака: C669 даёт `f'(W)[Δ] = −⟨batchGrad, Δ⟩`, шаг кода
+  `W − η·X₃` ⇒ убывание ⟺ `g = −batchGrad` (обычный градиент).
+  Источник ask.sciencemadereadable.com: релевантно — Roy & Chakraborty
+  arXiv 2610.03306 (finite-step NS сохраняет выравнивание с momentum при
+  ограниченной спектральной норме), Wang et al. 2609.33152, Shulgin et al.
+  2610.30280.
+- Результат: новый `Hagi/Theory/MuonDescent.lean` (223 строки, 17 деклараций,
+  8 теорем) — S1 `smax_smul`, `sigma_le_smax`, `normed_sigma_le_one`,
+  `muon_step_inner_ge_frob`, `normed_near_optimal`; S2 `useful_of_neg_fderiv`,
+  `muon_step_useful`; S3 `muon_vs_sign_first_order`. Гипотеза `σ ≤ 1`
+  нормированного градиента снята.
+- Honest: `φ Δ = ⟨g, Δ⟩` на носителе `Matrix` — гипотеза (C668/C669 —
+  функциональный носитель); `η` только существует; momentum, `cos_lr·0.7`,
+  липшицева лемма спуска, сходимость — вне теории; сравнение «на единицу
+  нормы шага» не доказано (только witness-числа); квадратный `G`.
+- Следующий шаг: (1) мост «функциональный носитель → Matrix» и явный
+  дифференциал слоя `lm.py:586` (снять гипотезу `muon_step_useful`);
+  (2) липшицева лемма `L(W − ηX) ≤ L(W) − η⟨g,X⟩ + η²L/2·‖X‖_F²` — оценка
+  шага; (3) `‖ns_iter k Ĝ‖_F` через SVD для сравнения Muon/sign на единицу
+  нормы; (4) прямоугольный `G`.

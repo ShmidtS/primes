@@ -456,6 +456,7 @@ import Hagi.Theory.MuonSpectral
 import Hagi.Theory.MuonIsometry
 import Hagi.Theory.NewtonSchulzSigma
 import Hagi.Theory.MuonAlignment
+import Hagi.Theory.MuonDescent
 import Hagi.Theory.HoldoutGateTwoWay
 import Hagi.Theory.GrowTrunkBlock
 import Hagi.Theory.GrowSnap
