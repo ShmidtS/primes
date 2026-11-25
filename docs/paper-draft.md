@@ -84,6 +84,7 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | compression | `bypass_reaches_compression_limit` (Hagi/Theory/NadyaOptimal.lean:304); `ce_covered_zero` (Hagi/Theory/ExactBypass.lean:70) | EXACT_BYPASS, Надя.txt:695-750 | exact for the ideal coder (q = 1 on the support) | C666 |
 | growth | `wlogits_width_preserved` (Hagi/Theory/WidthGrowth.lean:597); `attn_score_scale_preserved` (:329); `rotary_old_pairs_unchanged` (:266) | `grow_width`, Надя.txt (function name) | exact for nh = 1, even width; honest gap: nh > 1, odd width, clip are hypotheses `WGrowth` | C667 |
 | step | `rank_one_inner_le` (Hagi/Theory/MuonSpectral.lean:156); `rank_one_spectral_norm` (:179); `rank_one_attains` (:231) | Newton–Schulz orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350, called with iters=3 at core.py:1755 @ca52eb4) | honest gap: rank-one spectral slice proved; full-rank Muon step (von Neumann) open; C671: `smax = ‖G‖₂` for real matrices closed (`smax_eq_opNorm`, Hagi/Theory/MuonSpectral.lean:333) | C670/C671 |
+| step | `isometry_inner_le_ssum` (Hagi/Theory/MuonIsometry.lean:128); `uv_transpose_attains_ssum` (:156); `muon_step_optimal_in_isometry_group` (:175) | Newton–Schulz orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350, iteration core.py:1363, Frobenius normalisation core.py:1353, called with iters=3 at core.py:1755 @ca52eb4) | max over the isometry group ΔᵀΔ = I proved without von Neumann; honest gap: the code's output is an approximate isometry (iters=3, σ_min lower bound not formalised), rectangular G and the convergence of the iteration to U Vᵀ not formalised | C672 |
 | step | `batch_directional_derivative` (Hagi/Theory/BatchRankOne.lean:65); `sgd_step_attains` (:136); `rank_one_best_v` (:209) | Muon step on `W1`, hagi/core.py:1755/:1350 @ca52eb4 | honest gap: Frobenius ball and rank-one family proved; spectral-norm optimum and the link to the lm.py:586 layer open | C669 |
 | step | `hasFDerivAt_w1L` (Hagi/Theory/FirstLayerGrad.lean:87); `w1_grad_rank_one` (:123); `useful_of_adam_first_w1` (:167) | first layer `W1`, hagi/lm.py:586/:594 @ca52eb4 | strict descent only (no certified drop; single input) | C668 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
@@ -972,12 +973,12 @@ global only probabilistically. Across the era the weak link moved from
 Axioms of every new theorem: propext, Classical.choice, Quot.sound.
 
 
-### 3.20 Later bridges (C651–C671): deltas on the §0 map
+### 3.20 Later bridges (C651–C672): deltas on the §0 map
 
 Rows: §0 (repair, archiver, Adam, useful first step, chain rule,
 holdout gate, window order; C666–C667: BitAlloc, schedule, LCB gate,
 bypass, width growth; C668: first-layer W1 derivative; C669: batch
-gradient and Frobenius-optimal step; C670: rank-one spectral optimum). Code anchors are `git show`-verified at @e9a96fc
+gradient and Frobenius-optimal step; C670: rank-one spectral optimum; C671: real spectral-norm bridge; C672: full step over the isometry group). Code anchors are `git show`-verified at @e9a96fc
 (wave 256–257), @b3740e0 (wave 258) and @bab8aff (wave 258b); the
 Nadya.txt anchors are a 2026-11-24 snapshot.
 <!-- source: STATUS.md cards C651, C653–C655, C657, C660, C663, C664, C666, C667;
@@ -1077,6 +1078,29 @@ C670's statement reads «the rank-one step is optimal inside the spectral ball
 among rank-one steps»; the full Muon step `U Vᵀ` still needs von Neumann /
 spectral–nuclear duality; `‖u ⊗ v‖₂ = ‖u‖₂·‖v‖₂` for non-unit `u`, `v` is
 not stated (only the unit case). Witness .tmp/C671/traj.lean, rc = 0.
+
+**(iv-f) The full Muon step over the isometry group (C672).** The
+orthogonalizer's ideal output is a matrix with orthonormal columns, i.e.
+an isometry `ΔᵀΔ = I`. Over that group the maximum of `⟨G, Δ⟩` equals the
+sum of the singular values `ssum G` (the nuclear norm `‖G‖_*`), and it is
+attained at `Δ = U Vᵀ` — with no von Neumann inequality. Proof
+(Hagi/Theory/MuonIsometry.lean): `⟨G, Δ⟩ = tr(GᵀΔ) = Σ_i σ i·Q i i` with
+`Q = UᵀΔV` (`inner_eq_sigma_weighted_diag`, :93); `Q` is again an
+isometry (`isometry_conj`, :115), hence `Q i i ≤ 1` because the column is
+a unit vector (`isometry_diag_le_one`, :65), and `σ i ≥ 0`. So
+`⟨G, Δ⟩ ≤ ssum G` (`isometry_inner_le_ssum`, :128) with equality at
+`Δ = U Vᵀ`, where `Q = I` (`uv_transpose_attains_ssum`, :156;
+`muon_step_optimal_in_isometry_group`, :175). Code bridge (read-only
+@ca52eb4): the iteration `X = 0.5 * (3.0 * I_m - X @ X.T) @ X`
+(core.py:1363) is started from the Frobenius-normalised gradient
+(`np.linalg.norm`, core.py:1353), not the spectral one, and is run with
+`iters = 3` (core.py:1755); the ideal limit is the polar factor `U Vᵀ`.
+Honest gap: the theorem is about the exact isometry group — the bound on
+how far three iterations are from it (a lower bound on σ_min), the
+rectangular case (transpose at core.py:1358) and the convergence of the
+iteration to `U Vᵀ` are not formalised; the maximum over the whole
+spectral ball `‖Δ‖₂ ≤ 1` still needs von Neumann. Witness
+.tmp/C672/traj.lean (rotation picture `⟨diag(3,1), R(θ)⟩ = 4·cos θ`), rc = 0.
 
 **(v) Window order (C651 → C664).** After wave 258 the context is
 `idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;

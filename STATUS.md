@@ -2177,7 +2177,7 @@ rc = 0. Freeze 9054 → 9070 (+16: `batchGrad`, `fdot`, `frobSq`, `rowGrad`,
   cross_entropy со средним — множитель `1/|τ|` на градиент). Muon-шаг кода
   (core.py:1755) относится к другой `W1`, чем слой `_block_add` (lm.py:586)
   — bridge to be made.
-## Hagi/Theory/MuonSpectral.lean (rank-one спектральный шаг Muon: σ_max, C670; мост σ_max = ‖G‖₂, C671)
+## Hagi/Theory/MuonSpectral.lean (rank-one спектральный шаг Muon: σ_max, C670; мост σ_max = ‖G‖₂, C671; full step → MuonIsometry)
 
 Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1350 @ca52eb4 (вызов —
 `W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)` core.py:1755
@@ -2229,6 +2229,54 @@ Witness: `.tmp/C670/traj.lean` (G = diag(3,1), n = 2): для любой еди�
   svd_decomposition_rectangular — комплексный). Код: newton_schulz_orthogonalize
   с `iters=3` — приближённый `U Vᵀ`, связь с формальным `U·Σ·Vᵀ` — только
   якорь @sha.
+
+## Hagi/Theory/MuonIsometry.lean (полный шаг Muon оптимален на изометриях, C672)
+
+Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1350 @ca52eb4 — итерация
+`X = 0.5 * (3.0 * I_m - X @ X.T) @ X` core.py:1363; нормировка — Frobenius
+`X /= norm`, `norm = np.linalg.norm(X)` core.py:1353 (НЕ спектральная);
+вызов `iters=3` core.py:1755. Идеальный (бесконечный) Newton–Schulz даёт
+полярный фактор `U Vᵀ` — изометрию `ΔᵀΔ = 1`. Здесь доказан максимум
+`⟨G, Δ⟩` по всем изометриям БЕЗ неравенства фон Неймана: разложение
+`⟨G, Δ⟩ = tr(GᵀΔ) = Σ_i σ i·(UᵀΔV) i i`, где `Q = UᵀΔV` — изометрия, поэтому
+`Q i i ≤ 1`, и `σ i ≥ 0`. Носители: `Isometry Δ` = `ΔᵀΔ = 1`,
+`ssum G` = `∑ i, σ i` (ядерная норма `‖G‖_*`), `fdot` из MuonSpectral.lean:46.
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `Isometry`, `ssum`, `ssum_nonneg`, `ssum_eq` | `ΔᵀΔ = 1`; сумма сингулярных чисел; `ssum ≥ 0`; `ssum G = ∑ σ i` при `σ = realSingularValues G` | Hagi/Theory/MuonIsometry.lean:50, :53, :56, :59 | — |
+| `isometry_diag_le_one` | T1: `QᵀQ = 1 ⇒ Q i i ≤ 1` (столбец единичный) | Hagi/Theory/MuonIsometry.lean:65 | — |
+| `fdot_eq_trace`, `inner_eq_sigma_weighted_diag` | носители: `⟨G, Δ⟩ = tr(GᵀΔ)`; `= Σ_i σ i·(UᵀΔV) i i` для `G = U·Σ·Vᵀ` | Hagi/Theory/MuonIsometry.lean:85, :93 | — |
+| `isometry_conj` | `Q = UᵀΔV` — изометрия (произведение изометрий) | Hagi/Theory/MuonIsometry.lean:115 | — |
+| `isometry_inner_le_ssum` | T2 (граница): `ΔᵀΔ = 1 ⇒ ⟨G, Δ⟩ ≤ ssum G` | Hagi/Theory/MuonIsometry.lean:128 | — |
+| `uv_transpose_isometry`, `uv_transpose_attains_ssum` | T3 (достижимость): `U Vᵀ` — изометрия и `⟨G, U Vᵀ⟩ = ssum G` | Hagi/Theory/MuonIsometry.lean:146, :156 | — |
+| `muon_step_optimal_in_isometry_group` | T4 (итог): max по изометриям `⟨G, Δ⟩ = ssum G`, оптимум `U Vᵀ` | Hagi/Theory/MuonIsometry.lean:175 | — |
+
+Witness: `.tmp/C672/traj.lean` (G = diag(3, 1), n = 2, поворот `rot c s` на
+θ: `⟨G, rot⟩ = 4·cos θ` — картинка «≤ 4, равенство при θ = 0»; поворот —
+изометрия; общие T2/T4 применены к G), rc = 0, аксиомы всех 8 теорем:
+propext, Classical.choice, Quot.sound. Freeze 9090 → 9102 (+12:
+`Isometry`, `ssum`, `ssum_nonneg`, `ssum_eq`, `isometry_diag_le_one`,
+`fdot_eq_trace`, `inner_eq_sigma_weighted_diag`, `isometry_conj`,
+`isometry_inner_le_ssum`, `uv_transpose_isometry`, `uv_transpose_attains_ssum`,
+`muon_step_optimal_in_isometry_group`).
+
+Honest (границы):
+- Доказан максимум на ГРУППЕ ИЗОМЕТРИЙ (квадратный вещественный слой),
+  а не на всём шаре `‖Δ‖₂ ≤ 1`: для неквадратного/приближённого шага нужен
+  фон Нейман (в пине Mathlib его нет). Связь «`σ_max(G) ≤ smax` (rank-one,
+  C670) ⊂ `ssum` (full rank, C672)» — числовая, не формальная.
+- Код: нормировка Frobenius (core.py:1353) и `iters = 3` (core.py:1755) ⇒
+  приближённая изометрия: `σ_min` после 3 итераций НЕ формализована
+  (числовая карточка ниже). Прямоугольный `G` (транспонирование core.py:1358)
+  не формализован. Связь с обновлением `W1` (core.py:1755 ↔ lm.py:586) —
+  не формализована.
+- Формулы «идеальный Newton–Schulz = `U Vᵀ`» (сходимость итерации
+  core.py:1363 к полярному фактору) — не формализована; мост только @sha.
+
+Карточка «`iters = 3`»: классическая оценка Quirk Ньютона–Шульца (X ← X(3I − XᵀX)/2,
+  X₀ = G/‖G‖_F, σ ∈ [ε, 1], Ньютон для t^{-1/2}) даёт за 3 итерации
+  `σ_min ≳ 0.7` при типичном спектре — НЕ формализовано, только замечание.
 
 ## Hagi/Theory/NadyaOptimal.lean («Надя.txt» HAGI v2 Optimal: BitAlloc, Schedules, LCB, Bypass)
 
@@ -2452,10 +2500,10 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.
 
-## History (C538–C671)
+## History (C538–C672)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C670, якоря `#c638-c640`
-  … `#c665-c667`, `#c668`, `#c669`, `#c670`); более ранние per-beat файлы — `git log`. Журнал
+- Era index: `.omc/analysis/era-index.md` (C591–C671, якоря `#c638-c640`
+  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
   (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
   `git show b3939aa5:STATUS.md`.

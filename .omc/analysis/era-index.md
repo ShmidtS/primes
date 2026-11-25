@@ -1,4 +1,4 @@
-# Era index — C591–C671 (2026-11-22/25)
+# Era index — C591–C672 (2026-11-22/25)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat-файлы
@@ -344,3 +344,29 @@
   (неполезно); Palomar `?view=cards` — JS-страница, карту найти не удалось.
 - Honest (down-scope): `‖u ⊗ v‖₂ = ‖u‖₂·‖v‖₂` для неединичных векторов
   не доказан — отброшен по Sunk Cost; полный шаг Muon (von Neumann) по-прежнему открыт.
+
+<a id="c672"></a>
+## C672 — полный шаг Muon оптимален на группе изометрий (freeze 9090→9102)
+
+- Коммит: `feat: muon step optimal over isometries without von neumann`
+  (sha — в receipt `.tmp/C672/receipt.md`).
+- Исследование: пин C671 «полный шаг Muon (von Neumann) открыт». Путь (P1)
+  фон Нейман — мажоризация/Birkhoff, тяжёл и в пине Mathlib отсутствует.
+  Путь (P2): для изометрии `ΔᵀΔ = 1` (то, что выдаёт идеальный
+  Newton–Schulz, core.py:1363 @ca52eb4) достаточно `⟨G, Δ⟩ = Σ σ i·Q i i`,
+  `Q = UᵀΔV` — изометрия ⇒ `Q i i ≤ 1`. Выбран P2 (без внешних теорем).
+- Код-якорь (READ-ONLY, `git show ca52eb4:hagi/core.py`): нормировка —
+  Frobenius `np.linalg.norm` (core.py:1353), итерация core.py:1363, вызов
+  `iters=3` core.py:1755.
+- Результат: новый `Hagi/Theory/MuonIsometry.lean` — `isometry_diag_le_one`
+  (T1), `isometry_inner_le_ssum` (T2), `uv_transpose_attains_ssum` (T3),
+  `muon_step_optimal_in_isometry_group` (T4); носители `fdot_eq_trace`,
+  `inner_eq_sigma_weighted_diag`, `isometry_conj`. Down-scope не потребовался.
+- Источники: ask.sciencemadereadable.com — релевантных работ нет (выдача
+  про aligning мюонных камер CERN и trace ratio; неполезно); Palomar —
+  реестр недоступен (как в C669–C671), не повторялось.
+- Honest (границы): максимум доказан на группе изометрий, не на всём шаре
+  `‖Δ‖₂ ≤ 1`; приближённость `iters = 3` (оценка σ_min), прямоугольный `G`,
+  сходимость итерации к `U Vᵀ` и мост к обновлению `W1` (lm.py:586) не
+  формализованы. Следующий шаг: нижняя граница `σ_min` после k итераций
+  (полином `p_k(t) = (3t − t³)/2` для `t = σ²`) — кандидат на формализацию.
