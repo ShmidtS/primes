@@ -297,7 +297,7 @@
   `alignment_ge_gradient_any` ⇒ `muon_step_useful_w1_rect'(_batch')`:
   слой `ι → δ → ℝ` ЛЮБОЙ формы, без посылки `card ι ≤ card δ`.
 - Итог эры по факту (`git log c85d35bf^..a4204451`): 16 коммитов
-  (13 feat + 3 docs), 11 модулей, 132 theorem/lemma в них, Freeze
+  (14 feat + 2 docs), 11 модулей, 132 theorem/lemma в них, Freeze
   9043 → 9218 (+175), существующие — identity.
 - Honest: фон Нейман (шар `‖Δ‖₂ ≤ 1`), η только существует,
   momentum `m1`, mean-лосс, малые σ, guard/`iters = 3` — факты кода.

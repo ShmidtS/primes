@@ -1053,7 +1053,7 @@ Sixteen commits (`git log --oneline c85d35bf^..a4204451`: C668
 `f7972b11`, the docs-only fix `ecacde41`, C673 `42db5e61`, C674
 `c34f4e43`, C675 `9efa9dc1`, C676 `57483f97`, the docs consolidation
 `cced8a7f`, C678 `995c7df8`, C679 `23b8b715`, C680 `a4cc785b`, C681
-`c1cd2c30`, C682 `a4204451`): 13 feature commits and 3 docs commits over
+`c1cd2c30`, C682 `a4204451`): 14 feature commits and 2 docs commits over
 11 modules (`FirstLayerGrad`, `BatchRankOne`, `MuonSpectral`,
 `MuonIsometry`, `NewtonSchulzSigma`, `MuonAlignment`, `MuonDescent`,
 `MuonDescentW1`, `WideSVD`, `MuonWide`, `MuonDescentW1Rect`; 3011
