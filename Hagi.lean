@@ -477,6 +477,7 @@ import Hagi.Theory.RollbackGate
 import Hagi.Theory.AdapterGrowth
 import Hagi.Theory.AdapterBank
 import Hagi.Theory.NegativeTransfer
+import Hagi.Theory.DerivedConfig
 import Hagi.Theory.AutoTransferGate
 import Hagi.Theory.ProvenTrunk
 import Hagi.Theory.Continual

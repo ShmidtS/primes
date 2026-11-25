@@ -1,4 +1,5 @@
 Hagi/Architecture/FactorizedMerge.lean:141	factorized_error_bound|decl
+Hagi/Audit/Audit.lean:651	amgm_equality|decl
 Hagi/Contracts/BatchCETrajectory/FixedBatch.lean:147	evaluatedBatchMinimumNormPath_floor_kept_and_objective_lt|decl
 Hagi/Contracts/BatchGlobalTelescope.lean:122	batch_drop_generalizes|decl
 Hagi/Contracts/BatchGlobalTelescope.lean:178	certified_batch_drop_global|decl
@@ -168,6 +169,7 @@ Hagi/Theory/CoverageReading.lean:611	windowCost_hier|decl
 Hagi/Theory/CoverageReading.lean:628	mixedCost_relax_min|decl
 Hagi/Theory/CoverageReading.lean:648	mixedCost_relax_min_eq|decl
 Hagi/Theory/CoverageReading.lean:673	mixedCost_lower|decl
+Hagi/Theory/CoverageReading.lean:675	mixedCost_lower|inner
 Hagi/Theory/CoverageReading.lean:707	slot|decl
 Hagi/Theory/CoverageReading.lean:712	slotRev|decl
 Hagi/Theory/CoverageReading.lean:716	slot_mono|decl
@@ -178,6 +180,7 @@ Hagi/Theory/CoverageReading.lean:741	padSlot|decl
 Hagi/Theory/CoverageReading.lean:746	padSlot_tail|decl
 Hagi/Theory/CoverageReading.lean:754	padSlot_last|decl
 Hagi/Theory/CoverageReading.lean:763	padSlot_full|decl
+Hagi/Theory/DerivedConfig.lean:46	optimalConfig_spec|decl
 Hagi/Theory/ExactBypass.lean:70	ce_covered_zero|decl
 Hagi/Theory/ExactBypass.lean:72	ce_covered_zero|inner
 Hagi/Theory/ExactBypass.lean:90	ce_total_eq_residual|decl
