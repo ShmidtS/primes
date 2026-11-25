@@ -2129,8 +2129,9 @@ Freeze 9043 → 9054 (+11: `w1Pre`, `w1L`, `w1PreCLM`, `w1Jac`, `w1Jac_apply`,
   drop по W1 не выведена (→ закрыт C684 внутри области активации:
   `w1CE_drop_of_step`, `w1CE_optimal_step_drop`, FirstLayerLip.lean:339/:392);
   один вход `x` (в коде — батч/последовательность
-  `a @ W1`, градиент по батчу = Σ_t g_t ⊗ a_t — сумма rank-one, не
-  формализована); оптимум `ΔW1` по норме Фробениуса (вариант B/C:
+  `a @ W1`, градиент по батчу = Σ_t g_t ⊗ a_t — сумма rank-one;
+  формализована C669/C681 (`batchGrad`, `w1BatchGradR`), гладкость батча —
+  C685 (`w1BatchCE_descent_lemma`, FirstLayerLipBatch.lean:113)); оптимум `ΔW1` по норме Фробениуса (вариант B/C:
   `η* = 4|a|/R²`, минимальность rank-one) — не формализован; kink
   (`w i + b i = 0`) вне носителя.
   (Батч `Σ_t g_t ⊗ x_t` и оптимум в шаре Фробениуса → закрыты C669,
@@ -2791,6 +2792,9 @@ Honest (границы):
 - В батче `G ≠ 0` — посылка (для одного входа выведена: `g ≠ 0`, `x ≠ 0`).
 - Mean-лосс lm.py:688: доказано для суммы CE по батчу; mean отличается
   положительным множителем (тот же аргмин, теоремы о mean нет).
+  C685: для plain batch-gradient шага mean-версия доказана —
+  `w1MeanCE_optimal_step_drop`, `w1BatchCE_descent_lemma` (FirstLayerLipBatch.lean);
+  для Muon-шага по-прежнему сумма.
 - `η` только существует; `cos_lr·0.7`, momentum `m1` (код
   ортогонализирует буфер, не градиент), zero-norm guard core.py:1355,
   фиксированные `iters = 3` — вне теории.
@@ -2833,8 +2837,9 @@ Freeze 9221 → 9235 (+14: `parNorm`, `w1CE`, `parDiff`, `parNorm_sq_parDiff`,
 `w1DescentDir`, `w1CE_drop_of_step`, `w1CE_optimal_step_drop`).
 
 - Honest: глобальной гладкости по `W1` НЕТ (relu kink) — `S` действует
-  внутри области активации шага (посылка равенства масок); один вход (батч — сумма
-  rank-one, как C669); код не логирует `‖wo‖_F`, `‖x‖₂` ⇒ число `S` — только
+  внутри области активации шага (посылка равенства масок); один вход — батч-версия
+  C685: `Hagi/Theory/FirstLayerLipBatch.lean` (`w1BatchCE_descent_lemma`,
+  `w1MeanCE_optimal_step_drop`); код не логирует `‖wo‖_F`, `‖x‖₂` ⇒ число `S` — только
   на witness; Adam-шаг нормирован (`m̂/√v̂`), теорема — про `γ·∇`;
   L_dir certified-шага (denom) — отдельная, диапазонная кривизна
   (`ce_range_code_drop`, AdaptiveMajorizer.lean:1497), уже измеряется кодом.
@@ -2981,9 +2986,48 @@ Honest (границы):
 - `η` только существует; `cos_lr·0.7`, momentum `m1` — вне теории.
 - Пустой `m` разобран отдельно (`IsEmpty m`); witness для `m = 0` нет.
 
-## History (C538–C684)
+## Hagi/Theory/FirstLayerLipBatch.lean (батч-версия гладкости CE-слоя W1: S_batch, γ*, mean-форма кода, C685)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C684, сводка `#c668-c682`, `#c684`
+Код-якорь HAGI_v2: слой `W1 : dim × hidden` hagi/lm.py:586 @ca52eb4; лосс —
+`ce(reduction="mean")` hagi/lm.py:299 @ca52eb4 (батчное среднее). Батч-версия
+`Hagi/Theory/FirstLayerLip.lean` (C684, один вход): сумма CE по входам
+`x : τ → δ → ℝ` (`w1BatchCE` = `w1BatchObjR`), направление — батч-градиент
+`D_batch = Σ_t gₜ ⊗ x_t` (минус `w1BatchGradR`, `MuonDescentW1Rect.lean`),
+норма — `parNorm` (FirstLayerLip.lean), ряд gₜ — `rowGrad`
+(BatchRankOne.lean, FirstLayerGrad.lean).
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `w1BatchCE`, `xMaxSq`, `S_batch`, `w1BatchDescentDir` | `w1BatchCE y b wo x W1 = Σ_t w1CE (y t) b wo (x t) W1`; `xMaxSq x = max_t ‖x t‖₂²`; `S_batch wo x = ‖wo‖_F²·Σ_t ‖x t‖₂²`; `D_batch i j = Σ_t gₜ i·x t j` | Hagi/Theory/FirstLayerLipBatch.lean:44, :50, :56, :61 | — |
+| `w1BatchDescentDir_eq` | `w1BatchDescentDir i j = −(w1BatchGradR x y b wo W1) i j` — мост к Muon-батчу | Hagi/Theory/FirstLayerLipBatch.lean:70 | — |
+| `sum_xMaxSq_le`, `S_batch_le_max` | `Σ_t ‖x t‖₂² ≤ B·max_t ‖x t‖₂²`; `S_batch ≤ B·‖wo‖_F²·max_t ‖x t‖₂²` | Hagi/Theory/FirstLayerLipBatch.lean:77, :86 | — |
+| `w1BatchCE_eq` | `w1BatchCE = w1BatchObjR` (rfl) | Hagi/Theory/FirstLayerLipBatch.lean:95 | — |
+| `sum_sq_smul`, `parNorm_sq_smul` | `Σ (c·D)² = c²·Σ D²`; `parNorm (c • D)² = c²·parNorm D²` | Hagi/Theory/FirstLayerLipBatch.lean:101, :236 | — |
+| `w1BatchCE_descent_lemma` | ГЛАДКОСТЬ суммы CE по батчу внутри области активации КАЖДОГО входа (маски `reluMask` равны вдоль шага): `CE_batch V1 ≤ CE_batch W1 − Σᵢⱼ D_batch i j·Δ i j + S_batch/2·‖Δ‖_F²`, `S_batch = ‖wo‖_F²·Σ_t ‖x t‖₂²` (сумма лемм C684) | Hagi/Theory/FirstLayerLipBatch.lean:113 | — |
+| `w1BatchCE_drop_of_step` | шаг `W1 + γ•D_batch`: `CE_batch' ≤ CE_batch − nlDrop γ S_batch ‖D_batch‖_F` | Hagi/Theory/FirstLayerLipBatch.lean:186 | — |
+| `w1BatchCE_optimal_step_drop` | `S_batch > 0`: `γ*_batch = 1/S_batch`, drop `‖D_batch‖²/(2S_batch)` | Hagi/Theory/FirstLayerLipBatch.lean:218 | — |
+| `w1MeanCE_optimal_step_drop` | форма кода (mean CE): `B > 0`, шаг `W1 + (B/S_batch)•(D_batch/B)`: drop ≥ `‖D_batch/B‖²/(2·S_batch/B)`, т.е. `S_mean = S_batch/B`, `γ*_mean = B/S_batch` | Hagi/Theory/FirstLayerLipBatch.lean:247 | — |
+
+Witness: `.tmp/C685/traj.lean`, rc = 0 (ι = Fin 3, δ = Fin 2, K = Fin 2,
+τ = Fin 2; wo = [[1,0],[0,2],[1,1]], W1 как в C684; x₁ = (1,2), x₂ = (1,1)):
+‖x₁‖² = 5, ‖x₂‖² = 2, max = 5, Σ = 7 ⇒ S_batch = 7·7 = 49 ≤ B·7·5 = 70
+(`S_batch_le_max`), γ*_batch = 1/49 = 0.0204, γ*_mean = 2/49 = 0.0408.
+Freeze 9235 → 9249 (+14: `w1BatchCE`, `xMaxSq`, `S_batch`,
+`w1BatchDescentDir`, `w1BatchDescentDir_eq`, `sum_xMaxSq_le`, `S_batch_le_max`,
+`w1BatchCE_eq`, `sum_sq_smul`, `w1BatchCE_descent_lemma`,
+`w1BatchCE_drop_of_step`, `w1BatchCE_optimal_step_drop`, `parNorm_sq_smul`,
+`w1MeanCE_optimal_step_drop`); аксиомы [propext, Classical.choice, Quot.sound].
+
+- Honest: `S_batch` — СУММА констант C684 по входам, не максимум (для суммы CE
+  максимум даёт только границу с множителем `B` — `S_batch_le_max`; для mean
+  граница `‖wo‖_F²·max_t‖x t‖₂²`); глобальной гладкости нет (kink); шаг —
+  plain batch gradient, код применяет Muon/Adam к momentum `m1`; Adam-шаг
+  нормирован; код не логирует `‖wo‖_F²`, `‖x t‖₂²` ⇒ число — только на
+  witness (PROPOSAL `docs/PROPOSAL-smoothness-logging.md`, #11).
+
+## History (C538–C685)
+
+- Era index: `.omc/analysis/era-index.md` (C591–C685, сводка `#c668-c682`, `#c684`, `#c685`
   (заголовок эры C668–C682; старый якорь `#c668-c676` сохранён), якоря `#c638-c640`
   … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`, `#c679`, `#c680`, `#c681`, `#c682`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу

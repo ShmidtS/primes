@@ -69,13 +69,32 @@ def ceil(x):
 # .tmp/C684/traj.lean — x=(1,2), wo=[[1,0],[0,2],[1,1]]: Σwo²=7, Σx²=5.
 WIT_WO2, WIT_X2 = 7, 5
 add("γ (guarded Adam lr)", CODE["adam_lr_guarded"],
-    "1/S, S = ‖wo‖_F²·‖x‖₂²; S доказана (C684), ‖wo‖,‖x‖ в коде не логируются",
-    "w1CE_optimal_step_drop FirstLayerLip.lean:392; nl_drop_optimal NegativeTransfer.lean:481",
+    "γ* = 1/S_batch (mean: B/S_batch), S_batch = ‖wo‖_F²·Σ_t‖x t‖₂² — FirstLayerLipBatch; DERIVED-формула; число — HONEST-GAP до телеметрии PROPOSAL #11",
+    "w1BatchCE_optimal_step_drop FirstLayerLipBatch.lean:218; nl_drop_optimal NegativeTransfer.lean:481",
     "HONEST-GAP", "—")
 add("S (W1 smoothness) witness", "—", f"{WIT_WO2}·{WIT_X2} = {WIT_WO2 * WIT_X2}",
     "w1CE_descent_lemma FirstLayerLip.lean:258 (witness, не код)", "BOUNDED", "—")
 add("γ* = 1/S witness (W1, plain GD)", "—", f"1/{WIT_WO2 * WIT_X2} = {1 / (WIT_WO2 * WIT_X2):.4f}",
     "w1CE_optimal_step_drop :392 (witness, не код)", "BOUNDED", "—")
+# C685: батч-версия (FirstLayerLipBatch.lean): S_batch = ‖wo‖_F²·Σ_t‖x t‖₂²,
+#   γ*_batch = 1/S_batch; mean (lm.py:299): S_mean = S_batch/B, γ*_mean = B/S_batch.
+#   Число — HONEST-GAP до телеметрии PROPOSAL #11; входы ниже — witness (.tmp/C685/traj.lean).
+def gamma_star_batch(wo_frob_sq, x_l2_sq_max, B):
+    """γ* = 1/S_batch, γ*_mean = B/S_batch (witness defaults, not code values)."""
+    x_l2_sq_sum = sum(x_l2_sq_max)
+    S = wo_frob_sq * x_l2_sq_sum
+    return S, wo_frob_sq * B * max(x_l2_sq_max), 1 / S, B / S
+
+
+S_B, S_MAX, GS, GSM = gamma_star_batch(wo_frob_sq=WIT_WO2, x_l2_sq_max=[5, 2], B=2)
+add("γ (guarded Adam lr), batch form", CODE["adam_lr_guarded"],
+    f"γ* = 1/S_batch (mean: B/S_batch) = {GS:.4f} (mean {GSM:.4f}); witness, не код",
+    "w1MeanCE_optimal_step_drop FirstLayerLipBatch.lean:247; PROPOSAL-smoothness-logging (#11)",
+    "HONEST-GAP", "—")
+add("S_batch (W1 smoothness, batch) witness", "—", f"{WIT_WO2}·(5+2) = {S_B:g} ≤ B·7·max = {S_MAX:g}",
+    "w1BatchCE_descent_lemma FirstLayerLipBatch.lean:113; S_batch_le_max :86 (witness)", "BOUNDED", "—")
+add("γ*_batch / γ*_mean witness", "—", f"1/{S_B:g} = {GS:.4f}; B/S_batch = {GSM:.4f}",
+    "w1BatchCE_optimal_step_drop :218; w1MeanCE_optimal_step_drop :247 (witness)", "BOUNDED", "—")
 add("Lfun (W1 Lipschitz) witness", "—",
     f"2·√{WIT_WO2}·√{WIT_X2} = {2 * math.sqrt(WIT_WO2 * WIT_X2):.4f}",
     "w1CE_lipschitz_param :182 (функция, не градиент; witness)", "BOUNDED", "—")

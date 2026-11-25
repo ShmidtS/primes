@@ -722,3 +722,35 @@
   нормированного шага `γ·m̂/√v̂` (нужна оценка ‖m̂/√v̂‖); (3) логгирование
   ‖wo‖_F, ‖x‖₂ в коде (bench) ⇒ S как DERIVED-число; (4) momentum.
 
+<a id="c685"></a>
+## C685 — Батч-версия гладкости CE-слоя W1 и телеметрия γ* (freeze →9249)
+
+- Коммит: `feat: batch smoothness of w1 ce layer and gamma star telemetry proposal`
+  (sha — в receipt `.tmp/C685/receipt.md`); HEAD^ = af60e430 (C684).
+- Исследование: для СУММЫ CE по батчу гладкость — сумма констант C684,
+  `S_batch = ‖wo‖_F²·Σ_t‖x t‖₂²`; максимум даёт только границу с множителем
+  `B` (`S_batch_le_max`), для mean (lm.py:299) — `S_mean = S_batch/B`,
+  `γ*_mean = B/S_batch`. `Finset.sup` по ℝ недоступен (нет OrderBot в
+  FirstLayerLip-импортах) ⇒ `sup'` + `Nonempty τ`. Теорема «γ ≤ 2/L ⇒
+  nlDrop ≥ 0» в репо есть: `nl_coef_nonneg` (NegativeTransfer.lean:246) ⇒
+  warn-порог `2/S_mean` в PROPOSAL обоснован.
+- Lean (новый `Hagi/Theory/FirstLayerLipBatch.lean`, +14 деклараций):
+  `w1BatchCE` (:44), `xMaxSq` (:50), `S_batch` (:56),
+  `w1BatchDescentDir` (:61), `w1BatchDescentDir_eq` (:70),
+  `sum_xMaxSq_le` (:77), `S_batch_le_max` (:86), `w1BatchCE_eq` (:95),
+  `sum_sq_smul` (:101), `w1BatchCE_descent_lemma` (:113),
+  `w1BatchCE_drop_of_step` (:186), `w1BatchCE_optimal_step_drop` (:218),
+  `parNorm_sq_smul` (:236), `w1MeanCE_optimal_step_drop` (:247).
+  Freeze 9235 → 9249 (+14, identity), аксиомы ≤ 3. Импорт в Hagi.lean.
+- Witness `.tmp/C685/traj.lean`, rc = 0: x₁ = (1,2), x₂ = (1,1), wo как C684:
+  S_batch = 7·7 = 49 ≤ 2·7·5 = 70, γ*_batch = 1/49 = 0.0204,
+  γ*_mean = 2/49 = 0.0408.
+- Docs: PROPOSAL #11 `docs/PROPOSAL-smoothness-logging.md` (две телеметрии
+  `wo_frob_sq`, `x_l2_sq_max`; DERIVED-число γ*; guards: нет), DERIVED-CONFIG
+  (+3 строки, Adam lr — батч-форма), derive_config.py (+3, `gamma_star_batch`),
+  STATUS-карточка, paper §0 +1 мост.
+- Honest: глобальной гладкости нет (kink); код не логирует входы S_batch;
+  Adam-шаг нормирован и применяется к `m1`.
+- Следующий шаг: momentum `m1` (код применяет NS к `m1`) или поворот к
+  WidthGrowth + Muon.
+
