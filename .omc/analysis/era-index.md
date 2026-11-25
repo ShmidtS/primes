@@ -453,3 +453,29 @@
   (2) липшицева лемма `L(W − ηX) ≤ L(W) − η⟨g,X⟩ + η²L/2·‖X‖_F²` — оценка
   шага; (3) `‖ns_iter k Ĝ‖_F` через SVD для сравнения Muon/sign на единицу
   нормы; (4) прямоугольный `G`.
+
+<a id="c676"></a>
+## C676 — Мост «слой W1 → Muon-шаг»: гипотеза `φ` теоремы `muon_step_useful` снята (freeze →9149)
+
+- Коммит: `feat: w1 layer muon step descent without carrier hypothesis`
+  (sha — в receipt `.tmp/C676/receipt.md`).
+- Исследование: носители C668/C669 — функциональные (`ι → δ → ℝ`), Muon-цепочка
+  C674/C675 — `Matrix n n ℝ` (scoped-норма `Matrix.Norms.L2Operator`; инстанса
+  `NormedAddCommGroup (Matrix n n ℝ)` по умолчанию нет). Мост «Matrix →
+  функциональный носитель» через CLM доказуем, но шумный; дешевле (KISS)
+  инстанцировать сертификат в функциональном носителе:
+  `useful_of_neg_fderiv` + `muonStep`/`muon_step_inner_ge_frob` применяются к
+  `Matrix.of` без изменения носителя `W1`.
+- Результат: новый `Hagi/Theory/MuonDescentW1.lean` (234 строки, 10 деклараций,
+  6 теорем): `fdot_neg_of`, `w1_fderiv_apply`, `w1Grad_ne`,
+  `muon_step_useful_w1`, `w1Batch_fderiv_apply`, `muon_step_useful_w1_batch`;
+  носители `onehot`, `w1Grad`, `w1BatchObj`, `w1BatchGrad`.
+  Источник ask.sciencemadereadable.com: Fu–Chi–Liang (ISIT 2019) — только
+  к следующему шагу (локальная гладкость CE), в Lean не использован.
+- Honest: слой квадратный (`ι = δ = n`), в коде `dim × hidden`; в батче
+  `G ≠ 0` — посылка; mean-лосс не выписан отдельно; `η` только существует.
+- Следующий шаг: (1) прямоугольный слой (`Matrix m n`, NS с `UᵀU = I`,
+  `VᵀV = I`) — кодовый размер `W1`; (2) липшицева оценка шага
+  `L(W − ηX) ≤ L(W) − η⟨G,X⟩ + η²L/2·‖X‖²`; (3) momentum-буфер `m1`
+  (в коде NS применяется к `m1`, не к `G`).
+

@@ -2411,7 +2411,12 @@ NS-3 приближение (C673) → точное выравнивание (C6
 Freeze 9122 → 9139 (+17).
 
 Honest (границы):
-- Носитель `muon_step_useful` — `Matrix n n ℝ` (sup-норма Mathlib); связь
+- ~~Носитель `muon_step_useful` — `Matrix n n ℝ` (sup-норма Mathlib); связь
+  `φ Δ = ⟨g, Δ⟩` — ГИПОТЕЗА~~ — СНЯТА в C676 для квадратного слоя:
+  `Hagi/Theory/MuonDescentW1.lean` (`w1_fderiv_apply`,
+  `w1Batch_fderiv_apply`, `muon_step_useful_w1`,
+  `muon_step_useful_w1_batch`). Исходная формулировка границы:
+  носитель `muon_step_useful` — `Matrix n n ℝ` (sup-норма Mathlib); связь
   `φ Δ = ⟨g, Δ⟩` — ГИПОТЕЗА: C668/C669 доказали её для функционального
   носителя `ι → δ → ℝ` в виде `f'(W)[Δ] = −⟨batchGrad, Δ⟩` (т.е. `g = −batchGrad`);
   мост `Matrix` ↔ функциональный носитель и конструкция дифференциала слоя
@@ -2430,6 +2435,53 @@ Honest (границы):
   при ограниченной спектральной норме — та же связка «выравнивание + спуск»,
   но с momentum и для их набора коэффициентов); Shulgin et al. 2610.30280,
   Wang et al. 2609.33152. Формализации не добавили, ссылок в Lean нет.
+## Hagi/Theory/MuonDescentW1.lean (мост «слой W1 → Muon-шаг», снятие гипотезы `φ`, C676)
+
+Код-якорь HAGI_v2: блок роста `h = h + relu(a @ W1 + b1) @ Wo` (hagi/lm.py:586
+@ca52eb4), лосс — кросс-энтропия со средним по батчу (lm.py:688), обновление
+`W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)`
+(hagi/core.py:1755). Задача C675: `muon_step_useful` носит гипотезу
+`∀ Δ, φ Δ = ⟨g, Δ⟩`. Здесь она выведена для слоя: носитель — функциональный
+`n → n → ℝ` (как в C668/C669), дифференциал `CE_t ∘ w1L` —
+`hasFDerivAt_w1L` (C668) + `fderiv_ceOneHot_comp_apply`, pairing —
+`w1_directional_derivative` (C668) / `batch_directional_derivative` (C669).
+Спуск — `useful_of_neg_fderiv`, направление — `muonStep` (C675).
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `fdot_neg_of` | `⟨−A, Δ⟩ = −Σ A i j·Δ i j` | Hagi/Theory/MuonDescentW1.lean:56 | — |
+| `w1_fderiv_apply` | вне kink: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −(g ⊗ x)`, `f = CE_t ∘ w1L` | Hagi/Theory/MuonDescentW1.lean:65 | — |
+| `w1Grad_ne` | `g ≠ 0`, `x ≠ 0 ⇒ G ≠ 0` | Hagi/Theory/MuonDescentW1.lean:79 | — |
+| `muon_step_useful_w1` | вне kink, `g ≠ 0`, `x ≠ 0 ⇒ ∃ η > 0, CE_t (w1L (W1 − η·ns_iter k Ĝ)) < CE_t (w1L W1)` | Hagi/Theory/MuonDescentW1.lean:104 | — |
+| `w1Batch_fderiv_apply` | по батчу: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −Σ_t g_t ⊗ x_t` | Hagi/Theory/MuonDescentW1.lean:156 | — |
+| `muon_step_useful_w1_batch` | вне kink, `G ≠ 0 ⇒ ∃ η > 0`, сумма CE по батчу строго убывает вдоль `W1 − η·ns_iter k Ĝ` | Hagi/Theory/MuonDescentW1.lean:193 | — |
+
+Носители: `onehot`, `w1Grad`, `w1BatchObj`, `w1BatchGrad`. Freeze 9139 → 9149 (+10).
+Witness `.tmp/C676/traj.lean`, rc = 0 (слой 1 нейрон, 2 класса, `x = 1`,
+`W1 = 1`): Lean проверяет `w1Pre + b = 1`, `w1Grad = −(g ⊗ x)`, для
+направления `Δ = 1` — `⟨G, Δ⟩ = −g 0` и `f'(W1)[1] = −g 0` (та же формула
+`w1_fderiv_apply` на конкретном слое); инстанс `muon_step_useful_w1` на
+этом слое — при посылке `g ≠ 0`. Аксиомы всех 5 теорем: propext,
+Classical.choice, Quot.sound.
+
+Гипотеза `φ` снята (полностью, в рамках носителя): ни в одной теореме файла
+нет посылки вида «дифференциал равен спариванию».
+
+Honest (границы):
+- Слой квадратный (`ι = δ = n`): `muonStep`/`ns_iter` (C674/C675) определены
+  для `Matrix n n ℝ`; в коде `W1 : dim × hidden`. Прямоугольный случай —
+  не формализован (нужен NS для `Matrix m n` + ортогональность `U`, `V`).
+- В батче `G ≠ 0` — посылка (для одного входа выведена: `g ≠ 0`, `x ≠ 0`).
+- Mean-лосс lm.py:688: доказано для суммы CE по батчу; mean отличается
+  положительным множителем `1/|τ|` (неравенство сохраняется), отдельной
+  теоремы про mean нет.
+- `η` только существует; `cos_lr·0.7`, momentum-буфер `m1`, липшицева оценка,
+  сходимость — вне теории. Условие «вне kink» (`w1Pre + b ≠ 0`) — посылка.
+- Внешний источник (ask.sciencemadereadable.com, 2026-11-25): Fu, Chi, Liang
+  (ISIT 2019) — локальная сильная выпуклость/гладкость CE у истинных весов
+  для one-hidden-layer сети (sigmoid, гауссовы входы) — релевантно только
+  следующему шагу (липшицева константа), в Lean-ссылки не добавлялось.
+
 ## Hagi/Theory/NadyaOptimal.lean («Надя.txt» HAGI v2 Optimal: BitAlloc, Schedules, LCB, Bypass)
 
 Источник: `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY, 961 строк Python).
@@ -2652,10 +2704,10 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.
 
-## History (C538–C675)
+## History (C538–C676)
 
 - Era index: `.omc/analysis/era-index.md` (C591–C671, якоря `#c638-c640`
-  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`); более ранние per-beat файлы — `git log`. Журнал
+  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
   (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
   `git show b3939aa5:STATUS.md`.
