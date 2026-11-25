@@ -37,8 +37,10 @@ Optimizer side: for the first layer `W1` the consumer's Muon step
 the optimum on the spectrum σ ≥ ½‖G‖_F. For a rectangular buffer the
 code's transposed iteration is the same proved step on `m×n`: it keeps
 the singular bases and the optimum over row isometries `ΔΔᵀ = I` is
-`Σ σ i`; the wide SVD it needs is a theorem (C679). Release feature: **19 PALOMAR
-cards** and a **§0 map of 37 code bridges** (C521–C679) in which the consumer's own code (HAGI_v2, python
+`Σ σ i`; the wide SVD it needs is a theorem (C679) and the wide step is
+unconditional: for a wide `G ≠ 0` `⟨G, wide_iter k Ĝ⟩ ≥ ‖G‖_F` with no
+structural hypothesis (C680). Release feature: **19 PALOMAR
+cards** and a **§0 map of 38 code bridges** (C521–C680) in which the consumer's own code (HAGI_v2, python
 `file:line@sha`) is checked against the canon and labelled exact,
 conditional or honest-gap. We state the open hypotheses as pins (§5,
 pins 30–34): U2 global reachability, the chain rule behind a < 0 (closed
@@ -95,7 +97,8 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | step | `muon_step_optimal_in_isometry_group` (Hagi/Theory/MuonIsometry.lean:175); `ns_sigma_min_three` (Hagi/Theory/NewtonSchulzSigma.lean:126); `muon_alignment_exact` (Hagi/Theory/MuonAlignment.lean:104); `muon_step_useful` (Hagi/Theory/MuonDescent.lean:176) | Newton–Schulz iteration (hagi/core.py:1363, Frobenius normalisation core.py:1353, called with iters=3 at core.py:1755 @ca52eb4) | Muon (C672–C675): `max_{ΔᵀΔ = I} ⟨G, Δ⟩ = ssum G` at `U Vᵀ` without von Neumann; the code's quadratic scheme keeps the singular vectors of `G` and gives `σ₃ ≥ 39/40` for `σ₀ ≥ 1/2`, `⟨G, ns₃(Ĝ)⟩ ≥ ‖G‖_F`; honest gap: the derivative identity was a hypothesis here (discharged in the next row), `η` only exists | C672–C675 |
 | step | `w1_fderiv_apply` (Hagi/Theory/MuonDescentW1.lean:65); `muon_step_useful_w1` (:104); `muon_step_useful_w1_batch` (:193) | Muon layer update `W1 -= (cos_lr*0.7)*newton_schulz_orthogonalize(m1, iters=3)` (hagi/core.py:1755 @ca52eb4; layer hagi/lm.py:586; batch cross_entropy mean lm.py:688) | W1 certificate (C676): for the layer itself (`G ≠ 0`, one input or batch) CE strictly decreases along `W1 − η·ns_k(Ĝ)` for small `η`; honest gap: square layer, momentum `m1`, `cos_lr·0.7`, Lipschitz bound and convergence not formalised | C676 |
 | step | `code_step_eq_ns_step` (Hagi/Theory/MuonWide.lean:52); `ns_step_wide_svd` (:61); `wide_alignment_exact` (:163); `wide_step_optimal` (:245) | newton_schulz_orthogonalize on a rectangular buffer: transpose to the wide form when rows > columns (hagi/core.py:1358), iterate `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` (core.py:1363), transpose back; zero-norm guard core.py:1355; iters = 4 by default, 3 at the call site core.py:1755 @ca52eb4 | the code line equals the proved rectangular step `ns_step` for an `m×n` matrix; if `G = U·diag σ·Vᵀ` with `UᵀU = VᵀV = I`, every iterate keeps the singular bases (`X_k = U·diag (ns_seq k∘σ)·Vᵀ`), `⟨G, X_k⟩ = Σ σ i·ns_seq k (σ i)`, `⟨G, X_k⟩ ≥ ⟨G, G⟩` for `σ i ≤ 1`, and the maximum of `⟨G, Δ⟩` over the row isometries `ΔΔᵀ = I` is `Σ σ i`, attained at `U Vᵀ`; honest gap: the real wide SVD of `G` is a hypothesis of every statement (no real rectangular SVD in primes), the zero-norm guard is a code fact without a theorem, the descent certificate of C676 is not instantiated on the wide carrier | C678 |
-| step | `exists_wide_svd` (Hagi/Theory/WideSVD.lean:145); `wide_alignment_exact'` (:296); `wide_step_optimal'` (:307) | transposition to the wide form when rows > columns (hagi/core.py:1358 @ca52eb4): `G : m×n`, `m ≤ n` | WideSVD (C679): for every real `m×n` matrix with `m ≤ n` there are `U : m×m`, `V : n×m`, `UᵀU = VᵀV = I`, `σ ≥ 0` with `G = U·diag σ·Vᵀ` (pad to `n×n`, square SVD, zero singular values sit outside the first `m` indices, a second square SVD of `G·V₀`); the C678 statements T1', T2, T5 hold without a decomposition hypothesis; honest gap: wide shape only, `σ i ≤ 1` for the normalised wide gradient not proved | C679 |
+| step | `exists_wide_svd` (Hagi/Theory/WideSVD.lean:155); `wide_alignment_exact'` (:306); `wide_step_optimal'` (:317) | transposition to the wide form when rows > columns (hagi/core.py:1358 @ca52eb4): `G : m×n`, `m ≤ n` | WideSVD (C679): for every real `m×n` matrix with `m ≤ n` there are `U : m×m`, `V : n×m`, `UᵀU = VᵀV = I`, `σ ≥ 0` with `G = U·diag σ·Vᵀ` (pad to `n×n`, square SVD, zero singular values sit outside the first `m` indices, a second square SVD of `G·V₀`); the C678 statements T1', T2, T5 hold without a decomposition hypothesis; honest gap: wide shape only, `σ i ≤ 1` for the normalised wide gradient not proved | C679 |
+| step | `ns_step_transpose`, `code_ns_eq_wide_iter` (Hagi/Theory/MuonWide.lean:261/:286); `wnormed_sigma_le_one` (Hagi/Theory/WideSVD.lean:391); `wide_alignment_ge_gradient'` (:418); `muon_step_useful_wide` (:446) | transposition of a tall buffer before and after the iteration (hagi/core.py:1358–1361 @ca52eb4); Frobenius normalisation core.py:1353 | wide Muon unconditional (C680): the code's output equals `wide_iter k G` for a buffer of any shape; for a wide `G ≠ 0` the normalised gradient has `σ i ≤ 1` (`‖G‖_F² = Σ σ i²`), so `⟨G, wide_iter k Ĝ⟩ ≥ ‖G‖_F` and the descent certificate hold with no structural hypothesis on `G`; honest gap: the certificate is on the coordinate carrier `m → n → ℝ`, the bridge to the `dim × hidden` layer (C676 carrier) is open, von Neumann, `η`, momentum | C680 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
 
 **What is proved end to end.** Inside Lean, with no code hypothesis:
@@ -116,8 +119,9 @@ the code's Newton–Schulz step on the layer `W1` strictly decreases
 CE for small `η`, with no code hypothesis except the square shape of
 the layer, `G ≠ 0` and the kink premise. The rectangular
 Newton–Schulz iterate (C678) rests on the existence of a real wide SVD,
-which is proved in C679; `σ i ≤ 1` for the normalised wide gradient remains
-a premise.
+which is proved in C679; since C680 `σ i ≤ 1` for the normalised wide
+gradient is a theorem, so the wide step is unconditional (`G ≠ 0` only);
+the bridge from the `dim × hidden` layer to the wide carrier remains open.
 <!-- source: STATUS.md cards C638–C678; §3.19/§3.20 carry only deltas -->
 
 **What remains a hypothesis or a model.** (1) h1 for the real warm-up:
@@ -1036,9 +1040,9 @@ LINEAR carrier in C663 (`chain_linear`, `useful_of_adam_first`) and
 for the relu block only as strict descent for small η (C665); the
 nonlinear certified drop is open.
 
-#### 3.20.x Optimizer theory: the Muon chain (C668–C679)
+#### 3.20.x Optimizer theory: the Muon chain (C668–C680)
 
-Nine cycles, ten commits (`git log --oneline c85d35bf^..57483f97`: C668
+Ten cycles (`git log --oneline c85d35bf^..57483f97`: C668
 `c85d35bf`, C669 `3c1fb372`, C670 `a3f7c669`, C671 `ff584ffb`, C672
 `f7972b11`, the docs-only fix `ecacde41`, C673 `42db5e61`, C674
 `c34f4e43`, C675 `9efa9dc1`, C676 `57483f97`; plus C678 on the
@@ -1067,6 +1071,8 @@ C676 MuonDescentW1      w1_fderiv_apply, muon_step_useful_w1, muon_step_useful_w
 C679 WideSVD           exists_wide_svd   every real m×n matrix with m ≤ n is U·diag σ·Vᵀ with UᵀU = VᵀV = I
       ↓
 C678 MuonWide           code_step_eq_ns_step, ns_step_wide_svd, wide_alignment_exact, wide_step_optimal   [wide SVD: C679] the transposed code line is the same step on m×n; iterates keep the singular bases; max over ΔΔᵀ = I of ⟨G, Δ⟩ = Σ σ i
+      ↓
+C680 MuonWide+WideSVD  ns_step_transpose, code_ns_eq_wide_iter, wnormed_sigma_le_one, wide_alignment_ge_gradient', muon_step_useful_wide   the code's output is wide_iter k G for any shape (tall: transpose, iterate, transpose); ‖G‖_F² = Σ σ i² ⇒ σ i(Ĝ) ≤ 1; ⟨G, wide_iter k Ĝ⟩ ≥ ‖G‖_F and a descent certificate for a wide G ≠ 0 with no structural hypothesis
 ```
 
 **Result (one box).** For the square first layer `W1 : n → n → ℝ`
@@ -1120,21 +1126,38 @@ on the `2×3` matrix `diag(3/4, 1/2)` padded with a zero column, Lean
 checks `ns_step G = U·diag(117/128, 11/16)·Vᵀ`, `⟨G, G⟩ = 13/16`,
 `(UVᵀ)(UVᵀ)ᵀ = I` and `⟨G, UVᵀ⟩ = 3/4 + 1/2`. The wide SVD of `G`
 is no longer a hypothesis: C679 proves it (`exists_wide_svd`,
-Hagi/Theory/WideSVD.lean:145) by padding `G` to `n×n`, taking the real
+Hagi/Theory/WideSVD.lean:155) by padding `G` to `n×n`, taking the real
 square SVD, locating the `≥ n − m` zero singular values through
 `rank (GᵀG) = rank G ≤ m`, and factoring the square `m×m` matrix
-`G·V₀`; `wide_alignment_exact'` (:296) and `wide_step_optimal'` (:307)
+`G·V₀`; `wide_alignment_exact'` (:306) and `wide_step_optimal'` (:317)
 restate T2 and T5 with an existentially quantified spectrum. Witness
-.tmp/C679/traj.lean, rc = 0. Honest gap: `σ i ≤ 1` for the normalised
-wide gradient is still a premise of T3; the zero-norm guard and `iters = 3` are code
-facts without a theorem; `σ i ≤ 1` for the normalised wide gradient is
-not proved; the descent certificate of C676 is not instantiated on the
-wide carrier.
+.tmp/C679/traj.lean, rc = 0. C680 closes the last premise: for a
+wide `G`, `‖G‖_F² = tr(GᵀG) = Σ σ i²` for the spectrum of any wide
+SVD (`wfrobSq_eq_sum_sigma_sq`, Hagi/Theory/WideSVD.lean:372), hence
+the normalised `Ĝ = G/‖G‖_F` has `σ i ≤ 1` (`wnormed_sigma_le_one`,
+:391) and `⟨Ĝ, wide_iter k Ĝ⟩ ≥ ⟨Ĝ, Ĝ⟩ = 1`, i.e.
+`⟨G, wide_iter k Ĝ⟩ ≥ ‖G‖_F` (`wide_alignment_ge_gradient'`, :418)
+with no structural hypothesis on `G`; `muon_step_useful_wide` (:446)
+gives the descent certificate on the same premises as `muon_step_useful`
+(`f'(W)[Δ] = ⟨G, Δ⟩`, `G ≠ 0`). For a tall buffer the code's
+transpose–iterate–transpose is the same `wide_iter k G`:
+`ns_step Xᵀ = (ns_step X)ᵀ` (`ns_step_transpose`,
+Hagi/Theory/MuonWide.lean:261), so the transposition of core.py:1358–1361
+is an efficiency device only (`code_ns_eq_wide_iter`, :286). Witness
+.tmp/C680/traj.lean, rc = 0: `G = diag(3, 4)` padded with a zero column,
+`‖G‖_F² = 25`, `σ(Ĝ) = (3/5, 4/5)`, T3 at `k = 3`, `code_ns 3 Gᵀ =
+wide_iter 3 Gᵀ` for the tall `Gᵀ`. Honest gap: the certificate of
+C680 lives on the coordinate carrier `m → n → ℝ`; the descent theorem
+for the layer (C676) is still square, and the bridge from the
+`dim × hidden` layer to the wide carrier is not formalised; the
+zero-norm guard and `iters = 3` are code facts without a theorem.
 
 **Honest boundaries.** (a) The descent certificate is for the square
 layer; the code's `W1` is `dim × hidden`, and the rectangular
-Newton–Schulz iterate is proved (C678, with the wide SVD of C679),
-but `σ i ≤ 1` and the certificate on the wide carrier are open. (b) The maximum over the whole spectral ball `‖Δ‖₂ ≤ 1`
+Newton–Schulz iterate is proved (C678, with the wide SVD of C679) and
+unconditional since C680 (`σ i ≤ 1` for the normalised wide gradient,
+a descent certificate on the coordinate carrier); the bridge from the
+`dim × hidden` layer to that carrier is open. (b) The maximum over the whole spectral ball `‖Δ‖₂ ≤ 1`
 is not proved (von Neumann / spectral–nuclear duality); the optimum
 is proved over the isometry group only. (c) `η` is only shown to
 exist: the code's `cos_lr·0.7`, the momentum buffer `m1` (the code

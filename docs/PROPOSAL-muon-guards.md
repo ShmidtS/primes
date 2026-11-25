@@ -104,8 +104,13 @@ skipped steps are counted and reported (no target).
   bases; the optimum over row isometries `ΔΔᵀ = I` is `Σ σ i`); the
   real wide SVD is a theorem since C679 (`exists_wide_svd`,
   `Hagi/Theory/WideSVD.lean`), so T1', T2 and the optimum hold
-  unconditionally; `σ i ≤ 1` for the normalised wide gradient and the
-  descent certificate of C676 on that carrier are not yet proved.
+  unconditionally, and since C680 so do T3 and a descent certificate
+  for a wide `G ≠ 0` (`wnormed_sigma_le_one`, `wide_alignment_ge_gradient'`,
+  `muon_step_useful_wide`, Hagi/Theory/WideSVD.lean; the tall buffer is
+  the same `wide_iter k G` by `ns_step_transpose`,
+  Hagi/Theory/MuonWide.lean); that certificate is on the coordinate
+  carrier `m → n → ℝ`, the bridge from the layer (`dim × hidden`,
+  C676 carrier) to the wide carrier is not formalised.
 - (2) The code orthogonalises `m1`, not `G`; momentum is outside the
   theory.
 - (3) `cos_lr·0.7` is not the proved `η`; guard (c) is a runtime

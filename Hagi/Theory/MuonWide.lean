@@ -23,12 +23,12 @@ C678. Слой кода `W1 : dim × hidden` прямоугольный, и
 * `wide_row_isometry` — (T4) `U Vᵀ` — строчная изометрия `Y Yᵀ = 1`.
 * `wide_inner_le_sigma_sum`, `wide_step_optimal` — (T5) среди строчных
   изометрий `ΔΔᵀ = 1` максимум `⟨G, Δ⟩` равен `Σ σ i`, достигается на `U Vᵀ`.
+* `ns_step_transpose`, `wide_iter_transpose`, `code_ns_eq_wide_iter` — (C680)
+  высокий случай `m > n`: код-выход для любой формы равен `wide_iter k G`.
 
-Честная граница: разложение `G = U·diag σ·Vᵀ` — ГИПОТЕЗА всех теорем
-(вещественного прямоугольного SVD в репо нет: комплексный
-`svd_decomposition_rectangular` и вещественный квадратный `smax_svd` есть);
-существование можно получить дополнением нулями до квадратной — карточка
-«pad-to-square», не доказано. Проверка `norm < 1e-12 → return X`
+Честная граница: разложение `G = U·diag σ·Vᵀ` — ГИПОТЕЗА теорем этого модуля;
+существование доказано в C679 (`WideSVD.exists_wide_svd`, там же T3 без
+посылок и сертификат спуска, C680). Проверка `norm < 1e-12 → return X`
 (core.py:1355), число итераций (по умолчанию 4, вызов 3, core.py:1755),
 обновление `W1` и мост к функциональному носителю C676 не формализованы.
 -/
@@ -253,5 +253,40 @@ theorem wide_step_optimal (U : Matrix m m ℝ) (V : Matrix n m ℝ) (σ : m → 
     simp only [Matrix.mul_assoc, hVt, hUt, Matrix.mul_one]
   rw [wide_inner_eq_sigma_weighted_diag U V σ G (U * Vᵀ) hG, hQ]
   simp
+
+/-! ### C680: высокий случай — транспонирование коммутирует с шагом -/
+
+/-- **`ns_step_transpose`** (S2, C680): транспонирование коммутирует с шагом
+NS для любых форм: `ns_step Xᵀ = (ns_step X)ᵀ`. -/
+theorem ns_step_transpose (X : Matrix m n ℝ) :
+    NewtonSchulzSigma.ns_step Xᵀ = (NewtonSchulzSigma.ns_step X)ᵀ := by
+  simp only [NewtonSchulzSigma.ns_step, Matrix.transpose_mul, Matrix.transpose_sub,
+    Matrix.transpose_smul, Matrix.transpose_transpose, Matrix.mul_smul, Matrix.smul_mul,
+    Matrix.mul_sub, Matrix.sub_mul, Matrix.one_mul, Matrix.mul_one, Matrix.mul_assoc]
+
+/-- **`wide_iter_transpose`** (S2): все итерации коммутируют с транспонированием. -/
+theorem wide_iter_transpose (k : ℕ) (X : Matrix m n ℝ) :
+    wide_iter k Xᵀ = (wide_iter k X)ᵀ := by
+  induction k with
+  | zero => rfl
+  | succ k ih =>
+      rw [wide_iter, wide_iter, Function.iterate_succ_apply', Function.iterate_succ_apply']
+      change ns_step (wide_iter k Xᵀ) = (ns_step (wide_iter k X))ᵀ
+      rw [ih]
+      exact ns_step_transpose _
+
+/-- Кодовый выход итераций newton_schulz_orthogonalize (core.py:1358–1361):
+при `m > n` — транспонировать, итерировать, транспонировать обратно. -/
+noncomputable def code_ns (k : ℕ) (G : Matrix m n ℝ) : Matrix m n ℝ :=
+  if Fintype.card m > Fintype.card n then (wide_iter k Gᵀ)ᵀ else wide_iter k G
+
+/-- **`code_ns_eq_wide_iter`** (S2): для ЛЮБОЙ формы `G : m×n` код-выход равен
+`wide_iter k G` — единая формула для широкой и высокой матрицы;
+транспонирование в коде — только эффективность (I_m вместо I_n). -/
+theorem code_ns_eq_wide_iter (k : ℕ) (G : Matrix m n ℝ) : code_ns k G = wide_iter k G := by
+  unfold code_ns
+  split
+  · rw [wide_iter_transpose k G, Matrix.transpose_transpose]
+  · rfl
 
 end Hagi.Theory.MuonWide
