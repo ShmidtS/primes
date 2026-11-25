@@ -85,6 +85,7 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | growth | `wlogits_width_preserved` (Hagi/Theory/WidthGrowth.lean:597); `attn_score_scale_preserved` (:329); `rotary_old_pairs_unchanged` (:266) | `grow_width`, Надя.txt (function name) | exact for nh = 1, even width; honest gap: nh > 1, odd width, clip are hypotheses `WGrowth` | C667 |
 | step | `rank_one_inner_le` (Hagi/Theory/MuonSpectral.lean:156); `rank_one_spectral_norm` (:179); `rank_one_attains` (:231) | Newton–Schulz orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350, called with iters=3 at core.py:1755 @ca52eb4) | honest gap: rank-one spectral slice proved; full-rank Muon step (von Neumann) open; C671: `smax = ‖G‖₂` for real matrices closed (`smax_eq_opNorm`, Hagi/Theory/MuonSpectral.lean:333) | C670/C671 |
 | step | `isometry_inner_le_ssum` (Hagi/Theory/MuonIsometry.lean:128); `uv_transpose_attains_ssum` (:156); `muon_step_optimal_in_isometry_group` (:175) | Newton–Schulz orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350, iteration core.py:1363, Frobenius normalisation core.py:1353, called with iters=3 at core.py:1755 @ca52eb4) | max over the isometry group ΔᵀΔ = I proved without von Neumann; honest gap: the code's output is an approximate isometry (iters=3, σ_min lower bound not formalised), rectangular G and the convergence of the iteration to U Vᵀ not formalised | C672 |
+| step | `ns_quadratic_invariant` (Hagi/Theory/NewtonSchulzSigma.lean:51); `ns_defect_bound` (:83); `ns_sigma_min_three` (:126); `ns_step_eigenvalue_sigma` (:200) | Newton–Schulz iteration `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` (hagi/core.py:1363, Frobenius normalisation core.py:1353, called with iters=3 at core.py:1755 @ca52eb4) | scalar dynamics σ ← σ(3 − σ²)/2 of the code's quadratic scheme and the double-exponential defect bound proved; at σ₀ ≥ 1/2: σ₃ ≥ 39/40 after iters=3; honest gap: σ₀ ≥ 1/2 is a hypothesis (the code only gives σ₀ ≤ 1), the link from σ_min(Δ_k) to ⟨G, Δ_k⟩ ≥ (1 − ε)·ssum G is open | C673 |
 | step | `batch_directional_derivative` (Hagi/Theory/BatchRankOne.lean:65); `sgd_step_attains` (:136); `rank_one_best_v` (:209) | Muon step on `W1`, hagi/core.py:1755/:1350 @ca52eb4 | honest gap: Frobenius ball and rank-one family proved; spectral-norm optimum and the link to the lm.py:586 layer open | C669 |
 | step | `hasFDerivAt_w1L` (Hagi/Theory/FirstLayerGrad.lean:87); `w1_grad_rank_one` (:123); `useful_of_adam_first_w1` (:167) | first layer `W1`, hagi/lm.py:586/:594 @ca52eb4 | strict descent only (no certified drop; single input) | C668 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
@@ -973,16 +974,16 @@ global only probabilistically. Across the era the weak link moved from
 Axioms of every new theorem: propext, Classical.choice, Quot.sound.
 
 
-### 3.20 Later bridges (C651–C672): deltas on the §0 map
+### 3.20 Later bridges (C651–C673): deltas on the §0 map
 
 Rows: §0 (repair, archiver, Adam, useful first step, chain rule,
 holdout gate, window order; C666–C667: BitAlloc, schedule, LCB gate,
 bypass, width growth; C668: first-layer W1 derivative; C669: batch
-gradient and Frobenius-optimal step; C670: rank-one spectral optimum; C671: real spectral-norm bridge; C672: full step over the isometry group). Code anchors are `git show`-verified at @e9a96fc
+gradient and Frobenius-optimal step; C670: rank-one spectral optimum; C671: real spectral-norm bridge; C672: full step over the isometry group; C673: Newton–Schulz scalar dynamics and the σ_min bound). Code anchors are `git show`-verified at @e9a96fc
 (wave 256–257), @b3740e0 (wave 258) and @bab8aff (wave 258b); the
 Nadya.txt anchors are a 2026-11-24 snapshot.
-<!-- source: STATUS.md cards C651, C653–C655, C657, C660, C663, C664, C666, C667;
-     era-index #c650-c651 .. #c665-c667; receipts .tmp/C651–C667 -->
+<!-- source: STATUS.md cards C651, C653–C655, C657, C660, C663, C664, C666, C667, C672, C673;
+     era-index #c650-c651 .. #c665-c667, #c672, #c673; receipts .tmp/C651–C667, C672, C673 -->
 
 **(i) Repair (C651) — linear, not geometric.** The loop accepts any
 improvement > 1e-4 (no contraction factor ρ), so the theorem gives
@@ -1101,6 +1102,8 @@ rectangular case (transpose at core.py:1358) and the convergence of the
 iteration to `U Vᵀ` are not formalised; the maximum over the whole
 spectral ball `‖Δ‖₂ ≤ 1` still needs von Neumann. Witness
 .tmp/C672/traj.lean (rotation picture `⟨diag(3,1), R(θ)⟩ = 4·cos θ`), rc = 0.
+
+**(iv-g) Newton–Schulz scalar dynamics and the σ_min bound (C673).** The code's orthogonalizer is the quadratic scheme: read-only @ca52eb4, the iteration is `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` (core.py:1363) — no cubic `(3.4445, −4.7750, 2.0315)` term — started from the Frobenius-normalised gradient (core.py:1353) and run with `iters = 3` (core.py:1755). Hagi/Theory/NewtonSchulzSigma.lean formalises the scalar dynamics: for `Y = ns_step X = (1/2)·X(3I − XᵀX)` and an eigenvector `v` of `XᵀX` with eigenvalue `σ²`, `(YᵀY) v = (ns_p σ)²•v` with `ns_p σ = σ(3 − σ²)/2` (`ns_step_eigenvalue`, :163; `ns_step_eigenvalue_sigma`, :200). On `[0, 1]` the step is increasing and stays in `[t, 1]` (`ns_quadratic_invariant`, :51; `ns_seq_bounds`, :62), and the defect `d = 1 − σ` contracts quadratically, `d ← d²(3 − d)/2` (`ns_defect_contraction`, :73), hence `d_k ≤ (2/3)·(3/4)^(2^k)` whenever `d₀ ≤ 1/2` (`ns_defect_bound`, :83). Explicit number for `iters = 3`: if `σ₀ ∈ [1/2, 1]` then `σ₃ ≥ 39/40` (`ns_sigma_min_three`, :126); the exact trajectory from `σ₀ = 1/2` is `1/2 → 11/16 → 1 − 1075/8192 → ≈ 0.975300` (witness .tmp/C673/traj.lean, rc = 0), and the generic bound at `k = 3` gives only `σ₃ ≥ 1 − 2187/32768 ≈ 0.933258`. Honest gap: `σ₀ ≥ 1/2` is a hypothesis — the code's normalisation gives only `σ₀ ≤ 1`, and small singular values are not lifted by three iterations (Shulgin et al., arXiv 2610.30280); the step from `σ_min(Δ_k) ≥ 1 − ε` to `⟨G, Δ_k⟩ ≥ (1 − ε)·ssum G` (C672) needs a bound on the diagonal of `UᵀΔ_kV`, not on `σ_min`, and is not formalised; the rectangular case and convergence to `U Vᵀ` remain open.
 
 **(v) Window order (C651 → C664).** After wave 258 the context is
 `idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;

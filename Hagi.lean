@@ -454,6 +454,7 @@ import Hagi.Theory.FirstLayerGrad
 import Hagi.Theory.BatchRankOne
 import Hagi.Theory.MuonSpectral
 import Hagi.Theory.MuonIsometry
+import Hagi.Theory.NewtonSchulzSigma
 import Hagi.Theory.HoldoutGateTwoWay
 import Hagi.Theory.GrowTrunkBlock
 import Hagi.Theory.GrowSnap
