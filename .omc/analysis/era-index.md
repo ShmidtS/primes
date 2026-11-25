@@ -1,4 +1,4 @@
-# Era index — C591–C681 (2026-11-22/25)
+# Era index — C591–C682 (2026-11-22/25)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat-файлы
@@ -260,9 +260,9 @@
   hagi/unified.py:1010 @bab8aff ещё `[::-1]`; U2 открыт.
 
 <a id="c668-c676"></a>
-## C668–C676 — эра «Muon chain»: шаг Muon слоя W1 как доказанный спуск (freeze 9043→9149)
+## C668–C682 — эра «Muon chain»: шаг Muon слоя W1 как доказанный спуск (freeze 9043→9218)
 
-Сводка эры (секции C668..C676 ниже — носители, не удалять):
+Сводка эры (секции C668..C682 ниже — носители, не удалять):
 - Коммиты: c85d35bf (C668), 3c1fb372 (C669), a3f7c669 (C670), ff584ffb
   (C671), f7972b11 (C672), ecacde41 (docs), 42db5e61 (C673), c34f4e43
   (C674), 9efa9dc1 (C675), 57483f97 (C676); C677 — docs-консолидация
@@ -273,7 +273,9 @@
   C680 — wide Muon безусловно: нормировка, транспонирование, сертификат
   (sha — в receipt `.tmp/C680/receipt.md`);
   C681 — прямоугольный слой `W1 : dim × hidden` → широкий Muon-шаг, мост
-  к слою (sha — в receipt `.tmp/C681/receipt.md`).
+  к слою (sha — в receipt `.tmp/C681/receipt.md`);
+  C682 — высокий слой через транспонирование: посылка размерности снята
+  (sha — в receipt `.tmp/C682/a-receipt.md`).
 - Цепочка: градиент W1 = g ⊗ x вне излома (C668) → батч, F-оптимальный
   SGD (C669) → rank-one оптимум σ_max (C670/671) → оптимум на
   изометриях без фон Неймана (C672) → NS-схема σ ↦ σ(3−σ²)/2, σ₃ ≥ 39/40
@@ -291,13 +293,23 @@
 - C681: мост к слою — `muon_step_useful_w1_rect(_batch)`: для
   прямоугольного слоя `ι → δ → ℝ`, вне излома, `G ≠ 0`, `card ι ≤ card δ`
   шаг `W1 − η·wide_iter k Ĝ` строго убывает CE (один вход / батч).
-- Honest: слой `dim × hidden` покрыт при `dim ≤ hidden` (высокий слой
+- C682: `fdot_transpose`, `wnormed_transpose`, `tall_alignment_ge_gradient`,
+  `alignment_ge_gradient_any` ⇒ `muon_step_useful_w1_rect'(_batch')`:
+  слой `ι → δ → ℝ` ЛЮБОЙ формы, без посылки `card ι ≤ card δ`.
+- Итог эры по факту (`git log c85d35bf^..a4204451`): 16 коммитов
+  (13 feat + 3 docs), 11 модулей, 132 theorem/lemma в них, Freeze
+  9043 → 9218 (+175), существующие — identity.
+- Honest: фон Нейман (шар `‖Δ‖₂ ≤ 1`), η только существует,
+  momentum `m1`, mean-лосс, малые σ, guard/`iters = 3` — факты кода.
+- Honest (на конец C681, снято в C682): слой `dim × hidden` покрыт при
+  `dim ≤ hidden` (высокий слой
   не сведён; сертификат C676 — квадрат; сертификат C680 — координатный
   носитель `m → n → ℝ`, мост к слою — C681),
   фон Нейман, η только существует (`cos_lr·0.7`, momentum `m1`), малые σ,
   mean-лосс.
-- Следующий шаг: мост «слой `W1 : dim × hidden` → широкий `G`» и
-  сертификат спуска C676 на нём; липшицева оценка; momentum.
+- Следующий шаг: явная η через Липшиц-константу CE на слое (COMMIT/HOLD
+  по фактическому drop — certified-warmup); momentum `m1`; фон Нейман;
+  рост ширины + Muon (C667 WidthGrowth); стоимость NS-3 vs drop.
 
 <a id="c668"></a>
 ## C668 — производная по первому слою W1 (freeze 9043→9054)
@@ -524,6 +536,34 @@
 - Следующий шаг: (1) `normed_sigma_le_one` в широком случае ⇒ T3 без
   гипотезы; (2) мост «слой `W1 : ι → δ → ℝ` → широкий `G`» и сертификат
   спуска C676 на нём; (3) транспонирование (высокий случай).
+
+<a id="c668-c682"></a>
+<a id="c682"></a>
+## C682 — Высокий слой W1: транспонирование снимает посылку размерности (freeze →9218)
+
+- Коммит A: `feat: tall w1 layer muon descent via transpose` = `a4204451`
+  (HEAD^ = c1cd2c30, C681). Коммит B: docs-only, paper v1.3.
+- Исследование: `wide_iter` = `ns_step^[k]` определён для любой формы
+  `m×n`; `code_ns_eq_wide_iter` (C680) — код-выход равен `wide_iter k G`
+  и для высокой матрицы, так что `w1StepR` корректен для любой формы.
+  Посылка `hmn` нужна была только потому, что
+  `wide_alignment_ge_gradient'` — широкая форма.
+- Lean (MuonDescentW1Rect.lean, +11 деклараций): `fdot_transpose` (:248),
+  `wfrobSq_transpose` (:256), `wnormed_transpose` (:264),
+  `transpose_ne_zero`, `tall_alignment_ge_gradient` (:276),
+  `alignment_ge_gradient_any` (:300), `fdot_wide_w1StepR_pos'` (:314),
+  `w1StepR_eq_code_ns` (:321), `muon_step_rect_of_fderiv'` (:328),
+  `muon_step_useful_w1_rect'` (:348),
+  `muon_step_useful_w1_rect_batch'` (:369). Freeze 9207 → 9218 (+11,
+  identity).
+- Witness `.tmp/C682/traj.lean`, rc = 0: высокий слой 4×3 вне излома
+  (`3 ≤ 4`, `¬(4 ≤ 3)`); аксиомы 16 теорем ≤ 3. Float-реплика:
+  `‖G‖_F² = 7.2`, `⟨G, wide_iter 3 Ĝ⟩ = ‖G‖_F = 2.683282`.
+- Honest: η только существует; momentum `m1`; фон Нейман; mean; kink;
+  малые σ; guard core.py:1355 и `iters = 3` — факты кода.
+- Следующий шаг: (1) явная η через Липшиц CE + certified-warmup
+  COMMIT/HOLD; (2) momentum; (3) фон Нейман; (4) фронтиры цели:
+  WidthGrowth (C667) + Muon, стоимость NS-3 vs drop.
 
 <a id="c681"></a>
 ## C681 — Прямоугольный слой W1 → широкий Muon-шаг: мост в кодовой размерности (freeze →9207)

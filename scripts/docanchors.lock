@@ -303,6 +303,15 @@ Hagi/Theory/MuonDescentW1Rect.lean:134	muon_step_useful_w1_rect|decl
 Hagi/Theory/MuonDescentW1Rect.lean:154	w1BatchObjR|decl
 Hagi/Theory/MuonDescentW1Rect.lean:166	w1Batch_fderiv_apply_R|decl
 Hagi/Theory/MuonDescentW1Rect.lean:203	muon_step_useful_w1_rect_batch|decl
+Hagi/Theory/MuonDescentW1Rect.lean:248	fdot_transpose|decl
+Hagi/Theory/MuonDescentW1Rect.lean:256	wfrobSq_transpose|decl
+Hagi/Theory/MuonDescentW1Rect.lean:276	tall_alignment_ge_gradient|decl
+Hagi/Theory/MuonDescentW1Rect.lean:300	alignment_ge_gradient_any|decl
+Hagi/Theory/MuonDescentW1Rect.lean:314	fdot_wide_w1StepR_pos'|decl
+Hagi/Theory/MuonDescentW1Rect.lean:321	w1StepR_eq_code_ns|decl
+Hagi/Theory/MuonDescentW1Rect.lean:328	muon_step_rect_of_fderiv'|decl
+Hagi/Theory/MuonDescentW1Rect.lean:348	muon_step_useful_w1_rect'|decl
+Hagi/Theory/MuonDescentW1Rect.lean:369	muon_step_useful_w1_rect_batch'|decl
 Hagi/Theory/MuonDescentW1Rect.lean:47	w1GradR|decl
 Hagi/Theory/MuonDescentW1Rect.lean:55	fdot_wide_neg_of|decl
 Hagi/Theory/MuonDescentW1Rect.lean:63	w1_fderiv_apply_R|decl

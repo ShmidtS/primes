@@ -1,8 +1,9 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v1.2 (release). Все утверждения — либо Lean-якорь (FQN, файл, строка;
-сверены `scripts/DocAnchorCheck.py` на дереве 57483f97, freeze identity
-9149; предыдущая сверка e160b7ec, 9043), либо
+Draft v1.3 (release). Все утверждения — либо Lean-якорь (FQN, файл, строка;
+сверены `scripts/DocAnchorCheck.py` на дереве a4204451, freeze 9218
+(9207 identity + 11 новых, C682); предыдущая сверка 57483f97, 9149;
+предыдущая e160b7ec, 9043), либо
 измеренный результат прогона с указанием витка (Cn), либо PIN в §5.
 Якоря кода HAGI_v2 (python `file:line@sha`) сверены `git show` на
 указанном sha (мосты C638–C648: @1ae924e / @ca52eb4, волны 254–255;
@@ -17,7 +18,8 @@ e40aa426: новый индекс не генерировался.
 step is taken only after a machine-checked certificate: PROPOSE →
 CERTIFY → ADMIT → COMMIT/HOLD/ROLLBACK → LOG, formalized in Lean 4
 against Mathlib (**12 875 theorems in 543 modules, 0 `sorry`**, count at
-e40aa426; freeze identity **9149** declarations). The cycle
+e40aa426; freeze inventory **9218** declarations at a4204451, of which
+9149 at e40aa426, all identical). The cycle
 theorem `certify_then_commit_sound` gives, per T-round run, objective
 telescoping, a 1 − δtotal bound on false commits, an ε-bound on
 holdout-risk growth and exact budget balance; the consolidated statement
@@ -39,8 +41,10 @@ code's transposed iteration is the same proved step on `m×n`: it keeps
 the singular bases and the optimum over row isometries `ΔΔᵀ = I` is
 `Σ σ i`; the wide SVD it needs is a theorem (C679) and the wide step is
 unconditional: for a wide `G ≠ 0` `⟨G, wide_iter k Ĝ⟩ ≥ ‖G‖_F` with no
-structural hypothesis (C680). Release feature: **19 PALOMAR
-cards** and a **§0 map of 39 code bridges** (C521–C681) in which the consumer's own code (HAGI_v2, python
+structural hypothesis (C680), and for the code-shaped layer `W1` of
+ANY shape, wide or tall, the Muon update is a proved strict descent of
+the CE outside the kink (C681–C682). Release feature: **19 PALOMAR
+cards** and a **§0 map of 40 code bridges** (C521–C682) in which the consumer's own code (HAGI_v2, python
 `file:line@sha`) is checked against the canon and labelled exact,
 conditional or honest-gap. We state the open hypotheses as pins (§5,
 pins 30–34): U2 global reachability, the chain rule behind a < 0 (closed
@@ -100,6 +104,7 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | step | `exists_wide_svd` (Hagi/Theory/WideSVD.lean:155); `wide_alignment_exact'` (:306); `wide_step_optimal'` (:317) | transposition to the wide form when rows > columns (hagi/core.py:1358 @ca52eb4): `G : m×n`, `m ≤ n` | WideSVD (C679): for every real `m×n` matrix with `m ≤ n` there are `U : m×m`, `V : n×m`, `UᵀU = VᵀV = I`, `σ ≥ 0` with `G = U·diag σ·Vᵀ` (pad to `n×n`, square SVD, zero singular values sit outside the first `m` indices, a second square SVD of `G·V₀`); the C678 statements T1', T2, T5 hold without a decomposition hypothesis; honest gap: wide shape only, `σ i ≤ 1` for the normalised wide gradient not proved | C679 |
 | step | `ns_step_transpose`, `code_ns_eq_wide_iter` (Hagi/Theory/MuonWide.lean:261/:286); `wnormed_sigma_le_one` (Hagi/Theory/WideSVD.lean:391); `wide_alignment_ge_gradient'` (:418); `muon_step_useful_wide` (:446) | transposition of a tall buffer before and after the iteration (hagi/core.py:1358–1361 @ca52eb4); Frobenius normalisation core.py:1353 | wide Muon unconditional (C680): the code's output equals `wide_iter k G` for a buffer of any shape; for a wide `G ≠ 0` the normalised gradient has `σ i ≤ 1` (`‖G‖_F² = Σ σ i²`), so `⟨G, wide_iter k Ĝ⟩ ≥ ‖G‖_F` and the descent certificate hold with no structural hypothesis on `G`; honest gap: the certificate is on the coordinate carrier `m → n → ℝ`, the bridge to the `dim × hidden` layer (C676 carrier) is open, von Neumann, `η`, momentum | C680 |
 | step | `w1_fderiv_apply_R` (Hagi/Theory/MuonDescentW1Rect.lean:63); `muon_step_rect_of_fderiv` (:113); `muon_step_useful_w1_rect` (:134); `muon_step_useful_w1_rect_batch` (:203) | rectangular first layer `W1 : dim × hidden` (hagi/lm.py:586 @ca52eb4); Muon update hagi/core.py:1755; Frobenius normalisation core.py:1353 | W1 certificate, rectangular layer (C681): the squareness of C676 sits only in the square iterate: for the code-shaped layer `W1 : ι → δ → ℝ` with `card ι ≤ card δ`, outside the kink, `G ≠ 0` (one input or batch), CE strictly decreases along `W1 − η·wide_iter k Ĝ` for small `η`; so `⟨G, wide_iter k Ĝ⟩ ≥ ‖G‖_F` and the descent certificate hold with no structural hypothesis on `G`; honest gap: tall layer (`dim > hidden`) not reduced to the wide form, von Neumann, `η`, momentum, mean loss | C680 |
+| step | `fdot_transpose` (Hagi/Theory/MuonDescentW1Rect.lean:248); `wnormed_transpose` (:264); `tall_alignment_ge_gradient` (:276); `alignment_ge_gradient_any` (:300); `muon_step_useful_w1_rect'` (:348); `muon_step_useful_w1_rect_batch'` (:369) | transposition of a tall buffer before and after the iteration (hagi/core.py:1358–1361 @ca52eb4); Muon update hagi/core.py:1755 | W1 certificate, layer of ANY shape (C682): the dimension premise of C681 is removed. `⟨Gᵀ, Hᵀ⟩ = ⟨G, H⟩`, `‖Gᵀ‖_F = ‖G‖_F`, `wnormed Gᵀ = (wnormed G)ᵀ` and `wide_iter k Xᵀ = (wide_iter k X)ᵀ` carry the wide certificate over to a tall `G`, so for the layer `W1 : ι → δ → ℝ` of any shape, outside the kink, `G ≠ 0` (one input or batch), `⟨G, wide_iter k Ĝ⟩ ≥ ‖G‖_F` and CE strictly decreases along `W1 − η·wide_iter k Ĝ` for small `η`, any `k`; the theorem's step equals the code's output `code_ns` (`w1StepR_eq_code_ns`, :321); honest gap: von Neumann, `η` only exists, momentum, mean loss | C681 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
 
 **What is proved end to end.** Inside Lean, with no code hypothesis:
@@ -1041,13 +1046,20 @@ LINEAR carrier in C663 (`chain_linear`, `useful_of_adam_first`) and
 for the relu block only as strict descent for small η (C665); the
 nonlinear certified drop is open.
 
-#### 3.20.x Optimizer theory: the Muon chain (C668–C681)
+#### 3.20.x Optimizer theory: the Muon chain (C668–C682)
 
-Ten cycles (`git log --oneline c85d35bf^..57483f97`: C668
+Sixteen commits (`git log --oneline c85d35bf^..a4204451`: C668
 `c85d35bf`, C669 `3c1fb372`, C670 `a3f7c669`, C671 `ff584ffb`, C672
 `f7972b11`, the docs-only fix `ecacde41`, C673 `42db5e61`, C674
-`c34f4e43`, C675 `9efa9dc1`, C676 `57483f97`; plus C678 on the
-rectangular iterate). The deltas iv-b..iv-j
+`c34f4e43`, C675 `9efa9dc1`, C676 `57483f97`, the docs consolidation
+`cced8a7f`, C678 `995c7df8`, C679 `23b8b715`, C680 `a4cc785b`, C681
+`c1cd2c30`, C682 `a4204451`): 13 feature commits and 3 docs commits over
+11 modules (`FirstLayerGrad`, `BatchRankOne`, `MuonSpectral`,
+`MuonIsometry`, `NewtonSchulzSigma`, `MuonAlignment`, `MuonDescent`,
+`MuonDescentW1`, `WideSVD`, `MuonWide`, `MuonDescentW1Rect`; 3011
+lines added, `git diff --shortstat c85d35bf^ a4204451` on these files),
+132 `theorem`/`lemma` declarations in those modules at HEAD, Freeze
+9043 → 9218 (+175, every existing declaration identical). The deltas iv-b..iv-j
 of v1.1 are folded into this subsection; the carriers live in the
 STATUS cards of the seven modules. The chain, one line per node
 (each arrow is a theorem of the module named, not a code fact):
@@ -1071,21 +1083,26 @@ C676 MuonDescentW1      w1_fderiv_apply, muon_step_useful_w1, muon_step_useful_w
       |
 C679 WideSVD           exists_wide_svd   every real m×n matrix with m ≤ n is U·diag σ·Vᵀ with UᵀU = VᵀV = I
       ↓
-C678 MuonWide           code_step_eq_ns_step, ns_step_wide_svd, wide_alignment_exact, wide_step_optimal   [wide SVD: C679] the transposed code line is the same step on m×n; iterates keep the singular bases; max over ΔΔᵀ = I of ⟨G, Δ⟩ = Σ σ i
+C681 MuonDescentW1Rect  w1_fderiv_apply_R, muon_step_rect_of_fderiv, muon_step_useful_w1_rect, muon_step_useful_w1_rect_batch   the derivative identity and the descent certificate for the rectangular layer W1 : ι → δ → ℝ (code shape dim × hidden, card ι ≤ card δ), step W1 − η·wide_iter k Ĝ, one input or batch
       ↓
-\1\n      ↓\nC681 MuonDescentW1Rect  w1_fderiv_apply_R, muon_step_rect_of_fderiv, muon_step_useful_w1_rect, muon_step_useful_w1_rect_batch   the derivative identity and the descent certificate for the rectangular layer W1 : ι → δ → ℝ (code shape dim × hidden, card ι ≤ card δ), step W1 − η·wide_iter k Ĝ, one input or batch\n```
+C682 MuonDescentW1Rect  fdot_transpose, wnormed_transpose, tall_alignment_ge_gradient, alignment_ge_gradient_any, muon_step_useful_w1_rect', muon_step_useful_w1_rect_batch'   the dimension premise removed: the same certificate for a layer of ANY shape
+```
 
-**Result (one box).** For the first layer `W1 : ι → δ → ℝ` of the
-growth block (code shape `dim × hidden`, `card ι ≤ card δ`; the square
-case `ι = δ` is C676), outside the relu kink, with the batch gradient
-`G = −Σ_t g_t ⊗ x_t ≠ 0`:
+**Result (one box, final for the code dimension).** For the first layer
+`W1 : ι → δ → ℝ` of the growth block (code shape `dim × hidden`, ANY
+shape — wide, square or tall; the dimension premise `card ι ≤ card δ` of
+C681 is removed by C682), outside the relu kink, with the batch gradient
+`G = −Σ_t g_t ⊗ x_t ≠ 0` (one input: `g ≠ 0`, `x ≠ 0`), for any `k`:
 
 1. `CE(W1 − η·wide_iter k (Ĝ)) < CE(W1)` for all small `η > 0`,
-   `Ĝ = G/‖G‖_F`, any `k` (`muon_step_useful_w1_rect`,
-   Hagi/Theory/MuonDescentW1Rect.lean:134; batch
-   `muon_step_useful_w1_rect_batch`, :203).
+   `Ĝ = G/‖G‖_F`, any `k` (`muon_step_useful_w1_rect'`,
+   Hagi/Theory/MuonDescentW1Rect.lean:348; batch
+   `muon_step_useful_w1_rect_batch'`, :369; versions with the
+   dimension premise `card ι ≤ card δ`: C681, :134 and :203).
 2. First-order drop: `f'(W1)[−η·ns_k(Ĝ)] ≤ −η·‖G‖_F`
-   (`wide_alignment_ge_gradient'`, Hagi/Theory/WideSVD.lean:418;
+   (`alignment_ge_gradient_any`, Hagi/Theory/MuonDescentW1Rect.lean:300,
+   any shape; wide form `wide_alignment_ge_gradient'`,
+   Hagi/Theory/WideSVD.lean:418;
    square case `muon_step_inner_ge_frob`,
    Hagi/Theory/MuonDescent.lean:136); the sign step gives the same
    bound in the square case
@@ -1096,7 +1113,9 @@ case `ι = δ` is C676), outside the relu kink, with the batch gradient
    Hagi/Theory/MuonAlignment.lean:131; `ns_sigma_min_three`,
    Hagi/Theory/NewtonSchulzSigma.lean:126). The ideal `U Vᵀ` is
    optimal on the whole isometry group (`muon_step_optimal_in_isometry_group`,
-   Hagi/Theory/MuonIsometry.lean:175).
+   Hagi/Theory/MuonIsometry.lean:175). On the row isometries of a
+   rectangular `G` the optimum is the same `Σ σ i`, attained at `U Vᵀ`
+   (`wide_step_optimal'`, Hagi/Theory/WideSVD.lean:317).
 
 Witnesses (receipts .tmp/C673–C676, all rc = 0): C673 `σ₀ = 1/2 ⇒
 σ₃ ≈ 0.975300`; C674 spectrum `diag(1, 3/4, 1/2, 1/10)`: the bound
@@ -1167,28 +1186,48 @@ code-shaped layer with `card ι ≤ card δ`, outside the kink, `G ≠ 0`,
 .tmp/C681/traj.lean, rc = 0: a `3×4` layer outside the kink,
 `w1GradR = −(g ⊗ x)` entrywise, the certificate instantiated; a Float
 replica of the Muon part (not a theorem) on `G = −(g ⊗ x)` gives
-`‖G‖_F² = 3.5` and `⟨G, wide_iter 3 Ĝ⟩ = ‖G‖_F = 1.870829`. Honest
-gap: the premise `card ι ≤ card δ` (`dim ≤ hidden`) is needed by the
-wide T3; a tall layer is not reduced to the wide form yet; the
-zero-norm guard and `iters = 3` are code facts without a theorem.
+`‖G‖_F² = 3.5` and `⟨G, wide_iter 3 Ĝ⟩ = ‖G‖_F = 1.870829`. **Tall layer
+(C682, delta).** The C681 certificate needed `card ι ≤ card δ` only
+because `wide_alignment_ge_gradient'` is stated for a wide matrix. The
+step itself is shape-free: `wide_iter` is `ns_step^[k]` on any `m×n`,
+and the code's transpose–iterate–transpose is the same
+`wide_iter k G` (C680). Three one-line facts carry the wide
+certificate over to a tall `G`: `⟨Gᵀ, Hᵀ⟩ = ⟨G, H⟩` (`fdot_transpose`,
+Hagi/Theory/MuonDescentW1Rect.lean:248), `‖Gᵀ‖_F = ‖G‖_F` and
+`wnormed Gᵀ = (wnormed G)ᵀ` (`wnormed_transpose`, :264; `wnormed` is a
+scalar multiple with the scalar made from `wfrobSq`), and
+`wide_iter k Xᵀ = (wide_iter k X)ᵀ` (C680). Hence for a tall `G ≠ 0`
+with `card n ≤ card m`, `‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩`
+(`tall_alignment_ge_gradient`, :276), and by `le_total` for `G` of any
+shape (`alignment_ge_gradient_any`, :300). The prime certificates
+`muon_step_useful_w1_rect'` (:348) and
+`muon_step_useful_w1_rect_batch'` (:369) restate the C681 theorems
+without `hmn`; the step of the theorem is the code's output
+(`w1StepR_eq_code_ns`, :321). Witness .tmp/C682/traj.lean, rc = 0: a
+`4×3` layer outside the kink (`3 ≤ 4`, `¬(4 ≤ 3)`), the prime
+certificates instantiated; a Float replica (not a theorem) gives
+`‖G‖_F² = 7.2` and `⟨G, wide_iter 3 Ĝ⟩ = ‖G‖_F = 2.683282`. The
+zero-norm guard and `iters = 3` remain code facts without a theorem.
 
-**Honest boundaries.** (a) The descent certificate for the layer is
-for `card ι ≤ card δ` (code: `dim ≤ hidden`; C681); a tall layer
-(`dim > hidden`) is not reduced to the wide form although the code's
-tall iterate is the same `wide_iter k G` (C680). (b) The maximum over the whole spectral ball `‖Δ‖₂ ≤ 1`
-is not proved (von Neumann / spectral–nuclear duality); the optimum
-is proved over the isometry group only. (c) `η` is only shown to
-exist: the code's `cos_lr·0.7`, the momentum buffer `m1` (the code
-orthogonalises `m1`, not `G`), a Lipschitz descent lemma and
-convergence are outside the theory. (d) The loss is the CE of one
-input or the sum over a batch; the mean of lm.py:688 differs by a
-positive constant and has no theorem of its own; in the batch theorem
-`G ≠ 0` is a premise. (e) Singular values below `1/2` carry no lower
-bound after three iterations. (f) Muon versus sign is compared by the
-first-order drop, not per unit of step norm (those numbers are
-witnesses). The guards this gap asks of the code are in
-docs/PROPOSAL-muon-guards.md (code-side pending; the zero-norm guard
-(a) is already in the code at core.py:1355).
+**Honest boundaries (final for the code dimension).** (a) The descent
+certificate for the layer holds for `W1 : ι → δ → ℝ` of any shape;
+what is NOT proved: an explicit `η` (it only exists; the code's
+`cos_lr·0.7` is not related to it), the momentum buffer `m1` (the code
+orthogonalises `m1`, not `G`), the zero-norm guard (core.py:1355) and
+`iters = 3` (code facts), the relu kink (`hact` is a premise). (b) The
+maximum over the whole spectral ball `‖Δ‖₂ ≤ 1` is not proved (von
+Neumann / spectral–nuclear duality); the optimum is proved over the
+isometries only, where it is exactly `Σ σ i` with no von Neumann. (c)
+`η` is only shown to exist; a Lipschitz descent lemma and convergence
+are outside the theory. (d) The loss is the CE of one input or the sum
+over a batch; the batch mean of lm.py:688 is that sum times `1/B` and
+has no theorem of its own; in the batch theorem `G ≠ 0` is a premise.
+(e) Singular values below `1/2` carry no lower bound after three
+iterations. (f) Muon versus sign is compared by the first-order drop,
+not per unit of step norm (those numbers are witnesses). The guards
+this gap asks of the code are in docs/PROPOSAL-muon-guards.md
+(code-side pending; the zero-norm guard (a) is already in the code at
+core.py:1355).
 
 **(v) Window order (C651 → C664).** After wave 258 the context is
 `idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;
@@ -1849,4 +1888,7 @@ not a Lean clause.
      row C668 (FirstLayerGrad.lean) added.
      v1.2 (C677, docs-only): no Appendix row moved; the 431 doc anchors
      re-checked by scripts/DocAnchorCheck.py on 57483f97 (freeze 9149).
+     v1.3 (C682, docs-only): no Appendix row moved; one §0 row added
+     (C682, MuonDescentW1Rect.lean:248); doc anchors re-checked on
+     a4204451 (freeze 9218).
      Muon rows of §0 collapsed to four (GradLayer, OptimalStep, Muon, W1). -->

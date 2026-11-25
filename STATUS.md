@@ -2711,7 +2711,14 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.
 
-## Hagi/Theory/MuonDescentW1Rect.lean (мост «прямоугольный слой W1 → широкий Muon-шаг», C681)
+## Hagi/Theory/MuonDescentW1Rect.lean (мост «прямоугольный слой W1 → широкий Muon-шаг», C681–C682)
+
+ВЕРХНИЙ ИТОГ (C682): для слоя `W1 : ι → δ → ℝ` ЛЮБОЙ формы (широкий,
+квадратный, высокий), вне kink, `G ≠ 0`, любого `k` шаг кода
+`W1 − η·wide_iter k Ĝ` строго спускает CE (один вход и сумма по батчу) —
+`muon_step_useful_w1_rect'`, `muon_step_useful_w1_rect_batch'`. Посылка
+`card ι ≤ card δ` снята (`tall_alignment_ge_gradient`). Строки C681
+(таблица ниже) — исторические версии с посылкой размерности, не менялись (Freeze).
 
 Код-якорь тот же, что в карточке MuonDescentW1 (lm.py:586 @ca52eb4,
 core.py:1755), но слой — кодовой размерности: `W1 : ι → δ → ℝ`
@@ -2734,6 +2741,26 @@ FirstLayerGrad); проблемы sup vs ℓ² не возникает: лемм
 | `w1GradR_ne` | `g ≠ 0`, `x ≠ 0 ⇒ G ≠ 0` | Hagi/Theory/MuonDescentW1Rect.lean:77 | — |
 | `w1StepR` | `d = wide_iter k Ĝ` как элемент носителя `ι → δ → ℝ` | Hagi/Theory/MuonDescentW1Rect.lean:100 | — |
 | `fdot_wide_w1StepR_pos` | `G ≠ 0`, `card ι ≤ card δ ⇒ 0 < ⟨G, wide_iter k Ĝ⟩` | Hagi/Theory/MuonDescentW1Rect.lean:105 | — |
+| `fdot_transpose` | `⟨Gᵀ, Hᵀ⟩ = ⟨G, H⟩` (L1) | Hagi/Theory/MuonDescentW1Rect.lean:248 | — |
+| `wfrobSq_transpose` / `wnormed_transpose` | `‖Gᵀ‖_F = ‖G‖_F`; `wnormed Gᵀ = (wnormed G)ᵀ` (L2) | Hagi/Theory/MuonDescentW1Rect.lean:256/:264 | — |
+| `tall_alignment_ge_gradient` | высокий `G` (`card n ≤ card m`), `G ≠ 0 ⇒ ‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩` (L3) | Hagi/Theory/MuonDescentW1Rect.lean:276 | — |
+| `alignment_ge_gradient_any` | `G : m×n` любой формы, `G ≠ 0 ⇒ ‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩` | Hagi/Theory/MuonDescentW1Rect.lean:300 | — |
+| `fdot_wide_w1StepR_pos'` | `G ≠ 0 ⇒ 0 < ⟨G, wide_iter k Ĝ⟩` (без посылки размерности) | Hagi/Theory/MuonDescentW1Rect.lean:314 | — |
+| `w1StepR_eq_code_ns` | шаг теоремы = вывод кода `code_ns` (core.py:1358–1361 транспонирует) | Hagi/Theory/MuonDescentW1Rect.lean:321 | — |
+| `muon_step_rect_of_fderiv'` | ядро без посылки размерности: `f` дифф., `f'(W1)[Δ] = ⟨G, Δ⟩`, `G ≠ 0 ⇒ ∃ η > 0`, `f (W1 − η·d) < f W1` | Hagi/Theory/MuonDescentW1Rect.lean:328 | — |
+| `muon_step_useful_w1_rect'` | вне kink, `g ≠ 0`, `x ≠ 0`, слой любой формы ⇒ ∃ η > 0, CE_t строго убывает вдоль `W1 − η·wide_iter k Ĝ` | Hagi/Theory/MuonDescentW1Rect.lean:348 | — |
+| `muon_step_useful_w1_rect_batch'` | вне kink, `G ≠ 0`, слой любой формы ⇒ ∃ η > 0`, сумма CE по батчу строго убывает | Hagi/Theory/MuonDescentW1Rect.lean:369 | — |
+
+C682 (sha — в receipt `.tmp/C682/a-receipt.md`): Freeze 9207 → 9218 (+11, identity
+существующих, 0 lost/changed). Witness `.tmp/C682/traj.lean`, rc = 0:
+высокий слой `ι = Fin 4` (dim) × `δ = Fin 3` (hidden), `3 ≤ 4` и
+`¬(4 ≤ 3)`; аксиомы 16 теорем (10 новых + 6 старых) — propext,
+Classical.choice, Quot.sound; `fdot_transpose`,
+`tall_alignment_ge_gradient`, `w1StepR_eq_code_ns`, prime-сертификаты
+(один вход, батч `Fin 1`) инстанцированы без посылки размерности.
+Float-реплика (не теорема): высокий `G = −(g ⊗ x)`, `g = (.2, .4, .6, .8)`,
+`x = (1, 2, −1)`: `‖G‖_F² = 7.2`, `‖G‖_F = 2.683282`,
+`⟨G, wide_iter 3 Ĝ⟩ = 2.683282`.
 | `muon_step_rect_of_fderiv` | ядро: `f` дифф., `f'(W1)[Δ] = ⟨G, Δ⟩`, `G ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0, f (W1 − η·d) < f W1` | Hagi/Theory/MuonDescentW1Rect.lean:113 | — |
 | `muon_step_useful_w1_rect` | вне kink, `g ≠ 0`, `x ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0, CE_t (w1L (W1 − η·wide_iter k Ĝ)) < CE_t (w1L W1)` | Hagi/Theory/MuonDescentW1Rect.lean:134 | — |
 | `w1BatchObjR` / `w1BatchGradR` | батч-лосс и `G = −Σ_t g_t ⊗ x_t` на `Matrix ι δ ℝ` | Hagi/Theory/MuonDescentW1Rect.lean:154/:158 | — |
@@ -2753,11 +2780,12 @@ Classical.choice, Quot.sound. Слой `ι = Fin 3` (dim), `δ = Fin 4`
 `±vᵀ`; `X₃ ≈ −0.1069·(1, 2, 3)ᵀ(1, 2, −1, 0.5)`).
 
 Honest (границы):
-- `card ι ≤ card δ` (строк не больше, чем столбцов: `dim ≤ hidden`) —
-  посылка обоих сертификатов (`wide_alignment_ge_gradient'`, C680 —
-  широкая форма). Высокий слой (`dim > hidden`) — через
-  `ns_step_transpose`/`code_ns_eq_wide_iter` (C680) формально не сведён
-  — следующий шаг.
+- Посылка `card ι ≤ card δ` (строк не больше, чем столбцов: `dim ≤ hidden`)
+   СНЯТА в C682 (`tall_alignment_ge_gradient`, `alignment_ge_gradient_any`):
+   высокий слой сведён к широкой форме через `fdot_transpose`,
+   `wnormed_transpose`, `wide_iter_transpose` (C680); prime-сертификаты
+   без посылки размерности. У версий C681 посылка остаётся — они не менялись.
+
 - В батче `G ≠ 0` — посылка (для одного входа выведена: `g ≠ 0`, `x ≠ 0`).
 - Mean-лосс lm.py:688: доказано для суммы CE по батчу; mean отличается
   положительным множителем (тот же аргмин, теоремы о mean нет).
@@ -2834,7 +2862,8 @@ Honest (границы):
   скалярная (C673).
 - Мост к слою формализован (C681, MuonDescentW1Rect): сертификат
   спуска для прямоугольного слоя `ι → δ → ℝ` при `card ι ≤ card δ`;
-  высокий слой (`card ι > card δ`) — не сведён (следующий шаг).
+   высокий слой сведён в C682 (`tall_alignment_ge_gradient`, prime-теоремы
+   без посылки размерности) — посылка размерности снята.
 
 ## Hagi/Theory/WideSVD.lean (вещественный прямоугольный SVD из квадратного: pad-to-square, C679)
 
@@ -2907,10 +2936,11 @@ Honest (границы):
 - `η` только существует; `cos_lr·0.7`, momentum `m1` — вне теории.
 - Пустой `m` разобран отдельно (`IsEmpty m`); witness для `m = 0` нет.
 
-## History (C538–C681)
+## History (C538–C682)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C680, сводка `#c668-c676`, якоря `#c638-c640`
-  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`, `#c679`, `#c680`, `#c681`); более ранние per-beat файлы — `git log`. Журнал
+- Era index: `.omc/analysis/era-index.md` (C591–C682, сводка `#c668-c682`
+  (заголовок эры C668–C682; старый якорь `#c668-c676` сохранён), якоря `#c638-c640`
+  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`, `#c679`, `#c680`, `#c681`, `#c682`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
   (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
   `git show b3939aa5:STATUS.md`.

@@ -623,7 +623,18 @@ one iff there is residual signal
 
   где `G = w1GradR x b wo W1 t = −(g ⊗ x)` — градиент слоя `W1 : ι → δ → ℝ`
   кодовой размерности (`dim × hidden`, lm.py:586), `hmn : card ι ≤ card δ`;
-  батч: `muon_step_useful_w1_rect_batch`.
+  батч: `muon_step_useful_w1_rect_batch`. Высокий слой (C682):
+  `fdot_transpose : fdot_wide Gᵀ Hᵀ = fdot_wide G H`,
+  `wnormed_transpose : wnormed Gᵀ = (wnormed G)ᵀ`,
+  `tall_alignment_ge_gradient : card n ≤ card m → G ≠ 0 → ‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩`
+  (через `wide_iter_transpose` C680) и prime-версии без `hmn`:
+
+  `theorem muon_step_useful_w1_rect' (x b wo W1 t k) (hact) (hg : rowGrad … ≠ 0) (hx : x ≠ 0) :`
+  `  ∃ η, 0 < η ∧ ceOneHot t (w1L (fun i j => W1 i j - η * wide_iter k (wnormed G) i j) b wo x)`
+  `    < ceOneHot t (w1L W1 b wo x)`
+
+  батч: `muon_step_useful_w1_rect_batch'`; шаг теоремы = вывод кода
+  (`w1StepR_eq_code_ns`, core.py:1358–1361).
 - **Наглядность.** Идеальный шаг Muon (ортогонализованный градиент)
   — точный оптимум на группе изометрий; итерации Ньютона–Шульца
   сохраняют сингулярные векторы градиента, и три итерации дают не
@@ -641,6 +652,10 @@ one iff there is residual signal
   `Hagi.Theory.MuonDescentW1Rect.muon_step_useful_w1_rect`
   (Hagi/Theory/MuonDescentW1Rect.lean:134),
   `muon_step_useful_w1_rect_batch` (:203);
+  `Hagi.Theory.MuonDescentW1Rect.tall_alignment_ge_gradient`
+  (Hagi/Theory/MuonDescentW1Rect.lean:276),
+  `alignment_ge_gradient_any` (:300), `muon_step_useful_w1_rect'`
+  (:348), `muon_step_useful_w1_rect_batch'` (:369);
   определения `ns_iter` (Hagi/Theory/MuonAlignment.lean:86), `ns_p`
   (Hagi/Theory/NewtonSchulzSigma.lean:42), `ns_seq` (:45).
 - **Dependencies.** Mathlib; собственный `smax_svd`
@@ -648,9 +663,9 @@ one iff there is residual signal
   (`Hagi.External.Flywheel.Matrix.SVD.Real`).
 - **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
   три Lean. Honest: максимум по всему спектральному шару `‖Δ‖₂ ≤ 1`
-  не доказан (нужен фон Нейман); прямоугольный слой покрыт при
-  `card ι ≤ card δ` (высокий — нет); `σ i < 1/2` после трёх итераций без
-  нижней границы; `η` только существует; momentum и mean-лосс вне теории.
+  не доказан (нужен фон Неймана); слой `W1` любой формы покрыт с C682
+  (версии C681 — при `card ι ≤ card δ`); `σ i < 1/2` после трёх итераций без
+  нижней границы; `η` только существует; momentum (`m1`) и mean-лосс вне теории.
   Проверка ниши: в реестре нет backprop / trace-inequality /
   Muon формализаций — «niche 0/N» по данным receipts C668–C675
   (C668: 1351 entries, revision 1194, 0 cards по HasFDerivAt /
