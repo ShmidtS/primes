@@ -682,3 +682,43 @@
   `L(W − ηX) ≤ L(W) − η⟨G,X⟩ + η²L/2·‖X‖²`; (3) momentum-буфер `m1`
   (в коде NS применяется к `m1`, не к `G`).
 
+<a id="c684"></a>
+## C684 — Константа L для CE relu-блока по W1: Lipschitz функции и гладкость градиента (freeze →9235)
+
+- Коммит: `feat: w1 ce lipschitz constant in weights and directional curvature status`
+  (sha — в receipt `.tmp/C684/receipt.md`); HEAD^ = a2eac414 (C683 docs).
+- Исследование: блокер №1 DERIVED-CONFIG («Adam lr: L не измеряется»).
+  Для `nl_drop_optimal` (γ* = 1/L) нужна ГЛАДКОСТЬ градиента, не Липшиц
+  функции. Гессиан CE по логитам в репо уже доказан: `lse_descent`
+  (CEGlobalConvergence.lean:407, ∇² lse ⪯ I) — отдельный «∇²softmax ≤ ½»
+  не потребовался (константа 1 вместо ½, честно). `denom` кода
+  (core.py:1314-1319) = Q' + 4·curv_reg — диапазонная кривизна НАПРАВЛЕНИЯ,
+  уже формализована (`ce_range_code_drop` AdaptiveMajorizer.lean:1497):
+  код измеряет L_dir только для certified-шага, Adam lr константен.
+  Источники: ask.sciencemadereadable.com — Fu–Chi–Liang (ISIT 2019, локальная
+  гладкость CE, уже цитировалась C676), формализации ∇²softmax нет; palomar
+  Cards 18–19 — nlBudget/nlDrop с посылкой L-smooth, константы нет.
+- Lean (новый `Hagi/Theory/FirstLayerLip.lean`, +14 деклараций): `parNorm`,
+  `w1CE`, `parDiff`, `parNorm_sq_parDiff`, `parNorm_sq`, `row_sq_le`,
+  `sum_mul_sq_le`, `w1Logits_sq_le` (:111), `w1CE_lipschitz_param` (:182),
+  `w1L_eq_add_jac_of_mask_eq` (:218), `w1CE_descent_lemma` (:258),
+  `w1DescentDir` (:329), `w1CE_drop_of_step` (:339),
+  `w1CE_optimal_step_drop` (:392). Freeze 9221 → 9235 (+14, identity),
+  аксиомы ≤ 3. Импорт в Hagi.lean.
+  Формулы: Lfun = 2·‖wo‖_F·‖x‖₂ (глобально, функция); S = ‖wo‖_F²·‖x‖₂²
+  (внутри области активации, градиент) ⇒ γ* = 1/S, drop = ‖D‖²/(2S).
+- Witness `.tmp/C684/traj.lean`, rc = 0 (ι = Fin 3, δ = Fin 2):
+  Σx² = 5, Σwo² = 7 ⇒ S = 35, γ* = 1/35 = 0.0286, Lfun = 2√35 = 11.83;
+  логиты (2,5) → (3/2,5), ‖Δlogits‖² = 1/4 ≤ 35/4; маски равны.
+- Docs: DERIVED-CONFIG (строка Adam lr переписана: S доказана, число —
+  HONEST-GAP, т.к. ‖wo‖_F, ‖x‖₂ не логируются; L_dir = denom — DERIVED),
+  derive_config.py (+4 строки: S/γ*/Lfun witness, L_dir), STATUS-карточка,
+  paper §0 +1 мост.
+- Honest: глобальной гладкости нет (kink); один вход; Adam-шаг нормирован
+  (теорема про γ·∇); число S код не вычисляет; `ce_adaptive_code_drop`
+  вне окна (1e-5, 50] не сертифицирован (C638–C639).
+- Следующий шаг: (1) батч-версия `w1CE_descent_lemma` (Σ_t g_t ⊗ x_t,
+  S_batch = ‖wo‖_F²·max_t‖x_t‖²); (2) мост к Adam: `nlDrop` для
+  нормированного шага `γ·m̂/√v̂` (нужна оценка ‖m̂/√v̂‖); (3) логгирование
+  ‖wo‖_F, ‖x‖₂ в коде (bench) ⇒ S как DERIVED-число; (4) momentum.
+

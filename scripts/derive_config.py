@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""derive_config (C683): выводимая конфигурация обучения HAGI.
+"""derive_config (C683, C684): выводимая конфигурация обучения HAGI.
 
 no reference: формулы — теоремы primes (FQN в таблице), числовые
 входы — константы кода HAGI_v2 @ca52eb4 (файл:строка у каждого).
@@ -61,8 +61,27 @@ def ceil(x):
 
 
 # ---- γ* = 1/L -----------------------------------------------------------
-add("γ (guarded Adam lr)", CODE["adam_lr_guarded"], "1/L; L не измеряется в коде",
-    "nl_drop_optimal NegativeTransfer.lean:481", "HONEST-GAP", "—")
+# C684: для relu-блока по W1 доказаны ДВЕ константы (FirstLayerLip.lean):
+#   липшицевость ФУНКЦИИ  Lfun = 2·‖wo‖_F·‖x‖₂  (w1CE_lipschitz_param, глобально);
+#   гладкость ГРАДИЕНТА    S    = ‖wo‖_F²·‖x‖₂²  (w1CE_descent_lemma, внутри
+#   области активации) ⇒ γ* = 1/S, drop = ‖D‖²/(2S) (w1CE_optimal_step_drop).
+# ‖wo‖_F и ‖x‖₂ код не логирует ⇒ число только на WITNESS-входах (не код):
+# .tmp/C684/traj.lean — x=(1,2), wo=[[1,0],[0,2],[1,1]]: Σwo²=7, Σx²=5.
+WIT_WO2, WIT_X2 = 7, 5
+add("γ (guarded Adam lr)", CODE["adam_lr_guarded"],
+    "1/S, S = ‖wo‖_F²·‖x‖₂²; S доказана (C684), ‖wo‖,‖x‖ в коде не логируются",
+    "w1CE_optimal_step_drop FirstLayerLip.lean:392; nl_drop_optimal NegativeTransfer.lean:481",
+    "HONEST-GAP", "—")
+add("S (W1 smoothness) witness", "—", f"{WIT_WO2}·{WIT_X2} = {WIT_WO2 * WIT_X2}",
+    "w1CE_descent_lemma FirstLayerLip.lean:258 (witness, не код)", "BOUNDED", "—")
+add("γ* = 1/S witness (W1, plain GD)", "—", f"1/{WIT_WO2 * WIT_X2} = {1 / (WIT_WO2 * WIT_X2):.4f}",
+    "w1CE_optimal_step_drop :392 (witness, не код)", "BOUNDED", "—")
+add("Lfun (W1 Lipschitz) witness", "—",
+    f"2·√{WIT_WO2}·√{WIT_X2} = {2 * math.sqrt(WIT_WO2 * WIT_X2):.4f}",
+    "w1CE_lipschitz_param :182 (функция, не градиент; witness)", "BOUNDED", "—")
+add("L_dir certified step (denom)", "Q' + 4·curv_reg",
+    "R² = denom: код ИЗМЕРЯЕТ (core.py:1314-1319)",
+    "ce_range_code_drop AdaptiveMajorizer.lean:1497; useful_first_step :584", "DERIVED", "—")
 for nm, g in GAMMA_AUTO:
     add(f"γ_auto {nm} (ATA/TGC)", f"{float(g):.4f}", f"1/(2·trH̄)={g.numerator}/{g.denominator}",
         "auto-LR 1/(2·trace H̄), receipt C609", "DERIVED")

@@ -451,6 +451,7 @@ import Hagi.Theory.BlockAdmission
 import Hagi.Theory.BlockLipschitz
 import Hagi.Theory.FunctionPreservingGrowth
 import Hagi.Theory.FirstLayerGrad
+import Hagi.Theory.FirstLayerLip
 import Hagi.Theory.BatchRankOne
 import Hagi.Theory.MuonSpectral
 import Hagi.Theory.MuonIsometry

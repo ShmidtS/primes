@@ -2126,7 +2126,9 @@ Freeze 9043 → 9054 (+11: `w1Pre`, `w1L`, `w1PreCLM`, `w1Jac`, `w1Jac_apply`,
 `useful_of_adam_first_w1`, `w1_rank_one_step_eq_bias`).
 
 - Honest-остаток: уровень — строгое убывание (T3/T4), certified-величина
-  drop по W1 не выведена; один вход `x` (в коде — батч/последовательность
+  drop по W1 не выведена (→ закрыт C684 внутри области активации:
+  `w1CE_drop_of_step`, `w1CE_optimal_step_drop`, FirstLayerLip.lean:339/:392);
+  один вход `x` (в коде — батч/последовательность
   `a @ W1`, градиент по батчу = Σ_t g_t ⊗ a_t — сумма rank-one, не
   формализована); оптимум `ΔW1` по норме Фробениуса (вариант B/C:
   `η* = 4|a|/R²`, минимальность rank-one) — не формализован; kink
@@ -2794,6 +2796,49 @@ Honest (границы):
   фиксированные `iters = 3` — вне теории.
 - Фон Нейман: оптимум доказан на строчных изометриях, не на шаре.
 
+## Hagi/Theory/FirstLayerLip.lean (константа L для CE relu-блока по W1: Lipschitz и гладкость, C684)
+
+Код-якорь HAGI_v2: слой `W1 : dim × hidden` hagi/lm.py:586/:594 @ca52eb4;
+growth-гейт подставляет значение CE в роль `L` (unified.py:400-405 @ca52eb4);
+certified-шаг измеряет кривизну направления denom = Q' + 4·curv_reg
+(core.py:1314-1319 @ca52eb4). Закрывает главный HONEST-GAP
+`docs/DERIVED-CONFIG.md` («Adam lr: `L` не измеряется»): для `γ* = 1/L`
+из `nl_drop_optimal` нужна ГЛАДКОСТЬ (Липшиц градиента), не липшицевость
+функции. Носитель — тот же, что FirstLayerGrad (`W1 : ι → δ → ℝ`,
+`w1L`, один вход `x`), норма параметра `parNorm W1 = √(Σᵢⱼ W1 i j²)`,
+цель `w1CE t b wo x W1 = ceOneHot t (w1L W1 b wo x)`. Гессиан CE по
+логитам в репо уже есть: `lse_descent` (CEGlobalConvergence.lean:407,
+`∇² lse ⪯ I`) — отдельный «∇²softmax ≤ ½» не потребовался (константа 1).
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `parNorm`, `w1CE`, `parDiff`, `parNorm_sq_parDiff`, `parNorm_sq` | `parNorm W1 = √(Σᵢⱼ W1 i j²)`; `parDiff W1 V1 = V1 − W1`; `parNorm f ^ 2 = Σ f i j²` | Hagi/Theory/FirstLayerLip.lean:52, :56, :61, :65, :71 | — |
+| `row_sq_le`, `sum_mul_sq_le` | Коши–Шварц: `Σᵢ (Δᵢ·x)² ≤ ‖Δ‖_F²‖x‖²`; `Σ_v (Σᵢ f i v·u i)² ≤ (Σᵢᵥ f²)(Σᵢ u²)` | Hagi/Theory/FirstLayerLip.lean:76, :91 | — |
+| `w1Logits_sq_le` | глобально (через kink): `Σ_v (w1L W1 − w1L V1) v² ≤ ‖wo‖_F²·‖W1 − V1‖_F²·‖x‖₂²` (relu 1-Lip: `relu_lip_abs`) | Hagi/Theory/FirstLayerLip.lean:111 | — |
+| `w1CE_lipschitz_param` | липшицевость ФУНКЦИИ по параметру, глобально: `|w1CE W1 − w1CE V1| ≤ 2·‖wo‖_F·‖W1 − V1‖_F·‖x‖₂` (`C_CE = 2` из `headCE_abs_sub_le_of_l2`) — Lfun; спуск из неё НЕ следует | Hagi/Theory/FirstLayerLip.lean:182 | — |
+| `w1L_eq_add_jac_of_mask_eq` | внутри области активации (маски `reluMask` равны) логиты линейны по `Δ`: `w1L V1 v = w1L W1 v + w1Jac Δ v` | Hagi/Theory/FirstLayerLip.lean:218 | — |
+| `w1CE_descent_lemma` | ГЛАДКОСТЬ по `W1` внутри области активации, `S = ‖wo‖_F²·‖x‖₂²`: `CE V1 ≤ CE W1 − Σᵢⱼ (gᵢxⱼ)Δᵢⱼ + S/2·‖Δ‖_F²` (`lse_descent` + Коши–Шварц; `⟨∇CE,Δ⟩ = −Σ(gᵢxⱼ)Δᵢⱼ` — `w1_directional_derivative`) | Hagi/Theory/FirstLayerLip.lean:258 | — |
+| `w1DescentDir` | направление спуска `D (i,j) = gᵢ·xⱼ` (rank-one, минус градиент в конвенции `chainGrad`) | Hagi/Theory/FirstLayerLip.lean:329 | — |
+| `w1CE_drop_of_step` | шаг `W1 + γ•D` внутри области активации: `CE' ≤ CE − nlDrop γ S ‖D‖_F` — посылка `nlDrop_le_optimal` выполнена | Hagi/Theory/FirstLayerLip.lean:339 | — |
+| `w1CE_optimal_step_drop` | `S > 0`: `γ* = 1/S`, certified drop `‖D‖²/(2S)` (`nl_drop_optimal`) — `S` вычисляется из `‖wo‖_F`, `‖x‖₂` | Hagi/Theory/FirstLayerLip.lean:392 | — |
+
+Witness: `.tmp/C684/traj.lean` (ι = Fin 3, δ = Fin 2, K = Fin 2; x = (1,2),
+wo = [[1,0],[0,2],[1,1]], b = 0, W1 = [[1,0],[0,1],[−1,1]],
+V1 = W1 − ½·e₀₀): Σx² = 5, Σwo² = 7 ⇒ S = 35, γ* = 1/35 = 0.0286,
+Lfun = 2√35 = 11.83; логиты W1 (2,5), V1 (3/2,5), ‖Δlogits‖² = 1/4 ≤ 35/4;
+маски равны (pre-активации (1,2,1) / (½,2,1)); rc = 0.
+Freeze 9221 → 9235 (+14: `parNorm`, `w1CE`, `parDiff`, `parNorm_sq_parDiff`,
+`parNorm_sq`, `row_sq_le`, `sum_mul_sq_le`, `w1Logits_sq_le`,
+`w1CE_lipschitz_param`, `w1L_eq_add_jac_of_mask_eq`, `w1CE_descent_lemma`,
+`w1DescentDir`, `w1CE_drop_of_step`, `w1CE_optimal_step_drop`).
+
+- Honest: глобальной гладкости по `W1` НЕТ (relu kink) — `S` действует
+  внутри области активации шага (посылка равенства масок); один вход (батч — сумма
+  rank-one, как C669); код не логирует `‖wo‖_F`, `‖x‖₂` ⇒ число `S` — только
+  на witness; Adam-шаг нормирован (`m̂/√v̂`), теорема — про `γ·∇`;
+  L_dir certified-шага (denom) — отдельная, диапазонная кривизна
+  (`ce_range_code_drop`, AdaptiveMajorizer.lean:1497), уже измеряется кодом.
+
 ## Hagi/Theory/MuonWide.lean (прямоугольный шаг Muon: широкая форма, сингулярные базисы, оптимум на строчных изометриях, C678)
 
 Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1349 @ca52eb4 —
@@ -2936,9 +2981,9 @@ Honest (границы):
 - `η` только существует; `cos_lr·0.7`, momentum `m1` — вне теории.
 - Пустой `m` разобран отдельно (`IsEmpty m`); witness для `m = 0` нет.
 
-## History (C538–C682)
+## History (C538–C684)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C682, сводка `#c668-c682`
+- Era index: `.omc/analysis/era-index.md` (C591–C684, сводка `#c668-c682`, `#c684`
   (заголовок эры C668–C682; старый якорь `#c668-c676` сохранён), якоря `#c638-c640`
   … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`, `#c679`, `#c680`, `#c681`, `#c682`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу

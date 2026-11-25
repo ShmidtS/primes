@@ -1,10 +1,12 @@
-# DERIVED-CONFIG — выводимая конфигурация обучения (C683)
+# DERIVED-CONFIG — выводимая конфигурация обучения (C683, C684)
 
 PROPOSAL-уровень: код HAGI_v2 не менялся. Факты кода — `hagi/` @ca52eb4
 (только чтение). Lean-сборка — `Hagi/Theory/DerivedConfig.lean`
 (`TrainingConfig`, `optimalConfig`, `optimalConfig_spec`).
 Расчёт — `python scripts/derive_config.py` (stdlib, детерминированный;
-вывод ниже без правки). Кредо: число появляется только если оно
+вывод ниже без правки). C684: константы `L` для relu-блока по `W1` —
+`Hagi/Theory/FirstLayerLip.lean` (Lipschitz `Lfun`, гладкость `S`).
+Кредо: число появляется только если оно
 (a) доказано в Lean, (b) вывод скрипта из констант кода @sha,
 (c) receipt бенча; иначе — `HONEST-GAP` с причиной.
 
@@ -16,7 +18,9 @@ PROPOSAL-уровень: код HAGI_v2 не менялся. Факты кода
 
 | Группа | Параметр | Теорема (FQN, якорь) | Статус |
 |---|---|---|---|
-| Шаг | γ* = 1/L, drop = G²/(2L) | `Hagi.Theory.NegativeTransfer.nl_drop_optimal`, NegativeTransfer.lean:481; максимум — `nlDrop_le_optimal`, NegativeTransfer.lean:467 | DERIVED (γ_auto = 1/(2·trH̄), receipt C609) / HONEST-GAP для Adam lr (L не измеряется) |
+| Шаг | γ* = 1/L, drop = G²/(2L) | `Hagi.Theory.NegativeTransfer.nl_drop_optimal`, NegativeTransfer.lean:481; максимум — `nlDrop_le_optimal`, NegativeTransfer.lean:467 | DERIVED (γ_auto = 1/(2·trH̄), receipt C609); Adam lr — HONEST-GAP-число: для relu-блока по `W1` гладкость `S = ‖wo‖_F²·‖x‖₂²` ДОКАЗАНА (C684, `w1CE_descent_lemma`), но код не логирует `‖wo‖_F`, `‖x‖₂` и Adam-шаг нормирован (не `1/S·∇`) |
+| Шаг (W1) | S = ‖wo‖_F²·‖x‖₂²; Lfun = 2·‖wo‖_F·‖x‖₂ | `Hagi.Theory.FirstLayerLip.w1CE_descent_lemma`, FirstLayerLip.lean:258; `w1CE_optimal_step_drop`, FirstLayerLip.lean:392; `w1CE_lipschitz_param`, FirstLayerLip.lean:182 | DERIVED-формула (witness 35, 1/35) / HONEST-GAP-число кода (‖wo‖, ‖x‖ не логируются) |
+| Шаг (certified) | L_dir = denom (кривизна направления) | `Hagi.Theory.AdaptiveMajorizer.ce_range_code_drop`, AdaptiveMajorizer.lean:1497; `ce_adaptive_code_drop`, AdaptiveMajorizer.lean:1473 | DERIVED: `denom = Q' + 4·curv_reg` (core.py:1314-1319) — код ИЗМЕРЯет L_dir, majorizer `η·A − η²·R²/8` |
 | Шаг | η* = −4a/R², drop = 2a²/R² | `Hagi.Theory.FunctionPreservingGrowth.useful_first_step`, FunctionPreservingGrowth.lean:584 | DERIVED: код `eta = 4A/denom`, `cert_drop = 2A²/denom` (core.py:1320-1321, lm.py:861) — та же формула при d = −ḡ (a = −A, R² = denom) |
 | Warm-up | COMMIT iff drop > 0 | `warmup_h1_of_certified_steps`, FunctionPreservingGrowth.lean:410 | BOUNDED: теорема требует drop > stepEps > 0; порог 1e-12 (core.py:1333) — любое положительное |
 | Snap | k* = ⌈log₂(L·d/ε)⌉ − 1 | `Hagi.Theory.GrowSnap.snap_k_eq_ceil`, GrowSnap.lean:342; минимальность — `snap_k_min`, GrowSnap.lean:301 | DERIVED (числа — receipt C597; в коде @sha snap-грида нет) |
@@ -38,10 +42,16 @@ PROPOSAL-уровень: код HAGI_v2 не менялся. Факты кода
 ## 2. Рассчитанная таблица (вывод `scripts/derive_config.py`)
 
 Обозначения кода: `ATA/TGC` — три машины receipt C609; `A = ‖ḡ‖²`,
-`denom` — кривизна направления (core.py:1314-1319).
+`denom` — кривизна направления (core.py:1314-1319). Строки `witness`
+(C684) — числа на входах `.tmp/C684/traj.lean` (x = (1,2),
+wo = [[1,0],[0,2],[1,1]]), НЕ на коде: код не логирует `‖wo‖_F`, `‖x‖₂`.
 
 |---|---|---|---|---|---|
-| γ (guarded Adam lr) | 0.003 | 1/L; L не измеряется в коде | — | HONEST-GAP | nl_drop_optimal NegativeTransfer.lean:481 |
+| γ (guarded Adam lr) | 0.003 | 1/S, S = ‖wo‖_F²·‖x‖₂²; S доказана (C684), ‖wo‖,‖x‖ в коде не логируются | — | HONEST-GAP | w1CE_optimal_step_drop FirstLayerLip.lean:392; nl_drop_optimal NegativeTransfer.lean:481 |
+| S (W1 smoothness) witness | — | 7·5 = 35 | — | BOUNDED | w1CE_descent_lemma FirstLayerLip.lean:258 (witness, не код) |
+| γ* = 1/S witness (W1, plain GD) | — | 1/35 = 0.0286 | — | BOUNDED | w1CE_optimal_step_drop :392 (witness, не код) |
+| Lfun (W1 Lipschitz) witness | — | 2·√7·√5 = 11.8322 | — | BOUNDED | w1CE_lipschitz_param :182 (функция, не градиент; witness) |
+| L_dir certified step (denom) | Q' + 4·curv_reg | R² = denom: код ИЗМЕРЯЕТ (core.py:1314-1319) | — | DERIVED | ce_range_code_drop AdaptiveMajorizer.lean:1497; useful_first_step :584 |
 | γ_auto ATA (ATA/TGC) | 0.4775 | 1/(2·trH̄)=5000000/10470759 | — | DERIVED | auto-LR 1/(2·trace H̄), receipt C609 |
 | γ_auto TGC (ATA/TGC) | 0.5203 | 1/(2·trH̄)=13500000/25944901 | — | DERIVED | auto-LR 1/(2·trace H̄), receipt C609 |
 | γ_auto TGC' (ATA/TGC) | 0.6671 | 1/(2·trH̄)=156250/234227 | — | DERIVED | auto-LR 1/(2·trace H̄), receipt C609 |
@@ -89,7 +99,7 @@ PROPOSAL-уровень: код HAGI_v2 не менялся. Факты кода
 | adapter min gain | 0.005 | — | — | HONEST-GAP | теоремы нет |
 | ternary grid | 3 levels, row scale mean|W| | — | — | HONEST-GAP | теоремы оптимальности нет |
 
-STATUS COUNTS: BOUNDED=11 DERIVED=21 HONEST-GAP=15
+STATUS COUNTS: BOUNDED=14 DERIVED=22 HONEST-GAP=15
 
 
 ## 3. Расхождения кода с выведенным (top)
@@ -104,6 +114,12 @@ STATUS COUNTS: BOUNDED=11 DERIVED=21 HONEST-GAP=15
    certified-stay. Квантификация: сигнал = n·G²/(2L) обратно пропорционален
    L; γ_auto-receipts дают L = 2.998–4.188 (1/γ_auto), код — L = CE.
    Знак вердикта при такой замене не выводится (HONEST-GAP).
+   Уточнение C684: для relu-блока по `W1` липшицева константа функции
+   `Lfun = 2·‖wo‖_F·‖x‖₂` и гладкость градиента `S = ‖wo‖_F²·‖x‖₂²` —
+   доказанные формулы (`w1CE_lipschitz_param`, `w1CE_descent_lemma`),
+   но код не логирует `‖wo‖_F`, `‖x‖₂`, а growth-гейт подставляет значение
+   CE — другая величина; в роль `L` гейта годится `S`, не `Lfun`:
+   `n·G²/(2L)` — из `nl_drop_optimal`, где `L` — гладкость.
 3. **Holdout и LCB-размер пробы.** Код: `max(256, 2%·n)` окон (lm.py:391),
    growth-проба 128, old-domains 256. Выведено: holdout ≥ 1199 (N = 10)
    ⇒ нужно n ≥ 59950 окон при 2%, либо доля ≥ 1199/n; LCB-проба ≥ 513
@@ -118,6 +134,7 @@ STATUS COUNTS: BOUNDED=11 DERIVED=21 HONEST-GAP=15
 
 | Параметр | Причина |
 |---|---|
+| Adam lr (число) | S для W1 доказана (C684), но: Adam-шаг нормирован (`m̂/√v̂`), теорема — про `γ·∇`; код не логирует ‖wo‖_F, ‖x‖₂ |
 | Adam β₁, β₂, eps | нет теоремы об оптимальности моментов/дисперсии в репозитории |
 | weight decay λ | `naive_decay_leak` описывает механизм leak, не оптимальное λ |
 | batch B | формула `amgm_equality` есть, входов Bn, t0, c в коде нет |
@@ -132,7 +149,8 @@ STATUS COUNTS: BOUNDED=11 DERIVED=21 HONEST-GAP=15
 ## 5. Ссылки
 
 - STATUS.md: NegativeTransfer, GrowSnap, CoverageReading, NadyaOptimal,
-  MuonDescentW1Rect (C668–C682), NewtonSchulzSigma.
+  MuonDescentW1Rect (C668–C682), NewtonSchulzSigma, FirstLayerLip (C684:
+  `w1CE_lipschitz_param`, `w1CE_descent_lemma`, `w1CE_optimal_step_drop`).
 - docs/paper-draft.md: таблица «доказано vs код» (receipts C597, C609, C623).
 - docs/PROPOSAL-holdout-size.md (#8), docs/PROPOSAL-certified-warmup.md (#7),
   docs/PROPOSAL-muon-guards.md (#9).
