@@ -83,7 +83,7 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | probability | `paired_lcb_false_grow_bound` (Hagi/Theory/NadyaOptimal.lean:270) | LCB gate, Надя.txt:109-112/:884-890 | conditional (deterministic radius r; code uses z·σ̂/√n) | C666 |
 | compression | `bypass_reaches_compression_limit` (Hagi/Theory/NadyaOptimal.lean:304); `ce_covered_zero` (Hagi/Theory/ExactBypass.lean:70) | EXACT_BYPASS, Надя.txt:695-750 | exact for the ideal coder (q = 1 on the support) | C666 |
 | growth | `wlogits_width_preserved` (Hagi/Theory/WidthGrowth.lean:597); `attn_score_scale_preserved` (:329); `rotary_old_pairs_unchanged` (:266) | `grow_width`, Надя.txt (function name) | exact for nh = 1, even width; honest gap: nh > 1, odd width, clip are hypotheses `WGrowth` | C667 |
-| step | `rank_one_inner_le` (Hagi/Theory/MuonSpectral.lean:156); `rank_one_spectral_norm` (:179); `rank_one_attains` (:231) | Newton–Schulz orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350, called with iters=3 at core.py:1755 @ca52eb4) | honest gap: rank-one spectral slice proved; full-rank Muon step (von Neumann) and `smax = ‖G‖₂` for real matrices open | C670 |
+| step | `rank_one_inner_le` (Hagi/Theory/MuonSpectral.lean:156); `rank_one_spectral_norm` (:179); `rank_one_attains` (:231) | Newton–Schulz orthogonalizer newton_schulz_orthogonalize (hagi/core.py:1350, called with iters=3 at core.py:1755 @ca52eb4) | honest gap: rank-one spectral slice proved; full-rank Muon step (von Neumann) open; C671: `smax = ‖G‖₂` for real matrices closed (`smax_eq_opNorm`, Hagi/Theory/MuonSpectral.lean:333) | C670/C671 |
 | step | `batch_directional_derivative` (Hagi/Theory/BatchRankOne.lean:65); `sgd_step_attains` (:136); `rank_one_best_v` (:209) | Muon step on `W1`, hagi/core.py:1755/:1350 @ca52eb4 | honest gap: Frobenius ball and rank-one family proved; spectral-norm optimum and the link to the lm.py:586 layer open | C669 |
 | step | `hasFDerivAt_w1L` (Hagi/Theory/FirstLayerGrad.lean:87); `w1_grad_rank_one` (:123); `useful_of_adam_first_w1` (:167) | first layer `W1`, hagi/lm.py:586/:594 @ca52eb4 | strict descent only (no certified drop; single input) | C668 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
@@ -972,7 +972,7 @@ global only probabilistically. Across the era the weak link moved from
 Axioms of every new theorem: propext, Classical.choice, Quot.sound.
 
 
-### 3.20 Later bridges (C651–C670): deltas on the §0 map
+### 3.20 Later bridges (C651–C671): deltas on the §0 map
 
 Rows: §0 (repair, archiver, Adam, useful first step, chain rule,
 holdout gate, window order; C666–C667: BitAlloc, schedule, LCB gate,
@@ -1061,6 +1061,22 @@ factor `U Vᵀ` of the gradient. Honest gap: only the rank-one slice is
 proved; the full Muon step (all ranks, von Neumann trace inequality /
 spectral–nuclear duality) is not in the Mathlib pin, and `smax G = ‖G‖₂`
 for real matrices is not derived here. Witness .tmp/C670/traj.lean, rc = 0.
+
+**(iv-e) The real spectral-norm bridge (C671).** For a real square `G`,
+`smax G = ‖G‖₂` (`smax_eq_opNorm`, Hagi/Theory/MuonSpectral.lean:333):
+writing `G = U Σ Vᵀ` (`smax_svd`), the operator norm is invariant under the
+orthogonal factors (`l2_opNorm_mul_orth`, via `Matrix.l2_opNorm_conjTranspose`
+and `l2_opNorm_conjTranspose_mul_self`) and `‖Σ‖₂ = max_i σ i` for `σ ≥ 0`
+(`l2_opNorm_diagonal_nonneg`). Consequences: `σ_max(G) ≤ ‖G‖_F`
+(`smax_le_frobenius`, :354 — the spectral ball contains the Frobenius ball
+of the same radius) and `‖G v‖₂ ≤ σ_max(G)·‖v‖₂` (`opNorm_mulVec_le`, :383).
+Route (b) — direct, via the SVD — was used; the transfer of the complex
+Flywheel theorem `spectral_norm_eq_max_singularValue` through
+`Matrix.map (ofReal)` (route (a)) was not needed. Honest gap: with the bridge,
+C670's statement reads «the rank-one step is optimal inside the spectral ball
+among rank-one steps»; the full Muon step `U Vᵀ` still needs von Neumann /
+spectral–nuclear duality; `‖u ⊗ v‖₂ = ‖u‖₂·‖v‖₂` for non-unit `u`, `v` is
+not stated (only the unit case). Witness .tmp/C671/traj.lean, rc = 0.
 
 **(v) Window order (C651 → C664).** After wave 258 the context is
 `idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;

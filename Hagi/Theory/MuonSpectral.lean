@@ -293,4 +293,96 @@ theorem rank_one_spectral_step_optimal [Nonempty n] (G : Matrix n n ℝ) :
   ⟨fun u v hu hv => ⟨rank_one_inner_le G u v hu hv, rank_one_spectral_norm u v hu hv⟩,
     rank_one_attains G⟩
 
+/-- `‖Y X‖ = ‖X‖` для `YᵀY = 1`. -/
+lemma l2_opNorm_mul_orth (Y X : Matrix n n ℝ) (hY : Yᵀ * Y = 1) : ‖Y * X‖ = ‖X‖ := by
+  have hY' : Yᴴ * Y = 1 := by rw [Matrix.conjTranspose_eq_transpose_of_trivial]; exact hY
+  have h : ‖Y * X‖ * ‖Y * X‖ = ‖X‖ * ‖X‖ := by
+    rw [← Matrix.l2_opNorm_conjTranspose_mul_self, ← Matrix.l2_opNorm_conjTranspose_mul_self]
+    rw [Matrix.conjTranspose_mul, Matrix.mul_assoc Xᴴ Yᴴ (Y * X),
+      ← Matrix.mul_assoc Yᴴ Y X, hY', Matrix.one_mul]
+  nlinarith [norm_nonneg (X : Matrix n n ℝ), norm_nonneg (Y * X : Matrix n n ℝ)]
+
+/-- Диагональная матрица: норма — супремум модулей. -/
+lemma l2_opNorm_diagonal_abs (σ : n → ℝ) [Nonempty n] :
+    ‖Matrix.diagonal σ‖ = Finset.sup' Finset.univ Finset.univ_nonempty (fun i => |σ i|) := by
+  classical
+  rw [Matrix.l2_opNorm_diagonal]
+  obtain ⟨k, -, hk⟩ := Finset.exists_max_image Finset.univ (fun i => |σ i|)
+    (Finset.univ_nonempty : (Finset.univ : Finset n).Nonempty)
+  have hsup : Finset.sup' Finset.univ Finset.univ_nonempty (fun i => |σ i|) = |σ k| :=
+    le_antisymm (Finset.sup'_le Finset.univ_nonempty _ fun i _ => hk i (Finset.mem_univ i))
+      (Finset.le_sup' (s := Finset.univ) (fun i => |σ i|) (Finset.mem_univ k))
+  rw [hsup]
+  simp only [norm]
+  refine le_antisymm ?_ ?_
+  · have h : Finset.sup Finset.univ (fun b => ‖σ b‖₊) ≤ ‖σ k‖₊ :=
+      Finset.sup_le fun i _ => by
+        exact_mod_cast hk i (Finset.mem_univ i)
+    exact_mod_cast h
+  · have h : ‖(σ k)‖₊ ≤ Finset.sup Finset.univ (fun b => ‖σ b‖₊) :=
+      Finset.le_sup (f := fun b => ‖σ b‖₊) (Finset.mem_univ k)
+    exact_mod_cast h
+
+/-- Диагональная матрица с неотрицательными элементами. -/
+lemma l2_opNorm_diagonal_nonneg (σ : n → ℝ) (hσ : ∀ i, 0 ≤ σ i) [Nonempty n] :
+    ‖Matrix.diagonal σ‖ = Finset.sup' Finset.univ Finset.univ_nonempty σ := by
+  rw [l2_opNorm_diagonal_abs]
+  exact Finset.sup'_congr Finset.univ_nonempty rfl fun i _ => abs_of_nonneg (hσ i)
+
+/-- **T1**: `smax G = ||G||_2`. -/
+theorem smax_eq_opNorm [Nonempty n] (G : Matrix n n ℝ) : smax G = ‖G‖ := by
+  classical
+  obtain ⟨U, V, σ, hUo, hVo, hσdef, hG⟩ := smax_svd G
+  have hUt : Uᵀ * U = 1 := (Matrix.mul_eq_one_comm_of_equiv (Equiv.refl n)).1
+    ((mem_orthogonalGroup_iff n ℝ).1 hUo)
+  have hVt : Vᵀ * V = 1 := (Matrix.mul_eq_one_comm_of_equiv (Equiv.refl n)).1
+    ((mem_orthogonalGroup_iff n ℝ).1 hVo)
+  have hright : ‖Matrix.diagonal σ * Vᵀ‖ = ‖Matrix.diagonal σ‖ := by
+    rw [← Matrix.l2_opNorm_conjTranspose (Matrix.diagonal σ * Vᵀ),
+      Matrix.conjTranspose_eq_transpose_of_trivial, Matrix.transpose_mul,
+      Matrix.transpose_transpose, Matrix.diagonal_transpose]
+    exact l2_opNorm_mul_orth _ _ hVt
+  have hn : ‖G‖ = Finset.sup' Finset.univ Finset.univ_nonempty σ := by
+    rw [hG, show U * Matrix.diagonal σ * Vᵀ = U * (Matrix.diagonal σ * Vᵀ) from mul_assoc _ _ _,
+      l2_opNorm_mul_orth _ _ hUt, hright,
+      l2_opNorm_diagonal_nonneg σ (fun i => by rw [hσdef]; exact Real.sqrt_nonneg _)]
+  show Finset.sup' Finset.univ Finset.univ_nonempty
+      (Hagi.External.Flywheel.Matrix.SVD.Real.realSingularValues G) = ‖G‖
+  rw [hn, hσdef]
+
+/-- **T3**: `smax G ≤ ‖G‖_F` (квадратный корень из суммы квадратов). -/
+theorem smax_le_frobenius [Nonempty n] (G : Matrix n n ℝ) :
+    smax G ≤ Real.sqrt (∑ i, ∑ j, G i j ^ 2) := by
+  rw [smax_eq_opNorm, Matrix.l2_opNorm_def]
+  set L := (Matrix.toEuclideanLin.trans LinearMap.toContinuousLinearMap) G with hL
+  have hmul (x : EuclideanSpace ℝ n) (i : n) : (L x) i = ∑ j, G i j * x j := by
+    rw [hL]
+    show Matrix.toLin' G (WithLp.ofLp x) i = _
+    rw [Matrix.toLin'_apply]
+    rfl
+  have hsq (x : EuclideanSpace ℝ n) : ‖x‖ ^ 2 = ∑ i, x i ^ 2 := by
+    rw [EuclideanSpace.norm_eq, sq, Real.mul_self_sqrt (Finset.sum_nonneg fun i _ => sq_nonneg _)]
+    simp
+  refine ContinuousLinearMap.opNorm_le_bound _ (Real.sqrt_nonneg _) fun x => ?_
+  have hLx : ∑ i, (L x) i ^ 2 ≤ (∑ i, ∑ j, G i j ^ 2) * ∑ j, x j ^ 2 := by
+    calc ∑ i, (L x) i ^ 2 ≤ ∑ i, (∑ j, G i j ^ 2) * ∑ j, x j ^ 2 := by
+          refine Finset.sum_le_sum fun i _ => ?_
+          rw [hmul x i]
+          exact Finset.sum_mul_sq_le_sq_mul_sq Finset.univ (fun j => G i j) (fun j => x j)
+      _ = (∑ i, ∑ j, G i j ^ 2) * ∑ j, x j ^ 2 := (Finset.sum_mul _ _ _).symm
+  have h1 : (∑ i, (L x) i ^ 2) ≤ (∑ i, ∑ j, G i j ^ 2) * (‖x‖ ^ 2) := by rw [hsq x]; exact hLx
+  have h2 : ‖L x‖ ^ 2 ≤ (Real.sqrt (∑ i, ∑ j, G i j ^ 2) * ‖x‖) ^ 2 := by
+    rw [hsq (L x), mul_pow]
+    have hF : 0 ≤ ∑ i, ∑ j, G i j ^ 2 := Finset.sum_nonneg fun i _ =>
+      Finset.sum_nonneg fun j _ => sq_nonneg _
+    rw [Real.sq_sqrt hF]
+    exact h1
+  exact (sq_le_sq₀ (norm_nonneg _) (mul_nonneg (Real.sqrt_nonneg _) (norm_nonneg _))).1 h2
+
+/-- **T2**: операторный коэффициент усиления: `‖G v‖₂ ≤ σ_max(G)·‖v‖₂`. -/
+theorem opNorm_mulVec_le [Nonempty n] (G : Matrix n n ℝ) (x : EuclideanSpace ℝ n) :
+    ‖(EuclideanSpace.equiv n ℝ).symm (G *ᵥ x.ofLp)‖ ≤ smax G * ‖x‖ := by
+  rw [smax_eq_opNorm G]
+  exact Matrix.l2_opNorm_mulVec G x
+
 end Hagi.Theory.MuonSpectral

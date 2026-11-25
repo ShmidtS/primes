@@ -279,6 +279,12 @@ Hagi/Theory/MuonSpectral.lean:156	rank_one_inner_le|decl
 Hagi/Theory/MuonSpectral.lean:179	rank_one_spectral_norm|decl
 Hagi/Theory/MuonSpectral.lean:231	rank_one_attains|decl
 Hagi/Theory/MuonSpectral.lean:289	rank_one_spectral_step_optimal|decl
+Hagi/Theory/MuonSpectral.lean:297	l2_opNorm_mul_orth|decl
+Hagi/Theory/MuonSpectral.lean:306	l2_opNorm_diagonal_abs|decl
+Hagi/Theory/MuonSpectral.lean:327	l2_opNorm_diagonal_nonneg|decl
+Hagi/Theory/MuonSpectral.lean:333	smax_eq_opNorm|decl
+Hagi/Theory/MuonSpectral.lean:354	smax_le_frobenius|decl
+Hagi/Theory/MuonSpectral.lean:383	opNorm_mulVec_le|decl
 Hagi/Theory/MuonSpectral.lean:46	fdot|decl
 Hagi/Theory/MuonSpectral.lean:49	r1|decl
 Hagi/Theory/MuonSpectral.lean:53	smax|decl

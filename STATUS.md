@@ -2177,7 +2177,7 @@ rc = 0. Freeze 9054 → 9070 (+16: `batchGrad`, `fdot`, `frobSq`, `rowGrad`,
   cross_entropy со средним — множитель `1/|τ|` на градиент). Muon-шаг кода
   (core.py:1755) относится к другой `W1`, чем слой `_block_add` (lm.py:586)
   — bridge to be made.
-## Hagi/Theory/MuonSpectral.lean (rank-one спектральный шаг Muon: σ_max, C670)
+## Hagi/Theory/MuonSpectral.lean (rank-one спектральный шаг Muon: σ_max, C670; мост σ_max = ‖G‖₂, C671)
 
 Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1350 @ca52eb4 (вызов —
 `W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)` core.py:1755
@@ -2197,6 +2197,10 @@ rc = 0. Freeze 9054 → 9070 (+16: `batchGrad`, `fdot`, `frobSq`, `rowGrad`,
 | `rank_one_spectral_norm` | T2: единичные `u`, `v` ⇒ `‖u ⊗ v‖₂ = 1` (rank-one шаг лежит на спектральной сфере) | Hagi/Theory/MuonSpectral.lean:179 | — |
 | `rank_one_attains` | T3 (достижимость): топ-пара (столбцы `U`, `V` с индексом топ-σ) единична и `⟨G, u₁ ⊗ v₁⟩ = σ_max(G)` | Hagi/Theory/MuonSpectral.lean:231 | — |
 | `rank_one_spectral_step_optimal` | T4 (итог): всякий rank-one шаг с единичными `u`, `v` имеет норму 1 и `⟨G, Δ⟩ ≤ σ_max(G)`; граница достигается | Hagi/Theory/MuonSpectral.lean:289 | — |
+| `l2_opNorm_mul_orth`, `l2_opNorm_diagonal_abs`, `l2_opNorm_diagonal_nonneg` | C671 (несущие): `YᵀY = 1 ⇒ ‖Y X‖₂ = ‖X‖₂`; `‖diag σ‖₂ = max_i abs(σ i)`; для `σ ≥ 0` — `max_i σ i` | Hagi/Theory/MuonSpectral.lean:297, :306, :327 | — |
+| `smax_eq_opNorm` | C671 T1 (вещественный мост): `smax G = ‖G‖₂` | Hagi/Theory/MuonSpectral.lean:333 | — |
+| `smax_le_frobenius` | C671 T2: `σ_max(G) ≤ ‖G‖_F = √(Σ G i j²)` — spectral ball содержит F-ball | Hagi/Theory/MuonSpectral.lean:354 | — |
+| `opNorm_mulVec_le` | C671 T3: `‖G v‖₂ ≤ σ_max(G)·‖v‖₂` в EuclideanSpace (операторная форма `rank_one_norm_bound`) | Hagi/Theory/MuonSpectral.lean:383 | — |
 
 Witness: `.tmp/C670/traj.lean` (G = diag(3,1), n = 2): для любой единичной
 пары `⟨G, u ⊗ v⟩ ≤ smax G` (T1), `‖u ⊗ v‖ = 1` (T2), топ-пара существует (T3),
@@ -2213,8 +2217,13 @@ Witness: `.tmp/C670/traj.lean` (G = diag(3,1), n = 2): для любой еди�
   (scripts/mathlib-rev.txt) их нет: LinearMap.singularValues есть (sNum0,
   antitone, без равенства операторной норме), spectral_norm_eq_max_singularValue
   доказан во Flywheel (Hagi/External/Flywheel/MatrixNormRelations.lean:328,
-  комплексный случай); эквивалентность `smax G = ‖G‖₂` для вещественных матриц
-  здесь НЕ выведена (кандидат на следующий шаг). Характеризация «равенство ⟺
+  комплексный случай). C671: эквивалентность `smax G = ‖G‖₂` для вещественных
+  матриц ДОКАЗАНА (`smax_eq_opNorm`, путь `G = U Σ Vᵀ` + инвариантность
+  операторной нормы). Witness `.tmp/C671/traj.lean` — общие теоремы, rc = 0
+  (числовой пример 2×2 не вычислялся: `realSingularValues` конкретной матрицы
+  не оценивается). Freeze 9084 → 9090 (+6: `l2_opNorm_mul_orth`,
+  `l2_opNorm_diagonal_abs`, `l2_opNorm_diagonal_nonneg`, `smax_eq_opNorm`,
+  `smax_le_frobenius`, `opNorm_mulVec_le`). Характеризация «равенство ⟺
   топ-пара» (при кратном топ-σ оптимум не единственный) не формализована.
   Прямоугольный слой (`ι ≠ δ`) не формализован (Flywheel
   svd_decomposition_rectangular — комплексный). Код: newton_schulz_orthogonalize
@@ -2443,7 +2452,7 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
   эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
   Adam в него не вписан.
 
-## History (C538–C670)
+## History (C538–C671)
 
 - Era index: `.omc/analysis/era-index.md` (C591–C670, якоря `#c638-c640`
   … `#c665-c667`, `#c668`, `#c669`, `#c670`); более ранние per-beat файлы — `git log`. Журнал

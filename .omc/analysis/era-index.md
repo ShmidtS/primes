@@ -1,4 +1,4 @@
-# Era index — C591–C670 (2026-11-22/25)
+# Era index — C591–C671 (2026-11-22/25)
 
 Навигация по эрам: период | главные коммиты | доказанные
 результаты | фронтир на конец эры. Per-beat-файлы
@@ -325,3 +325,22 @@
 - Honest (down-scope): только rank-one срез; полный шаг Muon `U Vᵀ` (von
   Neumann / спектрально-ядерная дуальность) не доказан; `smax = ‖G‖₂` для
   вещественных матриц не выведен; прямоугольный слой не формализован.
+
+<a id="c671"></a>
+## C671 — вещественный мост `σ_max = ‖G‖₂` и spectral ball (freeze 9084→9090)
+
+- Коммит: `feat: real spectral norm equals top singular value muon ball corollaries`
+  (sha — в receipt `.tmp/C671/receipt.md`).
+- Исследование: пин C670 «`smax = ‖G‖₂` для вещественных матриц не выведен».
+  Flywheel: `spectral_norm_eq_max_singularValue` (комплексный, MatrixNormRelations:328,
+  через `l2_opNorm_hermitian_eq_sup_abs_eigenvalues`). Mathlib v4.36 pin:
+  `Matrix.l2_opNorm_diagonal`, `l2_opNorm_conjTranspose`,
+  `l2_opNorm_conjTranspose_mul_self`, `l2_opNorm_mulVec`; вещественного
+  `l2_opNorm_le_frobenius_norm` в pin нет (во Flywheel — только комплексный).
+- Результат: `Hagi/Theory/MuonSpectral.lean` — `smax_eq_opNorm` (T1, путь (b):
+  SVD + инвариантность), `smax_le_frobenius` (T2), `opNorm_mulVec_le` (T3);
+  несущие `l2_opNorm_mul_orth`, `l2_opNorm_diagonal_abs`, `l2_opNorm_diagonal_nonneg`.
+- Источники: ask.sciencemadereadable.com — релевантных работ по запросу нет
+  (неполезно); Palomar `?view=cards` — JS-страница, карту найти не удалось.
+- Honest (down-scope): `‖u ⊗ v‖₂ = ‖u‖₂·‖v‖₂` для неединичных векторов
+  не доказан — отброшен по Sunk Cost; полный шаг Muon (von Neumann) по-прежнему открыт.
