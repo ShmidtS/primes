@@ -1886,7 +1886,7 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
   `tritPack`/`tritUnpack`, `tritPack_lt_243` (guard недостижим),
   `trit_roundtrip`, `tritPack_injective`. Bench: нет.
 
-## Hagi/Theory/MasterTheoremV3.lean (метатеорема v3 → v3.4)
+## Hagi/Theory/MasterTheoremV3.lean (метатеорема v3 → v3.5)
 
 - `master_theorem_v3` (Hagi/Theory/MasterTheoremV3.lean:83): 5 гарантий
   машины v3 (params-бюджет, zero-forgetting, coverage-монотонность,
@@ -1934,6 +1934,31 @@ necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
   файле. Witness: C662 traj (#check 14 клозов;
   (14): ln 400 ≤ 2·1200·0.05²). Axioms: propext, Classical.choice,
   Quot.sound. Proposal: docs/PROPOSAL-holdout-size.md (#8).
+- `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458) — v3.5 =
+  v3.4 + оптимизаторный блок (C668–C687): 14 клозов машины + контракт (O7)
+  + 6 клозов оптимизатора ОДНОЙ теоремой; (1)–(14) одним делегатом
+  `hagi_master_v34`, ноль новых доказательств:
+
+| # | клоз | делегат | с версии |
+|---|---|---|---|
+| (O7) | honest-closure: контракт `OptimizerPremises` — первая конъюнкта блока | сама структура | v3.5 (C687) |
+| (O1) | grad structure: ∇_{W1} CE одного входа rank-one (g ⊗ x); батч: D CE[Δ] = −⟨Σ_t g_t⊗x_t, Δ⟩ | `w1_grad_rank_one`, `batch_directional_derivative` | v3.5 (C687) |
+| (O2) | smooth step: γ* = 1/S_batch, drop = ‖D‖²/(2·S_batch) (сумма CE батча); вдоль любого d: γ* = a/(L‖d‖²) | `w1BatchCE_optimal_step_drop`, `dir_drop_optimal` | v3.5 (C687) |
+| (O3) | Muon optimality: ⟨G,Δ⟩ ≤ Σσ на изометриях (ΔᵀΔ = 1; wide ΔΔᵀ = 1), максимум достигается | `muon_step_optimal_in_isometry_group`, `wide_step_optimal'` | v3.5 (C687) |
+| (O4) | NS approximation: σ₀ ∈ [1/2,1] ⇒ σ₃ ≥ 39/40; ⟨G, ns_k G⟩ = Σ σ i·ns_seq k (σ i) | `ns_sigma_min_three`, `muon_alignment_exact`, `wide_alignment_exact'` | v3.5 (C687) |
+| (O5) | descent certificate: ∃ η>0, CE строго убывает после W1 − η·ns_k(Ĝ), слой любой формы (один вход, батч) | `muon_step_useful_w1_rect'`, `muon_step_useful_w1_rect_batch'` | v3.5 (C687) |
+| (O6) | momentum: ⟨G,m⟩ ≥ (1−μ)‖G‖² − μ‖G‖‖m_prev‖; ≥ ‖G‖² при ⟨G,m_prev⟩ ≥ ‖G‖²; Muon с моментом: ⟨G,Xₖ⟩ ≥ ‖m‖_F − ‖G−m‖_F‖Xₖ‖_F | `momentum_align_cs`, `momentum_align_ge_grad`, `muon_momentum_bound` | v3.5 (C687) |
+
+  Контракт посылок слоя — `OptimizerPremises` (MasterTheoremV3.lean:428),
+  (O1)–(O6) обусловлены им:
+  `S_batch > 0`, равные маски до/после шага `1/S_batch`, вне kink,
+  `G ≠ 0` (батч и один вход, `x ≠ 0`); прочие посылки — дословно
+  посылки делегатов (`d ≠ 0`, `0 ≤ μ`, `⟪grad z, m_prev⟫ ≥ ‖grad z‖²`,
+  `card m ≤ card n`, `σ ∈ [1/2, 1]`, `m ≠ 0`). Mean-форма батча —
+  `w1MeanCE_optimal_step_drop` (C685), в v3.5 не входит. Witness:
+  C687 traj (пример C685/C686: Fin 3 × Fin 2, S_batch = 49, вне kink;
+  hsame/hG/hgS — hypothesis-примеры). Axioms: propext, Classical.choice,
+  Quot.sound. Docs: DERIVED-CONFIG v2, paper v1.4 §3.17.
 
 ## Hagi/Theory/FactLedger.lean (fact-ledger append-only мост)
 
@@ -2102,6 +2127,8 @@ unified.py:383-440 @ca52eb4; `_certified_finite_step` lm.py:826 @ca52eb4.
 
 ## Hagi/Theory/FirstLayerGrad.lean (производная по первому слою W1, C668)
 
+→ v3.5 clause O1: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
+
 Код-якорь HAGI_v2: `_block_add` lm.py:586 @ca52eb4
 (`h = h + t.relu(a @ blk["W1"] + blk["b1"]) @ blk["Wo"]`), `W1 : dim ×
 hidden` — lm.py:594 @ca52eb4. Пин F3 карточки FunctionPreservingGrowth
@@ -2139,6 +2166,8 @@ Freeze 9043 → 9054 (+11: `w1Pre`, `w1L`, `w1PreCLM`, `w1Jac`, `w1Jac_apply`,
 
 
 ## Hagi/Theory/BatchRankOne.lean (батч-градиент по W1 и оптимальный шаг, C669)
+
+→ v3.5 clause O1: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
 
 Код-якорь HAGI_v2: `W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1,
 iters=3)` core.py:1755 @ca52eb4 — Muon-шаг (Newton–Schulz-ортогонализация,
@@ -2181,6 +2210,8 @@ rc = 0. Freeze 9054 → 9070 (+16: `batchGrad`, `fdot`, `frobSq`, `rowGrad`,
   (core.py:1755) относится к другой `W1`, чем слой `_block_add` (lm.py:586)
   — bridge to be made.
 ## Hagi/Theory/MuonSpectral.lean (rank-one спектральный шаг Muon: σ_max, C670; мост σ_max = ‖G‖₂, C671; full step → MuonIsometry)
+
+→ v3.5: зависимости делегатов (клоза своего нет); сборка — `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), C687.
 
 Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1350 @ca52eb4 (вызов —
 `W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)` core.py:1755
@@ -2234,6 +2265,8 @@ Witness: `.tmp/C670/traj.lean` (G = diag(3,1), n = 2): для любой еди�
   якорь @sha.
 
 ## Hagi/Theory/MuonIsometry.lean (полный шаг Muon оптимален на изометриях, C672)
+
+→ v3.5 clause O3: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
 
 Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1350 @ca52eb4 — итерация
 `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` core.py:1363; нормировка — Frobenius
@@ -2294,6 +2327,8 @@ Honest (границы):
 
 ## Hagi/Theory/NewtonSchulzSigma.lean (скалярная динамика Ньютона–Шульца и граница σ_min после k итераций, C673)
 
+→ v3.5 clause O4: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
+
 Код-якорь HAGI_v2: итерация `X = 0.5 * (3.0 * I_m - X @ X.T) @ X`
 core.py:1363 @ca52eb4 — КВАДРАТИЧНАЯ схема `X ← (3X − X·XᵀX)/2`
 (`a = 3/2`, `b = −1/2`, кубичного члена `(3.4445, −4.7750, 2.0315)` в коде НЕТ);
@@ -2340,6 +2375,8 @@ Honest (границы):
   `muon_near_optimal`).
 
 ## Hagi/Theory/MuonAlignment.lean (Newton–Schulz делит сингулярные векторы с градиентом: точное выравнивание, C674)
+
+→ v3.5 clause O4: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
 
 Код-якорь HAGI_v2: итерация `X = 0.5 * (3.0 * I_m - X @ X.T) @ X`
 core.py:1363 @ca52eb4 — ПРАВОЕ умножение `X` на симметричный множитель
@@ -2390,6 +2427,8 @@ Honest (границы):
   выбор `U` не единственен) — на утверждение T3 не влияет.
 
 ## Hagi/Theory/MuonDescent.lean (нормировка градиента, сертификат спуска Muon-шага, C675 — ИТОГ ЦЕПОЧКИ C668–C675)
+
+→ v3.5: зависимости делегатов (клоза своего нет); сборка — `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), C687.
 
 Код-якорь HAGI_v2: нормировка `G / (G.norm() + eps)` core.py:1353, итерация
 core.py:1363, обновление слоя `W1 -= (cos_lr*0.7)*newton_schulz_orthogonalize(m1,
@@ -2445,6 +2484,8 @@ Honest (границы):
   но с momentum и для их набора коэффициентов); Shulgin et al. 2610.30280,
   Wang et al. 2609.33152. Формализации не добавили, ссылок в Lean нет.
 ## Hagi/Theory/MuonDescentW1.lean (мост «слой W1 → Muon-шаг», снятие гипотезы `φ`, C676)
+
+→ v3.5: зависимости делегатов (клоза своего нет); сборка — `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), C687.
 
 Код-якорь HAGI_v2: блок роста `h = h + relu(a @ W1 + b1) @ Wo` (hagi/lm.py:586
 @ca52eb4), лосс — кросс-энтропия со средним по батчу (lm.py:688), обновление
@@ -2717,6 +2758,8 @@ eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
 
 ## Hagi/Theory/MuonDescentW1Rect.lean (мост «прямоугольный слой W1 → широкий Muon-шаг», C681–C682)
 
+→ v3.5 clause O5: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
+
 ВЕРХНИЙ ИТОГ (C682): для слоя `W1 : ι → δ → ℝ` ЛЮБОЙ формы (широкий,
 квадратный, высокий), вне kink, `G ≠ 0`, любого `k` шаг кода
 `W1 − η·wide_iter k Ĝ` строго спускает CE (один вход и сумма по батчу) —
@@ -2806,6 +2849,8 @@ Honest (границы):
 
 ## Hagi/Theory/FirstLayerLip.lean (константа L для CE relu-блока по W1: Lipschitz и гладкость, C684)
 
+→ v3.5 clause O2: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
+
 Код-якорь HAGI_v2: слой `W1 : dim × hidden` hagi/lm.py:586/:594 @ca52eb4;
 growth-гейт подставляет значение CE в роль `L` (unified.py:400-405 @ca52eb4);
 certified-шаг измеряет кривизну направления denom = Q' + 4·curv_reg
@@ -2849,6 +2894,8 @@ Freeze 9221 → 9235 (+14: `parNorm`, `w1CE`, `parDiff`, `parNorm_sq_parDiff`,
   (`ce_range_code_drop`, AdaptiveMajorizer.lean:1497), уже измеряется кодом.
 
 ## Hagi/Theory/MuonWide.lean (прямоугольный шаг Muon: широкая форма, сингулярные базисы, оптимум на строчных изометриях, C678)
+
+→ v3.5 clause O3/O4: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
 
 Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1349 @ca52eb4 —
 если строк больше столбцов, транспонирует к широкой форме (core.py:1358),
@@ -2921,6 +2968,8 @@ Honest (границы):
 
 ## Hagi/Theory/WideSVD.lean (вещественный прямоугольный SVD из квадратного: pad-to-square, C679)
 
+→ v3.5 clause O3/O4: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
+
 Снимает гипотезу карточки MuonWide (C678): разложение `G = U·diag σ·Vᵀ`
 (`U : m×m`, `V : n×m`, `UᵀU = VᵀV = 1`, `σ ≥ 0`) для широкой
 вещественной `G : m×n` (`card m ≤ card n`) — теперь ТЕОРЕМА. Вывод
@@ -2992,6 +3041,8 @@ Honest (границы):
 
 ## Hagi/Theory/FirstLayerLipBatch.lean (батч-версия гладкости CE-слоя W1: S_batch, γ*, mean-форма кода, C685)
 
+→ v3.5 clause O2: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
+
 Код-якорь HAGI_v2: слой `W1 : dim × hidden` hagi/lm.py:586 @ca52eb4; лосс —
 `ce(reduction="mean")` hagi/lm.py:299 @ca52eb4 (батчное среднее). Батч-версия
 `Hagi/Theory/FirstLayerLip.lean` (C684, один вход): сумма CE по входам
@@ -3031,6 +3082,8 @@ Freeze 9235 → 9249 (+14: `w1BatchCE`, `xMaxSq`, `S_batch`,
   шаг вдоль произвольного направления и момент `m1` — MomentumAlign.lean.
 
 ## Hagi/Theory/MomentumAlign.lean (шаг вдоль направления, момент `m1`, Muon с моментом, C686)
+
+→ v3.5 clause O2/O6: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
 
 Код-якорь HAGI_v2 @ca52eb4, Muon-гибрид hagi/core.py:1715–1765: `m1 = 0.85·m1 + 0.15·(градиент W1)`
 (core.py:1754) — EMA, без nesterov-члена, без поправки смещения;
@@ -3092,9 +3145,9 @@ Witness: `.tmp/C686/traj.lean`, rc = 0. Момент `G = (2,0)`, `μ = 0.9`:
   вне утверждения; значение `μ = 0.85` не выводится; код не логирует
   `⟨G,m1⟩`, `‖G−m1‖_F` (PROPOSAL `docs/PROPOSAL-muon-guards.md`, (e)).
 
-## History (C538–C686)
+## History (C538–C687)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C686, сводка `#c668-c682`, `#c684`, `#c685`, `#c686`
+- Era index: `.omc/analysis/era-index.md` (C591–C687, сводка `#c668-c687`, `#c684`, `#c685`, `#c686`, `#c687`
   (заголовок эры C668–C682; старый якорь `#c668-c676` сохранён), якоря `#c638-c640`
   … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`, `#c679`, `#c680`, `#c681`, `#c682`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу

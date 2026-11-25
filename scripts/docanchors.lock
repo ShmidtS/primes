@@ -298,6 +298,8 @@ Hagi/Theory/MasterTheoremV3.lean:128	hagi_master_v31|decl
 Hagi/Theory/MasterTheoremV3.lean:187	hagi_master_v32|decl
 Hagi/Theory/MasterTheoremV3.lean:252	hagi_master_v33|decl
 Hagi/Theory/MasterTheoremV3.lean:323	hagi_master_v34|decl
+Hagi/Theory/MasterTheoremV3.lean:428	OptimizerPremises|decl
+Hagi/Theory/MasterTheoremV3.lean:458	hagi_master_v35|decl
 Hagi/Theory/MasterTheoremV3.lean:83	master_theorem_v3|decl
 Hagi/Theory/MergeQuant.lean:204	fisher_quant_loss_bound|decl
 Hagi/Theory/MiniHagiLoop.lean:117	IterState|decl

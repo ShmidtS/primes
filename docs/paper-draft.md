@@ -1,9 +1,10 @@
 # Certify-Then-Commit: A Formally Verified Self-Improving Learning System
 
-Draft v1.3 (release). Все утверждения — либо Lean-якорь (FQN, файл, строка;
-сверены `scripts/DocAnchorCheck.py` на дереве a4204451, freeze 9218
-(9207 identity + 11 новых, C682); предыдущая сверка 57483f97, 9149;
-предыдущая e160b7ec, 9043), либо
+Draft v1.4 (release). Все утверждения — либо Lean-якорь (FQN, файл, строка;
+сверены `scripts/DocAnchorCheck.py` на дереве 748a26a3 + C687 (HEAD^
+748a26a3), freeze 9279 (9277 identity при 748a26a3 + 2 новых: `OptimizerPremises`,
+`hagi_master_v35`); предыдущая сверка a4204451, 9218; предыдущая 57483f97,
+9149), либо
 измеренный результат прогона с указанием витка (Cn), либо PIN в §5.
 Якоря кода HAGI_v2 (python `file:line@sha`) сверены `git show` на
 указанном sha (мосты C638–C648: @1ae924e / @ca52eb4, волны 254–255;
@@ -18,14 +19,17 @@ e40aa426: новый индекс не генерировался.
 step is taken only after a machine-checked certificate: PROPOSE →
 CERTIFY → ADMIT → COMMIT/HOLD/ROLLBACK → LOG, formalized in Lean 4
 against Mathlib (**12 875 theorems in 543 modules, 0 `sorry`**, count at
-e40aa426; freeze inventory **9218** declarations at a4204451, of which
-9149 at e40aa426, all identical). The cycle
+e40aa426; freeze inventory **9279** declarations at 748a26a3 + C687, of which
+9218 at a4204451, all identical). The cycle
 theorem `certify_then_commit_sound` gives, per T-round run, objective
 telescoping, a 1 − δtotal bound on false commits, an ε-bound on
 holdout-risk growth and exact budget balance; the consolidated statement
 `hagi_master_v34` covers the machine in fourteen clauses (the eleven of
 v3.3 plus the useful first growth step, the Adam first step and the
-two-way holdout gate, C662). Measured end to
+two-way holdout gate, C662); its version v3.5, `hagi_master_v35`
+(Hagi/Theory/MasterTheoremV3.lean:458, C687), adds the optimizer
+block under one premise contract `OptimizerPremises` — the contract
+itself (O7) and six clauses (O1)–(O6). Measured end to
 end: mini-HAGI v3 covers 108/115 targets in one live trace (26 certified
 steps, forget = 0 bit-exact; C558), the reading floor ⌈nB/w⌉ is attained
 and a 2-level hierarchy cuts the peak window budget 127 → 63 at n = 8128
@@ -43,8 +47,11 @@ the singular bases and the optimum over row isometries `ΔΔᵀ = I` is
 unconditional: for a wide `G ≠ 0` `⟨G, wide_iter k Ĝ⟩ ≥ ‖G‖_F` with no
 structural hypothesis (C680), and for the code-shaped layer `W1` of
 ANY shape, wide or tall, the Muon update is a proved strict descent of
-the CE outside the kink (C681–C682). Release feature: **19 PALOMAR
-cards** and a **§0 map of 40 code bridges** (C521–C682) in which the consumer's own code (HAGI_v2, python
+the CE outside the kink (C681–C682); since C687 the optimizer theorems
+(rank-one gradient, optimal smooth step, Muon optimality on isometries,
+Newton–Schulz approximation, descent certificate, momentum alignment)
+are six clauses of one theorem, `hagi_master_v35`. Release feature: **19 PALOMAR
+cards** and a **§0 map of 44 code bridges** (C521–C687) in which the consumer's own code (HAGI_v2, python
 `file:line@sha`) is checked against the canon and labelled exact,
 conditional or honest-gap. We state the open hypotheses as pins (§5,
 pins 30–34): U2 global reachability, the chain rule behind a < 0 (closed
@@ -108,12 +115,16 @@ something the theorem does not cover, said so). Row numbers are cycles.
 | step | `w1CE_lipschitz_param` (Hagi/Theory/FirstLayerLip.lean:182); `w1CE_descent_lemma` (:258); `w1CE_drop_of_step` (:339); `w1CE_optimal_step_drop` (:392) | growth gate L := CE value (hagi/unified.py:400 @ca52eb4); certified-step curvature denom = Q' + 4·curv_reg (hagi/core.py:1314 @ca52eb4); Adam lr 3e-3 | SmoothLip (C684): for the relu block `relu(W1ᵀx + b)ᵀ wo` the CE loss is globally 2·‖wo‖_F·‖x‖₂-Lipschitz in `W1` (function level), and inside one activation region its gradient is ‖wo‖_F²·‖x‖₂²-Lipschitz (`lse_descent` + Cauchy–Schwarz), so the plain-GD step γ* = 1/S with drop ‖D‖²/(2S) is a computable number (`nl_drop_optimal`); honest gap: no global smoothness across the relu kink, one input, the code logs neither ‖wo‖_F nor ‖x‖₂ and its Adam step is normalised; the certified step's directional curvature `denom` is a different, already measured quantity (`ce_range_code_drop`) | C684 |
 | step | `w1BatchCE_descent_lemma` (Hagi/Theory/FirstLayerLipBatch.lean:113); `w1BatchCE_optimal_step_drop` (:218); `w1MeanCE_optimal_step_drop` (:247); `S_batch_le_max` (:86) | batch mean cross-entropy `ce(reduction="mean")` (hagi/lm.py:299 @ca52eb4); growth-block layer lm.py:586; Adam lr 3e-3 | SmoothBatch (C685): for a batch the smoothness of the batch-sum CE inside one activation region is `S_batch = ‖wo‖_F²·Σ_t‖x t‖₂²` (the sum of the one-input constants of C684; at most `B·‖wo‖_F²·max_t‖x t‖₂²`), the plain batch-gradient step `W1 + γ•D_batch` drops at least `nlDrop γ S_batch ‖D_batch‖_F` with `γ*_batch = 1/S_batch`; for the code's mean loss `S_mean = S_batch/B`, `γ*_mean = B/S_batch` — so the learning-rate reference is a number once the code logs `‖wo‖_F²` and `‖x t‖₂²` (PROPOSAL-smoothness-logging, #11); honest gap: no global smoothness across the relu kink, the code's direction is Muon/Adam on the momentum `m1`, telemetry not yet in the code | C685 |
 | step | `dir_drop_optimal` (Hagi/Theory/MomentumAlign.lean:112); `momentum_align` (:140); `momentum_align_ge` (:169); `momentum_dir_drop_le_gd` (:207); `w1BatchCE_dir_optimal_step_drop` (:261); `muon_momentum_bound` (:419); `muon_momentum_third` (:442) | momentum buffer `m1 = 0.85·m1 + 0.15·gW1` (hagi/core.py:1754 @ca52eb4, EMA without Nesterov term or bias correction); Muon update core.py:1755 orthogonalises `m1` | MomentumAlign (C686): along any direction `d` the optimal step of an `L`-smooth objective is `γ* = a/(L‖d‖²)` with drop `a²/(2L‖d‖²)`, `a = −⟪∇f,d⟫` (`nlDrop` is the case `d ∝ ∇f`); for the layer the same holds with `S_batch`. The momentum alignment is exact: `⟪G,m⟫ = 0.15‖G‖² + 0.85⟪G,m_prev⟫`, at least `0.15‖G‖²` when `⟪G,m_prev⟫ ≥ 0` and at least `‖G‖²` when `⟪G,m_prev⟫ ≥ ‖G‖²` (not when merely `≥ 0`; the unconditional bound `(1−μ)‖G‖²` is false). With `X = ns_k(m̂)`: `‖m‖_F − ‖G−m‖_F·‖X‖_F ≤ ⟨G, X⟩`, hence `‖G‖_F/3 ≤ ⟨G, X⟩` whenever `‖G−m‖_F‖X‖_F ≤ ‖m‖_F/2` (a half is impossible: `‖G‖ ≤ (3/2)‖m‖`); the certified drop along `m` never exceeds `‖G‖²/(2L)`; honest gap: the value `0.85`, the residual condition is not checked by the code, `cos_lr·0.7`, kink, telemetry of `⟨G,m1⟩` and `‖G−m1‖_F` not yet in the code (PROPOSAL-muon-guards (e)) | C686 |
+| step | `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458); premise contract `OptimizerPremises` (Hagi/Theory/MasterTheoremV3.lean:428) | Muon layer update `W1 -= (cos_lr*0.7)*newton_schulz_orthogonalize(m1, iters=3)` (hagi/core.py:1755 @ca52eb4) | exact (consolidation of the step rows above: clauses (1)–(14) of the machine + (O1)–(O6) of the optimizer, no new proof; code step size `cos_lr·0.7` and μ = 0.85 stay honest gaps) | C687 |
 | rollback | `post_warmup_growth_safe` (Hagi/Theory/FunctionPreservingGrowth.lean:352) | keep-iff-holdout, hagi/unified.py:435-437 @ca52eb4 | conditional (h1) | C642 |
 
 **What is proved end to end.** Inside Lean, with no code hypothesis:
 the cycle theorem (`certify_then_commit_sound`,
 Hagi/Theory/CertifyThenCommit.lean:327) and its fourteen-clause
-consolidation (`hagi_master_v34`, Hagi/Theory/MasterTheoremV3.lean:323)
+consolidation (`hagi_master_v34`, Hagi/Theory/MasterTheoremV3.lean:323;
+v3.5 = these fourteen + the premise contract (O7) + the optimizer
+clauses (O1)–(O6),
+`hagi_master_v35`, Hagi/Theory/MasterTheoremV3.lean:458)
 — budget, zero-forgetting under a frozen task, objective telescoping,
 coverage monotonicity, the exact transfer iff, the minimal snap grid,
 the coverage floor and peak window budget. Against the consumer's code,
@@ -825,6 +836,38 @@ trajMT32.lean (applications of (9) to L=2, G=1 — drop = 1/4 — and of
 (11) at n=8128, B=4032, w=64 — total 127 = ⌈8128/64⌉, floor against
 an arbitrary covering list L); all rc = 0.
 
+**v3.5 — optimizer clauses (C687).** `hagi_master_v35`
+(Hagi/Theory/MasterTheoremV3.lean:458) = v3.3 + (12)(13)(14) + the
+optimizer block (C668–C687) as trailing clauses: (O7) = the premise
+contract `OptimizerPremises` itself, then six clauses (O1)–(O6),
+discharged through ONE delegate (`hV34`) plus one proved theorem per
+clause:
+
+| Clause | Statement | Delegate | Since |
+|---|---|---|---|
+| (O7) | honest-closure: the single premise contract `OptimizerPremises` (kink-free, `G ≠ 0`, equal masks, `S_batch > 0`) holds — first conjunct of the block | the structure itself | v3.5 (C687) |
+| (O1) | grad structure: `∇_{W1} CE` of one input is rank one (`g ⊗ x`); over a batch `D CE[Δ] = −⟨Σ_t g_t ⊗ x_t, Δ⟩` | `w1_grad_rank_one` (Hagi/Theory/FirstLayerGrad.lean:123); `batch_directional_derivative` (Hagi/Theory/BatchRankOne.lean:65) | v3.5 (C687) |
+| (O2) | smooth step: at `γ* = 1/S_batch` the batch CE sum drops by `‖D‖²/(2·S_batch)`; along any `d ≠ 0`: `γ* = a/(L‖d‖²)`, drop `a²/(2L‖d‖²)` | `w1BatchCE_optimal_step_drop` (Hagi/Theory/FirstLayerLipBatch.lean:218); `dir_drop_optimal` (Hagi/Theory/MomentumAlign.lean:112) | v3.5 (C687) |
+| (O3) | Muon optimality: `⟨G, Δ⟩ ≤ Σσ` over the isometries (`ΔᵀΔ = 1`; wide: `ΔΔᵀ = 1`), the maximum attained | `muon_step_optimal_in_isometry_group` (Hagi/Theory/MuonIsometry.lean:175); `wide_step_optimal'` (Hagi/Theory/WideSVD.lean:317) | v3.5 (C687) |
+| (O4) | NS approximation: `σ₀ ∈ [1/2, 1] ⇒ σ₃ ≥ 39/40`; `⟨G, ns_k G⟩ = Σ σ i·ns_seq k (σ i)` | `ns_sigma_min_three` (Hagi/Theory/NewtonSchulzSigma.lean:126); `muon_alignment_exact` (Hagi/Theory/MuonAlignment.lean:104); `wide_alignment_exact'` (Hagi/Theory/WideSVD.lean:306) | v3.5 (C687) |
+| (O5) | descent certificate: `∃ η > 0` with strict CE decrease after `W1 − η·ns_k(Ĝ)`, layer of ANY shape, one input and batch | `muon_step_useful_w1_rect'` (Hagi/Theory/MuonDescentW1Rect.lean:348); `muon_step_useful_w1_rect_batch'` (:369) | v3.5 (C687) |
+| (O6) | momentum: `⟨G,m⟩ ≥ (1−μ)‖G‖² − μ‖G‖‖m_prev‖` always, `≥ ‖G‖²` if `⟨G,m_prev⟩ ≥ ‖G‖²`; Muon with momentum: `⟨G,Xₖ⟩ ≥ ‖m‖_F − ‖G−m‖_F‖Xₖ‖_F` | `momentum_align_cs` (Hagi/Theory/MomentumAlign.lean:149); `momentum_align_ge_grad` (:179); `muon_momentum_bound` (:419) | v3.5 (C687) |
+
+(O1)–(O6) are conditioned on (O7); the layer premises live in ONE
+contract, the structure
+`OptimizerPremises` (Hagi/Theory/MasterTheoremV3.lean:428:
+`S_batch > 0`, equal relu masks before/after the `1/S_batch` step,
+outside the kink, batch gradient `≠ 0`, and for the single input
+`g ≠ 0`, `x ≠ 0`); the remaining hypotheses (`d ≠ 0`, `0 ≤ μ`,
+`⟪grad z, m_prev⟫ ≥ ‖grad z‖²`, `card m ≤ card n`, `σ ∈ [1/2, 1]`,
+`m ≠ 0`) are the delegates' premises verbatim. No new proof; axioms 3
+(`propext`, `Classical.choice`, `Quot.sound`). Witness
+`.tmp/C687/traj.lean`, rc = 0 (the C685/C686 example: ι = Fin 3,
+δ = Fin 2, `S_batch = 49`, outside the kink; `σ = 1/2 ⇒ σ₃ ≥ 39/40`).
+The batch mean form of the code is proved separately
+(`w1MeanCE_optimal_step_drop`, Hagi/Theory/FirstLayerLipBatch.lean:247)
+and is not a clause of v3.5.
+
 ### 3.18 The reading era: floor → hierarchy → w-rule → near-const → mixed-w*
 
 C618–C628.
@@ -1232,6 +1275,36 @@ not per unit of step norm (those numbers are witnesses). The guards
 this gap asks of the code are in docs/PROPOSAL-muon-guards.md
 (code-side pending; the zero-norm guard (a) is already in the code at
 core.py:1355).
+
+**v3.5 — formal closure of the chain (C687).** The theorems of this
+subsection are now clauses of ONE statement, `hagi_master_v35`
+(Hagi/Theory/MasterTheoremV3.lean:458): (O1) grad structure, (O2)
+smooth step, (O3) Muon optimality on isometries, (O4) NS approximation,
+(O5) descent certificate, (O6) momentum, under the premise contract (O7) — see §3.17 for the clause
+table and `OptimizerPremises`
+(Hagi/Theory/MasterTheoremV3.lean:428). Honest (a)–(f) re-checked
+against the clauses:
+
+- (a) in the theorem: strict descent for a layer of any shape (O5),
+  the momentum buffer bounded through the residual (O6). Still honest:
+  an explicit `η` (only `∃η`), `cos_lr·0.7` is not related to `γ*` of
+  (O2), μ = 0.85 as a value, the zero-norm guard and `iters = 3` (code
+  facts), the relu kink (a premise of the contract).
+- (b) still honest: the maximum over the spectral ball `‖Δ‖₂ ≤ 1`
+  (von Neumann); in the theorem only the isometry group (O3).
+- (c) partly closed: a Lipschitz descent lemma IS in the theorem for
+  the first layer `W1` (O2, `S = ‖wo‖_F²·‖x‖₂²` and its batch form);
+  convergence and an explicit step size are outside the theory.
+- (d) updated: the batch mean of lm.py:688 now has a theorem of its
+  own (`w1MeanCE_optimal_step_drop`, C685), outside v3.5; in the
+  theorem the batch sum (O2, O5); `G ≠ 0` is a premise of the contract.
+- (e) still honest: singular values below `1/2` carry no lower bound
+  after three iterations (O4 holds for `σ₀ ∈ [1/2, 1]` only).
+- (f) unchanged: Muon versus sign is compared by the first-order drop;
+  (O3) gives the optimum on isometries, not per unit of step norm.
+- Adam: only the first step (`⟨g, d⟩ > 0`, clause (13)) is in the
+  theorem; the Adam direction as a descent direction after the first
+  step, and WidthGrowth + Muon, batch-size theory, are not.
 
 **(v) Window order (C651 → C664).** After wave 258 the context is
 `idx[p−n .. p)` but the target is `idx[pos + k]` — a k-byte gap;
@@ -1867,6 +1940,8 @@ not a Lean clause.
 | neg_transfer_char | Hagi/Theory/NegativeTransfer.lean:117 | C572 |
 | hagi_master_v33 | Hagi/Theory/MasterTheoremV3.lean:252 | C622 |
 | hagi_master_v34 | Hagi/Theory/MasterTheoremV3.lean:323 | C662 |
+| hagi_master_v35 | Hagi/Theory/MasterTheoremV3.lean:458 | C687 |
+| OptimizerPremises | Hagi/Theory/MasterTheoremV3.lean:428 | C687 |
 | holdout_gate_two_way | Hagi/Theory/HoldoutGateTwoWay.lean:52 | C660 |
 | holdout_gate_two_way_delta | Hagi/Theory/HoldoutGateTwoWay.lean:109 | C660 |
 | chain_linear | Hagi/Theory/FunctionPreservingGrowth.lean:721 | C663 |
@@ -1895,4 +1970,8 @@ not a Lean clause.
      v1.3 (C682, docs-only): no Appendix row moved; one §0 row added
      (C682, MuonDescentW1Rect.lean:248); doc anchors re-checked on
      a4204451 (freeze 9218).
+     v1.4 (C687): no Appendix row moved (the v3.5 block is appended at
+     the end of MasterTheoremV3.lean; its earlier declarations keep their
+     lines); rows C687 (hagi_master_v35 :458, OptimizerPremises :428)
+     added; doc anchors re-checked on 748a26a3 + C687 (freeze 9279).
      Muon rows of §0 collapsed to four (GradLayer, OptimalStep, Muon, W1). -->

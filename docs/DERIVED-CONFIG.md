@@ -1,4 +1,4 @@
-# DERIVED-CONFIG — выводимая конфигурация обучения (C683–C686)
+# DERIVED-CONFIG v2 — выводимая конфигурация обучения (C683–C687)
 
 PROPOSAL-уровень: код HAGI_v2 не менялся. Факты кода — `hagi/` @ca52eb4
 (только чтение). Lean-сборка — `Hagi/Theory/DerivedConfig.lean`
@@ -7,6 +7,10 @@ PROPOSAL-уровень: код HAGI_v2 не менялся. Факты кода
 вывод ниже без правки). C684: константы `L` для relu-блока по `W1` —
 `Hagi/Theory/FirstLayerLip.lean` (Lipschitz `Lfun`, гладкость `S`). C685:
 батч-версия `Hagi/Theory/FirstLayerLipBatch.lean` (`S_batch`, mean-форма кода).
+v2 (C687): derived from `hagi_master_v35`
+(Hagi/Theory/MasterTheoremV3.lean:458) — единая теорема = клозы (1)–(14)
+машины + оптимизаторный блок (O7) ∧ (O1)–(O6), где (O7) — сам контракт
+посылок `OptimizerPremises` (Hagi/Theory/MasterTheoremV3.lean:428).
 Кредо: число появляется только если оно
 (a) доказано в Lean, (b) вывод скрипта из констант кода @sha,
 (c) receipt бенча; иначе — `HONEST-GAP` с причиной.
@@ -35,12 +39,26 @@ PROPOSAL-уровень: код HAGI_v2 не менялся. Факты кода
 | Cosine | 3/20 ≤ sched ≤ 1 | `cosine_sched_bounds`, NadyaOptimal.lean:143 | BOUNDED (описание, не оптимум): относится к schedule «Надя» (floor 0.15·lr₀); `train_minibatch` использует PyTorch-косинус с eta_min = 0 (lm.py:404) — другой schedule, floor не выводится |
 | Batch | B² = Bn·t0/c | `amgm_equality`, Audit.lean:651 | HONEST-GAP-число: Bn, t0, c не измерены |
 | Decay | (1−ηλ)-leak | `naive_decay_leak`, WeightDecayLeak.lean:126 | HONEST-GAP: значение λ не выводится |
+| **v3.5 (O1)** | grad structure: `∇_{W1} CE = g ⊗ x` (rank one); батч: `D CE[Δ] = −⟨Σ_t g_t ⊗ x_t, Δ⟩` | `w1_grad_rank_one`, FirstLayerGrad.lean:123; `batch_directional_derivative`, BatchRankOne.lean:65 (оба в `hagi_master_v35`, MasterTheoremV3.lean:458) | DERIVED-формула (без посылок; код не логирует `g`, `x` по отдельности) |
+| **v3.5 (O2)** | smooth step: γ* = 1/S_batch (сумма CE по батчу; mean — `B/S_batch`), drop = ‖D‖²/(2·S_batch); вдоль любого `d`: γ* = a/(L‖d‖²), drop a²/(2L‖d‖²) | `w1BatchCE_optimal_step_drop`, FirstLayerLipBatch.lean:218; `w1MeanCE_optimal_step_drop`, FirstLayerLipBatch.lean:247; `dir_drop_optimal`, MomentumAlign.lean:112 | DERIVED-формула / HONEST-GAP-число (посылки `S_batch > 0`, равные маски; код шага `1/S_batch` не делает) |
+| **v3.5 (O3)** | Muon optimality: `⟨G, Δ⟩ ≤ Σσ` на изометриях (`ΔᵀΔ = 1`, `ΔΔᵀ = 1`), максимум достигается | `muon_step_optimal_in_isometry_group`, MuonIsometry.lean:175; `wide_step_optimal'`, WideSVD.lean:317 | DERIVED (теорема-факт шага кода `ns₃(Ĝ)`; не значение параметра) |
+| **v3.5 (O4)** | NS approximation: σ₃ ≥ 39/40 при σ₀ ∈ [1/2, 1]; `⟨G, ns_k G⟩ = Σ σ i·ns_seq k (σ i)` | `ns_sigma_min_three`, NewtonSchulzSigma.lean:126; `muon_alignment_exact`, MuonAlignment.lean:104; `wide_alignment_exact'`, WideSVD.lean:306 | DERIVED (iters = 3, core.py:1755) |
+| **v3.5 (O5)** | descent certificate: `∃ η > 0`, CE строго убывает после `W1 − η·ns_k(Ĝ)`, слой любой формы (батч и один вход) | `muon_step_useful_w1_rect_batch'`, MuonDescentW1Rect.lean:369; `muon_step_useful_w1_rect'`, MuonDescentW1Rect.lean:348 | BOUNDED (только `∃η`; величина `η` и `cos_lr·0.7` не связаны; посылки — вне kink, `G ≠ 0`) |
+| **v3.5 (O6)** | momentum: `⟨G,m⟩ ≥ (1−μ)‖G‖² − μ‖G‖‖m_prev‖` всегда; `≥ ‖G‖²` при `⟨G,m_prev⟩ ≥ ‖G‖²`; Muon с моментом: `⟨G,Xₖ⟩ ≥ ‖m‖_F − ‖G−m‖_F‖Xₖ‖_F` | `momentum_align_cs`, MomentumAlign.lean:149; `momentum_align_ge_grad`, MomentumAlign.lean:179; `muon_momentum_bound`, MomentumAlign.lean:419 | BOUNDED (числа — телеметрия PROPOSAL-muon-guards (e)); μ = 0.85 — HONEST-GAP) |
 
 Сборка: `Hagi.Theory.DerivedConfig.optimalConfig_spec` — γ, η, k*, w*
 подставлены в теоремы выше без переформулировки (Freeze identity:
 9218 → 9221, +3 декларации, аксиом ≤3). Holdout/LCB/cosine/Muon
 в структуру не вошли: их теоремы не являются «значение-оптимум»
 интервала/вероятности — подстановка потребовала бы новых statements.
+
+Вторая сборка (v2, C687): `hagi_master_v35` (MasterTheoremV3.lean:458) —
+(1)–(14) машины + (O7) ∧ (O1)–(O6) ОДНОЙ конъюнкцией ((O7) — контракт
+`OptimizerPremises` как первая конъюнкта блока); посылки слоя — контрактом
+`OptimizerPremises` (MasterTheoremV3.lean:428: `S_batch > 0`, равные
+маски, вне kink, `G ≠ 0`), прочие — в точности посылки делегатов
+(`d ≠ 0`, `0 ≤ μ`, `⟨grad z, m_prev⟩ ≥ ‖grad z‖²`, `card m ≤ card n`,
+`σ ∈ [1/2, 1]`, `m ≠ 0`). Ноль новых доказательств, аксиом 3.
 
 ## 2. Рассчитанная таблица (вывод `scripts/derive_config.py`)
 
@@ -145,7 +163,7 @@ STATUS COUNTS: BOUNDED=18 DERIVED=22 HONEST-GAP=16
 
 | Параметр | Причина |
 |---|---|
-| Adam lr (число) | γ* = 1/S_batch (mean: B/S_batch) доказана (C684–C685), но: Adam-шаг нормирован (`m̂/√v̂`), теорема — про `γ·∇`; код не логирует ‖wo‖_F², Σ_t‖x t‖₂² — до телеметрии PROPOSAL #11 |
+| Adam lr (число) | γ* = 1/S_batch (mean: B/S_batch) доказана (C684–C685, v3.5 O2), но: Adam-шаг нормирован (`m̂/√v̂`), теорема — про `γ·∇`; код не логирует ‖wo‖_F², Σ_t‖x t‖₂² — до телеметрии PROPOSAL #11 |
 | Adam β₁, β₂, eps | нет теоремы об оптимальности моментов/дисперсии в репозитории |
 | Muon μ = 0.85 | выравнивание и граница drop доказаны (C686, MomentumAlign.lean); оптимальности значения μ нет, код не логирует ⟨G,m1⟩, ‖G−m1‖_F |
 | weight decay λ | `naive_decay_leak` описывает механизм leak, не оптимальное λ |
@@ -153,15 +171,38 @@ STATUS COUNTS: BOUNDED=18 DERIVED=22 HONEST-GAP=16
 | steps / epochs, T_max | нет теоремы о длине цикла |
 | k_ctx, dim, hidden, seed, init scale | нет теоремы о ёмкости/ширины |
 | backtrack β, число проб | нет теоремы |
-| Muon momentum 0.85 (значение), scale 0.7 | значения не выводятся; доказаны: σ₃ ≥ 39/40, выравнивание ⟨G,m1⟩ (C686), граница drop при близком моменте |
+| Muon momentum 0.85 (значение), scale 0.7 | значения не выводятся; доказаны (v3.5 O4/O6): σ₃ ≥ 39/40, выравнивание ⟨G,m1⟩ (C686), граница через невязку; шаг кода `cos_lr·0.7` не связан с `∃η` теоремы O5 |
 | LCB z | r — свободный параметр теоремы; z не выводится |
 | adapter min gain, ternary grid | нет теоремы оптимальности |
 | holdout k, LCB | таблица чисел не доказана (BOUNDED) |
 
+### Что блокирует оставшиеся HONEST-GAP (v3.5)
+
+| Параметр | Чего не хватает |
+|---|---|
+| Adam lr (число) | то и другое: теорема для нормированного Adam-шага (`m̂/√v̂`) + измерение в коде (`‖wo‖_F²`, `Σ_t‖x t‖₂²`, PROPOSAL #11) |
+| cos_lr·0.7 ↔ γ* | то и другое: теорема (величина `η` в O5 — только `∃η`; связь с `1/S_batch` для шага Muon не доказана) + измерение (телеметрия `S_batch`, PROPOSAL-muon-guards (e)) |
+| Muon μ = 0.85 | то и другое: теорема об оптимальности `μ` + измерение (`⟨G,m1⟩`, `‖G−m1‖_F` в коде) |
+| Adam β₁, β₂, eps | теорема (оптимальность моментов/дисперсии) |
+| Adam-направление (⟨g, d⟩ > 0 только на первом шаге, клоз (13)) | теорема (спуск после первого шага) |
+| фон Нейман (максимум `⟨G, Δ⟩` по шару `‖Δ‖₂ ≤ 1`) | теорема (доказан максимум только на изометриях, O3) |
+| kink (relu) | то и другое: теорема о шаге через kink + измерение (доля входов на kink) |
+| малые σ (< 1/2) | теорема (после 3 итераций нет нижней границы; зависимость от `iters`) |
+| weight decay λ | теорема (оптимальное `λ`) |
+| batch B | то и другое: теорема (`amgm_equality` есть) + измерение (`Bn`, `t0`, `c`) |
+| steps / epochs, T_max | теорема (длина цикла) |
+| k_ctx, dim, hidden, seed, init scale | теорема (ёмкость/ширина) |
+| backtrack β, число проб | теорема |
+| LCB z | теорема (вывод `z`) |
+| adapter min gain, ternary grid | теорема оптимальности |
+| growth probe n | теорема (формализация `n`) |
+| growth L (гейт) | измерение (в роли `L` гейта — `S`, не значение CE; `S` не логируется) + теорема-certified-stay при такой замене |
+| coverage w | измерение (`a`, `c` в коде не измеряются) |
+
 ## 5. Ссылки
 
 - STATUS.md: NegativeTransfer, GrowSnap, CoverageReading, NadyaOptimal,
-  MuonDescentW1Rect (C668–C682), NewtonSchulzSigma, FirstLayerLipBatch (C685), MomentumAlign (C686: шаг вдоль направления, момент `m1`, Muon с моментом), FirstLayerLip (C684:
+  MuonDescentW1Rect (C668–C682), NewtonSchulzSigma, FirstLayerLipBatch (C685), MomentumAlign (C686: шаг вдоль направления, момент `m1`, Muon с моментом), MasterTheoremV3 (C687: `hagi_master_v35`, клозы O1–O6), FirstLayerLip (C684:
   `w1CE_lipschitz_param`, `w1CE_descent_lemma`, `w1CE_optimal_step_drop`).
 - docs/paper-draft.md: таблица «доказано vs код» (receipts C597, C609, C623).
 - docs/PROPOSAL-holdout-size.md (#8), docs/PROPOSAL-certified-warmup.md (#7),

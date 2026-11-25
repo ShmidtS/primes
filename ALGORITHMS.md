@@ -3283,7 +3283,7 @@ Bench-мосты: [`CertCEHoldout`](Hagi/Theory/CertCEHoldout.lean),
 | [`NegativeTransfer`](Hagi/Theory/NegativeTransfer.lean) | C572 | точная iff-граница warm хуже cold (квадратичный мир); бюджет не размывает. |
 | [`Softmax` (C569)](Hagi/Theory/Softmax.lean) | C569 | суммарная p̂-анти-монотонность: держится ровно при фиксированном числителе одной банки; контрпример-теорема при смешении. |
 | [`TritCodec`](Hagi/Theory/TritCodec.lean) | C574 | биекция 5 тритов ↔ байт (3^5 = 243 ≤ 2^8), roundtrip + инъективность. |
-| [`MasterTheoremV3`](Hagi/Theory/MasterTheoremV3.lean) | C576 | лестница v3 → v3.4 одним файлом: 5/8/10/11/14 клозов (конъюнкция делегатов; C600, C614, C622, C662). |
+| [`MasterTheoremV3`](Hagi/Theory/MasterTheoremV3.lean) | C576 | лестница v3 → v3.5 одним файлом: 5/8/10/11/14/14+6 клозов (конъюнкция делегатов; C600, C614, C622, C662; v3.5 = + контракт `OptimizerPremises` (O7) и оптимизаторный блок O1–O6, C687). |
 | [`AutoTransferGate`](Hagi/Theory/AutoTransferGate.lean) | C577 | probe-A/B гейт warm/cold = точная граница C572 в H-метрике. |
 | [`FactLedger`](Hagi/Theory/FactLedger.lean) | C579 | append-only факт-леджер: preserves + monotone; dedup честно опущен. |
 | [`RangeWrap`](Hagi/Theory/RangeWrap.lean) | C581 | замкнутость mod-wrap в [lo, lo+m) (Int.emod). |

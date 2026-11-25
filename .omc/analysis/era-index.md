@@ -260,7 +260,8 @@
   hagi/unified.py:1010 @bab8aff ещё `[::-1]`; U2 открыт.
 
 <a id="c668-c676"></a>
-## C668–C682 — эра «Muon chain»: шаг Muon слоя W1 как доказанный спуск (freeze 9043→9218)
+<a id="c668-c687"></a>
+## C668–C687 — эра «Muon chain → optimizer»: шаг Muon слоя W1 как доказанный спуск, консолидация в v3.5 (freeze 9043→9279)
 
 Сводка эры (секции C668..C682 ниже — носители, не удалять):
 - Коммиты: c85d35bf (C668), 3c1fb372 (C669), a3f7c669 (C670), ff584ffb
@@ -537,7 +538,6 @@
   гипотезы; (2) мост «слой `W1 : ι → δ → ℝ` → широкий `G`» и сертификат
   спуска C676 на нём; (3) транспонирование (высокий случай).
 
-<a id="c668-c682"></a>
 <a id="c682"></a>
 ## C682 — Высокий слой W1: транспонирование снимает посылку размерности (freeze →9218)
 
@@ -753,6 +753,12 @@
   Adam-шаг нормирован и применяется к `m1`.
 - Следующий шаг: momentum `m1` (код применяет NS к `m1`) или поворот к
   WidthGrowth + Muon.
+- Продолжение эры (C683–C687): C683 — DerivedConfig; C684 — `L`/`S` для
+  relu-блока по `W1`; C685 — батч `S_batch`; C686 — момент `m1`; C687 —
+  консолидация всего блока в `hagi_master_v35` (v3.5, контракт O7 + клозы O1–O6).
+- Honest эры (итог, C687): `cos_lr·0.7` ↔ `γ*` не связано; `∃η` без
+  величины; фон Нейман (шар `‖Δ‖₂ ≤ 1`); Adam-направление после первого
+  шага; μ = 0.85; kink; малые σ (< 1/2).
 
 <a id="c686"></a>
 ## C686 — Шаг вдоль направления, момент `m1`, Muon с моментом (freeze →9277)
@@ -788,3 +794,32 @@
 - Следующий шаг: (1) связать шаг кода `cos_lr·0.7` с `γ*` (оценка `L` вдоль
   `X₃`); (2) Adam-часть (`m2/√v2`) как направление `d` с нормой; (3) порт
   телеметрии (e) в код и bench-числа `align`, `resid`.
+
+<a id="c687"></a>
+## C687 — MasterTheorem v3.5: консолидация optimizer-блока C668–C686 (freeze 9277→9279)
+
+- Коммит: `feat: master theorem v35 optimizer clauses and derived config v2`
+  (sha — в receipt `.tmp/C687/receipt.md`); HEAD^ = 748a26a3 (C686).
+- Lean (`Hagi/Theory/MasterTheoremV3.lean`, append-only, +импорт
+  MomentumAlign): `OptimizerPremises` (:428) — единый контракт посылок
+  (`S_batch > 0`, равные маски, вне kink, `G ≠ 0`); `hagi_master_v35`
+  (:458) — клозы (1)–(14) v3.4 (один делегат `hagi_master_v34`) ∧
+  (O7) контракт, (O1) grad structure, (O2) smooth step, (O3) Muon optimality,
+  (O4) NS approximation, (O5) descent certificate, (O6) momentum.
+  Ноль новых доказательств; Freeze identity 9277, +2. Аксиомы 3.
+  Существующие строки файла не сдвинуты (шапка переконвертирована без
+  сдвига: якоря v3–v3.4 на месте).
+- Witness `.tmp/C687/traj.lean`, rc = 0: пример C685/C686 (Fin 3 × Fin 2,
+  S_batch = 49, вне kink), контракт `OptimizerPremises` собран,
+  делегаты O1/O2/O4/O5 применены, σ = 1/2 ⇒ σ₃ ≥ 39/40, Muon 1×1.
+- Docs: DERIVED-CONFIG v2 (+6 строк O1–O6, таблица «что блокирует
+  HONEST-GAP»; счётчики BOUNDED=18 DERIVED=22 HONEST-GAP=16 — скрипт
+  не менялся); paper v1.4 (шапка, §0 +1 мост, §3.17 дельта v3.5,
+  §3.20.x honest (a)–(f) против клозов); STATUS-карточка MasterTheoremV3 +
+  cross-link «→ v3.5 clause» в 14 карточках optimizer-модулей;
+  PALOMAR Card 18; ALGORITHMS; era-index (эра расширена до C687).
+- Следующий шаг: (1) `cos_lr·0.7` ↔ `γ*` (оценка `L` вдоль `X₃`);
+  (2) Adam-направление (`m̂/√v̂`) как направление спуска; (3) фон Нейман
+  (максимум на шаре `‖Δ‖₂ ≤ 1`); (4) WidthGrowth + Muon; (5) теория
+  batch-size.
+
