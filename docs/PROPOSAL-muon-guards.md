@@ -101,10 +101,11 @@ skipped steps are counted and reported (no target).
   the code. The rectangular Newton–Schulz iterate is formalised in
   primes (C678, `Hagi/Theory/MuonWide.lean`: the code line
   core.py:1363 equals the proved step; the iterates keep the singular
-  bases; the optimum over row isometries `ΔΔᵀ = I` is `Σ σ i`) — but
-  under the hypothesis that `G` has a real wide SVD, which is not
-  proved, and the descent certificate of C676 is not yet instantiated
-  on that carrier.
+  bases; the optimum over row isometries `ΔΔᵀ = I` is `Σ σ i`); the
+  real wide SVD is a theorem since C679 (`exists_wide_svd`,
+  `Hagi/Theory/WideSVD.lean`), so T1', T2 and the optimum hold
+  unconditionally; `σ i ≤ 1` for the normalised wide gradient and the
+  descent certificate of C676 on that carrier are not yet proved.
 - (2) The code orthogonalises `m1`, not `G`; momentum is outside the
   theory.
 - (3) `cos_lr·0.7` is not the proved `η`; guard (c) is a runtime

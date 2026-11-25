@@ -2273,7 +2273,8 @@ Honest (границы):
   сингулярные векторы с `G` ⇒ `UᵀΔ_kV` диагональна; лемма о диагонали не
   нужна). Прямоугольный `G` (транспонирование core.py:1358) — wide →
   MuonWide (C678: `wide_step_optimal` — тот же максимум `Σ σ i` на
-  строчных изометриях, разложение `G` — гипотеза). Связь с обновлением `W1` (core.py:1755 ↔ lm.py:586) —
+  строчных изометриях; существование разложения `G` — C679
+  `exists_wide_svd`). Связь с обновлением `W1` (core.py:1755 ↔ lm.py:586) —
   не формализована.
 - Формулы «идеальный Newton–Schulz = `U Vᵀ`» (сходимость итерации
   core.py:1363 к полярному фактору) — не формализована; мост только @sha.
@@ -2327,8 +2328,8 @@ Honest (границы):
 - T5/T5' — собственный вектор `XᵀX` (мост «сингулярные числа ⇒ скалярная
   динамика» через SVD не собран: нужен спектр `YᵀY` из `smax_svd`-носителя).
 - Прямоугольный `X` (транспонирование core.py:1358) — wide → MuonWide
-  (C678: `ns_step_wide_svd` — T1 для `m×n`, `VᵀV = 1`; разложение —
-  гипотеза); сходимость к `U Vᵀ`, кубичная схема (в коде отсутствует) —
+  (C678: `ns_step_wide_svd` — T1 для `m×n`, `VᵀV = 1`; существование
+  разложения — C679 `exists_wide_svd`); сходимость к `U Vᵀ`, кубичная схема (в коде отсутствует) —
   не формализованы.
 - Мост к C672 НЕ следует через `σ_min` (нужна диагональ `Q = UᵀΔ_kV`);
   закрыт в C674 другим путём — через общие сингулярные векторы
@@ -2750,12 +2751,12 @@ Lean проверяет: `VᵀV = 1`; T1 — `ns_step G = U·diag(117/128, 11/16
 T5 — `⟨G, UVᵀ⟩ = 3/4 + 1/2` и для любой `Δ` с `ΔΔᵀ = 1`: `⟨G, Δ⟩ ≤
 3/4 + 1/2`. Аксиомы всех 8 теорем: propext, Classical.choice, Quot.sound.
 
-ГИПОТЕЗА (не доказано): во всех T1–T5 разложение `G = U·diag σ·Vᵀ`
-с `UᵀU = VᵀV = 1` — посылка. Вещественного прямоугольного SVD в репо нет
-(есть комплексный `svd_decomposition_rectangular` и вещественный
-квадратный `smax_svd`, C671). Карточка «pad-to-square»: дополнить `G`
-нулями до `n×n`, взять квадратный SVD, выделить нулевые сингулярные
-значения — следующий шаг, объём не оценён.
+ГИПОТЕЗА СНЯТА (C679): разложение `G = U·diag σ·Vᵀ` с `UᵀU = VᵀV = 1`
+существует — `exists_wide_svd` (Hagi/Theory/WideSVD.lean:145, pad-to-square
+из квадратного SVD). T1', T2, T4–T5 переформулированы без посылки
+разложения: `wide_iter_svd'`, `wide_alignment_exact'`,
+`wide_step_optimal'` (`∃ σ`). Остаются посылками: `σ i ≤ 1` (T3) и
+само разложение в исходных формулировках T1–T5 (API сохранён).
 
 Honest (границы):
 - Проверка `norm < 1e-12 → return X` (core.py:1355) не формализована
@@ -2769,10 +2770,59 @@ Honest (границы):
 - Мост к функциональному носителю слоя (`W1 : ι → δ → ℝ`, C676) и
   обновление `W1` для прямоугольного слоя не формализованы.
 
-## History (C538–C678)
+## Hagi/Theory/WideSVD.lean (вещественный прямоугольный SVD из квадратного: pad-to-square, C679)
 
-- Era index: `.omc/analysis/era-index.md` (C591–C678, сводка `#c668-c676`, якоря `#c638-c640`
-  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`); более ранние per-beat файлы — `git log`. Журнал
+Снимает гипотезу карточки MuonWide (C678): разложение `G = U·diag σ·Vᵀ`
+(`U : m×m`, `V : n×m`, `UᵀU = VᵀV = 1`, `σ ≥ 0`) для широкой
+вещественной `G : m×n` (`card m ≤ card n`) — теперь ТЕОРЕМА. Вывод
+(pad-to-square, путь A): `Ĝ = [G; 0] : n×n` (`padSquare`), квадратный SVD
+`Ĝ = U Σ Vᵀ` (`constructedU_real`, `rightOrthogonal`,
+`realSingularValues`, SVDReal.lean). Собственные значения `ĜᵀĜ = GᵀG`
+антонатонны (`eigenvalues₀_antitone` по нумерации `enum`), число
+ненулевых равно `rank (GᵀG) = rank G ≤ card m` (rank_eq_card_non_zero_eigs,
+rank_transpose_mul_self, rank_le_card_height), поэтому `σ x = 0` вне
+первых `card m` индексов (`zeros_outside_leading`). Тогда `G = K·V₀ᵀ`,
+где `V₀ : n×m` — первые `card m` столбцов `V` (изометрия), а `K := G·V₀`
+квадратная `m×m`; квадратный SVD `K = U·diag σ·Wᵀ` (`svd_decomposition`)
+даёт `G = U·diag σ·(V₀W)ᵀ` с `UᵀU = (V₀W)ᵀ(V₀W) = 1`. Второй SVD
+(для `K`) обязателен: подматрица `U[range, range]` при `rank G < card m`
+ортогональной не будет (столбцы с `σ = 0` — произвольное дополнение).
+
+| теорема | формулировка | file:line | bench |
+|---|---|---|---|
+| `padSquare` | `Ĝ = [G; 0] : n×n`, строки вне `range e` нулевые | Hagi/Theory/WideSVD.lean:42 | — |
+| `padSquare_transpose_mul_self` | `ĜᵀĜ = GᵀG` | Hagi/Theory/WideSVD.lean:55 | — |
+| `enum` / `eigenvalues_enum` | нумерация `n ≃ Fin (card n)`, согласованная с `IsHermitian.eigenvalues` | Hagi/Theory/WideSVD.lean:72/:76 | — |
+| `leadingEmbedding` | первые `card m` индексов типа `n` | Hagi/Theory/WideSVD.lean:82 | — |
+| `zeros_outside_leading` | антонатонный `σ`, #ненулевых ≤ card m ⇒ `σ = 0` вне первых `card m` | Hagi/Theory/WideSVD.lean:109 | — |
+| `sum_leading` | `f = 0` вне `range e ⇒ Σ_j f (e j) = Σ_c f c` | Hagi/Theory/WideSVD.lean:125 | — |
+| `exists_wide_svd` | Т: `card m ≤ card n ⇒ ∃ U σ V, UᵀU = VᵀV = 1 ∧ σ ≥ 0 ∧ G = U·diag σ·Vᵀ` | Hagi/Theory/WideSVD.lean:145 | — |
+| `wide_iter_svd'` | T1' без гипотезы: `∃ U σ V, … ∧ wide_iter k G = U·diag (ns_seq k∘σ)·Vᵀ` | Hagi/Theory/WideSVD.lean:286 | — |
+| `wide_alignment_exact'` | T2 без гипотезы: `∃ σ ≥ 0, ⟨G, wide_iter k G⟩ = Σ σ i·ns_seq k (σ i)` | Hagi/Theory/WideSVD.lean:296 | — |
+| `wide_step_optimal'` | T5 без гипотезы: `∃ σ ≥ 0, P, PPᵀ = 1, ⟨G, P⟩ = Σ σ i ∧ ∀ ΔΔᵀ = 1, ⟨G, Δ⟩ ≤ Σ σ i` | Hagi/Theory/WideSVD.lean:307 | — |
+
+Freeze 9163 → 9179 (+16). Witness `.tmp/C679/traj.lean`, rc = 0:
+аксиомы 4 теорем — propext, Classical.choice, Quot.sound; `G = [[2,0,0],
+[0,1,0]]` (2×3): `exists_wide_svd` даёт `U σ V`; явный witness
+`U = 1`, `σ = (2,1)`, `Vᵀ = [[1,0,0],[0,1,0]]` проверен
+(`Gc = U·diag σ·Vᵀ`, `VᵀV = 1`); T2 без гипотезы при `k = 3`; T5 без
+гипотезы; вырожденный случай `G = 0` (rank 0 < m) — изометрии существуют.
+
+Honest (границы):
+- Порядок `σ` (↓) не утверждается: `σ` — спектр `K = G·V₀` из
+  `svd_decomposition` (по `realSingularValues`), MuonWide порядок не нужен.
+- Только широкая форма `card m ≤ card n`; «высокая» сводится
+  транспонированием (core.py:1358) — теоремы о транспонировании нет.
+- T3 (`wide_alignment_ge_gradient`) остаётся с посылками `G = U·diag σ·Vᵀ`
+  и `σ i ≤ 1`: `σ ≤ 1` для нормированного широкого `Ĝ` не доказано
+  (`normed_sigma_le_one`, C675, — квадратный); `∃ σ`-форма T2 не
+  переносится на T3 напрямую (нужен тот же `σ` в обеих посылках).
+- Пустой `m` разобран отдельно (`IsEmpty m`); witness для `m = 0` нет.
+
+## History (C538–C679)
+
+- Era index: `.omc/analysis/era-index.md` (C591–C679, сводка `#c668-c676`, якоря `#c638-c640`
+  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`, `#c679`); более ранние per-beat файлы — `git log`. Журнал
   C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
   (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
   `git show b3939aa5:STATUS.md`.
