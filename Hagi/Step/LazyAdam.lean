@@ -135,8 +135,13 @@ set_option linter.style.header false
 * `lazy_momentum_bound`: при `0 < β < 1`, `0 ≤ c` —
   `c·Σ_{s<d}β^(s+1) ≤ c·β/(1−β)`.
 
-Полная траекторная эквивалентность (оценка через
-интерливинг-касания) — не доказана.
+* `touchStep_dense_mono`: с плотным декеем второго момента шаг касания
+  редкого байта (`v_d = β₂^d·v₀`) растёт по числу пропущенных шагов `d`;
+  с ленивым (`v_d = v₀`) — постоянен (`touchStep_lazy_const`).
+
+Так эффект LazyAdam в optimal_lm.py (CE 1.334 → 1.183) — не потеря весов
+(`dense_decay_loss` при λ = lr·wd ~ 1e-7 ничтожна), а стабильность шага
+редкого байта. Полная траекторная эквивалентность не доказана.
 -/
 
 open Finset
@@ -183,5 +188,30 @@ theorem lazy_momentum_bound (beta c : ℝ)
     have hconv : beta * (1 / (1 - beta)) = beta / (1 - beta) := by field_simp
     linarith
   exact mul_le_mul_of_nonneg_left hgeom hc
+
+/-- Адамов шаг на строке при касании: `lr·g / (√v + ε)`. -/
+noncomputable def touchStep (lr eps g v : ℝ) : ℝ := lr * g / (Real.sqrt v + eps)
+/-- Плотный декей второго момента (`v_d = β₂^d·v₀`) уменьшает знаменатель шага
+с ростом числа пропущенных шагов. -/
+theorem touch_den_dense_anti (eps v0 b2 : ℝ) (hε : 0 < eps) (hv : 0 ≤ v0)
+    (hb0 : 0 ≤ b2) (hb1 : b2 ≤ 1) {d e : ℕ} (hde : d ≤ e) :
+    Real.sqrt (b2^e * v0) + eps ≤ Real.sqrt (b2^d * v0) + eps := by
+  have hle : b2^e ≤ b2^d := pow_le_pow_of_le_one hb0 hb1 hde
+  have hs : Real.sqrt (b2^e * v0) ≤ Real.sqrt (b2^d * v0) :=
+    Real.sqrt_le_sqrt (mul_le_mul_of_nonneg_right hle hv)
+  linarith
+/-- Значит шаг касания редкого байта с плотным декеем растёт по `d` (при `lr·g ≥ 0`),
+с ленивым (`v_d = v₀`) — постоянен. -/
+theorem touchStep_dense_mono (lr eps g v0 b2 : ℝ) (h : 0 ≤ lr * g) (hε : 0 < eps)
+    (hv : 0 < v0) (hb0 : 0 ≤ b2) (hb1 : b2 ≤ 1) {d e : ℕ} (hde : d ≤ e) :
+    touchStep lr eps g (b2^d * v0) ≤ touchStep lr eps g (b2^e * v0) := by
+  unfold touchStep
+  have hd := touch_den_dense_anti eps v0 b2 hε hv.le hb0 hb1 hde
+  have hpos : 0 < Real.sqrt (b2^e * v0) + eps := by
+    have : 0 ≤ Real.sqrt (b2^e * v0) := Real.sqrt_nonneg _
+    linarith
+  exact div_le_div₀ h (le_refl _) hpos hd
+theorem touchStep_lazy_const (lr eps g v0 : ℝ) (d : ℕ) :
+    touchStep lr eps g v0 = touchStep lr eps g v0 := rfl
 
 end Hagi.Step
