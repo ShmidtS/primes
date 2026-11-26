@@ -50,6 +50,7 @@ import Hagi.Growth.GainRenewal
 import Hagi.Energy.EntropyProduction
 import Hagi.Autonomy.SupervisorViability
 import Hagi.Runtime.ControllerGates
+import Hagi.Runtime.ContextDictionary
 import Hagi.Budget.BitAlloc
 import Hagi.Budget.BitAllocTermination
 import Hagi.Probability.StationaryFlatness
