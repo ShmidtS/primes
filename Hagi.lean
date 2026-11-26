@@ -302,6 +302,7 @@ import Hagi.Step.SignSGD
 import Hagi.Model.DiffAttention
 import Hagi.Unified.DescentCoreQuad
 import Hagi.Unified.CommitGate
+import Hagi.Unified.ReliefGate
 import Hagi.Model.BlockNorm
 import Hagi.Growth.CapabilityLocal
 import Hagi.Unified.QuadMachine
