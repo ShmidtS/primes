@@ -33,7 +33,11 @@ all rows. A rare byte row (one touch per ~10⁴ steps) therefore has
 
 `β₂ = 0.95`, `d = 10⁴` skipped steps: `β₂^{d/2} ≈ 20^{5000}` — the dense
 touch step is clipped only by `ε`. Lazy: the step is `lr·g/√v₀`, the same as
-for a frequently seen row. The first moment is already lazy in effect
+for a frequently seen row. The excess per touch is strictly positive
+(`touchStep_dense_excess_pos`) and the total excess `T·p·c` grows with the
+training budget (`denseExcess_mono`) — at the full `epochs` (after the
+`epochs // 10` fix) the lazy second moment matters more than in the short
+runs that measured CE 1.334 → 1.183. The first moment is already lazy in effect
 (`m` decays but `mh/√vh` stays bounded only through `v`).
 
 ## Literature (ask.sciencemadereadable)

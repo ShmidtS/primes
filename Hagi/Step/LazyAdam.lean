@@ -147,7 +147,11 @@ set_option linter.style.header false
   доминирует плотный `β₂^d·v₀` при любом простое `d ≤ t`;
 * `touchStep_le_eps`: шаг касания ограничен `lr/ε` — при плотном декее
   (`v_v.mul_(b2)` на всех строках) редкий байт достигает именно этой
-  границы (`lr/ε ~ 1e5·lr`), при ленивом — остаётся `lr·g/√v₀`.
+  границы (`lr/ε ~ 1e5·lr`), при ленивом — остаётся `lr·g/√v₀`;
+* `touchStep_dense_excess_pos` — превышение плотного шага над ленимым строго
+  положительно при `0 < β₂ < 1`, `d ≥ 1`; `denseExcess_mono` — суммарный
+  лишний шаг `T·p·c` растёт по бюджету `T`: эффект ленивого `v` усиливается
+  с длиной обучения (полный бюджет после фикса `epochs // 10`).
 -/
 
 open Finset
@@ -241,5 +245,33 @@ theorem touchStep_le_eps (lr eps g v : ℝ) (hg : |g| ≤ 1) (hl : 0 ≤ lr) (h�
           exact div_le_div_of_nonneg_right (mul_le_mul_of_nonneg_left h1 hl) (by linarith)
     _ = lr / (√v + eps) := by ring
     _ ≤ lr / eps := div_le_div₀ hl (le_refl _) hε (by linarith [Real.sqrt_nonneg v])
+
+/-- Суммарный «лишний» шаг редкой строки за `T` шагов: `touches = T·p` касаний,
+каждое с превышением `c` над ленивым шагом. -/
+noncomputable def denseExcess (T : ℕ) (p c : ℝ) : ℝ := (T : ℝ) * p * c
+/-- Лишний шаг плотного декея растёт линейно по бюджету `T`. -/
+theorem denseExcess_mono (p c : ℝ) (hp : 0 ≤ p) (hc : 0 ≤ c) {T T' : ℕ} (h : T ≤ T') :
+    denseExcess T p c ≤ denseExcess T' p c := by
+  unfold denseExcess
+  gcongr
+/-- Превышение шага касания при плотном декее над ленимым: `lr·g·(1/(√(β₂^d v₀)+ε) − 1/(√v₀+ε))`,
+положительно при `0 < β₂ < 1`, `d ≥ 1`, `0 < v₀`, `0 < lr·g`. -/
+theorem touchStep_dense_excess_pos (lr eps g v0 b2 : ℝ) (h : 0 < lr * g) (hε : 0 ≤ eps)
+    (hv : 0 < v0) (hb0 : 0 < b2) (hb1 : b2 < 1) {d : ℕ} (hd : 0 < d) :
+    touchStep lr eps g (b2 ^ d * v0) - touchStep lr eps g v0 > 0 := by
+  unfold touchStep
+  have hlt : b2 ^ d * v0 < v0 := by
+    have hpow : b2 ^ d < 1 := pow_lt_one₀ hb0.le hb1 (Nat.ne_of_gt hd)
+    calc b2 ^ d * v0 < 1 * v0 := mul_lt_mul_of_pos_right hpow hv
+      _ = v0 := one_mul _
+  have hs : Real.sqrt (b2 ^ d * v0) < Real.sqrt v0 := Real.sqrt_lt_sqrt (mul_nonneg (pow_nonneg hb0.le _) hv.le) hlt
+  have hden : Real.sqrt (b2 ^ d * v0) + eps < Real.sqrt v0 + eps := by linarith
+  have hpos : 0 < Real.sqrt v0 + eps := by positivity
+  have hpos' : 0 < Real.sqrt (b2 ^ d * v0) + eps := by positivity
+  apply sub_pos.2
+  have hinv : (Real.sqrt v0 + eps)⁻¹ < (Real.sqrt (b2 ^ d * v0) + eps)⁻¹ :=
+    inv_strictAnti₀ hpos' hden
+  rw [div_eq_mul_inv, div_eq_mul_inv]
+  exact mul_lt_mul_of_pos_left hinv h
 
 end Hagi.Step
