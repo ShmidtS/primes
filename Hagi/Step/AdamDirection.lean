@@ -158,4 +158,51 @@ theorem ema_sign_flip_negative {eps : ℝ} (heps : 0 ≤ eps) :
         / (1 - (999 / 1000) ^ 2))
       hvhat heps (mul_neg_of_neg_of_pos (by norm_num) hmhat)
 
+/-- Веса EMA на шаге `T`: `π_s = (1−d_s)·∏_{s<j<T} d_j` для `s < T`. -/
+noncomputable def emaWeights (dm : ℕ → ℝ) (T s : ℕ) : ℝ :=
+  if s < T then (1 - dm (s+1)) * ∏ j ∈ Finset.Ico (s+1) T, dm (j+1) else 0
+theorem emaWeights_nonneg (dm : ℕ → ℝ) (hd : ∀ t, 0 ≤ dm t ∧ dm t ≤ 1) (T s : ℕ) :
+    0 ≤ emaWeights dm T s := by
+  unfold emaWeights
+  split
+  · have hprod : 0 ≤ ∏ j ∈ Finset.Ico (s+1) T, dm (j+1) := Finset.prod_nonneg (fun j _ => (hd (j+1)).1)
+    exact mul_nonneg (by have := hd (s+1); linarith) hprod
+  · exact le_refl 0
+/-- Сумма весов: `1 − ∏_{j<T} d_j`; при `d_{T−1} < 1` — выпуклая комбинация. -/
+theorem emaWeights_sum (dm : ℕ → ℝ) (T : ℕ) :
+    ∑ s ∈ Finset.range T, emaWeights dm T s = 1 - ∏ j ∈ Finset.Ico 0 T, dm (j+1) := by
+  induction T with
+  | zero => simp [emaWeights]
+  | succ k ih =>
+    have hlast : emaWeights dm (k+1) k = 1 - dm (k+1) := by
+      unfold emaWeights; rw [if_pos (Nat.lt_succ_self k)]; simp
+    have hprev : ∀ s ∈ Finset.range k,
+        emaWeights dm (k+1) s = emaWeights dm k s * dm (k+1) := by
+      intro s hs
+      unfold emaWeights
+      rw [if_pos (lt_of_lt_of_le (Finset.mem_range.1 hs) (Nat.le_succ k)),
+        if_pos (Finset.mem_range.1 hs), Finset.prod_Ico_succ_top (Nat.succ_le_of_lt (Finset.mem_range.1 hs))]
+      ring
+    rw [Finset.sum_range_succ, hlast, Finset.sum_congr rfl hprev, ← Finset.sum_mul, ih]
+    rw [Finset.prod_Ico_succ_top (Nat.zero_le k)]
+    ring
+/-- EMA весов `w` — выпуклая комбинация `∑ π_s·w_s`; для выпуклой `L`
+`L(EMA_T) ≤ ∑ π_s·L(w_s)`: контроль EMA не хуже средней loss траектории. -/
+theorem ema_convex_le (dm : ℕ → ℝ) (hd : ∀ t, 0 ≤ dm t ∧ dm t ≤ 1) (hd1 : dm 1 = 0)
+    (T : ℕ) (hT : 0 < T) (w : ℕ → ℝ) (L : ℝ → ℝ) (hconv : ConvexOn ℝ Set.univ L) :
+    L (∑ s ∈ Finset.range T, emaWeights dm T s * w s) ≤
+      ∑ s ∈ Finset.range T, emaWeights dm T s * L (w s) := by
+  classical
+  have hnonneg : ∀ s ∈ Finset.range T, 0 ≤ emaWeights dm T s :=
+    fun s _ => emaWeights_nonneg dm hd T s
+  have hsum : ∑ s ∈ Finset.range T, emaWeights dm T s = 1 := by
+    rw [emaWeights_sum]
+    have hzero : ∏ j ∈ Finset.Ico 0 T, dm (j+1) = 0 := by
+      rw [Finset.prod_eq_zero (Finset.mem_Ico.2 ⟨Nat.zero_le 0, hT⟩)]
+      simpa using hd1
+    rw [hzero, sub_zero]
+  have hmem : ∀ s ∈ Finset.range T, w s ∈ Set.univ := fun _ _ => Set.mem_univ _
+  have h := hconv.map_sum_le hnonneg hsum hmem
+  simpa [nsmul_eq_mul] using h
+
 end Hagi.Step
