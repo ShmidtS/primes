@@ -69,6 +69,7 @@ import Hagi.StatMech.Hopfield.CharPatterns
 import Hagi.StatMech.Hopfield.SubMemory
 import Hagi.Optimization.EF21Quantizer
 import Hagi.Optimization.EF21Scale
+import Hagi.Optimization.BacktrackGrid
 import Hagi.Optimization.MomentumHB
 import Hagi.Learning.ToyTrajectory
 import Hagi.Learning.RCDL
