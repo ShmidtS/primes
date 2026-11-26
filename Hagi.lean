@@ -146,6 +146,7 @@ import Hagi.Model.CEMarginPL
 import Hagi.Model.CEQuantized
 import Hagi.Model.CEJacobianMajorizer
 import Hagi.Model.CEModel
+import Hagi.Model.ShiftedTarget
 import Hagi.Model.TanhCEStep
 import Hagi.Model.CEGroupedScale
 import Hagi.Model.EnergyReasoning.Pseudolikelihood
