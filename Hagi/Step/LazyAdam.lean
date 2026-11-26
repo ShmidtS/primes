@@ -9,6 +9,11 @@ import Hagi.Math.Foundations.Recurrence
 # LazyAdam-семейство
 
 Базовый LazyAdam и его моментная версия.
+
+`rowStep_inert_iterate`: неактивная строка (`p.grad == 0`) с нулевым адамовым
+шагом сохраняется точно — ленивое затухание `optimal_lm.py` (`act = (p.grad != 0)`)
+не трогает редкие байты. `dense_decay_loss`: плотное затухание теряет
+`(1 − (1−λ)^T)·|w|` массы строки за `T` шагов неактивности.
 -/
 
 set_option linter.style.header false
@@ -65,6 +70,35 @@ theorem lazyReplay_exact (beta2 vstale g : ℝ) (d : ℕ) :
       = (beta2^d) * vstale + (beta2^d) * (1 - beta2) * g^2 := by
   ring
 
+
+/-- Шаг AdamW на строке: затухание `λ` только активной строки (`act = 1`) и
+адамов шаг `u`. -/
+noncomputable def rowStep (lam act u : ℝ) (w : ℝ) : ℝ := (1 - lam * act) * w - u
+/-- Неактивная строка (`act = 0`) с нулевым адамовым шагом (`u = 0`) инертна. -/
+theorem rowStep_inert (lam w : ℝ) : rowStep lam 0 0 w = w := by
+  unfold rowStep; ring
+/-- За `T` шагов неактивности строка сохраняется точно. -/
+theorem rowStep_inert_iterate (lam : ℝ) (T : ℕ) (w : ℝ) :
+    (rowStep lam 0 0)^[T] w = w := by
+  induction T with
+  | zero => simp
+  | succ k ih => rw [Function.iterate_succ_apply', ih]; exact rowStep_inert lam w
+/-- Плотное затухание (`act = 1`, `u = 0`) за `T` шагов сжимает строку к нулю:
+`(1−λ)^T·w` — источник потери редких байтов. -/
+theorem rowStep_dense_decay (lam : ℝ) (hl : 0 ≤ lam) (hlam : lam < 1) (T : ℕ) (w : ℝ) :
+    (rowStep lam 1 0)^[T] w = (1 - lam)^T * w := by
+  induction T with
+  | zero => simp
+  | succ k ih => rw [Function.iterate_succ_apply', ih]; unfold rowStep; ring
+/-- Ленивое правило `(1−λ)^T·w` для неактивной строки — потеря массы
+`|w|·(1 − (1−λ)^T)`, при λ = lr·wd малых T — ∼ `T·λ·|w|`. -/
+theorem dense_decay_loss (lam : ℝ) (hl : 0 ≤ lam) (hlam : lam < 1) (T : ℕ) (w : ℝ) :
+    |w - (rowStep lam 1 0)^[T] w| = (1 - (1 - lam)^T) * |w| := by
+  rw [rowStep_dense_decay lam hl hlam T w]
+  have h : 0 ≤ (1 - lam)^T := pow_nonneg (by linarith) T
+  have hle : (1 - lam)^T ≤ 1 := pow_le_one₀ (by linarith) (by linarith)
+  have heq : w - (1 - lam)^T * w = (1 - (1 - lam)^T) * w := by ring
+  rw [heq, abs_mul, abs_of_nonneg (by linarith : 0 ≤ 1 - (1 - lam)^T)]
 
 set_option linter.unusedDecidableInType false in
 -- гипотеза сохранена: документированная посылка API
