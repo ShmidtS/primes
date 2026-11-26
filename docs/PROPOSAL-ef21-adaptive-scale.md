@@ -17,7 +17,7 @@ trajectory. `qTern` keeps only coordinates with `|m i| > s/2`.
 
 ## What is proved
 
-- `qTernVec_inner` (Hagi/Optimization/EF21Scale.lean:30): the alignment
+- `qTernVec_inner` (Hagi/Optimization/EF21Scale.lean:59): the alignment
   `A = Σ m i · d i` that drives `η = 4A/R'²` equals
   `s · Σ_{|m i| > s/2} |m i|` exactly.
 - `qTernVec_freeze` (EF21Scale.lean:90): with `‖m‖_∞ < s/2` the direction is

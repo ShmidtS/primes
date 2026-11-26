@@ -41,6 +41,10 @@ Hagi/Model/LMCompose.lean:113	CertifiedBlock|decl
 Hagi/Model/LMCompose.lean:135	lmTrunk|decl
 Hagi/Model/LMCompose.lean:214	lmLogits|decl
 Hagi/Model/NormAct.lean:166	swish|decl
+Hagi/Optimization/EF21Scale.lean:114	qTernVec_certifiedDrop_ge|decl
+Hagi/Optimization/EF21Scale.lean:59	qTernVec_inner|decl
+Hagi/Optimization/EF21Scale.lean:90	qTernVec_freeze|decl
+Hagi/Optimization/EF21Scale.lean:96	qTernVec_inner_ge_adaptive|decl
 Hagi/Optimization/PercolationPath.lean:106	vacantGraph|decl
 Hagi/Optimization/PercolationPath.lean:125	crosses_pos|decl
 Hagi/Optimization/PercolationPath.lean:178	descentPath_drop|decl
