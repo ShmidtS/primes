@@ -7,25 +7,21 @@ import Hagi.Math.Foundations.Telescope
 import Mathlib.Tactic
 
 /-!
-# AdditiveLedger — единый обобщённый телескоп (A18.3, beat)
+# AdditiveLedger — единый обобщённый телескоп
 
-Аудит W6: cert-телескопы (`trajectory_telescope`, `delta_telescope`,
-`trajectory_telescope_gen`, `risk_telescope_gen`,
-`budget_ledger_telescope`, …) пере-доказывают одну и ту же индукцию
-«Σ drops ≤ lvl₀ − lvl_N» над ledger-полями шага. Этот модуль — ОДИН
-интерфейс: typeclass `AdditiveLedger` (≤-закон списания) и его точная
-версия `ExactAdditiveLedger` (=-закон), с ОДНОЙ обобщённой леммой
-`additive_ledger_telescope` (плюс `_eq`/`_floor` формы). Вся индукция
-делегируется ядру `Hagi.Foundations.telescope_*` — здесь нет
-ни одной новой индукции.
+Один интерфейс для телескопов вида «Σ spend ≤ lvl₀ − lvl_N»: typeclass
+`AdditiveLedger` (≤-закон списания) и его точная версия
+`ExactAdditiveLedger` (=-закон), с ОДНОЙ обобщённой леммой
+`additive_ledger_telescope` (плюс `_eq`/`_floor` формы). Индукция
+делегируется ядру `Hagi.Foundations.telescope_*`.
 
 Модуль — лист (не импортирует cert-структуры): инстансы для
 `CertStep`/`CertStepDelta` живут в `Hagi.Cert.Core`, для
 `CertStepGen` — в `Hagi.Cert.StepGen`; доменные телескопы становятся
-one-line специализациями `additive_ledger_telescope` с явным `level`.
-НЕ сводятся без искажения: `certs_telescope`
-(строгое убывание + risk-рост конъюнкцией), `ctv2_family_telescope`
-(суть — per-step nlinarith, не телескоп), `floor_floor_telescope`
+специализациями `additive_ledger_telescope` с явным `level`.
+Не сводятся к ledger без искажения: `certs_telescope` (строгое
+убывание + risk-рост конъюнкцией), `ctv2_family_telescope`
+(per-step nlinarith, не телескоп), `floor_floor_telescope`
 (контракт-обёртка двух каналов).
 -/
 
@@ -37,7 +33,7 @@ namespace Hagi.Cert
 
 variable {S : Type*}
 
-/-- ОДИН обобщённый аддитивный ledger: уровень `level : S → ℝ`
+/-- Обобщённый аддитивный ledger: уровень `level : S → ℝ`
 списывается шагом `Step` на величину `spend` (≤-закон спуска).
 `level` — явный параметр класса: инстансы различаются уровнем
 (objective / budget / risk / deltaLevel) на одной шаговой структуре. -/
@@ -57,9 +53,9 @@ class ExactAdditiveLedger (S : Type*) (level : S → ℝ)
   /-- Точный закон списания: `level s' = level s − spend c`. -/
   step_exact : ∀ {s s' : S} (c : Step s s'), level s' = level s - spend c
 
-/-- ОДНА обобщённая лемма (≤-форма): терминальный уровень не выше
+/-- Обобщённая лемма (≤-форма): терминальный уровень не выше
 начального минус сумма списаний. Индукция — `Hagi.Foundations.
-telescope_le_sub` (единственное место, где она доказана). -/
+telescope_le_sub`. -/
 theorem additive_ledger_telescope {level : S → ℝ}
     {Step : S → S → Type*} [AdditiveLedger S level Step]
     (n : ℕ) (t : ℕ → S)
@@ -85,8 +81,8 @@ theorem additive_ledger_telescope_eq {level : S → ℝ}
     (fun j _ => ExactAdditiveLedger.step_exact (steps j))
 
 /-- Floor-форма: сумма списаний не превосходит начального уровня,
-если терминальный уровень неотрицателен (неизрасходованный остаток
-ресурса честно явной посылкой). -/
+если терминальный уровень неотрицателен (остаток ресурса — явная
+посылка). -/
 theorem additive_ledger_telescope_floor {level : S → ℝ}
     {Step : S → S → Type*} [ExactAdditiveLedger S level Step]
     (n : ℕ) (t : ℕ → S) (hn : 0 ≤ level (t n))

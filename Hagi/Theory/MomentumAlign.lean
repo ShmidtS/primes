@@ -9,7 +9,7 @@ import Hagi.Theory.FirstLayerLipBatch
 /-!
 # MomentumAlign — шаг вдоль произвольного направления, момент `m1`, Muon с моментом
 
-C686. Код (hagi/core.py:1754–1755 @ca52eb4) в `HybridMuon` ведёт EMA-буфер
+Код (hagi/core.py:1754–1755 @ca52eb4) в `HybridMuon` ведёт EMA-буфер
 `m1 = 0.85·m1 + 0.15·gW1` и применяет Newton–Schulz к `m1`, а не к `G`:
 `W1 -= (cos_lr·0.7)·newton_schulz_orthogonalize(m1, iters=3)`.
 Nesterov-поправки нет, поправки смещения нет (`μ = 0.85`, `1−μ = 0.15`).
@@ -414,8 +414,8 @@ theorem momStep_norm_ge_one {m : Matrix ι δ ℝ} (hm : m ≠ 0) (k : ℕ) :
 
 /-- **`muon_momentum_bound`** (T3, MAIN): `m ≠ 0`, `X = ns_k m̂` — шаг кода
 (core.py:1755 применяет NS к `m1`) ⇒
-`‖m‖_F − ‖G−m‖_F·‖X‖_F ≤ ⟨G, X⟩`: выравнивание момента (C680/C682,
-`alignment_ge_gradient_any`) минус Коши–Шварц на невязке `G − m`. -/
+`‖m‖_F − ‖G−m‖_F·‖X‖_F ≤ ⟨G, X⟩`: выравнивание момента (`alignment_ge_gradient_any`)
+ минус Коши–Шварц на невязке `G − m`. -/
 theorem muon_momentum_bound (G m : Matrix ι δ ℝ) (hm : m ≠ 0) (k : ℕ) :
     Real.sqrt (wfrobSq m)
         - Real.sqrt (wfrobSq (G - m)) * Real.sqrt (wfrobSq (momStep m k))

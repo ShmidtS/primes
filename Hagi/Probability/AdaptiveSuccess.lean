@@ -7,9 +7,9 @@ import Hagi.Probability.CertifiedEstimator
 set_option linter.style.header false
 
 /-!
-# P0-4: AdaptiveSuccess — условные success-полы вместо i.i.d.
+# AdaptiveSuccess — условные success-полы вместо i.i.d.
 
-Аудит (§7): концентрирует ЧИСЛО успехов при
+Стандартная концентрация считает ЧИСЛО успехов при
 НЕЗАВИСИМЫХ одинаково распределённых S_t. В реальном
 self-improvement loop успехи не i.i.d.:
 

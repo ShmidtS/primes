@@ -9,8 +9,9 @@ import Hagi.Model.CEModel
 /-!
 # Independent model and objective specs, combined in semantics
 
-Master plan v3 addendum A16 (proposed hierarchy): the model side and
-the objective side of a learning problem are defined INDEPENDENTLY,
+The model side and the objective side of a learning problem are
+defined INDEPENDENTLY,
+
 over shared types of features and predictions; their concrete
 combinations are created here, in semantics — not through cyclic
 imports between model and objective modules.
@@ -28,10 +29,9 @@ identity head × squared difference) prove the independence concretely:
 the same model part combines with two different objective parts, and
 the resulting semantics genuinely differ.  A definitional bridge
 (`singleSampleCE_eq_combine`) exhibits the existing CE safe-step
-interface `Model.CEModel.singleSampleCE` as one such combination — a
-bridge, not a duplicate: no statement of an existing module changes.
+interface `Model.CEModel.singleSampleCE` as one such combination.
 
-## Honest ledger: model-side / objective-side / mixed (later tranches)
+## Ledger: model-side / objective-side / mixed
 
 - Model side (head/logit maps and their facts): `Model.SoftmaxHead`
   (`LogitMap`, parametric head core), `Model.CEDescent.ceLogits`
@@ -42,16 +42,11 @@ bridge, not a duplicate: no statement of an existing module changes.
   `Model.CEHeldout.ceOneHot_nonneg` (the floor), `Model.LabelSmoothing`,
   `Model.Mixup`, `Model.Losses`, the contrastive family `Data.InfoNCE` /
   `Step.NCEExact`.
-- Mixed (head, loss and descent fused in one statement — migration
-  tranches, NOT touched here): `Model.CEDescent` and the whole
-  `Model.BatchCEDescent*` family, `Model.CEModel` (already the
-  objective-side safe-step contract by its own ledger), and the
-  gated/nonlinear/quantized CE tranches it lists.
+- Mixed (head, loss and descent fused in one statement):
+  `Model.CEDescent` and the whole `Model.BatchCEDescent*` family, and
+  the gated/nonlinear/quantized CE steps.
 - `sqDiffObjective` below is a DEMO objective (no L2-on-logits SSOT
-  exists in the repo at the time of writing); it is not a migration
-  claim.  A two-models × one-objective difference demo (e.g. scaled
-  head) is a cheap-to-state but not cheap-to-prove addition and is
-  left as a later tranche.
+  exists in the repo).
 -/
 
 set_option relaxedAutoImplicit false
@@ -80,9 +75,7 @@ structure ModelSpec (Θ X V : Type) where
 /-- The objective side of a learning problem, independent of any
 model: a loss on predicted logits and a target vector, with the floor
 law.  The law is hypothesis-form.  (Convexity in logits is not a
-field: the only in-repo convexity-carrier, the CE majorizer, lives in
-consumer theorems; stating it here would be new theory — see the
-module ledger.) -/
+field: the CE majorizer lives in consumer theorems.) -/
 structure ObjectiveSpec (V : Type) where
   /-- The loss: predicted logits and target vector to a real cost. -/
   loss : (V → ℝ) → (V → ℝ) → ℝ
@@ -116,8 +109,7 @@ variable {V : Type} [Fintype V]
 (the semantic analogue of `Model.SoftmaxHead.LogitMap.ident`); the
 feature carrier is the raw logit feature vector `V → ℝ`.  The range
 coefficient is zero: the identity head contributes no model-side
-curvature; the CE family's descent curvature is consumer/target-side
-(module ledger). -/
+curvature. -/
 def identHeadSpec : ModelSpec (V → ℝ) (V → ℝ) V where
   head _ x := x
   rangeSquare _ _ := 0
@@ -145,8 +137,8 @@ noncomputable def ceOneHotObjective (t : V) : ObjectiveSpec V where
   loss_nonneg z _ := Hagi.Model.CEHeldout.ceOneHot_nonneg t z
 
 /-- The squared-difference objective: the sum of squared differences
-between predicted logits and the target vector.  A DEMO objective
-(no in-repo L2-on-logits SSOT exists); the floor is the trivial
+between predicted logits and the target vector.  A DEMO objective;
+the floor is the trivial
 sum-of-squares nonnegativity. -/
 def sqDiffObjective : ObjectiveSpec V where
   loss z y := ∑ v, (z v - y v) ^ 2
@@ -158,8 +150,7 @@ open Hagi.Model in
 /-- The single-sample CE safe-step interface `Model.CEModel`
  IS the combination of the linear head spec with the one-hot
 cross-entropy objective: definitionally, both sides are
-`Hagi.ceOneHot t (Model.CEDescent.ceLogits X θ)`.  A bridge, not a
-duplicate: no existing statement is restated. -/
+`Hagi.ceOneHot t (Model.CEDescent.ceLogits X θ)`. -/
 theorem singleSampleCE_eq_combine {d : ℕ} (X : Matrix V (Fin d) ℝ) (t : V)
     (θ : EuclideanSpace ℝ (Fin d)) (y : V → ℝ) :
     combineObjective (linearHeadSpec X) (ceOneHotObjective t) θ () y

@@ -3,11 +3,9 @@ import Hagi.State.CanonicalTrainState
 
 /-!
 # TrainTrajectory — траекторная теорема на CanonicalTrainState
-(user audit 5.3, A15 Step 5.3 = rank #2)
 
-Финальная траекторная теорема, учитывающая численную погрешность
-(BF16/ternary) реального бэкенда, делающая носитель
-`CanonicalTrainState` load-bearing:
+Телескоп спуска на `CanonicalTrainState` с аддитивной численной
+погрешностью (BF16/ternary) исполнения:
 
 * `obj_telescope_err` — общий телескоп с аддитивной ошибкой на шаг:
   ЛИНЕЙНОЕ накопление (треугольник по значению цели, без
@@ -17,8 +15,7 @@ import Hagi.State.CanonicalTrainState
   состоянии (веса + Adam-буферы);
 * `trajectory_descent` — телескоп: `fullObjective(θ_T) ≤
   fullObjective(θ_0) − ∑ drop_j`, ЯВНАЯ константа c(T) = ∑ drops
-  (индукция той же формы, что ядерная `kernel_core` само ядро
-  лежит в Unified layer 6 и не импортируемо со слоя State = 3);
+  (индукция здесь, без импорта ядра Unified);
 * `RoundedFullStepCert` / `RoundedTrajectory` — исполненный шаг
   реального бэкенда: спуск полной цели минус drop ПЛЮС аддитивная
   ошибка исполнения `execErr` (округление BF16/ternary), плюс ошибка
@@ -27,21 +24,16 @@ import Hagi.State.CanonicalTrainState
   `f_true(θ_T) ≤ f_true(θ_0) − ∑ drop_j + ∑ execErr_j + 2ρ`;
 * `rounded_trajectory_uniform` — замкнутая форма c(T):
   `f_true(θ_T) ≤ f_true(θ_0) − T·δ + T·ε + 2ρ`;
-* `coord_err_bound` — пин численной погрешности (binder-форма):
-  координатная ошибка ≤ s/2 (concrete instantiation —
-  `Hagi.Runtime.qTern_error_in`, qTern in-range; кросс-папочный
-  импорт Runtime→State запрещён LayerLint, см. TernaryExact) +
-  L-липшицевость цели дают ошибку шага ≤ L·m·s/2;
+* `coord_err_bound` — численная погрешность в форме посылок:
+  координатная ошибка ≤ s/2 и L-липшицевость цели дают ошибку
+  шага ≤ L·m·s/2 (конкретный экземпляр — `Hagi.Runtime.qTern_error_in`);
 * `with_holds_bound` — форма с Hold: Hold — тождество
   (`hold_rollback_total`), вклад 0; суммы по всем шагам, где
   hold-шаги вносят нулевые d/e — эффективных шагов T' ≤ T.
 
-Честные пины (premise-form): `execErr` per backend — binder;
-координатная ошибка s/2 — binder с конкретной instantiation в
-`Hagi.Runtime.TernaryExact.qTern_error_in` (точная, без посылок,
-кроме in-range); липшицева константа L для `fullObjective` —
-binder (в TrainState нет леммы Липшица для energy); `rho` —
-binder.
+Посылки-binder: `execErr`, координатная ошибка s/2 (её даёт
+`Hagi.Runtime.TernaryExact.qTern_error_in`), липшицева константа L
+для `fullObjective` (леммы Липшица для energy нет) и `rho`.
 -/
 
 set_option relaxedAutoImplicit false
@@ -52,10 +44,8 @@ variable {n a e q r c k : ℕ}
 
 /-! ## Общий телескоп с аддитивной ошибкой (линейное накопление) -/
 
-/-- ТЕЛЕСКОП С ОШИБКОЙ: цепочка неравенств `g(j+1) ≤ g(j) − d_j +
-e_j` даёт `g(T) ≤ g(0) − ∑ d + ∑ e`. Накопление ошибки ЛИНЕЙНОЕ:
-каждая `e_j` входит один раз (треугольник по значению, не через
-норму состояния — нет квадратичного раздувания). -/
+/-- Цепочка `g(j+1) ≤ g(j) − d_j + e_j` даёт `g(T) ≤ g(0) − ∑ d + ∑ e`:
+ошибка накапливается линейно. -/
 theorem obj_telescope_err (T : ℕ) (g d e : ℕ → ℝ)
     (h : ∀ j < T, g (j + 1) ≤ g j - d j + e j) :
     g T ≤ g 0 - ∑ j ∈ Finset.range T, d j + ∑ j ∈ Finset.range T, e j := by
@@ -227,14 +217,11 @@ theorem rounded_trajectory_uniform (T : ℕ)
 
 /-! ## Пин: координатная ошибка округления (binder-форма) -/
 
-/-- КООРДИНАТНАЯ ОШИБКА ОКРУГЛЕНИЯ (binder-форма, слой State):
-если каждый обновляемый координат отклоняется не более чем на
-половину шага сетки s (конкретную instantiation даёт
-`Hagi.Runtime.qTern_error_in` — qTern in-range, ошибка ≤ s/2,
-Runtime-слой 3, кросс-папочный импорт запрещён LayerLint) и цель
-`F : (Fin m → ℝ) → ℝ` L-липшицева по сумме координатных
-отклонений, то ошибка цели ≤ L·(m·s/2). L — premise-binder (в
-TrainState нет леммы Липшица для energy — честный пин). -/
+/-- Если каждая координата отклоняется не более чем на половину
+шага сетки s (это даёт `Hagi.Runtime.qTern_error_in`) и `F`
+L-липшицева по сумме координатных отклонений, то ошибка цели
+≤ L·(m·s/2). L — посылка: липшицева константа для energy не
+доказана. -/
 theorem coord_err_bound {m : ℕ} (w w' : Fin m → ℝ) (s L : ℝ)
     (F : (Fin m → ℝ) → ℝ)
     (hcoord : ∀ i, |w' i - w i| ≤ s / 2)
@@ -251,12 +238,9 @@ theorem coord_err_bound {m : ℕ} (w w' : Fin m → ℝ) (s L : ℝ)
 
 /-! ## Форма с Hold (эффективных шагов T' ≤ T) -/
 
-/-- ФОРМА С HOLD: в смешанном прогоне длины T каждый шаг — либо
-Progress с сертифицированным (округлённым) спуском, либо Hold,
-который по `hold_rollback_total` — тождество на состоянии и
-вкладывает НУЛЕВЫЕ d/e в суммы. Заключение — тот же телескоп по
-всем T шагам; ненулевые drop'ы встречаются только на progress-шагах,
-т.е. эффективных шагов T' ≤ T. -/
+/-- Смешанный прогон длины T: каждый шаг — либо Progress со
+спуском, либо Hold (тождество на состоянии, нулевые d/e). Тот же
+телескоп; ненулевые drop'ы только на progress-шагах. -/
 theorem with_holds_bound {S : Type*} (f : S → ℝ) (T : ℕ)
     (run : ℕ → S) (outs : ℕ → Outcome S) (d e : ℕ → ℝ)
     (hcert : ∀ j < T, outs j ≠ Outcome.hold →

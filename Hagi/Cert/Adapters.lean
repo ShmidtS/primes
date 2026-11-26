@@ -6,17 +6,16 @@ import Hagi.Cert.Core
 /-!
 # Generic certification-kernel adapters
 
-Layer-legal adapters between concrete descent certificates and the
-canonical `Hagi.Cert` kernel.  This file deliberately imports ONLY
-`Hagi.Cert.Core`: it is generic over any `SystemMetrics` carrier.
-Concrete instantiations (e.g. the batch cross-entropy setting) live at
-the Contracts layer, which may import the model layer.
+Adapters between concrete descent certificates and the canonical
+`Hagi.Cert` kernel.  This file imports ONLY `Hagi.Cert.Core`: it is
+generic over any `SystemMetrics` carrier; concrete instantiations
+live at the Contracts layer.
 
 `zeroFloorObligations` is the trivial obligation family, kept by any
 state with nonnegative objective.  `descentCertStep` assembles a
 positive certified drop, a real descent inequality and preserved
 budget/risk levels into a canonical `CertStep` with zero budget/risk
-spend.  `holdTransition` is the identity `TransitionStep` at a
+spend.  `holdTransition` is the identity `TransitionStep`.
 `protectedRisk_le_of_riskRem` is the risk-polarity
 slice: when the kernel risk level is the remaining-risk
 `riskTotalLimit - protectedRisk`, the kernel's nonnegative risk remainder
@@ -66,7 +65,7 @@ def holdTransition {S : Type*} {TaskId : Type*} {M : SystemMetrics S TaskId}
     (hfloors : FloorsKept M obl s) : TransitionStep M obl s s :=
   TransitionStep.hold (HoldStep.id M obl s hfloors)
 
-/-- R1 risk-polarity slice: if the canonical risk level at the
+/-- Risk-polarity slice: if the canonical risk level at the
 pre-state is the remaining risk `riskTotalLimit - protectedRisk`, then
 a certified step's nonnegative risk remainder converts into the
 protected-risk-under-limit bound after spending. -/

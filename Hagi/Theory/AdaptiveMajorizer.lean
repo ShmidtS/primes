@@ -8,7 +8,7 @@ import Mathlib.Analysis.Calculus.Deriv.MeanValue
 import Mathlib.Tactic
 
 /-!
-# The variance-adaptive cross-entropy majorizer (tight Bennett canon)
+# The variance-adaptive cross-entropy majorizer (tight Bennett bound)
 
 The range
 majorizer `Hagi.Energy.lse_shift_upper` bounds the lse shift by
@@ -68,7 +68,7 @@ The mechanism is deliberately series-free:
   at concentrated targets (zero variance) the curvature term
   vanishes and the majorizer is exactly linear for every `η ≤ 1`.
 
-## Honesty pin
+## Limit
 
 The adaptive bound is NOT uniformly better than the range bound:
 Popoviciu allows `varWeight ≤ R ^ 2 / 4` while the domination
@@ -373,51 +373,7 @@ theorem varWeight_eq_zero_of_range_le_zero {V : Type} [Fintype V]
   rw [hμ]
   simp [hconst]
 
-/-! ## The weak twins: corollaries of the tight canon
-
-Each weak statement (multiplier `Real.exp R`, hypothesis `0 ≤ R`)
-follows from its tight twin by `kappa_le_expR` plus the degenerate
-`R = 0` case (constant function, zero variance).  Kept as public
-one-step consequences; no parallel proofs. -/
-
-/-- Positive-side quadratic majorant with the weakened multiplier
-`Real.exp R`: corollary of the tight `exp_quad_pos_tight` via the
-comparison theorem `kappa_le_expR` (the statement, now a tight
-consequence). -/
-theorem exp_quad_pos {y R : ℝ} (_hR : 0 ≤ R) (hy0 : 0 ≤ y)
-    (hyR : y ≤ R) :
-    Real.exp y ≤ 1 + y + Real.exp R * y ^ 2 := by
-  rcases eq_or_lt_of_le _hR with hR0 | hR'
-  · rw [← hR0] at hyR ⊢
-    have hy : y = 0 := le_antisymm hyR hy0
-    subst hy
-    simp
-  · have h := exp_quad_pos_tight hR' hy0 hyR
-    have hk := kappa_le_expR hR'
-    have hy2 : 0 ≤ y ^ 2 := sq_nonneg y
-    nlinarith
-
-
-/-- The two-sided pointwise quadratic majorant with the weakened
-multiplier `Real.exp R`: corollary of the tight
-`exp_quad_bound_tight` via `kappa_le_expR` (at `R = 0` both sides
-collapse to `y = 0`). -/
-theorem exp_quad_bound {y R : ℝ} (hR : 0 ≤ R) (hyR : |y| ≤ R) :
-    Real.exp y ≤ 1 + y + Real.exp R * y ^ 2 := by
-  rcases eq_or_lt_of_le hR with hR0 | hR'
-  · rw [← hR0] at hyR
-    have hy : y = 0 := by
-      have h := abs_le.mp hyR
-      linarith [h.1, h.2]
-    subst hy
-    simp
-  · have h := exp_quad_bound_tight hR' hyR
-    have hk := kappa_le_expR hR'
-    have hy2 : 0 ≤ y ^ 2 := sq_nonneg y
-    nlinarith
-
-
-/-! ## The variance-sensitive CGF bound (tight canon, weak follows) -/
+/-! ## The variance-sensitive CGF bound (tight, weak follows) -/
 
 /-- The variance-sensitive CGF bound with the TIGHT Bennett
 multiplier `kappa R = (e ^ R - 1 - R) / R ^ 2`: for
@@ -1055,7 +1011,7 @@ positive adaptive curvature, the adaptive certified drop
 `singleSampleStep` instance.  Honest caveat: the hypothesis is a
 REAL constraint — by Popoviciu the variance can reach `R ^ 2 / 4`,
 above the threshold `R ^ 2 / (8 * Real.exp R)`, so for diffuse
-targets and large ranges the range bound wins (see module pin). -/
+targets and large ranges the range bound wins (see module Limits). -/
 
 theorem ce_adaptive_drop_dominates (X : Matrix V (Fin d) ℝ)
     (θ : EuclideanSpace ℝ (Fin d)) (t : V)

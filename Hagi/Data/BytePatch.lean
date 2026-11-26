@@ -88,8 +88,7 @@ theorem patch_attn_saving (N p : ℕ) (hp : 2 ≤ p) (hN : 2 * p ≤ N) :
     mul_nonneg hNn2 (by linarith)
   nlinarith [hint1, hint2]
 
-/-! ### Безпотеряность патчинга
-(синтез-аудит: byte-level H-Net)
+/-! ### Безпотеряность патчинга (byte-level H-Net)
 
 Патчинг как вложение
 (bytes → patches последовательностей
@@ -102,7 +101,7 @@ theorem patch_attn_saving (N p : ℕ) (hp : 2 ≤ p) (hN : 2 * p ≤ N) :
 не теряется (левая
 инверсия). Это закрывает
 lossless-условие байтового
-H-Net из синтез-аудита. -/
+H-Net. -/
 
 /-- Патч с длиной хвоста: кусок
 потока от a до b (невключительно b). -/

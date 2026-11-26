@@ -518,7 +518,7 @@ end Hagi
 
 /-!
 # WaterFillingMoE — the expert↔channel reduction
-(plan §2; sources 2607.17862 truncated water-filling,
+(sources 2607.17862 truncated water-filling,
 2607.11015 modified WF under binding constraints; the corpus
 bridge OMP-MoE 2609.31631 is WEAK — the reduction is proven
 here on its own)

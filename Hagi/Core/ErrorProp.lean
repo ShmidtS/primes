@@ -164,8 +164,7 @@ end SecondMoment
 The difference of two passes over the SAME stack cancels the
 per-layer residuals (they appear in both evaluations), so the
 perturbation (`leak`) obeys a purely linear recursion governed by
-the product of the per-layer operator norms. This is the cascade
-side of the A8 F1 composition bound (consumed by
+the product of the per-layer operator norms (consumed by
 `Hagi.Architecture.CascadeLeak`). -/
 
 section LinearCascade

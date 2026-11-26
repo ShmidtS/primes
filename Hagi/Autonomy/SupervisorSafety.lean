@@ -71,7 +71,7 @@ end Hagi.Data
 set_option linter.style.header false
 
 /-!
-# Supervisor safety — the ops-cycle decision model
+# Supervisor safety — the decision model
 
 A run has an identity (`RunId`); the supervisor emits events
 (`SupEv`). A history is valid (`ValidHist`) iff every restore
@@ -101,7 +101,7 @@ inductive SupEv
   | crash (t : Nat)
 
 /-- A single admissible step: a restore (or kill) matches
-an EARLIER checkpoint of the same identity with monotone
+an earlier checkpoint of the same identity with monotone
 time. -/
 def admissibleIn (e : SupEv) (past : List SupEv) : Prop :=
   match e with
@@ -112,7 +112,7 @@ def admissibleIn (e : SupEv) (past : List SupEv) : Prop :=
   | _ => True
 
 /-- Valid histories, built by appending admissible events
-(an inductive predicate, NOT a definition-unfold). -/
+(an inductive predicate). -/
 inductive ValidHist : List SupEv → Prop
   | nil : ValidHist []
   | snoc (h : List SupEv) (e : SupEv)

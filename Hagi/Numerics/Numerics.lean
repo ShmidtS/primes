@@ -20,9 +20,8 @@ open Hagi.Prelude Finset
 
 /-- ГРАДИЕНТ CE СУММИРУЕТСЯ В НОЛЬ: точный градиент
 кросс-энтропии g = q − p (softmax минус цель) суммируется
-в ноль, т.к. оба распределения нормированы — базовое
-свойство, нарушаемое Softmax Collapse в плавающей точке
-(там обнуляется только целевой компонент, сумма > 0). -/
+в ноль, т.к. оба распределения нормированы (в плавающей точке
+Softmax Collapse это нарушает). -/
 theorem ce_grad_sum_zero {V : Type*} [Fintype V] [Nonempty V]
     (z : V → ℝ) (p : V → ℝ) (hp1 : ∑ v, p v = 1) :
     (∑ v, (softDef z v - p v)) = 0 := by
@@ -66,8 +65,7 @@ theorem margin_rest_sum {V : Type*} [Fintype V] [DecidableEq V]
 
 /-- ПОТЕРИ ЖЁСТКОЙ CE ПО МАРЖЕ: L = softplus(−m):
 log Σ_v e^{z_v} − z_t = log(1 + e^{−m}) — потери зависят
-только от маржи; фиксированный CE (eq.6) сохраняет
-точность за пределами precision cliff. -/
+только от маржи. -/
 theorem ce_loss_margin {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (z : V → ℝ) (t : V)
     (hrest : (Finset.univ.erase t).Nonempty) :
@@ -128,9 +126,7 @@ theorem adamw_equilibrium_magnitude (g θ ε lam : ℝ)
 
 /-- НУЛЕВОЙ ГРАДИЕНТ ДИСТИЛЛЯЦИИ ПРИ СОВПАДЕНИИ ЛОГИТОВ:
 если студенческие логиты равны учительским, точный градиент
-soft-target CE q − p равен нулю тождественно — Softmax
-Cancellation в точной арифметике не возникает, студент не
-дрейфует от учителя (§3, §7). -/
+soft-target CE q − p равен нулю тождественно. -/
 theorem distill_grad_self_zero {V : Type*} [Fintype V] [Nonempty V]
     (zS zT : V → ℝ) (heq : zS = zT) (v : V) :
     softDef zS v - softDef zT v = 0 := by
@@ -208,9 +204,7 @@ theorem adamw_normalized_bounds (g ε : ℝ) (hε : 0 < ε)
 /-- ZERO-SUM ДЕКОМПОЗИЦИЯ ФИКСИРОВАННОГО CE (eq.7):
 целевой градиент есть точный минус сумма нецелевых:
 Σ_{j≠t} e^{z_j−z_t}/(1+e^{−m}) − e^{−m}/(1+e^{−m}) = 0,
-т.к. Σ_{j≠t} e^{z_j−z_t} = e^{−m} (margin_rest_sum) —
-автодифф фиксированной формы сохраняет сумму градиентов
-ноль за пределами precision cliff (анти-Collapse). -/
+т.к. Σ_{j≠t} e^{z_j−z_t} = e^{−m} (margin_rest_sum). -/
 theorem fixed_ce_grad_sum_zero {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (z : V → ℝ) (t : V)
     (hrest : (Finset.univ.erase t).Nonempty) :
@@ -255,9 +249,7 @@ theorem centered_delta_sum_zero {V : Type*} [Fintype V]
 
 /-- ВХОД log1p НЕОТРИЦАТЕЛЕН (§3): при центрировании
 Σ p d = 0 выполнено Σ p·expm1(d) = Σ p(e^d − 1) ≥ 0 —
-по Йенсену выпуклости exp: Σ p e^d ≥ e^{Σ p d} = e⁰ = 1:
-лог-пространственная форма фиксированной soft-target CE
-корректна (log1p получает неотрицательный аргумент). -/
+по Йенсену: Σ p e^d ≥ e^{Σ p d} = 1. -/
 theorem sum_p_expm1_nonneg {V : Type*} [Fintype V] [Nonempty V]
     (p d : V → ℝ)
     (hp : ∀ v, 0 < p v) (hp1 : ∑ v, p v = 1)
@@ -368,10 +360,9 @@ theorem expm1_form_diff {V : Type*} [Fintype V] [Nonempty V]
   field_simp
 
 /-- ЗЕРКАЛЬНЫЙ ШАГ = ЭКСПОНЕНЦИАЛЬНЫЙ НАКЛОН:
-Hagi.Optimization.mirrorStep ρ₀ ℓ T = expTilt ρ₀ (−ℓ/T) — унификация слоёв
-Optimization и Numerics: hedge-обновление MWU/Гиббса/EFE
-и лог-пространственная форма фиксированного CE (arXiv
-2610.31642 eq.9) — одна и та же операция наклона. -/
+Hagi.Optimization.mirrorStep ρ₀ ℓ T = expTilt ρ₀ (−ℓ/T) : hedge-обновление MWU/Гиббса/EFE
+и лог-пространственная форма фиксированного CE — одна и та же
+операция наклона. -/
 theorem mirrorStep_is_expTilt {V : Type*} [Fintype V] [Nonempty V]
     (ρ₀ ℓ : V → ℝ) (T : ℝ) :
     Hagi.Optimization.mirrorStep ρ₀ ℓ T
@@ -405,9 +396,7 @@ theorem expTilt_sum_one {V : Type*} [Fintype V] [Nonempty V]
 
 /-- SOFTMAX = НАКЛОН С РАВНОМЕРНОЙ ССЫЛКОЙ: expTilt
 (равномерного) z = softDef z — softmax есть наклон
-равномерного распределения; вместе с mirrorStep_is_expTilt:
-softmax = hedge-обновление равномерного — вся триада
-softmax/hedge/наклон — одна операция. -/
+равномерного распределения. -/
 theorem expTilt_uniform_is_softDef {V : Type*} [Fintype V]
     [Nonempty V] (z : V → ℝ) (v : V) :
     expTilt (fun _ => 1 / (Fintype.card V : ℝ)) z v
@@ -437,8 +426,7 @@ set_option linter.style.header false
 /-!
 # QuantSafeUpdate — квантованное безопасное обновление
 
-Композиция окна LiveDeltaSafe с квантованием (мост к
-Runtime/LiveDeltaQuant и бюджету): реальный шаг несёт
+Композиция окна LiveDeltaSafe с квантованием (мост к Runtime/LiveDeltaQuant): реальный шаг несёт
 ошибку реализации δ (квантование факторов, ранг-аппроксимация,
 транспорт) с известной нормой ‖δ‖ ≤ q. Тогда линейная оценка
 изменения потерь сдвигается на ЯВНУЮ цену квантования:
@@ -455,7 +443,7 @@ Runtime/LiveDeltaQuant и бюджету): реальный шаг несёт
   окно ε, возмущённый укладывается в ε + цена квантования
   (η‖g i‖q + L i η²(‖d‖q + q²/2)).
 
-Честная граница: q — измеряемый контракт реализации
+Граница: q — измеряемый контракт реализации
 (например, из quantMat_sq_bound); формализована арифметика
 допуска, не сама оценка q.
 -/

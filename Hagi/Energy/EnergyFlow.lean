@@ -11,8 +11,7 @@ set_option linter.style.header false
 /-!
 # Continuous CRAM flow: algebraic Lyapunov identity, supplied-trajectory form
 
-Track E2 (addendum A9 + A9-supplement, CRAM / arXiv:2611.17309): the
-continuous part, split per the supplement into (1) algebraic identities and
+The continuous part (CRAM / arXiv:2611.17309), split per the supplement into (1) algebraic identities and
 (2) a SUPPLIED-TRAJECTORY monotonicity theorem — deliberately avoiding any
 ODE-existence API.
 

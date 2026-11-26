@@ -36,12 +36,12 @@ namespace Hagi.Probability
 
 
 /-!
-# MWU — мост к multiplicative weights (R433–)
+# MWU — мост к multiplicative weights
 
 Одношаговый потенциал-анализ экспоненциальных весов
 (hedge-ядро без рядов, RAG-опора: arXiv 2608.09389,
-EW-regret ≤ M√(2 ln A·T)). База: R432
-(gibbs_energy_gap_crude). Здесь: логарифм
+EW-regret ≤ M√(2 ln A·T)). База:
+базовый зазор Гиббса (`gibbs_energy_gap_crude`). Здесь: логарифм
 нормировочной константы после одного обновления
 весов контролируется потерями:
 ln Z' ≥ −2η·⟨ℓ⟩_w при η·ℓ ≤ 1/2.
@@ -105,9 +105,9 @@ theorem mwu_potential_step {V : Type*} [Fintype V]
   rw [Real.log_exp] at hlog
   linarith
 
-/-- **Нижняя грань потенциала (R434)**: ln Z' ≤ −η·ℓ_min — вклад
+/-- **Нижняя грань потенциала **: ln Z' ≤ −η·ℓ_min — вклад
    минимизатора потерь доминирует: e^{−ηℓ_v} ≤ e^{−ηℓ_min} почленно ⟹ Z' ≤
-   e^{−ηℓ_min}. Вместе с R433 (верхняя грань): −η·ℓ_min ≤ −ln Z' ≤ 2η·⟨ℓ⟩_w —
+   e^{−ηℓ_min}. Вместе с верхней гранью потенциала: −η·ℓ_min ≤ −ln Z' ≤ 2η·⟨ℓ⟩_w —
    потенциал зажат с обеих сторон. -/
 theorem mwu_potential_lower {V : Type*} [Fintype V]
     [Nonempty V] (w : V → ℝ) (ℓ : V → ℝ) (η : ℝ)
@@ -148,8 +148,8 @@ theorem mwu_potential_lower {V : Type*} [Fintype V]
   have hlog := Real.log_le_log hZpos hsum
   rwa [Real.log_exp] at hlog
 
-/-- **Сертификат зажатия потенциала (R435)**: η·ℓ_min ≤ −ln Z' ≤ 2η·⟨ℓ⟩_w
-   — одна теорема для потребителя (композиция R434 + R433). Следствие: ℓ_min
+/-- **Сертификат зажатия потенциала **: η·ℓ_min ≤ −ln Z' ≤ 2η·⟨ℓ⟩_w
+   — одна теорема для потребителя (композиция `mwu_potential_lower` и верхней грани). Следствие: ℓ_min
    ≤ 2⟨ℓ⟩_w — одношаговая гарантия без-регретности; многошаговый телескоп
    построится на ней индукцией. -/
 theorem mwu_potential_squeeze {V : Type*} [Fintype V]
@@ -167,7 +167,7 @@ theorem mwu_potential_squeeze {V : Type*} [Fintype V]
   · linarith
   · linarith
 
-/-- **MWU с uniform-стартом (R436)**: специализация R435 на веса 1/n —
+/-- **MWU с uniform-стартом **: специализация на веса 1/n —
    классический hedge с равномерным начальным распределением над экспертами
    V. Кумулятивные потери ℓ := L (сумма по шагам) дают телескопический
    потенциал: η·L_min ≤ −ln W ≤ 2η·⟨L⟩_{unif}. -/
@@ -192,11 +192,11 @@ theorem mwu_uniform_squeeze {V : Type*} [Fintype V]
     rw [nsmul_eq_mul, one_div, mul_inv_cancel₀ (ne_of_gt hn)]
   exact mwu_potential_squeeze (fun _ => 1/(Fintype.card V : ℝ)) ℓ η hw hw1 hℓ hη hsmall
 
-/-- **Классический ln n-член (R437)**:
+/-- **Классический ln n-член **:
 −ln W ≤ ln n + η·L_min для uniform-hedge
 (W ≥ (1/n)·e^{−ηL_min} через
 один член суммы).
-Вместе с R436 (верхняя
+Вместе с `mwu_uniform_squeeze` (верхняя
 2η-грань): полная regret-пара
 для экспоненциальных
 весов: ln n + ηL_min ≥ −ln W ≥ ηL_min —
@@ -240,9 +240,9 @@ theorem mwu_potential_upper_uniform {V : Type*} [Fintype V]
   rw [hsplit] at hlog
   linarith
 
-/-- **Телескоп MWU-весов (R438)**: ∏_{t<T} e^{−η·ℓ_t(v)} = e^{−η·∑_{t<T}
+/-- **Телескоп MWU-весов **: ∏_{t<T} e^{−η·ℓ_t(v)} = e^{−η·∑_{t<T}
    ℓ_t(v)} (индукция, exp_add). Замкнутая форма ненормированных
-   экспоненциальных весов: u_T(v) = e^{−ηL_v}. Соединяется с R436/R437 (W =
+   экспоненциальных весов: u_T(v) = e^{−ηL_v}. Соединяется с `mwu_uniform_squeeze`/`mwu_potential_upper_uniform` (W =
    (1/n)∑ e^{−ηL_v}) — полная многошаговая механика. -/
 theorem mwu_prod_exp {V : Type*} (ℓs : ℕ → V → ℝ) (η : ℝ)
     (T : ℕ) (v : V) :
@@ -256,8 +256,8 @@ theorem mwu_prod_exp {V : Type*} (ℓs : ℕ → V → ℝ) (η : ℝ)
     congr 1
     ring
 
-/-- **Замкнутая форма разбиения (R439)**: ∑_v ∏_t e^{−ηℓ_t(v)} = ∑_v
-   e^{−ηL_v} (почленная композиция R438). Ненормированная статистика
+/-- **Замкнутая форма разбиения **: ∑_v ∏_t e^{−ηℓ_t(v)} = ∑_v
+   e^{−ηL_v} (почленная композиция `mwu_prod_exp`). Ненормированная статистика
    алгоритма — чисто Гиббс-статистика кумулятивных потерь: мост MWU ↔ Гиббс
    замыкается на уровне разбиения. -/
 theorem mwu_partition_sum {V : Type*} [Fintype V] (ℓs : ℕ → V → ℝ) (η : ℝ)
@@ -267,10 +267,10 @@ theorem mwu_partition_sum {V : Type*} [Fintype V] (ℓs : ℕ → V → ℝ) (η
   Finset.sum_congr rfl (fun v _ => mwu_prod_exp ℓs η T v)
 
 
-/-- **Гиббс = hedge при η = 1/T (R441)** — мост вертикалей:
+/-- **Гиббс = hedge при η = 1/T ** мост вертикалей:
    hedge-сертификат Гиббс-статистики: (1/T)E_min ≤ −ln((1/n)∑e^{−E/T}) ≤
    2(1/T)⟨E⟩_unif. Температура — обратный learning rate: охлаждение
-   термостата = ускорение обучения. Вся MWU-механика (R432-R440)
+   термостата = ускорение обучения. Вся MWU-механика
    автоматически переносится на термодинамику. -/
 theorem gibbs_hedge_squeeze {V : Type*} [Fintype V]
     [Nonempty V] (E : V → ℝ) (T : ℝ) (hT : 0 < T)
@@ -290,7 +290,7 @@ theorem gibbs_hedge_squeeze {V : Type*} [Fintype V]
   rw [Finset.sum_congr rfl (fun v _ => hkey v), Finset.mul_sum]
   have hη : (0:ℝ) < 1/T := by positivity
   exact mwu_uniform_squeeze E (1/T) hE hη hsmall
-/-- **Двойная верхняя грань (R443)**: −ln W ≤ min(2η·⟨ℓ⟩_unif, ln n +
+/-- **Двойная верхняя грань **: −ln W ≤ min(2η·⟨ℓ⟩_unif, ln n +
    η·ℓ_min) — две конкурирующие оценки в одной теореме: база для
    η-оптимизации (уравнивание двух членов даёт классический оптимальный
    learning rate). -/
@@ -311,10 +311,10 @@ theorem mwu_double_upper {V : Type*} [Fintype V]
   rw [← Finset.mul_sum] at h3
   exact ⟨vmin, h2, h3⟩
 
-/-- **η-сбалансированная граница (R444)**:
+/-- **η-сбалансированная граница **:
 −ln W ≤ 2√(η·⟨ℓ⟩·ln n) при
 η·⟨ℓ⟩ ≤ ln n (равновесие
-двух оценок R443 через
+двух оценок `mwu_double_upper` через
 среднее геометрическое:
 f ≤ X, f ≤ Y, f ≥ 0 ⟹ f² ≤ XY;
 Y ≤ 2 ln n при балансе).
@@ -1382,7 +1382,7 @@ set_option linter.style.header false
 /-!
 # MirrorHedgeCertificates
 
-Суррогатные сертификаты Гиббса (R463–R464): сохранение сертификата при нижней оценке энтропии, bridge-тождество, декомпозиция зазора, compounding-оценки, mutual information и amortized policy bound.
+Суррогатные сертификаты Гиббса : сохранение сертификата при нижней оценке энтропии, bridge-тождество, декомпозиция зазора, compounding-оценки, mutual information и amortized policy bound.
 -/
 
 namespace Hagi.Probability
@@ -1392,7 +1392,7 @@ open Finset Real Filter
 open Finset Real
 
 open Finset Real in
-/-- **Safety of a lower-bound entropy proxy (R463)**:
+/-- **Safety of a lower-bound entropy proxy **:
 if the entropy estimate Ĥ never exceeds the true h,
 then the surrogate free energy E − Ĥ majorizes the
 true E − h, and the surprise certificate s ≤ E − h is
@@ -1403,7 +1403,7 @@ theorem proxy_cert_preserved (E h hhat s : ℝ)
   linarith
 
 /-- **Loss of the certificate for an upper-bound
-entropy proxy (R463)**: if the proxy strictly exceeds
+entropy proxy **: if the proxy strictly exceeds
 the true entropy and the true free energy exactly
 meets the certificate, the surrogate free energy
 falls strictly below it — the AIF bound is not
@@ -1413,9 +1413,9 @@ theorem proxy_cert_lost (E h hhat s : ℝ)
     E - hhat < s := by
   linarith
 
-/-- **Gibbs certificate bridge (R463)**: at the
+/-- **Gibbs certificate bridge **: at the
 Gibbs equilibrium the surprise certificate
-s ≤ F = −T·ln Z (R462 identity) is preserved by any
+s ≤ F = −T·ln Z (`gibbs_free_energy_identity` identity) is preserved by any
 lower-bound entropy proxy Ĥ ≤ T·S_γ. -/
 theorem gibbs_cert_bridge {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (T : ℝ)
@@ -1432,7 +1432,7 @@ theorem gibbs_cert_bridge {V : Type*} [Fintype V]
   linarith
 
 open Real in
-/-- **Three-source gap decomposition (R464)**:
+/-- **Three-source gap decomposition **:
 the surrogate-true free-energy gap decomposes
 exactly into prior-miscalibration, estimator bias
 and optimization slack (arXiv 2607.13612, Prop 1). -/
@@ -1442,13 +1442,13 @@ theorem gap_decomposition (F Fhat g1 g2 g3 : ℝ)
   rw [hgap]
 
 /-- **Estimator bias is nonpositive for a lower-bound
-entropy proxy (R464)**: Gap II = Ĥ − h ≤ 0 whenever
+entropy proxy **: Gap II = Ĥ − h ≤ 0 whenever
 the proxy underestimates the entropy. -/
 theorem gapII_nonpos (h hhat : ℝ) (hlow : hhat ≤ h) :
     hhat - h ≤ 0 := by
   linarith
 
-/-- **Graceful degradation, linear slack (R464)**:
+/-- **Graceful degradation, linear slack **:
 if the gap sources obey |g1| ≤ c1, |g2| ≤ c2,
 |g3| ≤ c3 then the surrogate-true gap obeys the
 triangle bound (arXiv 2607.13612, Cor 2(i)). -/
@@ -1468,7 +1468,7 @@ theorem gap_graceful (F Fhat g1 g2 g3 c1 c2 c3 : ℝ)
         linarith [h1, h2, h3]
 
 open Real in
-/-- **Autoregressive error compounding (R465)**:
+/-- **Autoregressive error compounding **:
 if the predictor is L-Lipschitz so each step maps
 e_t ↦ e_{t+1} ≤ L·e_t, the H-step executed error
 compounds geometrically (arXiv 2607.13612, Thm 2(ii),
@@ -1486,7 +1486,7 @@ theorem compounding_bound (L : ℝ) (hL : 0 ≤ L)
         _ = L^(n+1) * e 0 := by
             rw [pow_succ]; ring
 
-/-- **Squared-metric compounding is L^(2H) (R465)**:
+/-- **Squared-metric compounding is L^(2H) **:
 in the squared metric the same step recursion gives
 e_H^2 ≤ (L^2)^H·e_0^2 — the O(L^(2H)) term of
 arXiv 2607.13612, Thm 2(ii). -/
@@ -1506,11 +1506,11 @@ theorem compounding_sq (L : ℝ) (hL : 0 ≤ L)
             rw [pow_succ]; ring
 
 open Finset Real in
-/-- **Mutual information is nonnegative (R466)**:
+/-- **Mutual information is nonnegative **:
 I(X;Y) = KL(ρ ‖ μ₁×μ₂) ≥ 0 — the information a
 joint distribution carries about the dependence
 of its marginals never decreases below zero
-(direct R447 application; equivalent to R459). -/
+(direct `finite_kl_nonneg` application; equivalent to `entropy_subadditive`). -/
 theorem mutual_info_nonneg {V W : Type*} [Fintype V]
     [Fintype W] [Nonempty V] [Nonempty W]
     [DecidableEq V] [DecidableEq W]
@@ -1548,11 +1548,11 @@ theorem mutual_info_nonneg {V W : Type*} [Fintype V]
       rw [← Finset.mul_sum, hμ₂s, mul_one]
     rw [Finset.sum_congr rfl (fun v _ => hrow v)]
     exact hμ₁s
-  -- the KL expression is definitionally the one in R447
+  -- the KL expression is definitionally the one in
   have hKL := finite_kl_nonneg ρ γ hρ hρ1 hγpos hγ1
   exact hKL
 
-/-- **EFE ceiling (R466)**: expected free energy
+/-- **EFE ceiling **: expected free energy
 decomposes as G = P − I with pragmatic value P and
 epistemic (information) part I ≥ 0; hence the EFE
 never exceeds the pragmatic value — the
@@ -1564,7 +1564,7 @@ theorem efe_ceiling (G P I : ℝ)
   linarith
 
 open Real in
-/-- **Amortised EFE policy guarantee (R467)**: if the
+/-- **Amortised EFE policy guarantee **: if the
 learned surrogate Ĝ uniformly approximates the true
 expected free energy within slack c, the policy
 minimising Ĝ executes within 2c of the optimum

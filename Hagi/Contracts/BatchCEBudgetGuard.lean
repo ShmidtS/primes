@@ -38,7 +38,7 @@ theorem batchSampleCE_nonneg (X : Fin B → Matrix V (Fin n) ℝ)
   let _ : Nonempty V := ⟨y b⟩
   exact Hagi.Model.CEHeldout.ceOneHot_nonneg _ _
 
-/-- The empty batch keeps the previously established raw zero convention. -/
+/-- The empty batch keeps the raw zero convention. -/
 theorem emptyBatchCEObjective_zero
     (X : Fin 0 → Matrix V (Fin n) ℝ) (y : Fin 0 → V)
     (S : TrainState n a r c k) : batchCEObjective X y S = 0 := by
@@ -633,8 +633,8 @@ theorem batchCEObjective_batchDirectionHalfTrainStep_le_quadraticMargin_sum
       X y D S opCost opRisk write
 
 /-- An accepted half-window transition has the same declared abstract cost
-increment as the canonical transition.  D selection and guard checks are not
-falsely absorbed into this increment. -/
+increment as the canonical transition. Selection and guard checks are not
+part of this increment. -/
 theorem batchDirectionHalfTrainStep_flops_of_active
     (X : Fin B → Matrix V (Fin n) ℝ) (y : Fin B → V)
     (D : TrainState n a r c k → EuclideanSpace ℝ (Fin n))

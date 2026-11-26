@@ -7,13 +7,9 @@ import Hagi.Model.CEGroupedScale
 /-!
 # BatchCEDescent — the arithmetic-batch CE descent canon
 
-One line of development, one canonical module.  Sections keep their
-historical namespaces (`BatchCEDescent`) so every fully-qualified name
-is stable.  Merged here (v5 W1): `Hagi.Model.BatchCEDescentCommon`,
-`Hagi.Model.BatchCEDescentArithmetic`, `Hagi.Model.BatchCEDescentSafeStep`,
-`Hagi.Model.BatchCEDescentDirection`.  Surviving satellites
-(`Fixtures`, `HalfEta`, `LogitRange`, `ResidualNorm`, `Stochastic`)
-import this canon directly.
+Common-direction primitives, the arithmetic batch direction, safe step
+sizes, and strict-descent certificates.  Satellites (`Fixtures`,
+`HalfEta`, `LogitRange`, `ResidualNorm`, `Stochastic`) import this module.
 -/
 
 /-!

@@ -10,7 +10,7 @@ set_option linter.style.openClassical false
 /-!
 # Packing variants table for the Venn lattice matrix
 
- (master plan v3 addendum A8, item F4).  The sixteen Venn masks
+The sixteen Venn masks
 of `Hagi.Data.BoolVenn` form a `16 × 4` matrix of `{0,1}` entries —
 sixty-four ternary symbols at level one (`vennTritRow`, middle /
 positive branches of the existing `ternaryValueEncode`).  This module
@@ -30,7 +30,7 @@ matrix:
 * shared scale — one scale byte for the whole matrix (`scaleCode_byte`)
   plus the flat payload: `14` bytes (`sharedScaleVennBytes`).
 
-Honesty boundary: these are fixed-width byte counts for
+Boundary: these are fixed-width byte counts for
 the named codec variants only.  The flat and dyadic counts are the
 abstract block-count formula at the concrete matrix size — the full
 sixty-four-symbol stream encoder is not instantiated here — while the

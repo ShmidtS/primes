@@ -482,7 +482,7 @@ end Hagi.Model.CEHeldout
 This module only rescales the fixed-codebook held-out theorem from
 `Hagi.Model.CEHeldout`.  The normalized loss is raw `Hagi.ceOneHot` divided
 by the strictly positive `ceBound X`; every raw conclusion below actually
-contains that cross-entropy, not a renamed upper bound.  The exponential
+contains that cross-entropy itself.  The exponential
 budget calculation follows the established `sample_size_adequate` pattern,
 using the real identities `Finset.mul_sum`, `Real.exp_le_exp`,
 `Real.exp_neg`, and `Real.exp_log` rather than another concentration proof.

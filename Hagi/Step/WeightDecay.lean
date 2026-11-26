@@ -9,7 +9,7 @@ import Mathlib.Tactic
 # Weight decay as an implicit norm constraint
 
 Formal core of the weight-decay-as-regularizer view
-(plan §2; arXiv:2507.01598 family): the update
+(arXiv:2507.01598 family): the update
 `w(t+1) = (1 − ηλ)·w(t) − η·g(t)` with `ηλ ∈ [0,1]` and
 gradients bounded by `G` keeps the weights inside the FIXED
 ball `max(‖w(0)‖, G/λ)` forever — no external bounded-weight

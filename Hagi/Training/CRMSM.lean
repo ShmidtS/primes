@@ -10,42 +10,38 @@ import Hagi.Theory.SafeStep
 /-!
 # CR-MSM v2 — architecture skeleton: nonconvex extractor + controlled head
 
-A16 track 1 (master plan v3 addendum A16 §CR-MSM v2): the
-compositional SKELETON of the CR-MSM architecture, wiring PROVEN
+The compositional SKELETON of the CR-MSM architecture, wiring PROVEN
 blocks of the repo into one record with hypothesis-form bridges —
 no new deep mathematics, every load-bearing statement is a bridge
 to an existing theorem.
 
 Layer decision: the skeleton must see Model(4)
-transfer facts, Semantics(5) `ModelSpec`, Theory(7)
+transfer facts, Semantics `ModelSpec`, Theory
 `UniversalSafeStep` (via `Hagi.Theory.CEChain`) and
-`MasterStepCert`, and the layer-8 admission gate.
-Only layer 8 (Training) sees all of them; `Hagi/Architecture`
-(layer 2) cannot, so the module lives here (precedent).
+`MasterStepCert`.
+Only the Training layer sees all of them, so the module lives here.
 
-## Composition (A16 components → repo pieces)
+## Composition
 
 * **Multimodal encoder / nonconvex feature extractor** —
   `ExtractorSpec`: a feature map with hypothesis-form Lipschitz
   facts. The facts themselves are the transfer stack's business:
   residual backbone, attention, RoPE isometry
 RMSNorm negative result, GDN bridge,
-  FastArch3 end-to-end assembly. PIN: the extractor is
-  NONCONVEX and NO joint update guarantee is claimed (A16:
-  «доказательства для линейной головы при фиксированных признаках
-  не распространяются на совместное обновление»).
+  FastArch3 end-to-end assembly. The extractor is
+  NONCONVEX and NO joint update guarantee is claimed.
 * **SSM / GQA / memory branches** — `CRMSMBranch`: an OPTIONAL
-  single-choice sum-type. The audit's directive: gated/SSM is a
+  single-choice sum-type. Gated/SSM is a
   SEPARATE testable alternative, never a required per-block field
-  (memory cycle KV-cache machinery).
+  (KV-cache machinery).
 * **Shared core (rare updates)** — `SharedCore`: the core moves
   only every K macro ticks; the macro book is `MacroStatCert`
   (Commit/Hold/Rollback via the Ville engine).
 * **Residual low-rank expert bank** — `ExpertBank` carrying the
-  correction-C premise record `CoherencePremise`: strict
+  premise record `CoherencePremise`: strict
   orthogonality of experts is NOT required; what IS required is
   the pairwise block-Gram Frobenius coherence ≤ μ TOGETHER with a
-  per-block spectral lower bound (A16 correction C: pairwise
+  per-block spectral lower bound (pairwise
   coherence alone is insufficient; for orthogonal ranks Kr ≤ d).
   New experts enter ONLY through the admission rule.
 * **Prediction head (controlled decision part)** — `ModelSpec`
@@ -67,12 +63,12 @@ RMSNorm negative result, GDN bridge,
   fixed extractor, a CR-MSM training step on the canonical state
   IS a master step (`MasterStepCert`), the descent included.
 
-## Honest pins (no overclaiming)
+## Honest limits (no overclaiming)
 
 - Extractor nonconvexity: no joint (extractor+head) guarantees.
 - Quantization error reduction under orthogonal mixing: NOT
-  claimed (A16 correction A — separate conditions, cf.).
-- SSM branch optional; its testable-alternative status is a PIN.
+  claimed (separate conditions).
+- SSM branch optional; its testable-alternative status is a limit.
 - `CoherencePremise` is premise-form: μ-coherence AND the spectral
   lower bound are binders every instance must discharge.
 -/
@@ -90,7 +86,7 @@ normed spaces together with its Lipschitz constant AS A HYPOTHESIS
 (premise-form). The transfer stack (residual, attention,
  RoPE isometry, GDN, FastArch3 end-to-end) supplies
 instances of this record; the skeleton does not re-prove them.
-PIN: the extractor is nonconvex — nothing here claims a joint
+Limit: the extractor is nonconvex — nothing here claims a joint
 extractor+head update guarantee. -/
 structure ExtractorSpec (X F : Type) [NormedAddCommGroup X]
     [NormedAddCommGroup F] where
@@ -104,9 +100,9 @@ structure ExtractorSpec (X F : Type) [NormedAddCommGroup X]
 /-! ## Optional branches (SSM is a separate testable alternative) -/
 
 /-- The OPTIONAL processing branch of a CR-MSM block: at most ONE
-of the audit's alternatives is instantiated per block, and `noneB`
+of the alternatives is instantiated per block, and `noneB`
 (no branch) is a legitimate choice — the gated/SSM route is a
-separate testable alternative (A17 architecture directive), not a
+separate testable alternative, not a
 required component. Memory points at the memory-cycle
 semantics; `gqa` at the KV-cache machinery. -/
 inductive CRMSMBranch where
@@ -148,9 +144,8 @@ noncomputable def blockGram {m r d : ℕ} (U : Fin m → Matrix (Fin r) (Fin d) 
     (i j : Fin m) : Matrix (Fin r) (Fin r) ℝ :=
   (U i) * (U j).transpose
 
-/-- The correction-C premise record for the residual low-rank
-expert bank: strict orthogonality of experts is NOT required (A16
-correction C). What the bank must carry is (a) the pairwise
+/-- The premise record for the residual low-rank
+expert bank: strict orthogonality of experts is NOT required. What the bank must carry is (a) the pairwise
 block-Gram Frobenius coherence ≤ `μ`, AND (b) a per-block spectral
 lower bound on the block Gram `G_ii = (U i)(U i)ᵀ`, stated as the
 quadratic-form inequality `κ ‖v‖² ≤ vᵀG_ii v` (an equivalent
@@ -176,7 +171,7 @@ structure CoherencePremise (m r d : ℕ) where
   kappa_pos : 0 < kappa
 
 /-- The residual low-rank expert bank: rank-r experts over a
-d-dimensional feature space, carrying their correction-C coherence
+d-dimensional feature space, carrying their coherence
 premise. -/
 structure ExpertBank (m r d : ℕ) where
   /-- The coherence premise of the bank (correction C binder). -/
@@ -235,13 +230,11 @@ theorem crmsm_head_step_safe {Θ X V F : Type} [NormedAddCommGroup X]
     HeadControl b b' U θ :=
   ⟨hfix, Hagi.Theory.CEChain.universal_descent U θ hC⟩
 
-/-- The separation pin (A16, honesty): the head-control bridge of
+/-- The separation limit: the head-control bridge of
 `crmsm_head_step_safe` is stated for a pair of blocks whose
 extractors are EQUAL — the guarantee governs the head at
 fixed features and DOES NOT extend to the joint extractor+head
-update («доказательства для линейной головы при фиксированных
-признаках не распространяются на совместное обновление», A16
-directive). Formally: any head-control fact between two blocks
+update. Formally: any head-control fact between two blocks
 FORCES the extractor-equality channel — the descent statement of
 this skeleton lives entirely inside the fixed-feature world, and
 no statement is offered for `b.extractor ≠ b'.extractor`. -/

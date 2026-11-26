@@ -422,7 +422,7 @@ theorem bhatia_davis {V : Type*} [Fintype V] [Nonempty V]
   linarith [hsum, hexp]
 
 /-- Excess-variance bridge: Var_q(g) <= (b-a) * (mu - a) —
-Bhatia-Davis R496 with b - mu <= b - a.  For the Gibbs vertical
+Bhatia-Davis `excess_ge_var_over_range` with b - mu <= b - a. For the Gibbs vertical
 this gives Var_{p_T}(E) <= Delta * (⟨E⟩ - E*) — fluctuations
 are controlled by the mean excess directly. -/
 theorem var_le_delta_excess {V : Type*} [Fintype V] [Nonempty V]
@@ -453,7 +453,7 @@ theorem var_le_delta_excess {V : Type*} [Fintype V] [Nonempty V]
           exact mul_le_mul_of_nonneg_right
             (by ring_nf; linarith) (sub_nonneg.mpr hμa)
 
-/-- Обратный мост: Var/(b−a) ≤ μ − a — из Bhatia–Davis R496
+/-- Обратный мост: Var/(b−a) ≤ μ − a — из Bhatia–Davis
 (Var ≤ (b−μ)(μ−a), (b−μ) ≤ (b−a)).  Для Гиббса: если
 дисперсия мала, то и среднее прижато к минимуму. -/
 theorem excess_ge_var_over_range {V : Type*} [Fintype V] [Nonempty V]

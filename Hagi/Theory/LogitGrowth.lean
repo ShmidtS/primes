@@ -22,7 +22,7 @@ measurement. Nonnegative budgets require an explicit affordability
 hypothesis. The total CE-derived gain is bounded by the initial loss.
 
 Actual energy descent is proved directly by CE strict antitonicity.
-The legacy `advance_energy_drop` and `ctv3_of_stageLaws` are deliberately
+The older `advance_energy_drop` and `ctv3_of_stageLaws` are deliberately
 NOT used here: putting the same CE drop into the grow and joint channels
 would count it twice. V3 certification instead uses
 `ctv3_of_actualDescent`. There is no artificial quantization credit.

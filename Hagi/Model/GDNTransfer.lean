@@ -16,9 +16,7 @@ residual transfer stack (`Hagi.Model.BackboneTransfer`), and the
 HYBRID payoff theorem lands — a stack mixing attention blocks and
 GDN blocks descends with the product gain.
 
-GDN-form verdict (the carrier survey pin): the repository carries
-GDN in three distinct forms, and the block form must be
-matched honestly. (1) `Hagi.Model.GDNBridge` is one-hot RAM
+The repository carries GDN in three distinct forms. (1) `Hagi.Model.GDNBridge` is one-hot RAM
 addressing (`gdn_lag1_alignment`, `gdn_ram_roundtrip`) —
 read/write semantics, no state-space operator to wire; (2)
 `Hagi.External.MemT.GDN2` is the Gated DeltaNet-2 MEMORY update
@@ -28,9 +26,7 @@ matrix-space, not a state map; (3) `Hagi.Architecture.
 ManifoldHyperConn` is the mHC STATE MIXING `x ↦ M *ᵥ x`
 with `M` doubly stochastic. The GDN BLOCK wired here is form (3):
 the doubly-stochastic state mixing branch, with the GDN nonlinear
-gate (form (2) δ/β/σ gate structure) entering PREMISE-FORM as a
-`μg`-Lipschitz pre-gate — exactly mirroring the pre-norm
-premise.
+gate (form (2) δ/β/σ gate structure) entering as a `μg`-Lipschitz pre-gate premise, mirroring the pre-norm premise.
 
 Carrier transport: `gdnMix M x = WithLp.toLp 2 (M *ᵥ ofLp x)` on
 `EuclideanSpace ℝ n` (the transfer stack's abstract carrier),
@@ -43,8 +39,7 @@ through the same WithLp transport.
   the `real_norm_sq_eq` bridge (`gdnMix_norm_sub_le`).
 * `gdn_branch_lipschitz` — pre-gate μg ∘ mixing ⇒ `μg`-Lipschitz:
   the block hypothesis shape with the gate honest premise.
-* `gdnGateTanh` / `gdnGateTanh_lipschitz` — P5 PER-INSTANCE
-  DISCHARGE (the pattern): the componentwise-saturating
+* `gdnGateTanh` / `gdnGateTanh_lipschitz` — the componentwise-saturating
   tanh gate family is `1`-Lipschitz on the Euclidean carrier
   (μg = 1 exact: per-coordinate |tanh x − tanh y| ≤ |x − y| via
   the Mathlib mean-value route, transported through the
@@ -180,7 +175,7 @@ noncomputable def gdnGateTanh (x : EuclideanSpace ℝ n) :
     EuclideanSpace ℝ n :=
   WithLp.toLp 2 (fun i => Real.tanh (WithLp.ofLp x i))
 
-/-- P5 DISCHARGE (per-instance): the componentwise tanh
+/-- The componentwise tanh
 gate is `1`-Lipschitz on the Euclidean carrier — the honest
 constant `μg = 1` (each coordinate 1-Lipschitz, transported
 through the `real_norm_sq_eq` bridge). -/

@@ -29,20 +29,13 @@ interference energy in the activation metric):
 * `price_zero_iff_ker` — цена нулевая ⟺ dev_i ⊥ всем
   активациям домена (dev_i ∈ ker Σ_i) — Stärk Th.4:
   Σ-ортогонализация необходима И достаточна (GPM-мост).
-* `MergeApproved` + `merge_gate_certified` — ГЕЙТ СЛИЯНИЯ
-  (T2): сливать, только если twoGap > Σ_i w_i·price_i +
+* `MergeApproved` + `merge_gate_certified` — гейт слияния:
+  сливать, только если twoGap > Σ_i w_i·price_i +
   κ√n·s/2: прирост ансамбля (GapLaw) перекрывает сумму цен
   по доменам и тернарную цену сжатия.
 
-**Честные границы:** квадратичная модель — локальная
-аппроксимация (segment-averaged Hessian; нелинейный остаток —
-липшицевость третьего порядка, runtime h_lip3); активации и
-веса измеряемы; Stärk Prop M.1: перестановочное выравнивание
-без знаков УХУДШАЕТ midpoint-лосс — знаковая свобода
-обязательна; эквивалентность ½∑⟨x,dev⟩² = ½·devᵀ·actSigma·dev
-— тройная перестановка сумм, матричная форма приведена в
-`merge_price_quad`.
--/
+**Честная граница:** квадратичная модель — локальная
+аппроксимация (нелинейный остаток не оценивается). -/
 
 open Finset
 open scoped Matrix
@@ -72,7 +65,7 @@ theorem sigmaPrice_neg (xs : Fin K → (Fin n → ℝ))
   rw [dotProduct_neg]
   ring
 
-/-- **Цена слияния — квадратичная форма отклонения**: в
+/-- Цена слияния — квадратичная форма отклонения: в
 квадратичной модели QuadModel цена merge θ̄ = M для домена i
 отклонения dev_i: прирост лосса домена при слиянии измеряется
 проекциями отклонения на активации домена. -/
@@ -82,11 +75,10 @@ theorem merge_price_quad (M Wi dev : Fin n → ℝ)
     QuadModel xs Wi M = sigmaPrice xs dev := by
   rw [QuadModel, hdev, sigmaPrice_neg]
 
-/-- **Нулевая цена ⟺ dev в ядре Σ (Stärk Th.4)**: цена
+/-- Нулевая цена ⟺ dev в ядре Σ (Stärk Th.4): цена
 домена нулевая тогда и только тогда, когда отклонение
-ортогонально ВСЕМ активациям домена — Σ-ортогонализация
-необходима И достаточна (связка с `sigma_orth_zero` /
-`sigma_orth_necessary`). -/
+ортогонально всем активациям домена (связка с
+`sigma_orth_zero` / `sigma_orth_necessary`). -/
 theorem price_zero_iff_ker (xs : Fin K → (Fin n → ℝ))
     (dev : Fin n → ℝ) :
     sigmaPrice xs dev = 0 ↔ ∀ x, dotProduct (xs x) dev = 0 := by
@@ -121,7 +113,7 @@ theorem price_zero_iff_ker (xs : Fin K → (Fin n → ℝ))
     rw [hsum]
     norm_num
 
-/-- Сертифицированный гейт слияния (T2): прирост twoGap
+/-- Сертифицированный гейт слияния: прирост twoGap
 перекрывает взвешенную сумму цен доменов и тернарную цену
 сжатия κ√n·s/2. -/
 def MergeApproved (twoGap : ℝ) (xs : Fin N → (Fin K → (Fin n → ℝ)))
@@ -130,13 +122,9 @@ def MergeApproved (twoGap : ℝ) (xs : Fin N → (Fin K → (Fin n → ℝ)))
   (∑ i, w i * sigmaPrice (xs i) (devs i)) + κ * (n' * s) / 2
     < twoGap
 
-/-- **Гейт слияния — сертификат**: если twoGap (измеренный
-зазор ансамбля, GapLaw) строго больше суммы взвешенных цен
-доменов (σ-метрики Stärk) плюс тернарная цена сжатия
-κ√n·s/2, то слияние сертифицировано: суммарный ожидаемый
-лосс-прирост по доменам и сжатию меньше ансамблевого прироста.
-лосс-прирост по доменам и сжатию меньше ансамблевого прироста.
-κ√n·s/2 — тернарная цена из Runtime (satTail-корректная). -/
+/-- Если twoGap строго больше суммы взвешенных цен доменов
+плюс тернарная цена сжатия κ√n·s/2, то суммарный ожидаемый
+лосс-прирост по доменам и сжатию меньше ансамблевого прироста. -/
 theorem merge_gate_certified {twoGap : ℝ}
     {xs : Fin N → (Fin K → (Fin n → ℝ))}
     {devs : Fin N → (Fin n → ℝ)} {w : Fin N → ℝ}
@@ -153,11 +141,10 @@ open scoped Matrix
 
 /-!
 # MergeMixture — merging preserves the mixture output under
-stable routing (plan §2; source 2609.32821)
+stable routing (source 2609.32821)
 
-The empirical finding (cosine 0.896–0.976 across 6 settings
-with bootstrap CI): merging MoE weights preserves the
-mixture output up to ROUTING drift. The exact structure:
+Merging MoE weights preserves the mixture output up to
+routing drift:
 
 * `merged_output_exact`: with FIXED routing weights w the
   merged expert (Σᵢ wᵢ • Wᵢ) reproduces the mixture output
@@ -165,35 +152,24 @@ mixture output up to ROUTING drift. The exact structure:
   linearity: the drift ≠ failure picture;
 * `routing_drift_bound`: if the router drifts from w to w',
   the output deviation is at most Σᵢ |w'ᵢ − wᵢ| · ‖Wᵢ x‖ —
-  the L₁ router drift times the branch gains: small router
-  perturbations cannot break the merged output by more than
-  their weighted magnitude (the formal counterpart of the
-  0.9-cosine regime);
-* boundary case (corollary of both): an exact router
-  (w' = w) has zero L₁ drift, hence EXACTLY zero output
-  deviation by `routing_drift_bound` — the empirical cosine
-  gap is entirely the routing drift, not the merge itself.
+  the L₁ router drift times the branch gains;
+* an exact router (w' = w) has zero output deviation, so the
+  empirical cosine gap is entirely the routing drift.
 -/
 
 namespace Hagi.Ensemble
 
 variable {d m : ℕ} (W : Fin m → Matrix (Fin d) (Fin d) ℝ)
 
-/-- **Exact preservation under fixed routing**: the merged
-matrix Σ wᵢ • Wᵢ applied to x equals the mixture output
-Σ wᵢ • (Wᵢ x) exactly — merge commutes with the mixture;
-whatever the disagreement story, the mixture OUTPUT
-is preserved by the merge itself. -/
+/-- The merged matrix Σ wᵢ • Wᵢ applied to x equals the mixture
+output Σ wᵢ • (Wᵢ x) exactly. -/
 theorem merged_output_exact (w : Fin m → ℝ) (x : Fin d → ℝ) :
     (∑ i, w i • W i) *ᵥ x = ∑ i, w i • (W i *ᵥ x) := by
   rw [Matrix.sum_mulVec]
   exact Finset.sum_congr rfl fun i _ => Matrix.smul_mulVec (w i) (W i) x
 
-/-- **The routing drift bound**: a router perturbation
-w → w' changes the merged output by at most the L₁ drift
-times the branch gains ‖Wᵢ x‖ — small routing drift cannot
-break the merged output by more than its weighted
-magnitude. -/
+/-- A router perturbation w → w' changes the merged output by
+at most the L₁ drift times the branch gains ‖Wᵢ x‖. -/
 theorem routing_drift_bound (w w' : Fin m → ℝ)
     (x : Fin d → ℝ)
     (hnorm : ∀ i, ‖W i *ᵥ x‖ ≤ B) :
@@ -228,37 +204,18 @@ set_option linter.style.header false
 /-!
 # MergeIdentity: the geometric pool ≡ logit-mean identity
 
-The measured +0.0000 difference between the geometric and
-arithmetic pool merges is an identity, not a coincidence.
+The geometric pool of the leaf probabilities and the softmax of
+the mean logits give the same distribution.
 
-**What the module proves:**
+* `softmax_shift_invariance` — softmax(z + c·1) = softmax(z).
+* `geometric_mean_logit_mean` — the geometric pool equals the
+  softmax of the mean logits up to a token-independent constant:
+  the per-leaf normalizer lse_i is constant in the token, so
+  the two merge operators coincide.
 
-* `softmax_shift_invariance` — the softmax is invariant to a
-  constant shift of the logits: softmax(z + c·1) = softmax(z)
-  — the engine of the identity.
-* `geometric_mean_logit_mean` — the geometric pool of the
-  leaf PROBABILITIES equals the softmax of the mean CENTERED
-  logits: pooling p_i^{1/K} ∝ softmax(z_i − lse_i) averaged
-  over i is the softmax of the mean z_i shifted by the
-  constant mean-lse — the SAME distribution as the softmax
-  of the plain mean logits. The per-leaf normalizer lse_i is
-  CONSTANT in v, so the two merge operators coincide (the
-  measured +0.0000).
-
-**The honest boundary.** The identity holds for the
-UNIFORM-weight geometric pool of full softmax distributions;
-the weighted case (w_i ≠ 1/K) shifts by a constant too, so
-the same argument applies; the temperatured logits
-(logit_scale ≠ 1) likewise — the merge operator's current
-form is the shift-invariant class.
-
-**Prescription for the code.**
-
-1. Geometric-vs-arithmetic on the same leaf logits is a no-op THROUGH
-   the softmax; the interesting comparison is the WEIGHTED geometric
-   pool (w from DFieldKKT) against the uniform.
-2. `geometric_pool_identity` (`Hagi.Energy.FreeEnergy`) still governs
-   the RKL side: the two pools differ in the KL currency they optimize.
+The identity holds for the uniform-weight geometric pool of
+full softmax distributions; weighted and temperatured variants
+are not proved.
 -/
 
 open Finset
@@ -267,9 +224,8 @@ namespace Hagi.Ensemble
 
 section MergeIdentity
 
-/-- **The softmax shift invariance** (the engine): a constant
-shift of all logits leaves the softmax distribution
-unchanged — the normalizer absorbs it. -/
+/-- A constant shift of all logits leaves the softmax
+distribution unchanged. -/
 theorem softmax_shift_invariance (V : Type) [Fintype V]
     (z : V → ℝ) (c : ℝ) :
     (fun v => Real.exp (z v + c) / ∑ u, Real.exp (z u + c))
@@ -287,16 +243,12 @@ theorem softmax_shift_invariance (V : Type) [Fintype V]
   funext v
   rw [hexp v, ← hsum, mul_div_mul_left _ _ hpos]
 
-/-- **The geometric pool ≡ logit-mean merge identity (the
-core proportional form)**: per token v, the geometric pool
-of the leaf distributions is the softmax-of-mean-logits
-value scaled by a v-INDEPENDENT constant — the per-leaf
-normalizers Z_i = Σ_u e^{z_i(u)} collect into a single
-constant factor that CANCELS in the pool's normalization.
-Hence the two merge operators produce the SAME distribution
-(the measured +0.0000 is this identity). The
-statement: the unnormalized geometric pool equals the
-unnormalized logit-mean softmax times a v-constant. -/
+/-- The geometric pool ≡ logit-mean merge identity: per token
+v, the unnormalized geometric pool of the leaf distributions
+equals the unnormalized softmax-of-mean-logits value times a
+token-independent constant (the per-leaf normalizers cancel
+in the pool's normalization), so the two merge operators
+produce the same distribution. -/
 theorem geometric_mean_logit_mean (V K : Type)
     [Fintype V] [Fintype K] [Nonempty V] [Nonempty K]
     (z : K → V → ℝ) (v : V) :
@@ -329,66 +281,27 @@ end Hagi.Ensemble
 set_option linter.style.header false
 
 /-!
-# MergeScaling: why the merge effect ACCELERATES with N —
+# MergeScaling: why the merge effect accelerates with N —
 the two-channel law
 
-The measured anomaly (STATUS.md §9): at FIXED 241.3M
-parameters, N = 6 → 12 → 24 merges give 6.1815 → 6.0767 →
-5.8704; the per-doubling step GROWS: 0.1049 → 0.2063
-(≈ ×2). The pure ensemble law (`Hagi.Core/Concat`,
-Gap_N ≈ G∞(1−1/N)) predicts DECREASING steps (the
-1/N approach to the ceiling) — the measurement CONTRADICTS
-the single-channel model. The resolution: the merge effect
-is a TWO-CHANNEL sum,
+At a fixed parameter count, the per-doubling merge step grows
+with N, contradicting the single-channel ensemble law
+Gap_N ≈ G∞(1−1/N). The resolution: the merge effect is a
+two-channel sum,
 
 `Δ(N) = Δ_ensemble(N) + Δ_joint(N)`,
 
-the ensemble channel saturates (the accounting of
-`Hagi.Ensemble.GapLaw`), but the JOINT channel grows with N — more
-blocks mean more cross-expert edges to train, and the joint
-budget per edge is constant: the joint channel's gain is
-LINEAR in the number of trained cross-block interactions.
+the ensemble channel saturates (`Hagi.Ensemble.GapLaw`), but
+the joint channel grows linearly with N (the mixer share of
+the budget: at fixed H_total = N·H_leaf the block-diagonal
+body has 1/N of the dense body's attention weight, the freed
+parameters go to the mixers). The edge count itself is a
+measured quantity, not a theorem.
 
-**What the module proves:**
-
-* `two_channel_step_law` — THE LAW: if the ensemble step
-decays as 1/N² (the Gap_N curvature) and the joint step
-grows linearly in N (the cross-edge count), the total step
-Δ(N+1) − Δ(N) has a unique minimum — the measured
-acceleration regime is BEFORE the minimum: the two-channel
-model explains BOTH the observed growth AND predicts its
-eventual turnover (the falsifiable extrapolation: the step
-must eventually decay; the measured 0.105 → 0.206 is the
-rising limb; the N* of the turnover is
-predictable from the two fitted channels).
-
-* edge_count_linear — the cross-block edge count of the
-block-diagonal merge is linear in N: the off-diagonal
-compositions the joint phase trains scale with the block
-count (N blocks → N(N−1)/2 directed pairs, but each
-SwiGLU mixer layer trains against the full stream — the
-per-layer edge count is N, the mixer count is the depth;
-the joint-channel gain ∝ depth × N at fixed width H_total:
-H_total = N·H_leaf fixed, so MORE blocks = MORE mixer
-capacity at the SAME parameter count — the linear channel
-is the mixer capacity itself).
-
-**The parameter-parity identity.** At fixed H_total =
-N·H_leaf, the per-block weight is H_leaf², summed over N blocks:
-N·H_leaf² = H_total²/N — the block-diagonal body has 1/N of the dense
-body's attention weight; the freed parameters go to the MIXERS (the
-cross-block capacity): at fixed total params, more blocks = more mixer
-parameters per block-pair. The joint channel's growth IS the growing
-mixer share of the budget.
-**Prescription for the code.**
-
-1. The N-sweep's next point (N = 48) is the falsifiable test: the
-two-channel law predicts the step from the two fitted channels; a
-shrinking step means the turnover was passed.
-2. The mixer_init_scale screen (`--merge-k` best-of-K, STATUS §10)
-should be run BEFORE the N = 48 point.
-3. The N* turnover formula is the ComputeBudget input: choose the next
-N by the predicted Δ(N)/cost.
+* `two_channel_step_law` — if the ensemble step decays as
+  1/N² and the joint step grows linearly in N, the total step
+  s(N) = a/N² + b·N has a unique minimum: the measured
+  acceleration is the rising limb before the turnover.
 -/
 
 open Finset
@@ -397,21 +310,9 @@ namespace Hagi.Ensemble
 
 section MergeScaling
 
--- The honest content of the edge-count law is the LINEAR mixer-cost
--- O(N) (documented in the module header); the count is a measured
--- quantity, not a theorem.
-
-/-- **The two-channel step law**: with the ensemble step
-decaying (the Gap_N curvature) and the joint step growing
-linearly (the mixer-share channel), the total step
-s(N) = a/N² + b·N has a unique minimum at
-N* = (2a/b)^{1/3} — the measured regime (steps growing:
-0.105 → 0.206) is the rising limb BEFORE N*; the turnover
-prediction: the step at the next N-point either continues
-rising (still before N*) or shrinks (past N*) — both
-outcomes are verdicts. The formal statement: the step
-function's sign structure (the unique critical point of
-the two-channel sum). -/
+/-- The two-channel step law: the total step s(N) = a/N² + b·N
+has a unique minimum at N* = (2a/b)^{1/3}; the measured regime
+of growing steps is the rising limb before N*. -/
 theorem two_channel_step_law (a b : ℝ) (_ha : 0 < a) (hb : 0 < b)
     (N : ℝ) (hN : 0 < N) :
     (2 * a / N^3 - b = 0) ↔ (N^3 = 2 * a / b) := by
@@ -435,11 +336,11 @@ end Hagi.Ensemble
 set_option linter.style.header false
 
 /-!
-# CertifiedMerge-остаток — PAC-Bayes compression
+# PAC-Bayes compression
 
 Порт 2607.14506 (PAC-Bayes compression certificate для
 merged-моделей: prior = base-чекпойнт, posterior = merged,
-штраф C(Δ) в битах тернарно-сжатых дельт), часть.
+штраф C(Δ) в битах тернарно-сжатых дельт).
 
 Контракт: дельта-апдейт — список (позиция, тернарный знак);
 стоимость в битах АДДИТИВНА по элементам (для каждой позиции
@@ -452,18 +353,14 @@ merged-моделей: prior = base-чекпойнт, posterior = merged,
   (C(Δ₁ ++ Δ₂) = C(Δ₁) + C(Δ₂)): K-дельта merge платит ровно
   сумму, без мультипликативного штрафа;
 * deltaCost_le_card_bits — верхняя граница: стоимость
-  K дельт ≤ (Σ k, |Δ_k|)·(log₂ d + log₂ 3) — биты
-  компрессии входят линейно в PAC-Bayes-штраф;
+  K дельт ≤ (Σ k, |Δ_k|)·(log₂ d + log₂ 3);
 * `merged_bound` — PAC-Bayes compression bridge: при
   измеренном population-риске posterior и посылке-мосте
   (связка риска и компрессии, 2607.14506 Thm-стиль) риск
   merged ≤ prior-риск + (C + log(1/δ))·масштаб.
 
-**Честные границы**: PAC-Bayes-мост (риск ⟸ компрессия) —
-посылка hcert (h_emp_-слой); здесь формализована
-КОМБИНАТОРНАЯ часть (аддитивность бит-стоимости), где
-мультипликативный компаундинг невозможен по построению
-(согласовано с ATTACK_VECTOR §2: компаундинг опровергнут).
+**Честная граница**: PAC-Bayes-мост (риск ⟸ компрессия) —
+посылка; формализована только аддитивность бит-стоимости.
 -/
 
 open Finset Real
@@ -484,10 +381,8 @@ noncomputable def deltaCost {d : ℕ} (δ : Delta d) : ℝ :=
   δ.length * (Real.log (d : ℝ) / Real.log 2
     + Real.log 3 / Real.log 2)
 
-/-- **Точная аддитивность стоимости конкатенации**: дельты
-K merge-шагов стоят ровно сумму своих стоимостей —
-мультипликативного компаундинга бит-штрафа НЕТ
-(атака «компаундинг после merge» закрыта по построению). -/
+/-- Точная аддитивность стоимости конкатенации: дельты
+K merge-шагов стоят ровно сумму своих стоимостей. -/
 theorem deltaCost_concat {d : ℕ} (δ₁ δ₂ : Delta d) :
     deltaCost (δ₁ ++ δ₂) = deltaCost δ₁ + deltaCost δ₂ := by
   unfold deltaCost
@@ -495,8 +390,7 @@ theorem deltaCost_concat {d : ℕ} (δ₁ δ₂ : Delta d) :
   push_cast
   ring
 
-/-- **K-дельта merge платит линейно**: суммарная стоимость
-K дельт = Σ_k C(Δ_k) (следствие точной аддитивности). -/
+/-- K-дельта merge платит линейно: Σ_k C(Δ_k). -/
 theorem deltaCost_sum {d : ℕ} (Δ : ℕ → Delta d)
     (K : ℕ) :
     deltaCost (List.flatMap (fun k => Δ k) (List.range K))
@@ -508,16 +402,14 @@ theorem deltaCost_sum {d : ℕ} (Δ : ℕ → Delta d)
         deltaCost_concat, Finset.sum_range_succ, ih]
       simp
 
-/-- **PAC-Bayes compression bridge (композитинг)**: если
+/-- PAC-Bayes compression bridge: если
 одношаговое применение дельты ухудшает prior-риск не более
 чем на lambda * C(delta) + mu (измеряемая посылка-мост
 2607.14506), то K-шаговый merge-композитинг платит
 ЛИНЕЙНО: суммарный штраф = lambda * Σ C(Delta_k) + K * mu.
 
-Следствие (ATTACK_VECTOR §2): мультипликативный
-компаундинг штрафа невозможен — K merge-шагов тандемом
-стоят сумму бит-стоимостей, а не произведение факторов
-деградации. -/
+K merge-шагов платят сумму бит-стоимостей, а не
+произведение факторов деградации. -/
 theorem merged_bound {d : ℕ} (risk : Delta d → ℝ)
     (Δ : ℕ → Delta d) (lambda mu : ℝ) (K : ℕ)
     (happly : ∀ δ₀ k,

@@ -9,19 +9,17 @@ import Hagi.State.TrainTrajectory
 /-!
 # Alternating joint update — piecewise-certified trajectory with phase guards
 
-research beat of the queue (ranked item 5, "joint
-update — research goal"): LOOSEN `crmsm_joint_separation`
-pin through an ALTERNATING schedule. The extractor updates RARELY
+This LOOSENS the limit `crmsm_joint_separation`
+through an ALTERNATING schedule. The extractor updates RARELY
 (at phase boundaries, every `K` steps, period) and is
 admitted only through a re-certification gate; between boundaries
 the extractor is FROZEN, so the head-descent theorems (via
 the wiring, master steps) apply VERBATIM — the
 separation lemma's precondition holds by FREEZING, not by equality
-of a joint update. Precedent: R1 alternating rounds
-(one-sided dependency z* → visible: each round's guarantee is
-conditional on the frozen other side).
+of a joint update. Each round's guarantee is
+conditional on the frozen other side.
 
-## What this module proves (the honest comparison vs the pin)
+## What this module proves
 
 - WITHIN a phase (`HeadPhase`, `head_phase_certified`,
   `head_phase_bound`): at a frozen extractor every head step
@@ -40,19 +38,19 @@ conditional on the frozen other side).
   by start − Σ certified drops + Σ penalties + Σ boundary damages
   (telescope over the kind discipline).
 
-## What this module does NOT prove (the pin stays)
+## What this module does NOT prove
 
 `crmsm_joint_separation` is INTENTIONALLY untouched: a
 SIMULTANEOUS single-step joint extractor+head update remains
 uncovered. What alternating achieves is the PIECEWISE-CERTIFIED
-trajectory above; it is a partial result next to the pin, not a
+trajectory above; it is a partial result, not a
 replacement of it.
 
 ## Honesty pins
 
-- **Damage bound is a PREMISE, with a DERIVED counterpart
-.** `delta` is a per-boundary binder `fullObjective s' ≤
-  fullObjective s + delta`, `delta ≥ 0`. derives the
+- **Damage bound is a PREMISE, with a DERIVED counterpart.**
+  `delta` is a per-boundary binder `fullObjective s' ≤
+  fullObjective s + delta`, `delta ≥ 0`. The derived counterpart bounds the
   CE-channel damage: the CE head is 2-Lipschitz in the logits
   (sup norm, `ce_head_lipschitz_in_logits`), the head logit map
   is `headLip`-Lipschitz in the FEATURES (premise), and the
@@ -77,9 +75,9 @@ replacement of it.
   `K`); a consumer instantiating huge `delta`s gets a weak bound —
   that is the honest price of premise-form.
 
-Layer decision: Training (8), same as CRMSM — the module
-must see the CR-MSM skeleton (8), the master theorem (7) and
-the carrier; only layer 8 can.
+Layer decision: Training, same as CRMSM — the module
+the only layer that sees the CR-MSM skeleton, the master theorem and
+the carrier.
 -/
 
 set_option relaxedAutoImplicit false
@@ -174,7 +172,7 @@ free-floating decision — the recorded decision is EXACTLY
 `admitRule proposal`), with the honest damage bookkeeping:
 - the extractor moves ONLY on an admitted decision (iff);
 - the full-objective change across the boundary is bounded by the
-  PREMISE `delta ≥ 0` (see module pins: no descent guarantee for a
+  PREMISE `delta ≥ 0` (see module limits: no descent guarantee for a
   nonconvex extractor update, and no cheap `ExtractorSpec.lip` →
   `fullObjective` bridge exists);
 - on admission, a fresh certified head carrier must EXIST at the
@@ -319,7 +317,7 @@ drops PLUS the sum of compression penalties PLUS the sum of
 boundary damages. Head phases descend (via extractor
 frozen); extractor boundaries pay their premise damage; holds are
 free. The decomposition IS the result — the simultaneous joint
-update remains pinned (`crmsm_joint_separation`, untouched).
+update remains uncovered (`crmsm_joint_separation`, untouched).
 Proof: per-step key by kind discipline, then the generic
 telescope `obj_telescope_err`. -/
 theorem alternating_trajectory_bound (T : ℕ)
@@ -511,7 +509,7 @@ extractor displacement binder `D`; the CE-channel damage is then
 a THEOREM (`derived_boundary_damage`), and the fullObjective
 channel keeps a premise whose CONSTANT is the derived value
 `2 * headLip * D` (the feature → fullObjective bridge remains
-open — the honesty pin). -/
+open). -/
 structure DerivedExtractorBoundary [Fintype V] [Nonempty V]
     (s s' : Hagi.State.CanonicalTrainState n a e q r c k) where
   /-- The block before the boundary. -/
@@ -545,7 +543,7 @@ structure DerivedExtractorBoundary [Fintype V] [Nonempty V]
   D_nonneg : 0 ≤ D
   /-- Every input's feature displacement is at most `D`. -/
   disp : ∀ x : X, ‖block'.extractor.extract x - block.extractor.extract x‖ ≤ D
-  /-- The fullObjective channel (premise-form, pin) with the
+  /-- The fullObjective channel (premise-form) with the
   DERIVED constant `2 * headLip * D`. -/
   damage_derived : Hagi.State.fullObjective s'
     ≤ Hagi.State.fullObjective s + 2 * headLip * D

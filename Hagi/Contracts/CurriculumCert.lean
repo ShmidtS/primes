@@ -44,7 +44,7 @@ residual` — no constant is baked in here) `Hagi.Cert.CertStepGen`
 `budget_telescope_gen`).
 
 Honest scope: fixed two-phase schedule (no adaptive curriculum
-selection — YAGNI: the 2-phase form carries the whole content);
+selection: the 2-phase form carries the whole content);
 deterministic descent premises only (the interface); no claim
 that certified ⇒ empirically better; numbers live in the numeric
 `Anchor` lemmas only.

@@ -27,9 +27,9 @@ theorem) the composed run preserves every phase invariant —
 no new deep facts, no weakening (each conjunct is the component
 theorem's conclusion verbatim).
 
-## Honest pins
+## Limits
 
-1. P1 quantizes targets to the snap grid 1/2 (docstring PIN in
+1. P1 quantizes targets to the snap grid 1/2 (stated in the docstring in
    the bridge); "CE-contribution 0" is the bench surrogate MSE
    contribution, the exact-gate semantics (`p x = 1` on covered
    positions) maps to it positionwise.
@@ -146,7 +146,7 @@ primitive stays covered — `coverage_append_monotone`), then the
 coverage of the final state contains the coverage of EVERY
 earlier state (in particular the initial one). Induction on n.
 
-HONEST PIN: the per-iteration full-loop invariants (gate, adapter
+LIMIT: the per-iteration full-loop invariants (gate, adapter
 step, isolation, OE, EB) are exactly `full_loop_sound`'s
 conclusions, applied per iteration under its own hypotheses;
 the NEW mathematical content here is only the monotone-coverage

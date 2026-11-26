@@ -14,8 +14,7 @@ For weights `p i ≥ 0`, the deviation of the weighted output
 `∑ i, p i • (v i + e i)` from the exact output `∑ i, p i • v i` is
 bounded by the weighted average `∑ i, p i * ‖e i‖` of the error
 norms (`attention_error_damped_sum`), by their maximum when `p` is
-a probability distribution (`attention_error_damped`), and by any
-uniform bound `M` (`attention_error_damped'`).
+a probability distribution (`attention_error_damped`).
 -/
 
 namespace Hagi.Core
@@ -64,19 +63,6 @@ theorem attention_error_damped {ι : Type*} [Fintype ι] {E : Type*}
           mul_le_mul_of_nonneg_left (Finset.le_sup' (fun i => ‖e i‖) (Finset.mem_univ i)) (hp i)
     _ = Finset.univ.sup' hne (fun i => ‖e i‖) := by
         rw [← Finset.sum_mul, hp1, one_mul]
-
-/-- Error damping, uniform-bound form: if every stored entry has
-quantization error at most `M`, the deviation of the softmax-weighted
-output from the exact output is at most `M`. -/
-theorem attention_error_damped' {ι : Type*} [Fintype ι] {E : Type*}
-    [NormedAddCommGroup E] [NormedSpace ℝ E] (p : ι → ℝ) (v e : ι → E)
-    (hp : ∀ i, 0 ≤ p i) (hp1 : ∑ i, p i = 1) (M : ℝ) (hM : ∀ i, ‖e i‖ ≤ M) :
-    ‖(∑ i, p i • (v i + e i)) - ∑ i, p i • v i‖ ≤ M := by
-  calc ‖(∑ i, p i • (v i + e i)) - ∑ i, p i • v i‖ ≤ ∑ i, p i * ‖e i‖ :=
-        attention_error_damped_sum p v e hp
-    _ ≤ ∑ i, p i * M :=
-        Finset.sum_le_sum fun i _ => mul_le_mul_of_nonneg_left (hM i) (hp i)
-    _ = M := by rw [← Finset.sum_mul, hp1, one_mul]
 
 end Hagi.Core
 

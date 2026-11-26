@@ -9,13 +9,13 @@ import Hagi.Cert.Core
 set_option linter.style.header false
 
 /-!
-# Views — тонкие представления носителей состояния (Phase 1)
+# Views — тонкие представления носителей состояния
 
-Обзор носителей состояния (addendum A7, L3 HagiLoop State):
+Обзор носителей состояния:
 
 * `Hagi.State.TrainState` — каноническое состояние по спеке §4
   (шесть подсостояний; Hagi/State/TrainState.lean);
-* `Hagi.System.GrowthState` — legacy-машинный носитель
+* `Hagi.System.GrowthState` — машинный носитель
   (Hagi/System/GrowthState.lean) с уже готовым разбиением на
   сущности `GrowthStateViews` (образец паттерна);
 * `Hagi.Unified.FunctionalState` — функциональный носитель
@@ -24,11 +24,10 @@ set_option linter.style.header false
 * NC-мир (`Hagi/Unified/NCStepCert.lean`) — собственный шаговый
   носитель.
 
-Phase-1 deliverable — паттерн VIEW (как GrowthStateViews), НЕ
-массовая миграция: каноны не меняются, новые файлы дают модульный
-доступ. Ниже — минимальный честный view: `TrainState` как
+Каноны не меняются; файл даёт модульный доступ к ним по паттерну
+VIEW (как `GrowthStateViews`): `TrainState` как
 `Hagi.Cert.SystemMetrics` (объектив = energy, риск = riskOf,
-бюджет = budgetOf, TaskId = Unit). Унификация носителей — Phase 2/3.
+бюджет = budgetOf, TaskId = Unit).
 -/
 
 set_option relaxedAutoImplicit false

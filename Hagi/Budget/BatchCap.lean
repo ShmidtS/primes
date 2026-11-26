@@ -26,7 +26,7 @@ T_b·b = X·b^{3/2}/((ε−Z)√b − Y) имеет ГЛОБАЛЬНЫЙ мин�
 * `sfo_global_min`: s* = 3Y/(2c) — глобальный минимум
   SFO-стоимости X·s³/(cs−Y) на области s > Y/c;
 * `critical_batch_lower`: b* = s*² и при c < ε выполняется
-  9Y²/(4ε²) < b* — порог плана (§2) — нижняя граница
+  9Y²/(4ε²) < b* — нижняя граница
   критического батча.
 
 Честная граница: X, Y, Z, ε — параметры границы сходимости
@@ -102,7 +102,7 @@ theorem sfo_global_min (X c Y s : ℝ) (hX : 0 ≤ X) (hc : 0 < c)
   rw [hcostL, hcostR]
   exact sfo_min_core X c (c * s - Y) Y hX hc htpos hY
 
-/-- Критический батч: при c = ε − Z < ε порог плана
+/-- Критический батч: при c = ε − Z < ε порог
 9Y²/(4ε²) строго ниже b* = (3Y/(2c))². -/
 theorem critical_batch_lower (Y ε Z : ℝ) (hY : 0 < Y)
     (hZpos : 0 < Z) (hZ : Z < ε) (hε : 0 < ε) :
@@ -125,8 +125,7 @@ theorem critical_batch_lower (Y ε Z : ℝ) (hY : 0 < Y)
 
 end Hagi.Budget
 /-!
-# ThreeTermBudget — the optimal data/steps split (plan §3,
-the three-term law 2607.01487's structural core)
+# ThreeTermBudget — the optimal data/steps split (the three-term law 2607.01487's structural core)
 
 The three-term law L = E + A/N^α + B/M^β + C/K^γ predicts
 optimal budget splits. This module proves the α = β = 1

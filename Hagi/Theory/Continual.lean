@@ -34,7 +34,7 @@ namespaces so every fully-qualified name is stable.
   selector (span fullness, conflict sign) whose soundness is
   the disjunction of the three mechanism guarantees.
 
-Honest pins (bench-side, not theorems): `P` is built by exact
+Limits (bench-side, not theorems): `P` is built by exact
 rational Gram–Schmidt (`Q = I − Σ u uᵀ/(u·u)`); SVD is never
 constructed (irrational in general); the tail budget is
 compared in SQUARES (`sigmaTail²` is a sum of squares of

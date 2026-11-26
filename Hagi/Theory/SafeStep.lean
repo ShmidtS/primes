@@ -894,7 +894,7 @@ sublevel lies in the ball `‖x‖ ≤ B` (coercivity premise `h_bounded`),
 so the ball-scoped PL applies at every iterate and the geometric rate
 follows.
 
-## Honest pins (what genuinely remains a premise)
+## Limits (what genuinely remains a premise)
 
 - UNREGULARIZED CE sublevel sets are UNBOUNDED (logit shift): for the
   strictly decreasing `scalarCE a` the sublevel of `θ₀` is the ray
@@ -1032,7 +1032,7 @@ in the ball `‖x‖ ≤ B`, on which PL holds) confines every iterate to
 the ball — so the ball-scoped PL applies along the whole trajectory
 and the loss gap contracts geometrically at rate `1 − μ/L`.
 
-Pins: `h_bounded` is DERIVED for coercive objectives (the ridge CE,
+Limits: `h_bounded` is DERIVED for coercive objectives (the ridge CE,
 `ceReg_safe_step_confinement` below, radius `√(2·ceReg θ₀/λ)`) and is
 a data-dependent premise for the unregularized CE, whose sublevel
 sets are unbounded (logit shift — see the module docstring). -/

@@ -54,13 +54,6 @@ private noncomputable def tanhJacobian (θ : ℝ) : ℝ →L[ℝ] (Fin 2 → ℝ
 @[simp] private theorem tanhEmbedding_apply_one (x : ℝ) :
     tanhEmbedding x 1 = 0 := rfl
 
-/-- The Jacobian acts by `sechSq θ` in the first coordinate and by zero in
-the second. -/
-private theorem tanhJacobian_apply (θ h : ℝ) :
-    tanhJacobian θ h = ![h * sechSq θ, 0] := by
-  change tanhEmbedding (h * sechSq θ) = ![h * sechSq θ, 0]
-  rfl
-
 /-- Exact Fréchet derivative of the literal finite-Pi tanh model. -/
 private theorem hasFDerivAt_tanhModel (θ : ℝ) :
     HasFDerivAt tanhModel (tanhJacobian θ) θ := by

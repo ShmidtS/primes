@@ -56,7 +56,7 @@ fields only; nothing restated):
   `adaptive_anytime_budget_split` (≤ α); the union leg here is the
  `ttcat_complete` pattern (`measureReal_iUnion_fintype_le`).
 
-## Honesty pins
+## Limits
 
 - **The mixed hold/commit induction is NEW but pure ledger
   bookkeeping** (`ctc_mixed_ledger`): linarith over `descent`,

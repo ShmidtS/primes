@@ -20,8 +20,8 @@ The canonical information-theoretic definitions:
 * `tvDef p q := (∑ v, |p v − q v|)/2` — total variation;
 * `softDef z := exp(z)/Σexp` — softmax.
 
-Bridge identities to historical consumer names are stated in
-the consumers, each as a one-line `rfl`.
+Consumers state their bridge identities to these definitions
+as one-line `rfl`.
 -/
 namespace Hagi.Prelude
 
@@ -34,21 +34,17 @@ sampling distribution). -/
 noncomputable def klDef (q p : V → ℝ) : ℝ :=
   ∑ v, q v * Real.log (q v / p v)
 
-/-- КОНТРАКТ ДОПУСТИМОСТИ KL (аудит v4 §3.9): klDef определена
-на произвольных вещественных векторах, где log(0) и деление
-на 0 дают конечные значения Lean — математическая KL при
-q ≰ p (носитель q не вложен в носитель p) равна +∞.
-Допустимый вход: вероятностные векторы с вложенным носителем
-(q ≪ p); на них конечная klDef совпадает с математической
-KL и корректна (kl_nonneg и все мосты уже требуют p > 0). -/
+/-- Допустимый вход для `klDef`: вероятностные векторы с вложенным
+носителем (q ≪ p). На произвольных векторах Lean-значение klDef
+конечно и при q ≰ p расходится с математической KL (= +∞); все
+теоремы о `klDef` требуют p > 0. -/
 def KLSupported (q p : V → ℝ) : Prop :=
   (∀ v, 0 ≤ q v) ∧ (∑ v, q v = 1)
     ∧ (∀ v, 0 < p v) ∧ (∑ v, p v = 1)
 
-/-- Допустимость даёт строгую положительность p всюду —
-частный случай вложения носителей (наиболее общий случай
-поддержки сведён к строгой положительности; расширенная
-ENNReal-семантика остаётся отдельным слоем). -/
+/-- Допустимость даёт строгую положительность p всюду: общий случай
+вложенных носителей сведён к p > 0, ENNReal-семантика не
+формализована. -/
 theorem KLSupported_pos (q p : V → ℝ) (h : KLSupported q p) :
     ∀ v, 0 < p v := h.2.2.1
 
@@ -123,11 +119,9 @@ theorem softDef_sum_one {k : Type*} [Fintype k] [Nonempty k] (z : k → ℝ) :
   rw [← Finset.sum_div (Finset.univ : Finset k)]
   rw [div_self (Ne.symm (ne_of_lt hZ))]
 
-/-- **KL ≥ 0 при нулевых вероятностях q** (§1.2 аудита v3:
-явная постановка для q ≥ 0, p > 0): KL-расхождение
+/-- **KL ≥ 0 при нулевых вероятностях q**: KL-расхождение
 неотрицательно, когда q лишь неотрицательно (слагаемые с
-q v = 0 равны 0: 0 · log 0 = 0). Строгая положительность
-требуется только от p. -/
+q v = 0 равны 0), а p строго положительно. -/
 theorem kl_nonneg_of_nonneg (q p : V → ℝ)
     (hq : ∀ v, 0 ≤ q v) (hp : ∀ v, 0 < p v)
     (hsumq : ∑ v, q v = 1) (hsump : ∑ v, p v = 1) :
@@ -180,26 +174,19 @@ theorem klDef_eq_ceDef_sub (q p : V → ℝ) (hp : ∀ v, p v ≠ 0) :
     ring
 
 /-- **KL ≥ 0 (Gibbs)**: для строго положительных вероятностных
-векторов KL-расхождение неотрицательно. Канон:
-потребители (`Data/DField.KLdiv`, `Energy/Variational.kldiv'`,
-все rfl-мосты к `klDef`) делегируют сюда. -/
+векторов KL-расхождение неотрицательно. -/
 theorem kl_nonneg (q p : V → ℝ)
     (hq : ∀ v, 0 < q v) (hp : ∀ v, 0 < p v)
     (hsumq : ∑ v, q v = 1) (hsump : ∑ v, p v = 1) :
     0 ≤ klDef q p := by
-  -- dedup: the strict case is the special case q > 0 of the
-  -- zero-tolerant canon below (one-line delegation)
   exact kl_nonneg_of_nonneg q p (fun v => le_of_lt (hq v)) hp hsumq hsump
 
 end Hagi.Prelude
 
 /-!
 # SpectralEntropy — entropy from the spectral theorem
-(h2-Fannes port, layer 2/N)
 
-Ported verbatim from openai/math,
-OAI.InformationTheory.AmplitudeDamping.SpectralEntropy (the
-E:/math audit, Fam 276): entropy as the eigenvalue sum
+Entropy as the eigenvalue sum
 (entropy_eq_sum), unitary invariance, the diagonal majorization
 (entropy_le_diagonal), unitarity of eigenvector columns,
 concavity-on-states (concaveOn_entropy) — the spectral core on
@@ -377,12 +364,9 @@ end
 end Hagi.Information
 
 /-!
-# LogDetEntropy — entropy via log-determinant shifts (h2-Fannes
-port, layer 3/N)
+# LogDetEntropy — entropy via log-determinant shifts
 
-Ported verbatim from openai/math,
-OAI.InformationTheory.AmplitudeDamping.LogDetEntropy (the
-E:/math audit, Fam 276): the logDetShift comparison calculus —
+The logDetShift comparison calculus —
 entropy pinned between log-det shifts (entropy_le_of_
 logDetShift_le), equality from matching shifts, and the Gram
 duality entropy (A·Aᴴ) = entropy (Aᴴ·A) — the machinery
@@ -582,15 +566,11 @@ end
 
 end Hagi.Information
 /-!
-# GramBasic — the Gram/mass kernel (h2-Fannes port, layer 4/N)
+# GramBasic — the Gram/mass kernel
 
-Ported verbatim from openai/math,
-OAI.InformationTheory.AmplitudeDamping.GramMatrices (the
-E:/math audit, Fam 276): the Gram matrix (A·Aᴴ) and the mass
-(its real trace) with nonnegativity — the rectangular factor
-bookkeeping used by the coupling bound. Only the minimal
-core is ported (the resolvent/zeroBlock machinery is not on
-the path to entropy_coupling_bound).
+The Gram matrix (A·Aᴴ) and the mass (its real trace) with
+nonnegativity — the rectangular factor bookkeeping used by the
+coupling bound.
 -/
 
 namespace Hagi.Information
@@ -622,16 +602,10 @@ end Hagi.Information
 
 /-!
 # StateEntropy — mixture and spectral-factor entropy bounds
-(h2-Fannes port, layer 5/N)
 
-Ported verbatim from openai/math,
-OAI.InformationTheory.AmplitudeDamping (the E:/math audit,
-Fam 276): pure/vecMass (Channel.lean/PureRecursion.lean
-minimal core), entropy_smul (ZeroBlockEntropy.lean's lemma,
-proved here on the spectral base), state_mixture,
-spectral_pure_decomposition, spectral_weights_sum,
-spectralFactor (StateEntropy.lean). The mixing calculus the
-coupling bound needs.
+Pure states and their mass, `entropy_smul`, mixtures,
+`spectralFactor` and `spectral_weights_sum`: the mixing calculus
+the coupling bound needs.
 -/
 
 namespace Hagi.Information
@@ -722,7 +696,6 @@ theorem spectralFactor_column {A : Matrix ι ι ℂ} (hA : A.PosSemidef) (k : ι
 section
 variable {ι : Type u_1} {α : Type u_4} [Fintype ι] [DecidableEq ι] [Fintype α] [DecidableEq α]
 
--- heartbeat tranche: elaborates within 400k (was 1000000).
 set_option maxHeartbeats 400000 in
 set_option maxRecDepth 10000 in
 theorem entropy_sum_le (A : α → Matrix ι ι ℂ) (hA : ∀ a, (A a).PosSemidef) :
@@ -769,11 +742,8 @@ end Hagi.Information
 
 /-!
 # EntropyContinuity — the refined Fannes bound with the
-singular h2 part (h2-Fannes port, layer 6/6 — THE TARGET)
+singular h2 part
 
-Ported from openai/math,
-OAI.InformationTheory.AmplitudeDamping.EntropyContinuity
-(the E:/math audit, Fam 276):
 
 * `entropy_coupling_bound` — the refined Zhang/Shirokov-type
   continuity: PSD-coupled states A+U = B+V with trace U =
@@ -784,10 +754,8 @@ OAI.InformationTheory.AmplitudeDamping.EntropyContinuity
 * the Frobenius-vector and projection mass lemmas on the
   path (frobVector, mass calculus).
 
-This closes the residual (the singular h2 Fannes
-boundary) of the HAGI plan — in the quantum-state form; the
-discrete PMF specialization is a direct corollary of the
-diagonal (commuting) case.
+Stated in quantum-state form; the discrete PMF version is the
+diagonal (commuting) case, see `discrete_fannes_coupling` below.
 -/
 
 namespace Hagi.Information
@@ -1113,25 +1081,20 @@ bound
 
 The quantum coupling bound `entropy_coupling_bound`
 (S(A) − S(B) ≤ t log d + (1+t) h₂(t/(1+t)) for PSD
-A + U = B + V, tr U = tr V = t) is stated for density
-matrices. HAGI's operational vocabulary is discrete (router
-distributions, expert occupancy, token counts), so this
-module transports the bound to probability vectors through
-the DIAGONAL embedding p ↦ diagonal p.
+A + U = B + V, tr U = tr V = t) is transported to probability
+vectors through the diagonal embedding p ↦ diagonal p.
 
 The transport needs one bridge, stated as an explicit
 hypothesis of the main theorem: the spectral entropy of a
 nonnegative diagonal matrix equals the Shannon entropy of
-the vector (`entropy (diagonal r) = ∑ negMulLog r i`).
-This is a standard fact (cfc of a diagonal matrix acts
-entrywise); it is the only unproven link, clearly flagged,
-while everything else — the canonical pointwise coupling
-u = (p−q)⁺, v = (q−p)⁺, the state/PSD/trace side conditions,
-and the final inequality — is proven outright.
+the vector. This standard fact is the only unproven link;
+the pointwise coupling u = (p−q)⁺, v = (q−p)⁺, the
+state/PSD/trace side conditions and the final inequality are
+proven outright.
 
 Main results:
-* `posPart_negPart_pointwise` — the canonical coupling:
-  p + v = q + u pointwise;
+* `posPart_negPart_pointwise` — the pointwise coupling:
+  p + v = q + u;
 * `pos_neg_sums` — for probability vectors the two parts
   carry EQUAL total mass, together the L1 distance;
 * `discrete_fannes_coupling` — for probability vectors p, q
@@ -1153,16 +1116,12 @@ noncomputable def shannon (p : ι → ℝ) : ℝ := ∑ i, Real.negMulLog (p i)
 noncomputable def tvHalf (p q : ι → ℝ) : ℝ := (∑ i, |p i - q i|) / 2
 
 omit [DecidableEq ι] in
-/-- ДЕДУП (аудит v5 п.5): tvHalf — то же определение, что
-каноническое Prelude.tvDef (половина L1-расстояния);
-связь rfl. Канонический дубля-моста A19.3:
-`Hagi.Unified.InfoCanonical.tvHalf_eq_tvDef` — deprecated alias
-на ЭТУ теорему; binder `DecidableEq` не используется (omit) —
-канонический тип совпадает с типом алиаса-копии. -/
+/-- `tvHalf` совпадает с `Hagi.Prelude.tvDef` (половина
+L1-расстояния). -/
 theorem tvHalf_eq_tvDef (p q : ι → ℝ) :
     tvHalf p q = Hagi.Prelude.tvDef p q := rfl
 
-/-- The canonical pointwise coupling parts. -/
+/-- The pointwise coupling parts `u = (p−q)⁺`, `v = (q−p)⁺`. -/
 def posPart (p q : ι → ℝ) : ι → ℝ := fun i => max (p i - q i) 0
 def negPart (p q : ι → ℝ) : ι → ℝ := fun i => max (q i - p i) 0
 
@@ -1249,10 +1208,10 @@ half-distance, the refined continuity bound transports
 through the diagonal embedding:
 Shannon(p) − Shannon(q) ≤ t log d + (1+t) h₂(t/(1+t)).
 The diagonal-entropy bridge (spectral entropy of diagonal =
-explicit hypothesis — the single deferred
-link, everything else proven outright: `entropy_eq_sum` reduces the
-bridge to ∑ negMulLog (eigenvalues (diagonal r)) = ∑ negMulLog (r i), a
-sorted-roots multiset identity absent from Mathlib; open here. -/
+explicit hypothesis — the single unproven link: it reduces via
+`entropy_eq_sum` to ∑ negMulLog (eigenvalues (diagonal r)) =
+∑ negMulLog (r i), a sorted-roots multiset identity absent from
+Mathlib; everything else is proven outright. -/
 theorem discrete_fannes_coupling [Nonempty ι] (p q : ι → ℝ)
     (hp : ∀ i, 0 ≤ p i) (hq : ∀ i, 0 ≤ q i)
     (hps : ∑ i, p i = 1) (hqs : ∑ i, q i = 1)
@@ -1354,11 +1313,10 @@ end Hagi.Information
 # FannesSmooth: entropy continuity in the non-singular regime
 
 The full Fannes bound `|H(p) − H(q)| ≤ τ·log(V−1) + h₂(τ)` is
-`Hagi.Unified.fanes_unconditional` (a higher layer); this module
-closes the smooth part of the remainder: on the interior of
-the simplex (both distributions δ-separated from the
-boundary), entropy is Lipschitz in total variation with an
-explicit constant — via the mean-value bound for log.
+`Hagi.Unified.fanes_unconditional`; this module proves the smooth
+part: on the interior of the simplex (both distributions
+δ-separated from the boundary), entropy is Lipschitz in total
+variation with an explicit constant, via the mean-value bound for log.
 
 **Results.**
 
@@ -1522,16 +1480,11 @@ end Hagi.Data
 /-!
 ## The log-sum-exp convexity and the ensemble theorem
 
-The `lse` / `ceOneHot` / `softmaxP` family lives here (moved from
-`Hagi.Core.Concat`). FQNs frozen: `Hagi.Core.lse`,
-`Hagi.Core.ceOneHot`, `Hagi.Core.softmaxP`, the `Hagi.*` exports, and
-all bridge theorems — consumers unchanged (Lean imports are transitive;
-`Hagi.Core.Concat` imports this module).
+Log-sum-exp `lse`, the one-hot cross-entropy `ceOneHot`, the
+softmax probability `softmaxP`, and the Jensen (ensemble) bounds.
 -/
 
 namespace Hagi.Core
-
-/-! ## The log-sum-exp convexity and the ensemble theorem -/
 
 section Ensemble
 
@@ -1543,10 +1496,8 @@ noncomputable def lse (z : k → ℝ) : ℝ := Real.log (∑ v, Real.exp (z v))
 theorem exp_sum_pos (z : k → ℝ) : 0 < ∑ v, Real.exp (z v) :=
   Finset.sum_pos (fun _ _ => Real.exp_pos _) Finset.univ_nonempty
 
-/-- Prelude bridge: the canonical softmax IS the exponentiated
-gap to `lse` — `softDef z a = exp (z a − lse z)`: every
-softmax/lse definition in the project is reducible to the single
-`Prelude.softDef` / `Concat.lse` spine by `rfl`-strength identities. -/
+/-- The softmax is the exponentiated gap to `lse`:
+`softDef z a = exp (z a − lse z)`. -/
 theorem softDef_eq_exp_sub_lse (z : k → ℝ) (a : k) :
     Hagi.Prelude.softDef z a = Real.exp (z a - lse z) := by
   have hpos := exp_sum_pos z

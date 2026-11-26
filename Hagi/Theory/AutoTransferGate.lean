@@ -22,7 +22,7 @@ certified-цикл.
 - `gate_char` — гейт совпадает с ТОЧНОЙ границей
   `2⟪θ, t⟫_ℝ > ‖θ‖²` при невырожденном шаге (`|1 − 2η| > 0`,
   `transfer_helps_budget`): probe A/B НЕ размывает границу;
-- `gate_adversarial_cold` — adversarial-цель `t = −c • θ` (C572-синтетика)
+- `gate_adversarial_cold` — adversarial-цель `t = −c • θ`
   всегда даёт cold;
 - `auto_transfer_gate_sound` (main) — дизъюнкция веток без ослабления
   (паттерн `hybrid_step_sound`): warm-ветка сохраняет ВСЕ гарантии
@@ -94,7 +94,7 @@ theorem gate_char (η : ℝ) (hη : |1 - 2 * η| > 0) (k : ℕ)
         exact absurd ((transfer_helps_budget k η hη θ t).mpr hb) h
 
 /-- **gate_adversarial_cold**: adversarial-цель
-`t = −c • θ` (c > 0, θ ≠ 0) — C572-синтетика bench-режима —
+`t = −c • θ` (c > 0, θ ≠ 0) — синтетика bench-режима —
 гейт ОБЯЗАН выбрать cold: скалярное произведение отрицательно,
 границу `> ‖θ‖²` не выполнить. -/
 theorem gate_adversarial_cold (η : ℝ) (hη : |1 - 2 * η| > 0)

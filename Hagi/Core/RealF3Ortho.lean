@@ -291,7 +291,7 @@ lifted branch-major to `interleave3 : (Fin 3 → ℂ) → (Fin 3 × Fin 2 → �
 
 * `interleave_norm` — the lift is an isometry: the real inner
   product of the interleaved images equals `∑ a, ‖z a‖ ^ 2`.
-* `reCharMat` — the canonical 6×6 real character matrix built
+* `reCharMat` — the 6×6 real character matrix built
   from `chi3`, with the conjugation identity `interleave_char_mul`:
   the interleaved image of the character multiplication equals
   `reCharMat *ᵥ interleave3 z`; `reUnitMat` is its scaling by
@@ -347,18 +347,17 @@ noncomputable def reBlock (c : ℂ) : Matrix (Fin 2) (Fin 2) ℝ :=
 def branchZ (a : Fin 3) : ZMod 3 := (a.val : ZMod 3)
 
 /-- The real 6×6 *character* matrix (no F₃ normalization): the
-transported basis-change action, branch-major blocks
-`reBlock (chi3 (a - b))`. -/
+branch-major blocks `reBlock (chi3 (a - b))`. -/
 noncomputable def reCharMat : Matrix (Fin 3 × Fin 2) (Fin 3 × Fin 2) ℝ :=
   fun ab cd =>
     reBlock (chi3 (-(branchZ ab.1 * branchZ cd.1))) ab.2 cd.2
 
-/-- The real 6×6 transport scaled by the F₃ normalization
+/-- The real 6×6 matrix scaled by the F₃ normalization
 `1 / Real.sqrt 3`. -/
 noncomputable def reUnitMat : Matrix (Fin 3 × Fin 2) (Fin 3 × Fin 2) ℝ :=
   (1 / Real.sqrt 3) • reCharMat
 
-/-- **The conjugation identity (the transported basis change).**
+/-- **The conjugation identity.**
 The interleaved image of the full character multiplication
 `w a = ∑_c chi3 (a - c) * z c` equals the real character matrix
 applied to the interleaved input — the real matrix realizes the

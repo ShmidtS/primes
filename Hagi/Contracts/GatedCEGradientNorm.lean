@@ -130,8 +130,7 @@ variable {n a r c k : ℕ}
 constant: every finite sum of FOURTH powers of gradient norms along the
 canonical executed trajectory is at most
 `4 * gatedCurvatureUniformBound X * gatedCEObjective X t S`.
-This is the exact gradient-norm restatement of
-`fixedGatedAlignment_sum_sq_le_uniform`. -/
+`fixedGatedAlignment_sum_sq_le_uniform`, squared. -/
 theorem gated_grad_sum_fourth_le_uniform [Nonempty V]
     (X : Matrix V (Fin n) ℝ) (t : V) (S : TrainState n a r c k)
     (opCost opRisk : ℝ) (write : Option (Σ _ : ℕ, Fin c → ℝ)) (T : ℕ) :

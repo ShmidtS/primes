@@ -793,8 +793,7 @@ end Hagi.Probability
 # PmfMean — finite PMF expectations
 
 Ported verbatim (proofs unchanged) from openai/math,
-OAI.Combinatorics.TriangleRemoval.Probability.FiniteMean
-(the E:/math audit, Fam 188) into Hagi vocabulary. The
+OAI.Combinatorics.TriangleRemoval.Probability.FiniteMean into Hagi vocabulary. The
 finite-expectation kernel for the Markov-chain Freedman
 inequality (MarkovFreedman): pmfMean and its algebra
 (add/sub/mono/sq/Markov/bind/map/uniform), 0 sorry in the
@@ -917,8 +916,7 @@ open scoped ENNReal Classical in
 
 Restored locally: Mathlib 4.35 turned `PMF.uniformOfFinset` into a
 `Measure`-valued definition, but the PMF kernel below (and its apply
-lemma) is still referenced by `pmfMean_uniformOfFinset` (statement
-preserved verbatim, see scripts/Freeze.py contract). -/
+lemma) is still referenced by `pmfMean_uniformOfFinset`. -/
 noncomputable def uniformOfFinset {α : Type*} [Fintype α] (s : Finset α) (_hs : s.Nonempty) :
     PMF α :=
   ⟨fun a => if a ∈ s then (s.card : ℝ≥0∞)⁻¹ else 0, by
@@ -959,12 +957,10 @@ end Hagi.Probability
 
 /-!
 # MarkovFreedman — the full discrete time-inhomogeneous
-Freedman inequality ( port, closes the open Freedman
-forms of plan section 1.2)
+Freedman inequality
 
 Ported verbatim (proofs unchanged) from openai/math,
-OAI.Combinatorics.TriangleRemoval.Probability.MarkovLaw
-(the E:/math audit, Fam 188). On a finite-state
+OAI.Combinatorics.TriangleRemoval.Probability.MarkovLaw. On a finite-state
 time-inhomogeneous Markov chain (initial: PMF α, kernels
 K: ℕ → α → PMF α) with a process X, a predictable variance
 counter V and uniform step bound c:
@@ -1157,8 +1153,7 @@ end Hagi.Probability
 
 
 Ported verbatim from openai/math,
-OAI.Combinatorics.TriangleRemoval.Process.History (the
-E:/math audit, Fam 188): History (path type), historyIndex,
+OAI.Combinatorics.TriangleRemoval.Process.History : History (path type), historyIndex,
 historyInitial/historyKernel/historyLaw (the lifted chain on
 paths), the marginal/invariant lemmas and the support
 transport — the infrastructure for path-level additive
@@ -1392,7 +1387,7 @@ end Hagi.Probability
 
 Ported verbatim from openai/math,
 OAI.Combinatorics.TriangleRemoval.Probability.
-HistoryLawPastMean (the E:/math audit, Fam 188):
+HistoryLawPastMean:
 historyLaw_past_mean (past-measurable functions have
 time-consistent laws), pmfMean_event_union (the finite
 union bound for PMF expectations), pmfMean_finset_sum, and
@@ -1539,12 +1534,10 @@ end Hagi.Probability
 
 /-!
 # HistoryFreedman — the JOINT ANYTIME maximal Freedman on
-paths ( port — closes the last open Freedman form of
-plan section 1.2)
+paths
 
 Ported verbatim from openai/math,
-OAI.Combinatorics.TriangleRemoval.Process.HistoryAdditive
-(the E:/math audit, Fam 188):
+OAI.Combinatorics.TriangleRemoval.Process.HistoryAdditive:
 
 * `historyAdditive` — additive path functionals
   Σⱼ g(state_j, state_{j+1}) over the first k steps;
@@ -1705,7 +1698,7 @@ theorem history_additive_freedman_maximal {α : Type*} [Fintype α]
 
 
 
-/-- **Anytime-Freedman с k-зависимыми порогами (R541)**:
+/-- **Anytime-Freedman с k-зависимыми порогами **:
 лестница {r j, V j} по горизонту j ≤ T — обобщение
 равнопороговой `history_additive_freedman_maximal`:
 P[∃ j ≤ T: r j ≤ S_j ∧ C_j ≤ V_j]
@@ -1923,7 +1916,7 @@ theorem history_additive_freedman_two_sided
 
 
 /-- **Двусторонняя anytime-лестница с k-зависимыми
-порогами (R542)**: композиция R541 (`anytime_freedman_
+порогами**: композиция `anytime_freedman_thresholds` (`anytime_freedman_
 thresholds`) с двусторонним расщеплением:
 P[∃ j ≤ T: |S_j| ≥ r j ∧ C_j ≤ V j] ≤ 2·Σ_j exp(−r j²/(4(V j + c·r j))).
 Каждое плечо (S и −S) — своя пороговая лестница. -/
@@ -2130,9 +2123,8 @@ exp(−r²/(4(V+cr))) всегда (константы 4→2, cr→cr/3, рав�
 **Честные ограничения (premise-form limitations):**
 
 * адаптивного-λ Freedman нет — используется λ-оптимизация
-  фиксированного хвоста из базовой теоремы; добавил
-  fixed-λ вариант с фактическим variance-компенсатором, а
-  закрыл полный радиус r²/(2(V+cr/3)) хордой Беннетта
+  фиксированного хвоста базовой теоремы; fixed-λ вариант с
+  variance-компенсатором, а полный радиус r²/(2(V+cr/3)) хордой Беннетта
   (λ-оптимизация в `freedman_full`, per-instance);
   data-зависимый λ-процесс по-прежнему не строится;
 * дисперсионный компенсатор моста — детерминированный порог
@@ -2839,7 +2831,7 @@ noncomputable def stochastic_safe_step_variance (initial : PMF α)
 
 end
 
-section C410
+section stochasticSafeStep
 open scoped BigOperators
 open Set
 
@@ -3393,7 +3385,7 @@ theorem freedman_variance_exp_le_full_exp (r V c : ℝ) (hr : 0 < r)
   rw [div_le_div_iff₀ h4 h2]
   nlinarith [hnn, hvr]
 
-end C410
+end stochasticSafeStep
 
 end Hagi.Probability
 set_option linter.style.header false
@@ -3442,7 +3434,7 @@ adapted; здесь — конечный формализм, потребляе�
   1 − exp(−Δ²/(2(n/4 + Δ))) ≤ P_{qd}[ΣS ≥ n·p₀ − Δ]
 
   — дисперсия ≤ 1/4 ВЫВЕДЕНА (Popoviciu), а не постулирована;
-  строго сильнее legacy σ = 1-хвоста exp(−Δ²/(2(n+Δ))).
+  строго сильнее σ = 1-хвоста exp(−Δ²/(2(n+Δ))).
 
 **Честные границы**: b — константа (диапазон приращений общий
 для шагов); anytime-форма и data-зависимый λ — открыто и здесь
@@ -4047,7 +4039,7 @@ theorem popoviciu_var_le (q : V → ℝ)
 
   azumaSum S n ≥ n·p₀ − Δ  w.p. ≥ 1 − exp(−Δ²/(2(n/4 + Δ)))
 
-Хвост строго сильнее legacy-версии с σ = 1
+Хвост строго сильнее σ = 1-версии
 (`adaptive_success_freedman`: exp(−Δ²/(2(n·1 + Δ)))) и
 условная мера — история-зависимое произведение, а не
 произведение фиксированных весов. -/

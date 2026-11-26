@@ -6,9 +6,9 @@ import Hagi.Training.MacroStatCert
 import Hagi.Training.TransitionCert
 
 /-!
-# Admission — confidence-gated admission of memory blocks and experts (A17 §5.4)
+# Admission — confidence-gated admission of memory blocks and experts)
 
-The A17 §5.4 admission rule: a new block of memory (or a new expert)
+The admission rule: a new block of memory (or a new expert)
 is added ONLY when
 
   `estimatedGain − r_conf − λ_M · memoryCost − λ_R · risk > 0`,
@@ -20,7 +20,7 @@ certificate pins its recorded decision to the exact output of the
 rule (no free-floating decision), and `noAdmitWithoutPositiveMargin`
 proves the gate refuses every non-positive margin.
 
-Composition, no new probability (thin-adapter convention):
+Composition, no new probability :
 
 * the anytime-validity premise is carried by `Hagi.Contracts.VilleMonitor.EProcMonitor`
  — `admit_sound` consumes the monitor's α and firing
@@ -38,7 +38,7 @@ Composition, no new probability (thin-adapter convention):
   `GrowthCert` (hence `fourCert_of_parts`) constructible — admission
   pins the DECISION, the growth book pins the CHANNELS.
 
-Honest pins (A17 §5.4 acceptance bar):
+Honest limits:
 
 1. **estimatedGain is a MEASURED quantity (premise), never a proven
    lower bound**: the estimate is produced through
@@ -70,7 +70,7 @@ namespace Hagi.Training
 
 /-! ## The proposal and the rule -/
 
-/-- The admission proposal of a candidate block/expert (A17 §5.4):
+/-- The admission proposal of a candidate block/expert:
 the MEASURED quality estimate `estimatedGain` (ΔQ̂ — premise, through
  `measuredQuality` semantic chain; never a proven lower
 bound), the typed confidence radius `r_conf`, the memory cost
@@ -108,7 +108,7 @@ noncomputable def admissionMargin (p : AdmissionProposal) : ℝ :=
   p.estimatedGain - p.r_conf.val - p.lamM * p.memoryCost
     - p.lamR * p.risk
 
-/-- **THE admission rule (A17 §5.4)**: admit a candidate block/expert
+/-- **THE admission rule**: admit a candidate block/expert
 iff the margin `estimatedGain − r_conf − λ_M·memoryCost − λ_R·risk`
 is strictly positive. A new block is NOT added just because a
 heuristic predicted benefit — this predicate is the only gate.
@@ -192,7 +192,7 @@ theorem refuse_safe {S : Type*} {objective : S → ℝ}
 the e-process premises — the trajectory `L` fed to the monitor is a
 nonnegative supermartingale with `μ[L 0] ≤ 1` (premise-form e-process
 validity; on ADAPTIVELY reused data this premise is NOT derivable —
-see the module pins) — and the two policy premises:
+see the module limits) — and the two policy premises:
 `hembed` (`gate_anytime_valid` embedding shape): if the
 admitted gain is FALSE (`¬goodGain`), the e-process has crossed the
 threshold `mon.α⁻¹` by horizon `n` — the e-process DETECTS the false

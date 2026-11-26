@@ -7,7 +7,7 @@ import Hagi.Unified.LoopInstances
 середина к цели, энергия геометрически убывает, каждый шаг
 продуктивен. Капстоун `certified_loop_strict` применяется к
 реальной многошаговой траектории: строгий спуск на любом
-горизонте, специализации для малых горизонтов.
+горизонте.
 -/
 
 namespace Hagi.Examples
@@ -174,14 +174,5 @@ theorem quad_loop_horizon (a x : k → ℝ) (hx : quadGrad a x ≠ 0)
     hn
   exact main.1
 
-/-- Специализация свидетеля на малом горизонте. -/
-theorem quad_witness_T3 (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :
-    quadE a (qhalf a x 3) < quadE a (qhalf a x 0) :=
-  quad_loop_horizon a x hx 3 (by norm_num)
-
-/-- Специализация свидетеля на длинном горизонте. -/
-theorem quad_witness_T10 (a x : k → ℝ) (hx : quadGrad a x ≠ 0) :
-    quadE a (qhalf a x 10) < quadE a (qhalf a x 0) :=
-  quad_loop_horizon a x hx 10 (by norm_num)
 
 end Hagi.Examples

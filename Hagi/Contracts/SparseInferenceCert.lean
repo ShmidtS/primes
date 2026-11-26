@@ -21,8 +21,7 @@ carrier; only the PACKAGING is new:
   `Hagi.Contracts.GradientBottleneckIdentification.
   eckart_young_lower_bound_rect_true_tail` (true rectangular
   tail): NO rank-`k` approximant beats the tail — cited directly at
-  the `hE` premise sites; NOT re-proven here (the dedup removed the
-  delegation twin);
+  the `hE` premise sites; NOT re-proven here;
 * the function-level transfer is the Lipschitz-readout
   route (`Hagi.Budget.rd_step_error_bound` pattern): weight-space
   error becomes function error through a sensitivity-`sens`
@@ -37,7 +36,7 @@ carrier; only the PACKAGING is new:
   (`Hagi.Cert.CertStepGen`): `sparse_step_certified` spends the
   low-rank matvec work in the budget channel (compute accounting)
   and the certified function error in the risk channel, explicit
-  nonnegative remainders (the no-zero-pinning lesson).
+  nonnegative remainders.
 
 Honest scope:
 
@@ -128,7 +127,7 @@ theorem lowrank_op_count_lt (k n : ℕ) (h : 2 * k < n) :
 
 /-- Exact compute ratio: the low-rank work IS `(2k/n)` times the
 dense work (`0 < n`); per pass the factor is `k/n` — the
-compute-minimization account of audit §8 (the same `k` that
+compute-minimization account (the same `k` that
 water-filling chose for the bits buys the FLOPs fraction). -/
 theorem lowrank_op_ratio (k n : ℕ) (hn : 0 < n) :
     (lowRankMatVecWork k n : ℝ) = (2 * (k : ℝ) / n) * (denseMatVecWork n : ℝ) := by
@@ -144,8 +143,7 @@ spectral-mask step packaged as a `Hagi.Cert.CertStepGen` (
 `workSpend` (instantiate at `lowRankMatVecWork k n` — the compute
 accounting), the risk channel spends `errSpend` (instantiate at
 `sens * (∑ tail²)^{1/2}` — the certified bound of
-`sparse_inference_error`) with an EXPLICIT nonnegative remainder
-(the no-zero-pinning lesson), the false-commit delta channel
+`sparse_inference_error`) with an EXPLICIT nonnegative remainder, the false-commit delta channel
 in premise form, descent in drop form `obj s' ≤ obj s − drop`
 (the LossCeiling polarity). -/
 noncomputable def sparse_step_certified {S TaskId : Type*}
@@ -245,7 +243,7 @@ private def Aex : Matrix (Fin 2) (Fin 3) ℂ := Uex * Vex
 
 /-- The anchor matrix has rank at most one: the factor-product rank
 bound (`rank_mul_le_left` + `rank_le_card_width` — the
-`factor_update_rank_le` twin, ℂ form). -/
+`factor_update_rank_le`, ℂ form). -/
 private theorem Aex_rank_le : Aex.rank ≤ 1 := by
   have h1 : (Uex * Vex).rank ≤ Uex.rank := rank_mul_le_left Uex Vex
   have h2 : Uex.rank ≤ 1 := by simpa using rank_le_card_width Uex

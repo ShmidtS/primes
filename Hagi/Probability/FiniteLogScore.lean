@@ -9,7 +9,7 @@ import Hagi.Probability.FiniteBayes
 /-!
 # FiniteLogScore
 
-Canonical finite categorical log-score family (v5 W3 consolidation).
+Canonical finite categorical log-score family.
 Sections merged here (namespaces and FQNs preserved, module files
 removed):
 

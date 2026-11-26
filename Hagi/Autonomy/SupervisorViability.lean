@@ -25,9 +25,8 @@ Results:
   preserves verdicts on `x` transports a strict wrong
   majority to the new class.
 
-Only the finite-⟸ direction is proved; the converse
-(vanishing error ⟹ finite Littlestone dimension) is open.
-(Sources: arXiv:2609.36049, arXiv:2606.26294.)
+Not proved: the converse (vanishing error ⟹ finite Littlestone
+dimension). Sources: arXiv:2609.36049, arXiv:2606.26294.
 -/
 
 namespace Hagi.Autonomy

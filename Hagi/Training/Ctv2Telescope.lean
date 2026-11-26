@@ -209,7 +209,7 @@ noncomputable def smToExec {S : Type} {obj : S → ℝ} {step : S → S}
 
 /-! ### Мост ExecutedCert → StepContract (композиционное
 замыкание: цепочки сертификатов исполнения сводятся к
-моноид-телескопу StepContract — audit v19 §4) -/
+моноид-телескопу StepContract) -/
 
 /-- Проекция сертификата исполнения+измерения в моноид-контракт:
 drop → decrease, risk/budget передаются явно (исполнение их не

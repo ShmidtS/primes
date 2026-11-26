@@ -9,10 +9,10 @@ set_option linter.style.header false
 open scoped BigOperators
 
 /-!
-# RankBudget adapter: cascade-weighted sensitivities (A8 F7)
+# RankBudget adapter: cascade-weighted sensitivities
 
 With cascade-weighted sensitivities `c_j := isoFrobEnergy (J_{>j})
-* hScale_j` (the A8 isotropic-Frobenius calibration; `hScale` is
+* hScale_j` (the isotropic-Frobenius calibration; `hScale` is
 the measured per-layer `‖h_j‖²` scale, a premise-level input),
 the additive exponential-residual model of
 `Hagi.Budget.RankBudget`/`WeightedExpAlloc` becomes the honest
@@ -29,7 +29,7 @@ variable {d : ℕ} {ι : Type*} [Fintype ι] [Nonempty ι]
 
 open Hagi.Architecture (isoFrobEnergy isoCascadeEnergy)
 
-/-- The A8 F7 cascade-weighted sensitivity:
+/-- The cascade-weighted sensitivity:
 `c_j := isoFrobEnergy (J_tail j) * hScale j`. -/
 noncomputable def isoFrobSensitivity (Jtail : ι → Matrix (Fin d) (Fin d) ℝ)
     (hScale : ι → ℝ) (j : ι) : ℝ :=

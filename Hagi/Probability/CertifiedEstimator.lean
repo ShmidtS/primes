@@ -8,9 +8,9 @@ import Hagi.Probability.ChernoffCGF
 set_option linter.style.header false
 
 /-!
-# Мост II рецензии: CertifiedEstimator — h_emp_* → confidence-certified
+# CertifiedEstimator — h_emp_* → confidence-certified
 
-Аудит round-113/рецензия: 286 посылок `h_emp_*` — измеренные
+Посылки `h_emp_*` — измеренные
 эмпирические константы, входящие в теоремы как гипотезы. Этот
 модуль строит первый механизм их сертификации: классический
 Hoeffding bound на КОНЕЧНОМ произведении пространств, целиком в
@@ -745,7 +745,7 @@ theorem union_bound_finite {V : Type*} [Fintype V]
   exact le_trans (Finset.sum_le_sum (fun v _ => hstep v))
     (le_refl _)
 
-/-! ## Anytime-лестница (R517): max-связки через union bound
+/-! ## Anytime-лестница max-связки через union bound
 
 `max_bound_union`: P(max_{t<T} g_t >= u) <= sum_t P(g_t >= u)
 — прямое применение union_bound_finite к хвостовым событиям;

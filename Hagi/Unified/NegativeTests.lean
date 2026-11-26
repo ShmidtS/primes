@@ -21,7 +21,7 @@ open Hagi.Model.NeuralComputer Hagi.Unified.LinkedQVec
 
 /-! ### N1. Спуск сертификата фиксирован исполнением -/
 
-/-- НЕГАТИВНЫЙ ТЕСТ (спека §3.1): certificated drop нейрокомпьютера
+/-- НЕГАТИВНЫЙ ТЕСТ: certificated drop нейрокомпьютера
 РАВЕН u.gain по построению — доказательство rfl, значение иного спуска
 не существует в типе. Искусственный `d` (старый дефект) более не
 типизируется: параметр удалён из ncCertStep/ncStepCert. -/
@@ -44,7 +44,7 @@ theorem nc_energy_matches_execution (S : NCState) (u : NCInput) :
 
 /-! ### N2. Перерасход бюджета невозможен -/
 
-/-- НЕГАТИВНЫЙ ТЕСТ (спека §11.2-2): из StepCert следует, что
+/-- НЕГАТИВНЫЙ ТЕСТ: из StepCert следует, что
 бюджетная трата шага не превосходит доступный бюджет (совместно
 hdec : b' ≤ bt − budgetSpend и 0 ≤ b'). -/
 theorem budget_overrun_impossible {S : Type*}
@@ -58,7 +58,7 @@ theorem budget_overrun_impossible {S : Type*}
 
 /-! ### N3. Превышение risk limit невозможно -/
 
-/-- НЕГАТИВНЫЙ ТЕСТ (спека §11.2-3): риск-трата любого
+/-- НЕГАТИВНЫЙ ТЕСТ: риск-трата любого
 сертифицированного шага ≤ riskLim. -/
 theorem risk_limit_respected {S : Type*}
     (obj : S → ℝ) (M : MeasuredState S)
@@ -66,12 +66,8 @@ theorem risk_limit_respected {S : Type*}
     (c : StepCert obj M floor riskLim s s' bt b') :
     c.riskSpend ≤ riskLim := c.trans.riskBound
 
-/-! ### N4. (удалено в ревизии: тривиальная проекция c.quality;
-покомпонентный floor уже доказывается полем StepCert.quality и
-потребляется certified_loop напрямую — дубль без новой информации) -/
-/-! ### N5. Чужой адрес памяти неизменен -/
 
-/-- НЕГАТИВНЫЙ ТЕСТ (спека §11.2-5): сертификат записи не может
+/-- НЕГАТИВНЫЙ ТЕСТ: сертификат записи не может
 изменить посторонний адрес — post j = pre j для j ≠ address
 (pre/address/value — параметры сертификата). -/
 theorem ram_foreign_address_unchanged {m n : ℕ}

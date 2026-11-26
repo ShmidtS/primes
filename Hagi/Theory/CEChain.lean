@@ -58,7 +58,7 @@ CrossEntropy ──▶ Gradient ──▶ Curvature ──▶ SafeStep ──▶
   (PL geometric rate for the regularized head) and
   `ce_global_convergence_margin` re-exported in chain terms.
 
-## Honest pins (what genuinely remains separate)
+## Limits (what genuinely remains separate)
 
 - The GatedCE zero-curvature unit fallback (`η = 1`, drop `A`) is
   outside the universal form: the quadratic degenerates.  It stays
@@ -72,7 +72,7 @@ CrossEntropy ──▶ Gradient ──▶ Curvature ──▶ SafeStep ──▶
   `Semantics.Split` objective combination are separate
   tranches, not instances of the quadratic form.
 - The margin/realizability convergence route stays open
-  (`Model.CEGlobalConvergence` pins).
+  (`Model.CEGlobalConvergence` limits).
 -/
 
 set_option relaxedAutoImplicit false
@@ -329,7 +329,7 @@ theorem gated_stepSize_ident (X : Matrix V (Fin d) ℝ)
 /-- Specialization 3 (one line): the gated safe-step descent of
 `Model.GatedCESafeStep` is an instance of `universal_descent`
 (positive-curvature branch; the zero-curvature unit fallback stays
-pinned in the source module). -/
+a premise of the source module). -/
 theorem gated_descent (X : Matrix V (Fin d) ℝ) (t : V)
     (θ : EuclideanSpace ℝ (Fin d))
     (hC : 0 < (gatedStep X t).curvature θ) :

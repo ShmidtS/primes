@@ -31,18 +31,17 @@ Structure (a thin config over existing carriers — KISS):
 * `fa3BlockList` / `fa3Stack` / `fa3Gain` — the residual
   stack over the heterogeneous blocks list, per-block damping
   `μᵢ` (attention `μn·μatt`, GDN `μg`), gain `∏ (1 + μᵢ)`.
-* `fa3BlockList_lipschitz` — the premise-ledger dispatch: each
+* `fa3BlockList_lipschitz` — each
   block's block hypothesis from its carrier premises
   (adapter composed with the isometry pattern for
   attention; adapter for GDN).
-* `fa3HeadLoss` / `fastarch3_head_Lc` — P7 per-instance discharge
-the ident-logit headCE at a fixed label is `2`-Lipschitz
+* `fa3HeadLoss` / `fastarch3_head_Lc` — the ident-logit headCE at a fixed label is `2`-Lipschitz
   on the Euclidean carrier (`Lc = 2`, via `euclid_coord_abs_sub_le`
   `‖·‖∞ ≤ ‖·‖₂` and the sup-norm estimate).
 * `fa3Objective` — the END-TO-END objective: the loss evaluated at
   the stack output (the head loss composed through the backbone).
 * `fastarch3_transfer_descent` (+ `_strict`) — THE assembly
-  theorem: given each block's ledgered premise, the head's
+  theorem: given each block's premise, the head's
   certified drop `δ` (premise shape) and the head-loss
   Lipschitz premise `Lc`, the composed guard
   `Lc·(∏ (1 + μᵢ) − 1)·‖dx‖ < δ` makes the end-to-end objective
@@ -134,8 +133,7 @@ noncomputable def fa3Gain (bs : List (FA3Block n ι)) : NNReal :=
  block hypothesis — the PREMISE-LEDGER dispatch: attention
 blocks through the adapter composed with the isometry
 pattern (`Isometry R` premise, constant unchanged), GDN blocks
-through the adapter. Each hypothesis below is a ledger row
-(P1–P6). -/
+through the adapter. Each hypothesis below is one premise (P1–P6). -/
 theorem fa3BlockList_lipschitz (bs : List (FA3Block n ι))
     (hatt : ∀ (a : AttnBlock (EuclideanSpace ℝ n) ι)
         (R : EuclideanSpace ℝ n → EuclideanSpace ℝ n),
@@ -173,7 +171,7 @@ noncomputable def fa3Objective (bs : List (FA3Block n ι))
   fun x => loss (fa3Stack bs x)
 
 /-- THE ASSEMBLY THEOREM: certified head descent through the whole
-FastArch3 backbone. Given (a) each block's ledgered premises
+FastArch3 backbone. Given (a) each block's premises
 (P1–P6), (b) the head's certified drop `δ` at the stack output
 (premise shape — `ceOneHot_next_le_param` instantiates it),
 and (c) the head-loss Lipschitz premise `Lc` (P7), the composed
@@ -217,7 +215,7 @@ theorem fastarch3_transfer_descent_strict (bs : List (FA3Block n ι))
     (fa3BlockList_lipschitz bs hatt hgdn) hloss x dx hdrop hstrict
 
 /-!
-## P7 per-instance discharge: the head loss on the Euclidean
+## The head loss on the Euclidean
  carrier
 
 The abstract head-loss premise `LipschitzWith Lc loss` is
@@ -230,7 +228,7 @@ logit maps would need the map's own constant — not claimed.
 -/
 
 /-- The head CE of the carrier readout at a fixed label `t`
-(identity logit map): the P7 per-instance loss candidate. -/
+(identity logit map). -/
 noncomputable def fa3HeadLoss {n : Type} [Fintype n] [Nonempty n]
     (t : n) (x : EuclideanSpace ℝ n) : ℝ :=
   Hagi.Model.SoftmaxHead.headCE .ident t (WithLp.ofLp x)
@@ -253,7 +251,7 @@ theorem euclid_coord_abs_sub_le {n : Type} [Fintype n]
   obtain ⟨h1, h2⟩ := abs_le_of_sq_le_sq' h hb
   exact abs_le.2 ⟨h1, h2⟩
 
-/-- P7 DISCHARGE (per-instance): the head CE at the identity
+/-- The head CE at the identity
 logit map and fixed label is `2`-Lipschitz on the Euclidean
 carrier — the honest readout constant `Lc = 2` (the sup-norm
 estimate at `r = ‖x − y‖`). -/

@@ -6,7 +6,7 @@ import Hagi.Core.RootContrast
 import Hagi.Architecture.SpaceDecoupling
 
 /-!
-# Cascade leak bound for projected adapters (A8 F1)
+# Cascade leak bound for projected adapters
 
 Over the abstract linear-cascade carrier of `Hagi.Core.ErrorProp`
 (`propagate` over `List (Matrix n n ℝ × (n → ℝ))`), an additive
@@ -40,12 +40,11 @@ times the adapter operator norm times the reachable input component:
   `Uᵀ h`, which needs gating (`w → 0`) or the
   `spaceDecoupling_zero_drift` premise `Uᵀ *ᵥ Δ = 0`.
 
-Model boundary (honest): this is the LINEAR-cascade slice of the A8
-empirical verdict — `w = 0.1` gives exactly one tenth of the `w = 1`
-leak here (`cascade_leak_router_linear`), and projection alone never
-zeroes the bound (only the router `w → 0` or rank capture
-`rhoTail → 0` do). The nonlinear-net behavior (measured ForgettingCE
-gap at `w = 1`) is motivation, not a premise; see `ALGORITHMS.md`.
+Model boundary: only the linear cascade is proved — `w = 0.1` gives
+exactly one tenth of the `w = 1` leak here
+(`cascade_leak_router_linear`), and projection alone never zeroes the
+bound (only the router `w → 0` or rank capture `rhoTail → 0` do).
+The nonlinear-net behavior is not formalized.
 -/
 
 namespace Hagi.Architecture
@@ -73,12 +72,12 @@ theorem cascade_leak_bound {d : ℕ}
   exact mul_le_mul_of_nonneg_left (Hagi.Core.propagateLin_norm_le S ε)
     (abs_nonneg w)
 
-/-- The A8 F1 target form: with the adapter path
+/-- With the adapter path
 `ε = ΔR *ᵥ (projR U *ᵥ x)` (adapter applied to the reachable,
 complement-projected input component),
 `‖propagate S (x + w • ε) − propagate S x‖ ≤
 |w| * cascadeGain S * ‖ΔR‖ * ‖projR U *ᵥ x‖` — i.e.
-`|w_route| · L_stack · ‖Δ_R‖_op · ‖P_R x‖` with the honest
+`|w_route| · L_stack · ‖Δ_R‖_op · ‖P_R x‖` with the
 per-layer product `L_stack = cascadeGain S` and `P_R = projR U`. -/
 theorem cascade_leak_bound_op {d c : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
     (S : List (Matrix (Fin d) (Fin d) ℝ × (Fin d → ℝ)))
@@ -244,7 +243,7 @@ theorem tailDiag_mulVec_norm_le (m r : ℕ) (s : ℕ → ℝ)
             mul_le_mul_of_nonneg_left (hyi i) hnn
   exact (pi_norm_le_iff_of_nonneg (mul_nonneg hnn (norm_nonneg y))).mpr hentry
 
-/-- The F1 bound with the adapter specialized to the tail spectrum:
+/-- The leak bound with the adapter specialized to the tail spectrum:
 the leak is at most `|w| * cascadeGain S * sqrt (rhoTail m s r *
 ∑ (s j)^2) * ‖projR U *ᵥ x‖` — projection alone leaves the
 `sqrt rhoTail · router` product; rank capture (`rhoTail → 0`) or the

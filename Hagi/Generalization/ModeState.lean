@@ -13,12 +13,11 @@ set_option linter.unusedSectionVars false
 # Generalization mode state
 
 Definitions: `GenMetrics`/`Qvec`/`Qgen` (a five-probe
-generalization telemetry vector, all values measured —
-h_emp_G — and its nonnegative-weight scalarization), `GenState`
+generalization telemetry vector, all values measured, and
+its nonnegative-weight scalarization), `GenState`
 (`GrowthState` plus the probe vector), the Lyapunov object
 `hagiPotential` = energy + lam * protectedRisk +
-nu * max(0, Qtarget - Qgen), and the predicate `ModeDrop`
-(energy improves while `Qgen` drops).
+nu * max(0, Qtarget - Qgen), and the predicate `ModeDrop`.
 
 Results:
 * `Qgen_le`, `Qgen_drop_bound` — componentwise monotonicity
@@ -34,15 +33,13 @@ Results:
   `pareto_frontier_nonempty`, `selector_skips_dominated`) —
   strictly-positive weighted scalarized argmins are
   Pareto-optimal and never return a strictly dominated
-  checkpoint. The converse direction needs convexity and is
-  not claimed.
+  checkpoint;
 * `qgen_frontier_bridge`(_invariant) — the cone step/invariant
   under ΔQ-boosted injection dynamics with the eased
   β-threshold.
 
-Open: the Pareto ⟹ ∃ weights direction (needs a convex
-objective space); probe dynamics are not derived — every
-consumer carries an h_emp_G/h_emp_dyn premise.
+Open: Pareto ⟹ ∃ weights (needs a convex objective space);
+probe dynamics are not derived.
 -/
 
 open Real Finset
@@ -56,8 +53,7 @@ variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 /-! ## The probe vector and its scalarization -/
 
 /-- Five measured generalization probes: `transfer`,
-`shallowCue`, `truthSeeking`, `reflective`, `multiHop`. All
-fields are measured telemetry (h_emp_G), not derived. -/
+`shallowCue`, `truthSeeking`, `reflective`, `multiHop`. -/
 structure GenMetrics where
   /-- Transfer-probe score (measured). -/
   transfer : ℝ
@@ -82,16 +78,14 @@ drop (see `Qvec`). -/
 def Qgen (m : GenMetrics) (w : Fin 5 → ℝ) : ℝ :=
   ∑ i, w i * Qvec m i
 
-/-- **Componentwise monotonicity of the scalarization**: with
-nonnegative weights, pointwise probe domination implies
-scalarized domination. -/
+/-- Componentwise monotonicity of the scalarization. -/
 theorem Qgen_le {m m' : GenMetrics} {w : Fin 5 → ℝ}
     (hw : ∀ i, 0 ≤ w i) (h : ∀ i, Qvec m i ≤ Qvec m' i) :
     Qgen m w ≤ Qgen m' w :=
   Finset.sum_le_sum fun i _ => mul_le_mul_of_nonneg_left (h i) (hw i)
 
-/-- If `Qvec m i - ε i ≤ Qvec m' i` for every probe `i`
-(measured, h_emp_G) and weights are nonnegative, then
+/-- If `Qvec m i - ε i ≤ Qvec m' i` for every probe `i` and
+weights are nonnegative, then
 `Qgen m w - ∑ w i * ε i ≤ Qgen m' w`. -/
 theorem Qgen_drop_bound {m m' : GenMetrics} {w : Fin 5 → ℝ}
     {ε : Fin 5 → ℝ} (hw : ∀ i, 0 ≤ w i)
@@ -113,7 +107,7 @@ theorem Qgen_drop_bound {m m' : GenMetrics} {w : Fin 5 → ℝ}
 probe vector `gen`. -/
 structure GenState (X : Type*) [NormedAddCommGroup X]
     [InnerProductSpace ℝ X] extends GrowthState X where
-  /-- The measured generalization-probe vector (h_emp_G). -/
+  /-- The measured generalization-probe vector. -/
   gen : GenMetrics
 
 /-- The Lyapunov potential `energy + lam * protectedRisk +
@@ -153,11 +147,10 @@ private theorem relu_shift_le (t a a' ε : ℝ) (hε : 0 ≤ ε) (h : a - ε ≤
       · rw [max_eq_left hy, max_eq_left hx]; linarith
   linarith
 
-/-- If the measured fit improves by `ε_E` (h_emp_fit), the
-protected-risk regression is at most `budget` (h_risk), and the
-probe is certified `Qgen S.gen w - ε_Q ≤ Qgen S'.gen w`
-(h_emp_G, with `ε_Q ≥ 0`), then Φ_HAGI decreases by at least
-`ε_E - lam * budget - nu * ε_Q`. -/
+/-- If the measured fit improves by `ε_E`, the protected-risk
+regression is at most `budget`, and the probe is certified
+`Qgen S.gen w - ε_Q ≤ Qgen S'.gen w` (with `ε_Q ≥ 0`), then
+Φ_HAGI decreases by at least `ε_E - lam * budget - nu * ε_Q`. -/
 theorem generalization_safe_step (S S' : GenState X)
     (lam nu Qtarget : ℝ) (w : Fin 5 → ℝ)
     (hlam : 0 ≤ lam) (hnu : 0 ≤ nu)
@@ -214,15 +207,11 @@ theorem generalization_safe_step_at_target (S S' : GenState X)
     mul_le_mul_of_nonneg_left hrisks hlam
   linarith
 
-/-- The canonical quadratic-growth step on a generalization state.
-
-This is the canonical quadratic carrier with coherent measured energy
-`energy = growthQuad weights`: the weights and energy are both computed
-by the same transition. `protectedRisk`, every other runtime field, and
-the generalization probes are held BY THIS DEFINED TRANSITION. It does
-not prove that arbitrary training holds probe results unchanged, nor
-monotonic evolution of telemetry. The `h_emp_fit`/G/risk class is closed
-ONLY on this computed hold-model, not for general HAGI states. -/
+/-- The quadratic-growth step on a generalization state: weights and
+energy `growthQuad weights` are computed by the same transition;
+`protectedRisk`, the other runtime fields and the probes are held
+by the definition. Not a theorem about arbitrary training
+dynamics or probe telemetry. -/
 noncomputable def computedGenStep (S : GenState X) (eta : ℝ) : GenState X where
   toGrowthState :=
     -- Structure update: FP in Lean, "Structures" (field-preserving update).
@@ -239,10 +228,9 @@ theorem computedGenStep_energy (S : GenState X) (eta : ℝ) :
   simpa only [computedGenStep] using
     (Hagi.System.GrowthComputed.growthQuad_step S.weights eta)
 
-/-- On the canonical quadratic carrier, the computed hold-model gives a
-strictly positive potential drop for nonzero weights and `0 < eta < 2`.
-This uses only the defined transition; it is not a theorem about arbitrary
-training dynamics or probe telemetry. -/
+/-- On the quadratic carrier, the computed hold-model gives a
+strictly positive potential drop for nonzero weights and
+`0 < eta < 2`. -/
 theorem generalization_safe_step_computed (S : GenState X)
     (lam nu Qtarget eta : ℝ) (w : Fin 5 → ℝ)
     (hcanon : S.toGrowthState.energy =
@@ -313,13 +301,13 @@ section CheckpointPareto
 
 variable {Ck : Type*} [Fintype Ck] [Nonempty Ck]
 
-/-- **Weak dominance on the three checkpoint objectives**:
+/-- Weak dominance on the three checkpoint objectives:
 E ↓ (fit), Q ↑ (generalization probe), cost ↓. `dominates x y`
 reads "x is at least as good as y on ALL three". -/
 def dominates (E Q cost : Ck → ℝ) (x y : Ck) : Prop :=
   E x ≤ E y ∧ Q y ≤ Q x ∧ cost x ≤ cost y
 
-/-- **Pareto frontier membership**: x is a frontier point when
+/-- Pareto frontier membership: x is a frontier point when
 nothing weakly dominates it without being dominated back — i.e.
 no checkpoint is strictly better on all fronts. -/
 def IsPareto (E Q cost : Ck → ℝ) (x : Ck) : Prop :=
@@ -379,7 +367,7 @@ theorem scalarized_argmin_pareto (E Q cost : Ck → ℝ) (wE wQ wC : ℝ)
     exact hext _ _ hwC hz
   exact ⟨by linarith, by linarith, by linarith⟩
 
-/-- **The frontier is nonempty** over any finite nonempty
+/-- The frontier is nonempty over any finite nonempty
 checkpoint set: the unit-weight scalarized argmin exists
 (finiteness) and is Pareto by
 `scalarized_argmin_pareto`. -/
@@ -418,7 +406,7 @@ theorem selector_skips_dominated (E Q cost : Ck → ℝ) (wE wQ wC : ℝ)
 
 end CheckpointPareto
 
-/-! ## The Qgen → frontier bridge (audit §8) -/
+/-! ## The Qgen → frontier bridge -/
 
 section QgenFrontier
 

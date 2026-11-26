@@ -35,7 +35,7 @@ output perturbation is controlled by it).
   signal is the measured per-segment gain, the policy is its
   argmax — no search at inference time).
 
-**Prescription for the code (long-context phase only).**
+**Prescription for the code (long-context only).**
 
 1. The controller trains on the measured trade-off: the
    segment-gain table (the loss reduction from adding a
@@ -48,8 +48,8 @@ output perturbation is controlled by it).
    measured, not tuned.
 3. **Honesty condition**: the bounds are conditional on the
    block-savings being material (T above the threshold where
-   the mass skipped is a small fraction of the total); DO not
-   port to the code before the long-context phase — the
+   the mass skipped is a small fraction of the total); the bounds
+   are conditional on long sequences — the
    constants of the softmax Lipschitz bound are the classical
    ones and the module only fixes the STRUCTURE (mass, not
    count; argmax, not search).
@@ -203,12 +203,11 @@ of the sink regime is first-order in the dropped mass, not
 in the sequence length: a config that drops a small mass
 far from the diagonal pays almost nothing regardless of T.
 
-* sink_mass_tradeoff — THE W-vs-S TRADEOFF STRUCTURE: at
+* THE W-vs-S TRADEOFF: at
 fixed compute budget O(T·(W+S)) = C, every unit of sink
 width is a unit of window width — the allocation between
 the sinks (the global anchors) and the window (the local
-context) is the ComputeBudget marginal law in the attention
-geometry domain: the optimal split equalizes the marginal
+context) is the ComputeBudget marginal law: the optimal split equalizes the marginal
 CE-reduction per unit of (W+S) between the two regions.
 The sinks' marginal is measured by the mass the leading
 keys carry in the full attention (the sink mass map — one

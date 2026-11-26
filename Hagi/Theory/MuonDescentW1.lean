@@ -8,13 +8,13 @@ import Hagi.Theory.BatchRankOne
 /-!
 # MuonDescentW1 — мост «слой `W1` (lm.py:586) → Muon-шаг» без гипотезы на дифференциал
 
-C676. Снимает гипотезу `hφ : ∀ Δ, φ Δ = ⟨g, Δ⟩` теоремы `muon_step_useful`
+Снимает гипотезу `hφ : ∀ Δ, φ Δ = ⟨g, Δ⟩` теоремы `muon_step_useful`
 (`Hagi/Theory/MuonDescent.lean`) для реального слоя: носитель —
-функциональный `n → n → ℝ` (как в C668/C669), дифференциал `CE_t ∘ w1L`
-построен явно (`hasFDerivAt_w1L`, C668; `fderiv_ceOneHot_comp_apply`), и
+функциональный `n → n → ℝ`, дифференциал `CE_t ∘ w1L`
+построен явно (`hasFDerivAt_w1L`; `fderiv_ceOneHot_comp_apply`), и
 его значение в направлении `Δ` равно `⟨G, Δ⟩` с `G = −(g ⊗ x)`
-(`w1_directional_derivative`, C668). Спуск — `useful_of_neg_fderiv` (C675),
-направление — `muonStep G k` (C675) в том же носителе.
+(`w1_directional_derivative`). Спуск — `useful_of_neg_fderiv`,
+направление — `muonStep G k` в том же носителе.
 
 * `w1Grad` — градиент CE по `W1` для одного входа: `G = −(g ⊗ x)`.
 * `w1_fderiv_apply` — `f'(W1)[Δ] = ⟨G, Δ⟩`: гипотеза `φ` выведена (вне kink).
@@ -22,7 +22,7 @@ C676. Снимает гипотезу `hφ : ∀ Δ, φ Δ = ⟨g, Δ⟩` тео
 * `muon_step_useful_w1` — итог: `∃ η > 0`,
   `CE_t (w1L (W1 − η•X₃)) < CE_t (w1L W1)`, `X₃ = ns_iter k Ĝ`.
 * `w1BatchGrad`, `w1Batch_fderiv_apply`, `muon_step_useful_w1_batch` — то же
-  для суммы CE по батчу входов (`batch_directional_derivative`, C669);
+  для суммы CE по батчу входов (`batch_directional_derivative`);
   mean-лосс lm.py:688 отличается положительным множителем.
 
 Честная граница: слой квадратный (`ι = δ = n`; в коде `W1 : dim × hidden`);
@@ -44,7 +44,7 @@ variable {n K : Type} [Fintype n] [DecidableEq n] [Fintype K] [Nonempty K] [Deci
 noncomputable def onehot (t : K) : K → ℝ := fun v => if v = t then 1 else 0
 
 /-- Градиент `CE_t ∘ w1L` по `W1` (один вход): `G = −(g ⊗ x)`,
-`g = rowGrad x b wo W1 p y` (C668, `w1_grad_rank_one`). -/
+`g = rowGrad x b wo W1 p y` (`w1_grad_rank_one`). -/
 noncomputable def w1Grad (x : n → ℝ) (b : n → ℝ) (wo : n → K → ℝ) (W1 : n → n → ℝ)
     (t : K) : Matrix n n ℝ :=
   -(Matrix.of (Hagi.Theory.BatchRankOne.r1
@@ -143,7 +143,7 @@ noncomputable def w1BatchObj (x : τ → n → ℝ) (y : τ → K) (b : n → �
     (W1 : n → n → ℝ) : ℝ := ∑ t, Hagi.ceOneHot (y t) (w1L W1 b wo (x t))
 
 omit [DecidableEq n] [Nonempty K] in
-/-- Батч-градиент по `W1`: `G = −Σ_t g_t ⊗ x_t` (`batchGrad`, C669). -/
+/-- Батч-градиент по `W1`: `G = −Σ_t g_t ⊗ x_t` (`batchGrad`). -/
 noncomputable def w1BatchGrad (x : τ → n → ℝ) (y : τ → K) (b : n → ℝ) (wo : n → K → ℝ)
     (W1 : n → n → ℝ) : Matrix n n ℝ :=
   -(Matrix.of (Hagi.Theory.BatchRankOne.batchGrad

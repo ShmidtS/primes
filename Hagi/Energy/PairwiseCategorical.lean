@@ -14,7 +14,7 @@ set_option linter.style.header false
 /-!
 # Categorical pairwise energy and its mean-field free energy
 
-Track E1 (addendum A9, CRAM / arXiv:2611.17309): the discrete pairwise
+The discrete pairwise (CRAM / arXiv:2611.17309)
 energy over finite variable configurations and the mean-field free
 energy over product-marginal states, unified by two exact identities.
 
@@ -107,7 +107,7 @@ noncomputable def expectedPairwiseEnergy (B : ι → α → ℝ)
 
 end Definitions
 
-/-! ## Concrete 2×2 carrier (vacuity audit: Fin 2 variables, Bool values) -/
+/-! ## Concrete 2×2 carrier (Fin 2 variables, Bool values) -/
 
 section Carrier
 

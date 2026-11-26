@@ -40,7 +40,7 @@ continuous-time overreach:
   universal safe step size `A / (2 * C)` drives the sample loss
   exactly to zero (reaching the OT field in one certified step).
 
-## Pins (scope honesty)
+## Limits
 
 - The continuous-time CNF / continuity-equation theory and the
   paper's equality `L_CFM = L_FM` (its theorem on marginal vector
@@ -92,7 +92,7 @@ def cfmPsi (σmin t : ℝ) (x0 x1 : V → ℝ) : V → ℝ :=
 /-- The closed-form OT conditional vector field (paper equation:
 `u_t(x | x₁) = (x₁ − (1 − σ_min) x) / (1 − (1 − σ_min) t)`), as a
 field over the vocabulary `V`.  The denominator is `cfmSigma`; see
-the module pins for the division. -/
+the module Limits for the division. -/
 noncomputable def cfmOtField (σmin t : ℝ) (x0 x1 : V → ℝ) : V → ℝ :=
   fun i => (x1 i - (1 - σmin) * x0 i) / cfmSigma σmin t
 
@@ -175,7 +175,7 @@ conditional per-sample estimator is unbiased).  Here, in the finite
 estimator equals the difference of the objectives (`pmfMean_sub`),
 so minimizing the conditional (per-sample) criterion and minimizing
 the joint objective select the same field.  The continuous theorem
-itself is NOT formalized (module pins). -/
+itself is NOT formalized (module Limits). -/
 theorem cfm_expected_diff (m : ℕ)
     (hm : (Finset.univ : Finset (Fin m)).Nonempty) (σmin : ℝ)
     (T : Fin m → ℝ) (q : PMF D) (p : PMF Ω) (n : Ω → V → ℝ)
@@ -197,7 +197,7 @@ parameter: with the constant field `v ≡ θ` the CFM sample loss is
 quadratic in `θ`, and the gradient step `θ − η · ∇` satisfies the
 majorizer `L(step) = L − η·A + η²·C` with `A = C = 4·∑(θ − u)²` as
 an identity (convexity holds exactly in this specialization — the
-module pins scope the convexity claim here). -/
+module Limits scope the convexity claim here). -/
 theorem cfmLin_majorizer_eq (σmin t : ℝ) (x0 x1 θ : V → ℝ) (η : ℝ) :
     cfmSampleLoss σmin t
         (fun _ _ i => θ i - η * (2 * (θ i - cfmOtField σmin t x0 x1 i))) x0 x1
@@ -261,7 +261,7 @@ omit [Nonempty V] in
 nonzero error the universal safe step size is `A / (2 * C) = 1 / 2`,
 and the step `θ − (1/2) · 2 (θ − u)` lands on the OT field `u`
 itself, so the sample CFM loss after the safe step is ZERO.  One
-sample, constant-field specialization (module pins) — not a claim
+sample, constant-field specialization (module Limits) — not a claim
 about full FM training dynamics. -/
 theorem cfm_lin_safe_step_zero (σmin t : ℝ) (x0 x1 θ : V → ℝ)
     (hE : ∑ i, (θ i - cfmOtField σmin t x0 x1 i) ^ 2 ≠ 0) :

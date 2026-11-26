@@ -10,14 +10,13 @@ import Hagi.Growth.GainRenewal
 set_option linter.style.header false
 
 /-!
-# LinearCone — consolidated cone-family core
+# LinearCone — the cone-family core
 
-Merge of PerronCone, ConeCorridor, GrowthDynamics, ConeDynamics,
-NonlinearCone, FrontierScaling. Namespace blocks and declaration
-FQNs preserved.
+Perron core, corridor, growth and cone dynamics, nonlinear cone and
+frontier scaling.
 -/
 
-section C238_perron
+section perron
 /-!
 # Perron core for the cone family
 
@@ -458,8 +457,8 @@ theorem trunc_premises_geometric_growth (C D G ξ : ℕ → ℝ) (α γ ρ β : 
   rwa [hγk] at h
 
 end Hagi.Foundations
-end C238_perron
-section C238_corridor
+end perron
+section corridor
 /-!
 # ConeSystem-коридор
 
@@ -510,8 +509,8 @@ theorem cone_exact_exponential (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
 
 end Hagi.Foundations
 
-end C238_corridor
-section C238_growthdyn
+end corridor
+section growthdyn
 /-!
 # GrowthDynamics — the single bundle of growth-premises
 
@@ -805,8 +804,8 @@ theorem time_to_target_log (C G : ℕ → ℝ) (b σ Cstar : ℝ) (T : ℕ)
 end Hagi.Foundations
 
 
-end C238_growthdyn
-section C238_conedyn
+end growthdyn
+section conedyn
 /-!
 # ConeDynamics — abstract cone laws
 
@@ -969,8 +968,8 @@ theorem coneDataOfGrowthDynamics_eq (C G D : ℕ → ℝ) (xi : ℕ → ℝ)
 
 end Hagi.Growth
 
-end C238_conedyn
-section C238_nonlin
+end conedyn
+section nonlin
 /-!
 # NonlinearCone — вогнутый (корневой) конус: полиномиальный takeoff
 
@@ -1227,8 +1226,8 @@ theorem nonlinear_zero_kill (η phiE : ℝ) (hφ : 0 ≤ phiE)
 
 end Hagi.Growth
 
-end C238_nonlin
-section C238_frontier
+end nonlin
+section frontier
 /-!
 # FrontierScaling — конус-инвариант из производственной динамики
 
@@ -1415,4 +1414,4 @@ export Hagi.Growth (sustained_geometric_growth_from_production)
 export Hagi.Foundations.GrowthBand (growth_band_step growth_band_iter)
 end Hagi
 
-end C238_frontier
+end frontier

@@ -14,28 +14,15 @@ set_option linter.style.header false
 /-!
 # The unified growth-loop structure
 
-`joint_stage_linked`: the joint-stage descent with the real
-inner product and norm from `safeQP_descent`; only smoothness
-is h_emp_. Lyapunov termination is delegated to
-`Hagi.Foundations.lyapunov_termination_fin`.
-`protected_generation_budget`: per-generation regression ≤ ε
-and spend ≤ b accumulate to at most `T·ε` and `T·b` over `T`
-generations.
-
-The `GrowthLoop` section below defines the growth-loop state,
-the potential `Φ = energy + protectedRisk`, the four stage
-transitions, and per-stage/composed potential laws derived
-from the MacroCycle stage theorems. Grow-stage descent and
-compress-stage weight-rounding lifts remain h_emp_ inputs.
+The growth-loop state, the potential `Φ = energy + protectedRisk`,
+the four stage transitions (grow, merge, joint, compress) and the
+per-stage and composed potential laws. The measured stage effects
+are `h_emp_` inputs: no training or verifier theorem backs them.
 -/
 
 open Finset Real InnerProductSpace
 
 namespace Hagi.System
-
-/-! ## Stage 2 linked: the joint step with real vectors -/
-
-/-! ## The macro termination derived -/
 
 /-! ## The protected error budget across generations -/
 
@@ -72,11 +59,8 @@ theorem protected_generation_budget (T : ℕ) (epsReg b : ℝ)
 The state record `GrowthState` with the potential
 `Φ = energy + protectedRisk` (energy = the token-weighted
 reverse-KL certificate; protectedRisk = the protected-domain
-regression budget), the four stage transitions, and the
-observation maps verify / measure / discover. The per-stage
-potential laws derive from the MacroCycle stage theorems.
-Grow-stage descent and the compress rounding lift remain
-h_emp_ inputs (no training or verifier theorem here). -/
+regression budget) and the observation maps verify / measure /
+discover. -/
 
 noncomputable section GrowthLoop
 
@@ -106,8 +90,7 @@ structure StageEffects where
     orthogonality). -/
   mergeEnergy : ℝ
   mergeRisk : ℝ
-  /-- Merge stage: compute cost (P1.3: honest resource
-  accounting — merge is not free). -/
+  /-- Merge stage: compute cost. -/
   mergeCost : ℝ
   /-- Joint stage: post energy, protected risk, compute cost. -/
   jointEnergy : ℝ
@@ -120,8 +103,7 @@ structure StageEffects where
   quantErr : ℝ
   compressEnergy : ℝ
   compressRisk : ℝ
-  /-- Compress stage: compute cost (P1.3: honest resource
-  accounting — compression work is not free). -/
+  /-- Compress stage: compute cost. -/
   compressCost : ℝ
 
 /-- The growth-loop state: weights, parameters, expert count,
@@ -191,8 +173,7 @@ def riskJoint (S : GrowthState X) : ℝ := S.effects.jointRisk
 /-- The compress-stage gain: MEASURED energy saving of the
 compression stage (energy before − compressEnergy), not a
 declared zero. If compression does not lower energy, the gain
-is ≤ 0 and the potential bound degrades gracefully to the
-previous conservative form. -/
+is ≤ 0 and the potential bound degrades accordingly. -/
 def gainCompress (S : GrowthState X) : ℝ :=
   S.energy - S.effects.compressEnergy
 
@@ -335,8 +316,7 @@ def verify (S : GrowthState X) : Certificate where
       + S.effects.jointCost + S.effects.compressCost
 
 /-- `verify` unfolds definitionally to the stage sum
-`growGain + gap + eta*||stepDir||^2/2 - kappa*s/2`
-(audit regression interface). -/
+`growGain + gap + eta*||stepDir||^2/2 - kappa*s/2`). -/
 theorem verify_decrease (S : GrowthState X) :
     (verify S).decrease
       = S.effects.growGain + S.gap
@@ -707,38 +687,28 @@ end Hagi
 set_option linter.style.header false
 
 /-!
-# GrowthState effects recompute + capability tie-in (A16)
+# GrowthState effects recompute + capability tie-in
 
-The A16 mandatory fix #1, honesty half. Two pinned defects of
-`Hagi.System.GrowthState` (statements Freeze-locked, so this module
-ADDS the fix beside them, never edits them):
+Two limits of the ops `grow`/`merge`/`joint`/`compress`, stated as
+theorems:
 
-* **Stale effects.** The old ops `grow`/`merge`/`joint`/`compress`
-  write the state-level channels from the measured record
-  `S.effects` but carry the record itself unchanged
-  (`effects := S.effects`). One generation is premise-covered (the
-  h_emp_ chains of `growth_cycle_potential`); ACROSS generations
-  nothing forces the post-cycle state's effects to be a re-measurement
-  — see `stale_effects_gap_witness` for the formal gap.
-* **Capability tie.** The master invariant's `cap` channel
-  (`CertifiedHAGIInvariant.capability_growth`) is an abstract
-  `ℕ → ℝ` sequence; without the equality `cap t = (St t).capability`
-  the growth theorem does not certify state capability growth. The
-  missing premise is named here (`CapabilityTie`) and PROVEN for the
-  new fresh ops (`capability_telescope_fresh`).
+* **Stale effects.** The ops write the state-level channels from the
+  measured record `S.effects` but carry the record itself unchanged.
+  Across generations nothing forces the post-cycle state's effects to
+  be a re-measurement (`stale_effects_gap_witness`).
+* **Capability tie.** The master invariant's `cap` channel is an
+  abstract `ℕ → ℝ` sequence; without `cap t = (St t).capability` the
+  growth theorem does not certify state capability growth. The
+  premise is `CapabilityTie`; it holds for the fresh ops
+  (`capability_telescope_fresh`).
 
-The fix (`EvalBinding` pattern — data carried with explicit
-re-evaluation, no hidden convention): the fresh ops `growR`, `mergeR`,
-`jointR`, `compressR` perform the SAME certified channel updates as
-the old ops (measured at the pre-state `S`) but install the
-caller-supplied RE-MEASURED record `e'` as the post-state's `effects`
-field — freshness by construction. Honest pin: the re-evaluation
-oracle is abstract (the caller re-measures, exactly as the caller
-supplies `evalFn` in `EvalBinding`); when the oracle returns the same
-record, the fresh ops COINCIDE with the old ones (`growR_eq_grow`,
-`cycleR_eq_cycle`).
+The fresh ops `growR`, `mergeR`, `jointR`, `compressR` perform the same
+certified channel updates as `grow`/`merge`/`joint`/`compress` but
+install the caller-supplied re-measured record `e'` as the
+post-state's `effects` field. The re-evaluation is abstract (the
+caller supplies it); when it returns the same record, the fresh ops
+coincide with the old ones (`growR_eq_grow`, `cycleR_eq_cycle`).
 
-Nothing here changes the Legacy/Nonvacuity regression theorems.
 -/
 
 open Finset Real InnerProductSpace
@@ -749,17 +719,15 @@ noncomputable section Recompute
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
-/-! ### The honesty pins (defect as theorems, not prose) -/
+/-! ### The limits, as theorems -/
 
-/-- The OLD ops carry the effects record through a full generation
-UNCHANGED (definitional): after `compress (joint (merge (grow S)))`
-the state's `effects` still holds the PRE-cycle measurement record.
-This is the stale-effects defect of A16 mandatory fix #1, pinned. -/
+/-- The ops `grow`/`merge`/`joint`/`compress` carry the effects record
+through a full generation unchanged: after `compress (joint (merge (grow S)))`
+the state's `effects` is still the pre-cycle measurement record. -/
 theorem effects_carry_stale_cycle (S : GrowthState X) :
     (compress (joint (merge (grow S)))).effects = S.effects := by rfl
 
-/-- The exact capability accounting of one OLD composed generation
-(the fact the master `cap` channel was never tied to): capability
+/-- Capability accounting of one composed generation: capability
 grows by exactly the measured `growGain`. -/
 theorem capability_cycle_exact (S : GrowthState X) :
     (compress (joint (merge (grow S)))).capability
@@ -812,14 +780,12 @@ noncomputable def witState : GrowthState (EuclideanSpace ℝ (Fin 1)) where
   sp := witParams
   effects := witEffects
 
-/-- **The formal stale-effects gap** (acceptance bar of this beat):
-there is a state whose generation-1 certification premises ALL hold
-  (gap sign plus the four h_emp_ stage chains, in the degenerate
-  zero-cost window), yet at the post-cycle state the generation-2
-  h_emp_grow premise FAILS — because the old ops carried the effects
-record unchanged instead of re-measuring it. Effects freshness across
-generations is NOT derivable from the old ops; it must be re-measured
-(the `*R` ops below). -/
+/-- **The stale-effects gap**: there is a state whose generation-1
+certification premises all hold (gap sign plus the four h_emp_ stage
+chains, in the degenerate zero-cost window), yet at the post-cycle
+state the generation-2 `h_emp_grow` premise fails. Effects freshness
+across generations is not derivable from these ops; it must be
+re-measured (the `*R` ops below). -/
 theorem stale_effects_gap_witness :
     ∃ S : GrowthState (EuclideanSpace ℝ (Fin 1)),
       (0 ≤ S.gap
@@ -835,13 +801,12 @@ theorem stale_effects_gap_witness :
     simp only [grow, merge, joint, compress, witState, witEffects, witParams] at h
     linarith
 
-/-! ### The fresh ops (recomputed effects, EvalBinding pattern) -/
+/-! ### The fresh ops (recomputed effects) -/
 
-/-- **growR**: the certified grow transition with a RE-MEASURED
-effects record. The state-level channel updates are exactly `grow`'s
-(measured at the pre-state `S`); the post-state's `effects` field is
-the caller-supplied re-evaluation `e'` — the freshness the old carry
-cannot guarantee, by construction. -/
+/-- **growR**: the certified grow transition with a re-measured
+effects record. The channel updates are exactly `grow`'s (measured at
+the pre-state `S`); the post-state's `effects` field is the
+caller-supplied re-evaluation `e'`. -/
 def growR (S : GrowthState X) (e' : StageEffects) : GrowthState X where
   weightDim := S.weightDim
   weights := S.weights
@@ -957,34 +922,27 @@ theorem cycleR_capability (S : GrowthState X) (e₁ e₂ e₃ e₄ : StageEffect
     (cycleR S e₁ e₂ e₃ e₄).capability
       = S.capability + S.effects.growGain := by rfl
 
-/-- **Carry-safety**: when the re-evaluation oracle returns the SAME
-record, the fresh op COINCIDES with the old one (full record
-equality) — the fix degrades to the old behaviour exactly, no
-divergence hidden anywhere. -/
+/-- Carry-safety: when the re-evaluation returns the same record,
+the fresh op coincides with `grow`. -/
 theorem growR_eq_grow (S : GrowthState X) : growR S S.effects = grow S := by rfl
 
 /-- Carry-safety for the composed generation: identity re-evaluation
-at every stage reproduces the OLD composed cycle. -/
+at every stage reproduces the composed cycle. -/
 theorem cycleR_eq_cycle (S : GrowthState X) :
     cycleR S S.effects S.effects S.effects S.effects
       = compress (joint (merge (grow S))) := by rfl
 
-/-! ### The capability tie-in (A16 honesty: channel vs state) -/
+/-! ### The capability tie-in: channel vs state -/
 
-/-- **The missing premise of the master growth theorem**: the abstract
-capability channel `cap` of `CertifiedHAGIInvariant` (and the C_t
-renewal sequences) equals the `GrowthState.capability` projection of
-the trajectory. WITHOUT this premise, the capability_growth conjunct
-certifies an
-abstract channel and must not be read as state-capability growth;
-master consumers state it explicitly. -/
+/-- The abstract capability channel `cap` of `CertifiedHAGIInvariant`
+equals the `GrowthState.capability` projection of the trajectory.
+Without this premise the capability_growth conjunct certifies an
+abstract channel, not state-capability growth. -/
 def CapabilityTie (St : ℕ → GrowthState X) (cap : ℕ → ℝ) : Prop :=
   ∀ t, cap t = (St t).capability
 
-/-- The tie PROVEN for the fresh ops: along a `growR` trajectory the
-capability channel evolves by EXACT additive growGain accounting —
-the equality the master invariant would need, here a theorem instead
-of a convention. -/
+/-- The tie holds for the fresh ops: along a `growR` trajectory the
+capability channel evolves by exact additive `growGain` accounting. -/
 theorem capability_telescope_fresh {T : ℕ} (St : ℕ → GrowthState X)
     (e : ℕ → StageEffects)
     (hstep : ∀ t, t < T → St (t + 1) = growR (St t) (e t)) :
@@ -1016,10 +974,10 @@ end Recompute
 end Hagi.System
 
 /-!
-# GrowthStateViews — разбиение состояния на 5 сущностей (P2.9)
+# GrowthStateViews — разбиение состояния на 5 сущностей
 
-Канонический `GrowthState` (17 полей) канонически разлагается
-на пять сущностей плана рефакторинга P2.9:
+Канонический `GrowthState` канонически разлагается
+на пять сущностей:
 
 * **ModelPart** — состояние модели (weights/params/experts/
   weightDim);
@@ -1031,7 +989,7 @@ end Hagi.System
 
 Каждая сущность — структура-представление с проекциями
 `toParts`/`ofParts`; раунд-трип сохраняет состояние
-(`GrowthState_parts_roundtrip`). Канон не меняется —
+(`GrowthState_parts_roundtrip`).
 views дают модульный доступ без слома 2900+ деклараций.
 -/
 
@@ -1099,8 +1057,7 @@ def ofParts (p : ModelPart X × MetricsPart × MemoryPart × OptimizerPart X × 
   sp := p.2.2.2.1.sp
   effects := p.2.2.2.1.effects
 
-/-- РАУНД-ТРИП: разложение-сборка сохраняет состояние
-(корректность разбиения P2.9). -/
+/-- РАУНД-ТРИП: разложение-сборка сохраняет состояние. -/
 theorem GrowthState_parts_roundtrip (S : GrowthState X) :
     ofParts (toParts S) = S := by
   rfl
@@ -1116,9 +1073,9 @@ end Hagi.System
 set_option linter.style.header false
 
 /-!
-# GrowthComputed — вычисляемая энергия состояний роста (цикл 35)
+# GrowthComputed — вычисляемая энергия состояний роста
 
-Ответ аудиту #8 п.8 («energy в GrowthState — просто поле»):
+В `GrowthState` energy — просто поле; здесь
 канонический ВЫЧИСЛЯЕМЫЙ инстанс энергии — квадратичная
 энергия сжатых весов:
   growthQuad w = Σ wᵢ²/2  (однозадачная TrainingTransition-

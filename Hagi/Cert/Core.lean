@@ -6,7 +6,7 @@ import Hagi.Cert.Telescope
 import Hagi.Cert.StepRecord
 
 /-!
-# Canonical certification kernel (master plan v3, Track S1+S2)
+# Canonical certification kernel
 
 Thin, dependency-free interface for certified trajectory steps.
 
@@ -32,13 +32,13 @@ set_option relaxedAutoImplicit false
 namespace Hagi.Cert
 
 /-! ## Словарь перегрузок: `CertStep`
-Канон-носитель структуры `CertStep` — этот файл (`Hagi.Cert`).
-Одноимённые объявления в `Hagi.Unified.HonestTransition` —
-потребительский вариант поверх того же ядра; при поиске
-определения начинать отсюда. Полное переименование — вне v5.
+Канонический носитель структуры `CertStep` — этот файл
+(`Hagi.Cert`); одноимённые объявления в
+`Hagi.Unified.HonestTransition` — потребительский вариант поверх
+того же ядра.
 -/
 
-/-! ## S1: metrics + obligations -/
+/-! ## Metrics and obligations -/
 
 variable (S : Type*) (TaskId : Type*)
 
@@ -62,7 +62,7 @@ def FloorsKept (M : SystemMetrics S TaskId) (obl : StepObligations TaskId)
     (s : S) : Prop :=
   ∀ t, obl.floor t ≤ M.objective s
 
-/-! ## S2: cert kernel -/
+/-! ## Cert kernel -/
 
 variable (M : SystemMetrics S TaskId) (obl : StepObligations TaskId)
 
@@ -168,7 +168,7 @@ def CertStep.trans' {S : Type*} {TaskId : Type*}
 
 /-! ## Telescope -/
 
-/-! ### AdditiveLedger инстансы (A18.3): certified drop / δ-канал -/
+/-! ### AdditiveLedger инстансы: certified drop / δ-канал -/
 
 /-- `CertStep` списывает certified drop из objective (≤-закон:
 declared drop — нижняя граница, не точное списание). -/
@@ -204,16 +204,14 @@ theorem trajectory_telescope_fin {S : Type*} {TaskId : Type*}
     rw [Fin.sum_univ_castSucc]
     linarith
 
-/-! ## 4th resource: delta budget (Phase 1, addendum A7)
+/-! ## Четвёртый ресурс: δ-бюджет
 
-`CertStepDelta` — аддитивная надстройка над байт-идентичным
-`CertStep`: четвёртый ресурс `delta` — пошаговый бюджет вероятности
-ложного коммита P(false commit), списываемый из явного носителя
-`deltaLevel : S → ℝ` равенством `delta_next` с неотрицательным
-остатком (та же телескопируемая форма, что у budget/risk).
-Пер-шаговая семантика A7: Σ δ_k ≤ δ по траектории — теорема
-`delta_telescope`. Старый `CertStep` не меняется; свёртка в ядро —
-Phase-2 merger cert carriers. -/
+`CertStepDelta` — надстройка над `CertStep`: четвёртый ресурс
+`delta` — пошаговый бюджет вероятности ложного коммита,
+списываемый из явного носителя `deltaLevel : S → ℝ` равенством
+`delta_next` с неотрицательным остатком (та же телескопируемая
+форма, что у budget/risk). По траектории Σ δ_k ≤ δ — теорема
+`delta_telescope`. -/
 
 /-- Четвёртый ресурс: сертифицированный шаг + пошаговый бюджет
 ложного коммита `delta`, списанный из носителя `deltaLevel`. -/
@@ -254,7 +252,7 @@ instance certStepDelta_delta {deltaLevel : S → ℝ} :
 
 /-- Телескоп по δ-ресурсу: сумма пошаговых бюджетов ложного коммита
 не превосходит начального уровня носителя (Σ δ_k ≤ δ; носитель в
-старте неотрицателен — посылка честно явная). -/
+старте неотрицателен — явная посылка). -/
 theorem delta_telescope {S : Type*} {TaskId : Type*}
     {M : SystemMetrics S TaskId} {obl : StepObligations TaskId}
     (n : ℕ) (t : ℕ → S) (deltaLevel : S → ℝ)
@@ -269,9 +267,9 @@ theorem delta_telescope {S : Type*} {TaskId : Type*}
     (level := deltaLevel) n t hnn steps
 
 
-/-! ### Journal bridges (A19.2): kernel steps → StepRecord -/
+/-! ### Journal bridges: kernel steps → StepRecord -/
 
-/-- Журнальная запись замороженного шага: drop-ядро + точные траты
+/-- Журнальная запись шага: drop-ядро + точные траты
 бюджета/риска как телеметрия (δ-канала в ядре нет — 0). Законы
 остаются в `CertStep`; запись только фиксирует данные. -/
 def CertStep.toRecord {s s' : S} (c : CertStep M obl s s') :
@@ -295,17 +293,15 @@ def CertStepDelta.toRecord {deltaLevel : S → ℝ} {s s' : S}
   riskSpend := c.step.riskSpend
   delta := c.delta
 
-/-! ## Optimizer-state carrier (A8 F5): HoldStep covers (m, v, t)
+/-! ## Optimizer-state carrier: HoldStep covers (m, v, t)
 
-A8 empirical finding (Class-D evidence, motivation only): a hold step
-that restores the weight state but NOT the optimizer buffers keeps
-stale momentum and flips the certified bias sign (+0.040 observed vs
-−0.117 honest).  The carrier-level fix: pair the certified core state
-with the optimizer buffers so that `HoldStep.hold : s' = s` covers
-the buffers exactly.  Additive — the bare `CertStep`/`HoldStep` kernel
-is untouched. -/
+A hold step that restores the weight state but NOT the optimizer
+buffers keeps stale momentum.  The carrier pairs the certified core
+state with the optimizer buffers so that `HoldStep.hold : s' = s`
+covers the buffers exactly.  The bare `CertStep`/`HoldStep` kernel is
+untouched. -/
 
-/-- Additive carrier pairing a certified core state with optimizer
+/-- Carrier pairing a certified core state with optimizer
 buffers (momentum `m`, second moment `v`, step count `t`).  A
 `HoldStep` on this carrier is a hold of the WHOLE optimizer state. -/
 structure StateWithOptimizer (S : Type*) (O : Type*) where
@@ -325,9 +321,8 @@ theorem StateWithOptimizer.ext_iff {S O : Type*}
     cases q
     simp_all
 
-/-- The carrier-level fix: a hold step on the optimizer-paired state
-leaves the optimizer buffers exactly unchanged (stale momentum is NOT
-a hold). -/
+/-- A hold step on the optimizer-paired state leaves the optimizer
+buffers exactly unchanged (stale momentum is NOT a hold). -/
 theorem HoldStep.optimizer_state_fixed {S O : Type*}
     {M : SystemMetrics (StateWithOptimizer S O) TaskId}
     {obl : StepObligations TaskId}

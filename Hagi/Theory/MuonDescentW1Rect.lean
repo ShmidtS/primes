@@ -8,9 +8,9 @@ import Hagi.Theory.WideSVD
 /-!
 # MuonDescentW1Rect — мост «прямоугольный слой `W1 : ι → δ → ℝ` → широкий Muon-шаг»
 
-C681. `Hagi/Theory/MuonDescentW1.lean` (C676) требует `ι = δ = n`, потому что
+`Hagi/Theory/MuonDescentW1.lean` требует `ι = δ = n`, потому что
 `muonStep` квадратный; в коде слой `W1 : dim × hidden` (lm.py:586 @ca52eb4).
-Здесь шаг — `wide_iter k Ĝ` (`MuonWide`, C678–C680) на `Matrix ι δ ℝ`,
+Здесь шаг — `wide_iter k Ĝ` (`MuonWide`) на `Matrix ι δ ℝ`,
 `Ĝ = G/‖G‖_F` (`wnormed`), сертификат — `wide_alignment_ge_gradient'` и
 `useful_of_neg_fderiv` (generic по носителю `E`).
 
@@ -28,8 +28,8 @@ C681. `Hagi/Theory/MuonDescentW1.lean` (C676) требует `ι = δ = n`, по
   `muon_step_useful_w1_rect_batch` — то же для суммы CE по батчу.
 
 Честная граница: в батче `G ≠ 0` — посылка; `η` только существует; код применяет
-NS к momentum `m1`. Посылка размерности `card ι ≤ card δ` снята в C682 (`section Tall`,
-prime-теоремы в конце файла).
+NS к momentum `m1`. Посылка размерности `card ι ≤ card δ` снята в `section Tall`
+(prime-теоремы в конце файла).
 -/
 
 set_option relaxedAutoImplicit false
@@ -222,10 +222,10 @@ theorem muon_step_useful_w1_rect_batch (x : τ → δ → ℝ) (y : τ → K) (b
     fun Δ => w1Batch_fderiv_apply_R x y b wo W1 Δ hact
   exact muon_step_rect_of_fderiv _ W1 _ hdiff hfd hG hmn k
 
-/-! ### C682: высокий слой — транспонирование снимает посылку размерности
+/-! ### Высокий слой — транспонирование снимает посылку размерности
 
 `wide_iter` определён для любой формы `m×n` (`ns_step` без ограничений), и
-`code_ns_eq_wide_iter` (C680) говорит, что код-выход равен `wide_iter k G` и для
+`code_ns_eq_wide_iter` говорит, что код-выход равен `wide_iter k G` и для
 высокой матрицы. Спаривание и нормировка ковариантны: `⟨Gᵀ, Hᵀ⟩ = ⟨G, H⟩`,
 `‖Gᵀ‖_F = ‖G‖_F`, `wnormed Gᵀ = (wnormed G)ᵀ`; с `wide_iter_transpose`
 сертификат `wide_alignment_ge_gradient'` для `Gᵀ` переносится на высокий `G`.
@@ -235,7 +235,7 @@ theorem muon_step_useful_w1_rect_batch (x : τ → δ → ℝ) (y : τ → K) (b
   через `wide_iter_transpose`; итог для любой формы.
 * `fdot_wide_w1StepR_pos'`, `w1StepR_eq_code_ns`, `muon_step_rect_of_fderiv'`,
   `muon_step_useful_w1_rect'`, `muon_step_useful_w1_rect_batch'` — (L4) те же
-  сертификаты БЕЗ посылки размерности (версии C681 с `hmn` не менялись — Freeze).
+  сертификаты БЕЗ посылки размерности (версии с `hmn` не менялись).
 -/
 
 section Tall
@@ -307,7 +307,7 @@ theorem alignment_ge_gradient_any (G : Matrix m n ℝ) (hG : G ≠ 0) (k : ℕ) 
 
 end Tall
 
-/-! ### C682: теоремы без посылки `card ι ≤ card δ` (prime-версии) -/
+/-! ### Теоремы без посылки `card ι ≤ card δ` (prime-версии) -/
 
 /-- Выравнивание шага для слоя любой формы: `G ≠ 0 ⇒ 0 < ⟨G, d⟩`,
 `d = wide_iter k Ĝ`. -/

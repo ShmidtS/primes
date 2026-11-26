@@ -19,29 +19,27 @@ set_option linter.style.header false
 /-!
 # EqualBudget: the merge-vs-scratch comparison under geometric decay
 
-**Motivation (measured)**: the scratch control (H=384) used a
-different optimizer (AdamW lr 1e-3 vs the leaves' Muon lr
-1e-2), a different size than the record model (H=1152), and
-~1.9× the FLOPs of three leaves + joint — the "equal budget"
-comparison was not clean.
+A merge-vs-scratch comparison is only meaningful at equal optimizer,
+model size and FLOP budget; the identities below say what geometric
+decay implies under an equal budget.
 
-- **T3a `aitken_exact`**: for L_i = L* + d·c^i the Aitken estimates
+- `aitken_exact`: for L_i = L* + d·c^i the Aitken estimates
   L* = (L₀L₂ − L₁²)/(L₀ + L₂ − 2L₁) and c = (L₂−L₁)/(L₁−L₀)
   are exact.
-- **T3b `aitken_consistency`**: on a geometric sequence the window
+- `aitken_consistency`: on a geometric sequence the window
   estimates agree at every shift — a measured disagreement
   falsifies the geometric model.
-- **T3c `budget_gap_sign_const`**: under the two-curve model
+- `budget_gap_sign_const`: under the two-curve model
   L_m(C) − L* = d_m·exp(u_m·(C−C₀)), L_s(C) − L* = d_s·exp(u_s·C)
   with equal rates, the sign of L_m − L_s is constant in C.
-- **T3d `headstart_pays_iff`**: with head start d_M < d_S, rate
+- `headstart_pays_iff`: with head start d_M < d_S, rate
   c ∈ (0,1) and per-step rate κ, the merge pays ⟺ C₀ <
   κ·ln(d_S/d_M)/ln(1/c) — the step-equivalent head start k must
   exceed the leaf cost C₀/κ.
 
 **Honest boundary**: the module assumes geometric (PL) decay; the
-WSD schedule violates it by design, so T3b is the mandatory
-pre-test.
+WSD schedule violates it by design, so `aitken_consistency` is the
+mandatory pre-test.
 -/
 
 open Real
@@ -50,7 +48,7 @@ namespace Hagi.Audit
 
 section EqualBudget
 
-/-- **T3a — the Aitken exactness**: for L_i = L* + d·c^i with
+/-- The Aitken exactness: for L_i = L* + d·c^i with
 d ≠ 0, c ≠ 1, the three-point estimates of L* and c are
 exact. -/
 theorem aitken_exact (Lstar d c L0 L1 L2 : ℝ)
@@ -76,12 +74,11 @@ theorem aitken_exact (Lstar d c L0 L1 L2 : ℝ)
       · exact absurd (sub_eq_zero.mp h') hc
     field_simp
 
-/-- **T3b — the Aitken window consistency**: on a true
+/-- The Aitken window consistency: on a true
 geometric trajectory the c-estimate
 (L_{n+2}−L_{n+1})/(L_{n+1}−L_n) equals c at every window —
 measured disagreement falsifies the geometric model (the WSD
-schedule does by design; this test is mandatory before
-applying T3c/T3d). -/
+schedule does by design). -/
 theorem aitken_consistency (Lstar d c : ℝ)
     (L : ℕ → ℝ) (hL : ∀ i, L i = Lstar + d * c^(i:ℕ))
     (hdne : d ≠ 0) (hcne : c ≠ 0) (hc1 : c ≠ 1) :
@@ -110,8 +107,7 @@ theorem aitken_consistency (Lstar d c : ℝ)
   rw [show d * c^(k:ℕ) * (c - 1) * c = c * (d * c^(k:ℕ) * (c - 1)) from by ring]
   field_simp
 
-/-- **T3c — the budget-gap sign is C-constant at equal
-rates**: under the two-exponential model with equal decay
+/-- The budget-gap sign is C-constant at equal rates: under the two-exponential model with equal decay
 rates, the sign of L_m − L_s is CONSTANT in C: the whole
 budget comparison reduces to the constant comparison
 d_m·exp(−u·C₀) < d_s. -/
@@ -132,7 +128,7 @@ theorem budget_gap_sign_const (dM dS u C C0 : ℝ)
 
 
 
-/-- **T3d (two-sided break-even)**: with merged-pool head start
+/-- Two-sided break-even: with merged-pool head start
 d_M < d_S, contraction rate c ∈ (0,1), per-step rate κ, and
 leaf-compute cost C₀, the merged trajectory beats scratch net of
 leaf cost **iff** C₀ < κ·ln(d_S/d_M)/ln(1/c). The exponent is
@@ -381,7 +377,7 @@ end NSSteps
 
 section BatchOpt
 
-/-- **The AM-GM batch bound** (Phase 3.2): cB + B_n·t₀/B ≥
+/-- **The AM-GM batch bound**: cB + B_n·t₀/B ≥
 2√(c·B_n·t₀) for B > 0 — the core of the optimal-batch law
 T(B) = S_min(1 + B_n/B)(t₀ + cB): expanding,
 T(B)/S_min = t₀ + c·B_n + (cB + B_n·t₀/B), and the AM-GM

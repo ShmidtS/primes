@@ -30,14 +30,6 @@ namespace Hagi.Probability.FiniteEM
 noncomputable def jointMass {X Y : Type} (p₀ : PMF X) (K : X → PMF Y) (y : Y) (x : X) : ℝ :=
   (p₀ x * K x y).toReal
 
-private theorem observationEvidence_toReal {X Y : Type} [Fintype X]
-    (p₀ : PMF X) (K : X → PMF Y) (y : Y) :
-    (observationEvidence p₀ K y).toReal = ∑ x, jointMass p₀ K y x := by
-  rw [observationEvidence_eq_sum, ENNReal.toReal_sum]
-  · rfl
-  · intro x _
-    exact ENNReal.mul_ne_top (p₀.apply_ne_top x) ((K x).apply_ne_top y)
-
 private theorem observationEvidence_toReal_pos {X Y : Type} [Fintype X]
     (p₀ : PMF X) (K : X → PMF Y) (y : Y)
     (hobs : 0 < observationEvidence p₀ K y) :

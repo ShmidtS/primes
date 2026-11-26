@@ -9,19 +9,18 @@ import Hagi.Cert.StepGen
 /-!
 # Continual-learning forgetting control bound
 
-Continual-learning contract: NEW tasks arrive, the router/system
-adapts (sleeping experts compete on awake rounds — the GAIN
-side, NOT claimed here), and the question is what bounds the HARM
-to OLD tasks. The answer is TWO INDEPENDENT CHANNELS:
+What bounds the harm to OLD tasks when new tasks arrive and the
+system adapts (the GAIN side is not claimed here). Two
+independent channels:
 
 * **Construction channel (deterministic, free)**: a trajectory of
   certified adaptations is a `Hagi.Cert.CertStepGen` sequence, and
   the kernel FLOOR FIELD LAW (`floorsKept` field) keeps every
   obligation floor at each post-state — by construction, with NO
   probability budget. `floorsKept_trajectory` transports this field
-  law to whole trajectories: floors are CARRIED, not telescoped
-  (the kernel law is a per-step field — which is exactly why this
-  channel costs nothing).
+  law to whole trajectories: floors are carried, not telescoped
+  (the kernel law is a per-step field, so this channel costs
+  nothing).
 * **Audit channel (statistical, budgeted)**: harm events `Bad t`
   (a repeat-task floor MEASUREMENT falsely reporting harm) are
   covered by the spent α of task t in the ledger. Over a
@@ -29,28 +28,15 @@ to OLD tasks. The answer is TWO INDEPENDENT CHANNELS:
   the chained ledger `auditSpendChain` has total spend
   ∑ spent₀ + ∑ₖ δₖ (δ-SPLIT arithmetic), so
   `continual_forgetting_bound` gives
-  P(∃ t, Bad t) ≤ ∑ spent₀ + ∑ₖ δₖ ≤ δtotal — the master
-  (`gate_pipeline_false_commit`) applied at δ := the SPENT
-  total, the sharper honest form. "New task adaptation" is just
-  another audited proposal: the same audit bound covers it.
+  P(∃ t, Bad t) ≤ ∑ spent₀ + ∑ₖ δₖ ≤ δtotal
+  (`gate_pipeline_false_commit` applied at δ := the spent
+  total). A new task adaptation is an audited proposal like any
+  other.
 
-`floor_floor_telescope` packages the two-channel guarantee as THE
-continual-learning contract. Honest scope (pinned):
-
-* NO bound on the GAIN side (territory, cited not
-  imported); NO adaptive-adversary claim (fixed `Bad` events — the
-  oblivious union form); floors are PREMISE-valued metrics
-  (how a floor was measured stays with CertifiedEstimator —
-  `audit_alpha_spends_radius` is the radius bridge, cited not
-  re-proved); NO new concentration math — the contribution is the
-  re-proved); NO new concentration math — the contribution is the
-  continual packaging, the δ-split bookkeeping lemma, and the
-  construction channel.
-
-Canary-ramp exposure bounding (`canary_ramp_harm_bound`,
-`canary_step_certified` — a ramp step IS a CertStepGen) is the
-mechanism that turns an adaptation into a certified step entering
-channel 1; premise-cited as in not imported (Deployment layer).
+Not proved: any bound on the GAIN side; an adaptive-adversary
+claim (`Bad` events are fixed); how a floor is measured (floors
+are premise-valued metrics; `audit_alpha_spends_radius` is the
+radius bridge, cited not re-proved).
 -/
 
 set_option relaxedAutoImplicit false
@@ -64,14 +50,10 @@ variable {σ ι : Type} [Fintype σ] [DecidableEq σ] [Fintype ι] [DecidableEq 
 /-! ## Chained α-spending over a sequence of adaptations -/
 
 /-- The ledger after m accepted adaptations: adaptation k spends its
-slice α k on task `tsk k`. Single-update form of a chain
-`auditSpend` steps (spent is the pointwise sum of the slices); the
-validity hypotheses are the SEQUENCE-lift of the one-step
-precondition (`audit_consume_alpha_valid`): slices nonnegative and
-their total inside the remaining budget. Streams, floors, rejected
-count and the final-test bookkeeping are untouched — spending does
-not consume samples (rejected-candidate consumption is a separate
- operation). -/
+slice α k on task `tsk k`. Spent is the pointwise sum of the
+slices; the validity hypotheses say the slices are nonnegative and
+their total is inside the remaining budget. Streams, floors and
+the rejected count are untouched. -/
 def auditSpendChain (L : Hagi.Contracts.AuditLedger.AuditLedger σ ι)
     (tsk : ℕ → ι) (α : ℕ → ℝ) (m : ℕ)
     (hα : ∀ k ∈ Finset.range m, 0 ≤ α k)
@@ -105,11 +87,10 @@ def auditSpendChain (L : Hagi.Contracts.AuditLedger.AuditLedger σ ι)
     linarith [L.spentTotal]
   finalIsolated := L.finalIsolated
 
-/-- δ-SPLIT ARITHMETIC (the forgetting budget telescope): the
+/-- δ-split arithmetic (the forgetting budget telescope): the
 chained ledger's total spend is the initial spend plus the slices —
 ∑_u ∑_k [u = tsk k]·α k = ∑_k α k, because every task index of the
-sequence is a task of the ledger. This is the bookkeeping lemma
- does not have (its master is single-snapshot). -/
+sequence is a task of the ledger. -/
 theorem auditSpendChain_delta_split
     (L : Hagi.Contracts.AuditLedger.AuditLedger σ ι) (tsk : ℕ → ι)
     (α : ℕ → ℝ) (m : ℕ)
@@ -129,18 +110,13 @@ theorem auditSpendChain_delta_split
 
 /-! ## Channel 2: the audit bound (forgetting control) -/
 
-/-- MAIN 1 — continual forgetting control: over m accepted
-adaptations, each audited with its slice δₖ from the ledger, the
-probability that SOME old task's floor is falsely harmed is at most
-the total spent budget ∑ spent₀ + ∑ₖ δₖ, which stays inside
-δtotal. "New task adaptation" is an audited proposal like any
-other: the master (`gate_pipeline_false_commit`) applies at
-δ := the SPENT total — the sharper honest form — plus
-complement algebra (`prodPq_compl`, `prodPq_iff`). The premise
-`htail` (P(Bad t) ≤ spent t) is the e-process tail premise of the
- master; the radius that justifies a spend is
-`audit_alpha_spends_radius` (cited, not re-proved). NO new union
-mathematics is derived. -/
+/-- Continual forgetting control: over m accepted adaptations, the
+probability that SOME old task's floor is falsely harmed is at
+most the total spent budget ∑ spent₀ + ∑ₖ δₖ ≤ δtotal
+(`gate_pipeline_false_commit` at δ := the spent total, plus
+complement algebra). The premise `htail` (P(Bad t) ≤ spent t) is
+the e-process tail premise; the radius that justifies a spend is
+`audit_alpha_spends_radius`, not re-proved here. -/
 theorem continual_forgetting_bound {V : Type} [Fintype V] [Nonempty V]
     {n : ℕ} (L : Hagi.Contracts.AuditLedger.AuditLedger σ ι)
     (tsk : ℕ → ι) (δ : ℕ → ℝ) (m : ℕ)
@@ -180,11 +156,11 @@ theorem continual_forgetting_bound {V : Type} [Fintype V] [Nonempty V]
 
 /-! ## Channel 1: the construction channel (kernel floor field law) -/
 
-/-- Channel 1: the CertStepGen floor FIELD LAW carries all
-obligation floors along a trajectory of certified adaptations —
-the last certificate's `floorsKept` field is the guarantee at the
-terminal state (floors are carried, not telescoped: the kernel law
-is a per-step field, which is why this channel is free). -/
+/-- The CertStepGen floor field law carries all obligation floors
+along a trajectory of certified adaptations: the last
+certificate's `floorsKept` field is the guarantee at the terminal
+state (the kernel law is a per-step field, so no budget is
+spent). -/
 theorem floorsKept_trajectory {S TaskId : Type}
     (M : Hagi.Cert.SystemMetrics S TaskId)
     (obl : Hagi.Cert.StepObligations TaskId) (deltaLevel : S → ℝ)
@@ -195,17 +171,16 @@ theorem floorsKept_trajectory {S TaskId : Type}
   | 0 => exact h₀
   | m + 1 => exact (steps m).floorsKept
 
-/-! ## THE contract: two-channel guarantee -/
+/-! ## The contract: two-channel guarantee -/
 
-/-- MAIN 2 — the continual-learning contract: after n certified
-state transitions (channel 1) and m audited task adaptations each
+/-- The continual-learning contract: after n certified state
+transitions (channel 1) and m audited task adaptations each
 spending δₖ (channel 2), the terminal state keeps every obligation
-floor BY CONSTRUCTION (no budget spent), while the probability of
-a falsely-harmed old-task floor MEASUREMENT is bounded by the
-exactly-spent budget ∑ spent₀ + ∑ₖ δₖ ≤ δtotal. The channels are
-complementary, not redundant: construction keeps the premise-valued
-floor metrics; the audit pays for the measurement noise that
-construction cannot see. -/
+floor by construction (no budget spent), while the probability of
+a falsely-harmed old-task floor measurement is bounded by the
+spent budget ∑ spent₀ + ∑ₖ δₖ ≤ δtotal. Construction keeps the
+premise-valued floors; the audit pays for the measurement noise.
+-/
 theorem floor_floor_telescope {S TaskId : Type}
     (M : Hagi.Cert.SystemMetrics S TaskId)
     (obl : Hagi.Cert.StepObligations TaskId) (deltaLevel : S → ℝ)
@@ -284,8 +259,7 @@ theorem forgetting_anchor_split :
 
 /-- Anchor total: the chained budget telescopes to 1/8 + 1/16 =
 3/16 ≤ δtotal = 1/2, and task 0's per-task remainder stays
-nonnegative — all through the MAIN chain lemma, not bare norm_num
-on the right-hand side. -/
+nonnegative, through `auditSpendChain_delta_split`. -/
 theorem forgetting_anchor_total :
     ∑ u, achain.spent u = 3 / 16
       ∧ 3 / 16 ≤ anchorLedger.δtotal

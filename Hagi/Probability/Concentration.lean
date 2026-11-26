@@ -10,8 +10,7 @@ lemmas fixing the strongest–weakest spine of the tree's concentration
 statements:
 
 * `concConfidence ε n = exp(−2nε²)` — the CANONICAL one-sided [0,1]
-  mean-tail confidence (`hoeffding_mean_tail`, the exponent the audit
-  names as the one backing the Python gate);
+  mean-tail confidence (`hoeffding_mean_tail`, the exponent backing the Python gate);
 * `concConfidenceTwoSided ε n = 2·exp(−2nε²)` — canonical two-sided;
 * `concRadius δ n = sqrt(log(1/δ)/(2n))` — the matching radius, with the
   duality `concRadius_valid`;
@@ -155,7 +154,7 @@ theorem hoeffdingBridge_weaker {n : ℕ} (hn : 0 < n) {t : ℝ} (_ht : 0 ≤ t) 
 
 /-! ## Unified premise API for the Freedman family
 
-The audit ask: ONE premise shape for the concentration family so
+ONE premise shape for the concentration family so
 consumers take the radius from ONE place. The record below
 packages the premise tuple; the radius corollaries are
 BRIDGES (direct citations of the frozen carriers in

@@ -7,8 +7,8 @@ import Hagi.Theory.FunctionPreservingGrowth
 /-!
 # FirstLayerGrad — производная по первому слою `W1` relu-блока
 
-C668. Закрывает honest-пин F3 карты `FunctionPreservingGrowth`
-(«производная по W1 не формализована»). Код: блок роста
+Производная CE по первому слою `W1` relu-блока
+роста `FunctionPreservingGrowth`. Код: блок роста
 `h = h + relu(a @ W1 + b1) @ Wo` (hagi/lm.py:586 @ca52eb4;
 `W1 : dim × hidden` — lm.py:594 @ca52eb4). Слой `W1` здесь —
 матрица `W1 : ι → δ → ℝ` (строка `i`, столбец `j`); для одного

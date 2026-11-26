@@ -4,7 +4,7 @@ import Hagi.Core.Hadamard
 /-!
 # Boolean Venn lattice: the 16 two-variable boolean functions
 
-Track B7 (master plan v3 addendum A4). Every `Bool → Bool → Bool`
+Every `Bool → Bool → Bool`
 function is a Venn mask: a lookup `Fin 4 → Bool` indexed by the atom
 (active conjunction) of its input (`.vennBool`, `.venn_universal`).
 All 16 functions carry the structure of the four-atom boolean lattice:
@@ -19,7 +19,7 @@ Everything here is `decide`-level on the Bool carrier. The ReLU-neuron
 realization of the same lattice and its certified-exact head live in
 `Hagi.Model.Logic.VennHead`.
 
- additions (A8 F4): the `H₄` role correction — the mask ↔
+ additions: the `H₄` role correction — the mask ↔
 truth-table identification on the four atoms is the IDENTITY
 (`mask_truth_table_identity`) while the Walsh–Hadamard matrix
 `vennWalsh` (the `Hagi.Core.sylvester` order-four matrix reindexed
@@ -262,7 +262,7 @@ theorem singleAtomCE_example_floor (θ : Fin 4 → ℝ) (b : Fin 4)
     rw [one_div, Real.log_inv]
   linarith
 
-/-- The A8 floor, verified pointwise (stronger than worst-case): for
+/-- The floor, verified pointwise (stronger than worst-case): for
 EVERY parameterization and EVERY mask the mean single-atom CE is at
 least `log 8` — the probability cap `qAtom_le` leaves no escape. -/
 theorem singleAtomCE_floor (m : Fin 4 → Bool) (θ : Fin 4 → ℝ) :
@@ -308,7 +308,7 @@ theorem qAtom_worst_le (θ : Fin 4 → ℝ) (b : Fin 4) :
       simpa using this
     linarith
 
-/-- CORRECTION of the A8 worst-case reading: against an adversarial
+/-- Against an adversarial
 mask (the cold side of every parameter) the log-linear head pays at
 least `log 16`, for every parameterization — `log 8` is the
 per-mask (non-adversarial) irreducible floor `singleAtomCE_floor`,

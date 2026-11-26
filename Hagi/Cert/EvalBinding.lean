@@ -2,39 +2,35 @@ import Mathlib.Tactic
 import Hagi.Cert.StepGen
 
 /-!
-# EvalBinding — certificates bound to real evaluation (A16)
+# EvalBinding — certificates bound to real evaluation
 
-A16 directive, top-priority item: every certificate must bind to REAL
-evaluation `Eval(θ, A, B)` — the actual loss for parameters θ,
-architecture A, batch B — and the risk channel must be split into
-THREE type-distinct concepts instead of one conflated `ℝ` risk.
+Every certificate must bind to the real evaluation `Eval(θ, A, B)` —
+the loss for parameters θ, architecture A, batch B — and the risk
+channel is split into THREE type-distinct concepts instead of one
+conflated `ℝ` risk.
 
 * `RiskExposure` / `RiskRemaining` / `ConfidenceRadius` — three
   DISTINCT structures (single field + proof).  Different types mean
   accidental conflation (passing a confidence radius where the
   remaining-risk readout is expected) is a TYPE error, not a silent
-  `ℝ` coercion.  The frozen kernel `CertStepGen.riskRem : ℝ` is NOT
-  changed (Freeze); the adapter `CertStepGen.toRiskRemaining` maps it
-  into the typed world.
+  `ℝ` coercion.  The adapter `CertStepGen.toRiskRemaining` maps the
+  kernel field `CertStepGen.riskRem` into the typed world.
 * `EvalFn` / `MachineEvalBridge` / `EvalBinding` — the evaluation
   binding: certificate numbers `L_before`/`L_after` carry PROOFS
   `hbefore : L_before = evalFn θ_t A_t B`,
-  `hafter : L_after = evalFn θ_{t+1} A_{t+1} B`.  This closes the
-  "detached counters" defect (GrowthState/TrainState): the numbers a
-  certificate reports are forced to be the evaluation of the recorded
-  parameters/architecture/batch, not free-floating counters.
-* The machine-vs-abstract gap is HONEST: a `MachineEvalBridge` is a
-  premise `|machineEval − evalFn| ≤ ε_eval`, instantiated by consumers
-  from the Runtime rounding lemmas (TernaryExact / BF16Delta) —
-  Runtime is not imported here (layering `coord_err_bound`
-  premise pattern).
+  `hafter : L_after = evalFn θ_{t+1} A_{t+1} B`.  The numbers a
+  certificate reports are thus forced to be the evaluation of the
+  recorded parameters/architecture/batch, not detached counters.
+* The machine-vs-abstract gap is a premise: a `MachineEvalBridge` is
+  `|machineEval − evalFn| ≤ ε_eval`, instantiated by consumers from
+  the Runtime rounding lemmas (TernaryExact / BF16Delta); Runtime is
+  not imported here.
 
-Honest pins (A16): `evalFn (θ, A, B) → ℝ` stays an abstract PARAMETER —
-real network evaluation is out of Lean scope.  What the binding
-guarantees is CONSISTENCY of the numbers used across certificates.
-The demo theorem living on the canonical carrier is in
-`Hagi/State/EvalBindingCert.lean` (State layer; Cert may not import
-State).
+`evalFn (θ, A, B) → ℝ` stays an abstract PARAMETER — real network
+evaluation is out of Lean scope.  The binding guarantees CONSISTENCY
+of the numbers used across certificates.  The demo theorem on the
+canonical carrier is in `Hagi/State/EvalBindingCert.lean` (State
+layer; Cert may not import State).
 -/
 
 set_option relaxedAutoImplicit false
@@ -45,10 +41,9 @@ namespace Hagi.Cert
 Канон-носитель связывания сертификата с реальной оценкой — этот
 файл. Одноимённые записи в нём отличаются ролей (binding/unwrap);
 определения `CertStepGen` искать в `Hagi.Cert.StepGen`.
-Полное переименование — вне v5.
 -/
 
-/-! ## Three type-distinct risk concepts (A16: not one `risk`) -/
+/-! ## Three type-distinct risk concepts -/
 
 /-- Risk EXPOSED at a state: the pre-step risk level, as a typed
 value pinned to the state readout. -/
@@ -86,10 +81,8 @@ def riskRemaining (S : Type*) (risk : S → ℝ) (s : S) : RiskRemaining S risk 
   val := risk s
   hval := rfl
 
-/-- ADAPTER: the frozen kernel's ℝ field `CertStepGen.riskRem`
-maps explicitly into the typed `RiskRemaining` of the post-state —
-no frozen statement changes, and new consumers get the type
-protection. -/
+/-- ADAPTER: the kernel's ℝ field `CertStepGen.riskRem` maps
+explicitly into the typed `RiskRemaining` of the post-state. -/
 def CertStepGen.toRiskRemaining {S TaskId : Type*}
     {M : SystemMetrics S TaskId} {obl : StepObligations TaskId}
     {deltaLevel : S → ℝ} {s s' : S}
@@ -110,13 +103,13 @@ theorem CertStepGen.riskExposure_split {S TaskId : Type*}
   change e.val = h.riskSpend + h.riskRem
   rw [← h.risk_split, ← e.hval]
 
-/-! ## Evaluation binding (A16 "самое важное") -/
+/-! ## Evaluation binding -/
 
 variable {Θ A B : Type*}
 
 /-- Abstract evaluation function `Eval(θ, A, B)` — parameters,
-architecture, batch → loss.  Honest pin: a PARAMETER; real network
-evaluation is out of Lean scope. -/
+architecture, batch → loss.  A PARAMETER; real network evaluation is
+out of Lean scope. -/
 abbrev EvalFn (Θ A B : Type*) : Type _ := Θ → A → B → ℝ
 
 /-- Machine-vs-abstract rounding bridge (premise pattern): the
@@ -133,9 +126,8 @@ structure MachineEvalBridge (Θ A B : Type*) (evalFn : EvalFn Θ A B) where
   /-- Proven rounding-error bound, uniform over θ, A, B. -/
   bound : ∀ θ : Θ, ∀ a : A, ∀ b : B, |machineEval θ a b - evalFn θ a b| ≤ eps
 
-/-- The evaluation binding: certificate loss numbers bound to REAL
-evaluation of the recorded parameters, architecture and batch.
-`hbefore`/`hafter` are the detachment fix — the certificate's
+/-- The evaluation binding: certificate loss numbers bound to the real
+evaluation of the recorded parameters, architecture and batch:
 `L_before`/`L_after` are PROVEN equal to the evaluation of `θ_t`/`θ_{t+1}`
 on the SAME batch `B`, so they cannot be detached counters. -/
 structure EvalBinding (Θ A B : Type*) (evalFn : EvalFn Θ A B) where
@@ -191,8 +183,7 @@ theorem EvalBinding.machine_after {evalFn : EvalFn Θ A B}
   exact br.bound _ _ _
 
 /-- The machine-side certified drop differs from the abstract one by
-at most `2·eps` (both readouts carry the rounding bound) — honest
-accumulation form for consumers. -/
+at most `2·eps` (both readouts carry the rounding bound). -/
 theorem EvalBinding.machine_drop_gap {evalFn : EvalFn Θ A B}
     (br : MachineEvalBridge Θ A B evalFn)
     (evb : EvalBinding Θ A B evalFn) :

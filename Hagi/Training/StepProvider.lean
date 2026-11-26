@@ -6,10 +6,9 @@ import Hagi.Unified.HonestTransition
 import Hagi.Model.EnergyReasoning.Pseudolikelihood
 
 /-!
-# StepProvider — интерфейс сертифицированного шага (merge map A10)
+# StepProvider — интерфейс сертифицированного шага
 
-A10 merge map: "Step + Optimization → StepProvider interface". По
-поправкам аудита интерфейсный слой (StepProvider, Gate, Expert,
+Интерфейсный слой (StepProvider, Gate, Expert,
 Compressor) живёт рядом с HagiCert: `StepProvider` — тонкая
 структура НАД каноническим ядром `Hagi.Cert.CertStepGen`
 (общий индекс задач, остаток риска — поле, свёрнутый δ-канал).

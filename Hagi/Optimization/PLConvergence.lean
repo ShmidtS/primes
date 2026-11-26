@@ -22,7 +22,6 @@ theorem pl_linear_convergence (E G : ℕ → ℝ) (Estar μ L : ℝ)
     (hstep : ∀ t, E (t + 1) ≤ E t - G t / (2 * L))
     (hPL : ∀ t, 2 * μ * (E t - Estar) ≤ G t) (t : ℕ) :
     E t - Estar ≤ (1 - μ / L) ^ t * (E 0 - Estar) := by
-  -- dedup (audit P3/PL): делегация к канону
   -- Foundations.recurrence_upper при ρ = 1 − μ/L, c = 0;
   -- PL-шаг даёт рекурренту x(t+1) ≤ ρ·x t для x = E − E*.
   have hrate : (0:ℝ) ≤ 1 - μ / L := by

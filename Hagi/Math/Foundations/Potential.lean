@@ -5,23 +5,17 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Mathlib.Tactic
 
 /-!
-# Потенциал и суммовые тождества (объединённые)
+# Потенциал HAGI и суммовые тождества
 
-Potential и SumIdentities. Имена сохранены.
--/
-
-/-!
-# The canonical scalar HAGI potential
-
-The single definition of `Φ_HAGI = E + λR + ν·max(0, Q_target − Q)`
-(`hagiPotential`); callers delegate here.
+Скалярный потенциал `Φ_HAGI = E + λR + ν·max(0, Q_target − Q)`
+(`hagiPotential`) и проекционные тождества сумм.
 -/
 
 open Real
 
 namespace Hagi.Foundations
 
-/-- The canonical scalar HAGI potential Φ = E + λR +
+/-- Скалярный потенциал HAGI Φ = E + λR +
 ν·max(0, Q_target − Q). The max(0,·) makes the generalization
 penalty inert above target and active below. -/
 noncomputable def hagiPotential (E R nu qTarget q : ℝ) (lam : ℝ) : ℝ :=
@@ -48,11 +42,9 @@ end Hagi.Foundations
 /-!
 # Sum identities: проекционные тождества сумм
 
-Канонический дом (аудит v9 §3.2): разложение суммы квадратов
-отклонений от константы — variance/Koenig–Huygens-тождество,
-используемое нормализациями (LayerNorm, RMSNorm, SwitchMoE)
-и RL-нормировками (GRPO). Живёт в нижнем слое, чтобы
-архитектурные модули не зависели от RL (аудит v9, находка 9).
+Разложение суммы квадратов отклонений от константы —
+тождество variance/Koenig–Huygens, используемое нормализациями
+(LayerNorm, RMSNorm, SwitchMoE) и RL-нормировками (GRPO).
 -/
 
 namespace Hagi.Foundations.SumIdentities

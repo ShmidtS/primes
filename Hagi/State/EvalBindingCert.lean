@@ -3,12 +3,11 @@ import Hagi.State.CanonicalTrainState
 import Hagi.Cert.EvalBinding
 
 /-!
-# EvalBindingCert — demo theorem on the canonical carrier (A16)
+# EvalBindingCert — demo theorem on the canonical carrier 
 
 The demo: a full certificate on `CanonicalTrainState` carrying
 `Hagi.Cert.EvalBinding`, where the certificate's `L_before`/`L_after`
-are the SAME values the descent theorem talks about — that is
-the "detached counters" fix made concrete:
+are the SAME values the descent theorem talks about:
 
 * `FullEvalCert` — a `FullStepCert` PLUS an `EvalBinding` at
   `evalFn := fun st _ _ => fullObjective st` on the recorded

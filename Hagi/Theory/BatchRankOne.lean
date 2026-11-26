@@ -7,7 +7,7 @@ import Hagi.Theory.FirstLayerGrad
 /-!
 # BatchRankOne — батч-градиент по `W1` и оптимальность шага
 
-C669. Продолжение `FirstLayerGrad` (C668): батч из входов
+Продолжение `FirstLayerGrad`: батч из входов
 `x t : δ → ℝ`, `t : τ`. Батч-градиент по `W1` —
 `batchGrad g x i j = Σ_t g t i · x t j`, т.е. `Σ_t g_t ⊗ x_t`
 (сумма rank-one). Код: `W1 -= (cos_lr * 0.7) *

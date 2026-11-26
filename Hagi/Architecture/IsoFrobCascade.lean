@@ -8,19 +8,15 @@ import Hagi.Architecture.AlignedMerge
 set_option linter.style.header false
 
 /-!
-# Isotropic-Frobenius cascade sensitivities (A8 F7)
+# Isotropic-Frobenius cascade sensitivities
 
-Deep sequential nets violate the additive-separability premise of
-RankBudget when sensitivities are taken as spectral products
-`∏ ‖J_k‖`: the worst-case product over-estimates early layers
-and starves later ones (A8 empirical: spectral cascade WORSE than
-uniform; isotropic-Frobenius calibration `‖J_{>j}‖_F²/d · ‖h_j‖²`
-fixed it, MSE 2.2e-5 vs uniform 2.5e-5 — motivation only, never a
-Lean premise). The provable slice over the linear-cascade
-carrier (`Hagi.Core.propagateLin`):
+Worst-case spectral products `∏ ‖J_k‖` over-estimate early layers
+and starve later ones; the isotropic-Frobenius calibration
+`‖J‖_F²/d · ‖h‖²` is the alternative. Provable slice over the
+linear-cascade carrier (`Hagi.Core.propagateLin`):
 
-* `isoFrobEnergy J = frobSq J / d` — the A8 per-dimension
-  calibration constant.
+* `isoFrobEnergy J = frobSq J / d` — the per-dimension Frobenius
+  energy.
 * `columnEnergy_basis` — the math core: the total column energy
   over the standard orthonormal basis EQUALS the Frobenius energy
   (the exact algebraic surrogate of the isotropic expected gain
@@ -29,12 +25,12 @@ carrier (`Hagi.Core.propagateLin`):
 * `isoFrobEnergy_eq_basis_avg` — per-dimension reading.
 * `isoFrobEnergy_le_opNorm_sq` — the isotropic average
   UNDER-estimates the worst-case linfty-operator gain charged by
-  `cascadeGain`: `frobSq J / d ≤ ‖J‖²` (honest direction: for the
-  linfty operator norm `frobSq ≥ d‖J‖²` is FALSE — the spectral
-  product over-estimates, the iso-average calibrates).
+  `cascadeGain`: `frobSq J / d ≤ ‖J‖²` (the spectral product
+  over-estimates; the reverse `frobSq ≥ d‖J‖²` is false for the
+  linfty operator norm).
 * `propagateLin_frobEnergy_le` — the cascade energy bound
   `‖propagateLin S δ‖₂² ≤ (∏ frobSq J_l) ‖δ‖₂²` (per-layer
-  `frobSubord`, reused, + induction).
+  `frobSubord` + induction).
 * `cascadeFrobEnergy_eq` + `propagateLin_isoEnergy_le` — the
   iso-normalized form `≤ d^|S| · ∏(frobSq_l/d) · ‖δ‖²`.
 * `isoCascadeEnergy_le_cascadeGain_sq` — the F7 comparison: the
@@ -50,7 +46,7 @@ section IsoFrob
 
 variable {d : ℕ}
 
-/-- A8 F7 calibration constant: per-dimension Frobenius energy. -/
+/-- Per-dimension Frobenius energy. -/
 noncomputable def isoFrobEnergy (J : Matrix (Fin d) (Fin d) ℝ) : ℝ :=
   Hagi.Core.frobSq J / d
 
@@ -59,9 +55,9 @@ theorem frobSq_nonneg' (J : Matrix (Fin d) (Fin d) ℝ) : 0 ≤ Hagi.Core.frobSq
   unfold Hagi.Core.frobSq
   exact Finset.sum_nonneg (fun _ _ => by positivity)
 
-/-- THE math core: the total column energy over the standard
-orthonormal basis equals the Frobenius energy — the algebraic
-surrogate of the isotropic expected gain (no probability). -/
+/-- The total column energy over the standard orthonormal basis equals
+the Frobenius energy — the algebraic surrogate of the isotropic
+expected gain. -/
 theorem columnEnergy_basis (J : Matrix (Fin d) (Fin d) ℝ) :
     ∑ i : Fin d, ∑ j : Fin d, (J *ᵥ Pi.single i (1:ℝ)) j ^ 2
       = Hagi.Core.frobSq J := by
@@ -164,7 +160,7 @@ def cascadeFrobEnergy
   (S.map fun p => Hagi.Core.frobSq p.1).prod
 
 /-- The isotropic-normalized cascade energy: product of
-per-layer `isoFrobEnergy = frobSq / d` (the A8 F7 weighting). -/
+per-layer `isoFrobEnergy = frobSq / d`. -/
 noncomputable def isoCascadeEnergy
     (S : List (Matrix (Fin d) (Fin d) ℝ × (Fin d → ℝ))) : ℝ :=
   (S.map fun p => isoFrobEnergy p.1).prod
@@ -199,10 +195,9 @@ theorem cascadeFrobEnergy_cons
   simp only [cascadeFrobEnergy, List.map_cons, List.prod_cons]
   ring
 
-/-- Honest cascade energy bound: the ℓ2 output energy of the
-linear cascade fold is at most the product of per-layer
-Frobenius energies times the entering energy (per-layer
-`frobSubord` + induction; reuses `Hagi.Architecture.frobSubord`). -/
+/-- Cascade energy bound: the ℓ2 output energy of the linear cascade
+fold is at most the product of per-layer Frobenius energies times the
+entering energy (per-layer `frobSubord` + induction). -/
 theorem propagateLin_frobEnergy_le
     (S : List (Matrix (Fin d) (Fin d) ℝ × (Fin d → ℝ)))
     (δ : Fin d → ℝ) :
@@ -251,8 +246,7 @@ theorem cascadeFrobEnergy_eq (hd : 0 < d)
       field_simp
 
 /-- The iso-normalized cascade energy bound: output energy at most
-`d ^ |S| * ∏ (frobSq_l / d) *` entering energy — the A8 F7
-cascade-weighted sensitivity, proven honestly. -/
+`d ^ |S| * ∏ (frobSq_l / d) *` entering energy. -/
 theorem propagateLin_isoEnergy_le (hd : 0 < d)
     (S : List (Matrix (Fin d) (Fin d) ℝ × (Fin d → ℝ)))
     (δ : Fin d → ℝ) :
@@ -261,7 +255,7 @@ theorem propagateLin_isoEnergy_le (hd : 0 < d)
   rw [← cascadeFrobEnergy_eq hd S]
   exact propagateLin_frobEnergy_le S δ
 
-/-- The F7 comparison: the isotropic cascade energy never exceeds
+/-- Comparison: the isotropic cascade energy never exceeds
 the squared spectral-product gain `cascadeGain S ^ 2` (each layer:
 `frobSq / d ≤ ‖J‖²`, then product monotonicity). -/
 theorem isoCascadeEnergy_le_cascadeGain_sq

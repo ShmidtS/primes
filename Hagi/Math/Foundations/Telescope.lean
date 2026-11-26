@@ -7,9 +7,9 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Foundations.Telescope — канонические телескопы
+# Foundations.Telescope — горизонтные телескопы
 
-Единые горизонтные телескопы (`t < T`): `telescope_le`,
+Телескопы (`t < T`): `telescope_le`,
 `telescope_sum_le`, `telescope_sub_sum`.
 -/
 

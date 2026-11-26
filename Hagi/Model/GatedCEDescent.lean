@@ -393,7 +393,7 @@ theorem gated_first_order_eq [DecidableEq V] (X : Matrix V (Fin d) ℝ)
       simp only [Finset.sum_neg_distrib, gatedAlignment, R]
 
 /-- Derivative of the actual CE line at zero, by composition of differentiable
-CE with the affine parameter line and the Cycle 97 gated derivative. -/
+CE with the affine parameter line and the gated derivative above. -/
 theorem hasDerivAt_gatedLineObjective [Nonempty V] [DecidableEq V]
     (X : Matrix V (Fin d) ℝ) (θ : EuclideanSpace ℝ (Fin d)) (t : V) :
     HasDerivAt

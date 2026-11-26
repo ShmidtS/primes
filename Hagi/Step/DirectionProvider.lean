@@ -190,13 +190,6 @@ theorem signProvider_isDescent (g : EuclideanSpace ℝ k) :
   rw [hsplit]
   linarith
 
-/-- Contract form of the sign bridge: `signProvider` is an exact
-descent provider for the identity gradient field. -/
-theorem signProvider_isDescent' :
-    isDescent (id : EuclideanSpace ℝ k → EuclideanSpace ℝ k)
-      (signProvider (k := k)) :=
-  fun g => signProvider_isDescent g
-
 /-! ## Bridge 4: SafeQP — the KKT numerical specification -/
 
 section KKT

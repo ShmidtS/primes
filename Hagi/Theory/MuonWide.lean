@@ -7,7 +7,7 @@ import Hagi.Theory.MuonAlignment
 /-!
 # MuonWide — прямоугольный шаг Muon: широкая форма, сингулярные базисы, оптимум
 
-C678. Слой кода `W1 : dim × hidden` прямоугольный, и
+Слой кода `W1 : dim × hidden` прямоугольный, и
 `newton_schulz_orthogonalize` (hagi/core.py:1349 @ca52eb4) приводит градиент
 к «широкой» форме `m ≤ n`: если строк больше столбцов — транспонирует
 (core.py:1358), итерирует `X = 0.5 * (3.0 * I_m - X @ X.T) @ X`
@@ -23,14 +23,14 @@ C678. Слой кода `W1 : dim × hidden` прямоугольный, и
 * `wide_row_isometry` — (T4) `U Vᵀ` — строчная изометрия `Y Yᵀ = 1`.
 * `wide_inner_le_sigma_sum`, `wide_step_optimal` — (T5) среди строчных
   изометрий `ΔΔᵀ = 1` максимум `⟨G, Δ⟩` равен `Σ σ i`, достигается на `U Vᵀ`.
-* `ns_step_transpose`, `wide_iter_transpose`, `code_ns_eq_wide_iter` — (C680)
+* `ns_step_transpose`, `wide_iter_transpose`, `code_ns_eq_wide_iter` —
   высокий случай `m > n`: код-выход для любой формы равен `wide_iter k G`.
 
 Честная граница: разложение `G = U·diag σ·Vᵀ` — ГИПОТЕЗА теорем этого модуля;
-существование доказано в C679 (`WideSVD.exists_wide_svd`, там же T3 без
-посылок и сертификат спуска, C680). Проверка `norm < 1e-12 → return X`
+существование доказано в `WideSVD.exists_wide_svd` (там же T3 без
+посылок и сертификат спуска). Проверка `norm < 1e-12 → return X`
 (core.py:1355), число итераций (по умолчанию 4, вызов 3, core.py:1755),
-обновление `W1` и мост к функциональному носителю C676 не формализованы.
+обновление `W1` и мост к функциональному носителю `MuonDescentW1` не формализованы.
 -/
 
 set_option relaxedAutoImplicit false
@@ -254,9 +254,9 @@ theorem wide_step_optimal (U : Matrix m m ℝ) (V : Matrix n m ℝ) (σ : m → 
   rw [wide_inner_eq_sigma_weighted_diag U V σ G (U * Vᵀ) hG, hQ]
   simp
 
-/-! ### C680: высокий случай — транспонирование коммутирует с шагом -/
+/-! ### Высокий случай — транспонирование коммутирует с шагом -/
 
-/-- **`ns_step_transpose`** (S2, C680): транспонирование коммутирует с шагом
+/-- **`ns_step_transpose`** (S2): транспонирование коммутирует с шагом
 NS для любых форм: `ns_step Xᵀ = (ns_step X)ᵀ`. -/
 theorem ns_step_transpose (X : Matrix m n ℝ) :
     NewtonSchulzSigma.ns_step Xᵀ = (NewtonSchulzSigma.ns_step X)ᵀ := by

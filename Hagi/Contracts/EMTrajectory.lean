@@ -1136,41 +1136,6 @@ theorem factorizedMixture_shared_le {n : ℕ} {I X Y : Type} [Fintype I] [Fintyp
       ∑ i, mixtureUnitScore obs old hold aux ⟨i, a⟩ := by
   exact factorizedMixture_total_le obs old hold aux (fun _ => a)
 
-/-- Aggregate observation NLL of the directly selected vector bank is no larger
-than that of the old vector. No unitwise or changing-path bound is asserted. -/
-theorem factorizedMixture_nll_le_old {n : ℕ} {I X Y : Type}
-    [Fintype I] [Fintype X]
-    (obs : I → Y) (old : I → PMF X × (X → PMF Y))
-    (hold : ∀ i, 0 < observationEvidence (old i).1 (old i).2 (obs i))
-    (aux : Option (Fin n) → I → PMF X × (X → PMF Y)) :
-    (∑ i, -Real.log (observationEvidence
-        (mixtureVectorBank old aux (factorizedMixtureLabels obs old hold aux) i).1
-        (mixtureVectorBank old aux (factorizedMixtureLabels obs old hold aux) i).2
-        (obs i)).toReal) ≤
-      ∑ i, -Real.log (observationEvidence (old i).1 (old i).2 (obs i)).toReal := by
-  let selectedLabels := factorizedMixtureLabels obs old hold aux
-  let selected := mixtureVectorBank old aux selectedLabels
-  have hbase : mixtureVectorBank old aux (fun _ => none) = old := by
-    funext i
-    exact mixtureModel_zero _ _ _ _
-  have hmin : (∑ i, ceDef
-        (fromPMF (posterior (old i).1 (old i).2 (obs i) (hold i)))
-        (jointMass (selected i).1 (selected i).2 (obs i))) ≤
-      ∑ i, ceDef (fromPMF (posterior (old i).1 (old i).2 (obs i) (hold i)))
-        (jointMass (old i).1 (old i).2 (obs i)) := by
-    have h := factorizedMixture_total_le obs old hold aux (fun _ => none)
-    simp only [mixtureUnitScore, mixtureCurrentPosterior, hbase] at h
-    simpa only [mixtureVectorBank, selected, selectedLabels] using h
-  have hE : ∀ i, 0 < observationEvidence (selected i).1 (selected i).2 (obs i) := by
-    intro i
-    exact mixtureVectorBank_evidence_pos obs old hold aux selectedLabels i
-  have hS : ∀ i, (posterior (old i).1 (old i).2 (obs i) (hold i)).support ⊆
-      (posterior (selected i).1 (selected i).2 (obs i) (hE i)).support := by
-    intro i
-    exact mixtureVectorBank_posterior_support obs old hold aux selectedLabels i
-  exact total_negativeLogEvidence_le_of_total_completeCE_le
-    old selected obs hold hE hS hmin
-
 /-- Transparent cardinality of the scalar unit/label table. -/
 theorem mixtureUnitQuery_card {I : Type} [Fintype I] (n : ℕ) :
     Fintype.card (Σ _ : I, Option (Fin n)) = Fintype.card I * (n + 1) := by

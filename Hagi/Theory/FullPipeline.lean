@@ -39,7 +39,7 @@ EXISTING theorem, cited as the construction route:
   `noBlockAdmissionWithoutMargin`.
 - **MERGE** → `compress` route: the measured-δ gate
   `Hagi.Theory.NonlinearMerge.nonlinear_merge_bound` /
-  `merge_gate_meas` (`merge_unsafe_without_measurement` pins why
+  `merge_gate_meas` (`merge_unsafe_without_measurement` shows why
   the measured residual is required).
 - **STOP** → `growBlock` route: the Ville stop
   `Hagi.Theory.AnytimeHoldoutStop.grow_stop_sound` /
@@ -49,7 +49,7 @@ The cycle theorem consumed below is `certify_then_commit_sound`:
 rounds owned by gate kinds, commits carry certified ledger
 steps, holds are no-ops, the stop blocks commits.
 
-## Honesty pins
+## Limits
 
 - **NEW here is only the glue**: the six-phase tag type, the route
   map into the four gate owners, the T = 6 specialization of
@@ -223,7 +223,7 @@ head on a frozen carrier; the joint theory
 This module adds the trunk-training bench (`scripts/bench_bridge.py`,
 `--mode trunk-train`): a NON-LINEAR trunk — an L1-denominator
 rational RMSNorm surrogate (true RMSNorm divides by an irrational
-√; the surrogate x/(|x|+ε) is Fraction-exact, docstring-pinned in
+√; the surrogate x/(|x|+ε) is Fraction-exact, stated in the docstring in
 the bench), a linear W1, ReLU, a linear W2 — trained JOINTLY with
 the linear head by certified steps.
 
@@ -242,7 +242,7 @@ construction route:
   drop (`Hagi.Theory.AdaptiveMajorizer.adaptive_descent`), as in
  TRAIN.
 
-## Honesty pins
+## Limits
 
 - The bench step is a finite-difference-direction grid-snapped
   trial; NO 2A²/R² descent is claimed for it. The LIVE guarantee

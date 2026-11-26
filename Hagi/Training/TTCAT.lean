@@ -8,9 +8,9 @@ import Hagi.Theory.MasterTheorem
 import Hagi.Theory.MasterEF
 
 /-!
-# TT-CAT — the joint controller theorem (A16 two-level training)
+The joint controller theorem for two-level training.
 
-The FINAL composition of the TT-CAT controller: the alternating
+The composition of the TT-CAT controller: the alternating
 micro level (phases + gate-protected boundaries
 derived damages), the admission events, and the macro
 Commit/Hold/Rollback checkpoints (adaptivity route) in
@@ -23,7 +23,7 @@ endpoint, OR a rollback occurred and the last committed
 checkpoint of the SAME trajectory is restored. This is
 the project's ultimate certified-or-safe statement.
 
-## Mapping to the A16 TT-CAT spec sequence (line by line)
+## The spec sequence, line by line
 
 Micro loop (runs T steps, extractor frozen within phases):
 1. forward pass on the frozen CR-MSM block — `alt.headCerts`
@@ -63,7 +63,7 @@ The conjunction ∧ ∧ permits cross-level
 inconsistency: a macro COMMIT recorded on states the micro
 trajectory never visited, or a ROLLBACK to a "checkpoint" outside
 the executed trajectory. The controller's hversion equations
-(`macro_before`/`macro_after`, the mechanism) pin every macro
+(`macro_before`/`macro_after`) pin every macro
 certificate onto the SAME states the alternating trajectory
 certified, and `checkpoint_ok` pins the rollback target to the same
 trajectory — mixing is not expressible in the type.
@@ -102,9 +102,9 @@ window boundary (total-state restore).
   of a boundary remains premise-form with the DERIVED constant
   `2·headLip·D`.
 
-Layer decision: Training (8), same as AlternatingJoint/MacroStatCert
-— the module must see the alternating trajectory (8), the macro
-certificates (8) and the theory (7); only layer 8 can.
+Layer decision: Training, same as AlternatingJoint/MacroStatCert
+— the only layer that sees the alternating trajectory, the macro
+certificates and the theory.
 -/
 
 set_option relaxedAutoImplicit false
@@ -119,7 +119,7 @@ namespace Hagi.Training.TTCAT
 variable {Θ X V F : Type} [NormedAddCommGroup X] [NormedAddCommGroup F]
 variable [Fintype V] [Nonempty V] {mE rE dE n a e q r c k : ℕ}
 
-/-- THE TT-CAT controller (A16 two-level loop, one record): the
+/-- THE TT-CAT controller (two-level loop, one record): the
 alternating micro trajectory (`alt`, derived variant — head
 phases at a frozen extractor, admission-gated boundaries with
 derived damages, holds), the budget-carrying master view of the

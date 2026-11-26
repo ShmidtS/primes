@@ -24,7 +24,7 @@ argmax of the rational midpoint surrogate — coincides with
 the argmax of the true ranking. Both orderings are derived;
 no `ε` is needed.
 
-## Honest pin (measurement premise)
+## Limit (measurement premise)
 
 `BandDescribes z lo hi` is implied by the soundness hypotheses of
 `Hagi.Theory.RationalSoftmax.rationalSoftmaxCert`

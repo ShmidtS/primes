@@ -36,8 +36,7 @@ Hermitian Gram matrix, hence:
 * `gradient_bottleneck_bound_rect_true_tail` — the consumer
   instantiation for `logitGradRectM`.
 
-The rank-head implication, previously only premise-form downstream,
-is upgraded to a theorem:
+The rank-head implication is a theorem:
 
 * `singularValues_pos_of_lt_rank_rect` — `k.val < A.rank` forces
   the `k`-th rectangular singular value to be strictly positive

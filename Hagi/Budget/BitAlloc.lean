@@ -44,7 +44,7 @@ mathematically for the loop to be worth running to step n:
 
 All statements are conditional bookkeeping over ℝ-sequences with
 NAMED premises (hdist, hgrow, hnet, hdecay, hgain); no
-`h_emp_` premise hides inside. Sources: runtime plan §6b.1;
+`h_emp_` premise hides inside. Sources:
 single-cycle bridge (2609.38666 / 2607.15467 / 2609.39436);
 geometric budget kernel (`geom_sum_le_inv`).
 -/

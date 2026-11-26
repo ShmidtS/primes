@@ -16,8 +16,8 @@ set_option linter.style.header false
   insight-teacher equals the corresponding KL gap.
 * `insight_consolidation_safe`: SafeQP consolidation gives
   per-domain drift bounded by `ε` and preserved descent.
-* `experience_cycle_bound`: a one-cycle Lyapunov budget
-  inequality for the experience gate.
+* `experience_cycle_bound`: a Lyapunov budget inequality for
+  one step of the experience gate.
 * `tldr_drift_null`, `tldr_two_tier_safety`: low-rank insight
   adapters act as zero on the adapter's kernel; combined with
   the Fisher KL budget this gives two-tier safety.
@@ -31,7 +31,7 @@ section Insight
 
 variable {V : Type*} [Fintype V]
 
-/-- If `kl ≤ ⟪dW, F dW⟫_ℝ / 2` (h_emp_ curvature) and
+/-- If `kl ≤ ⟪dW, F dW⟫_ℝ / 2` (curvature premise) and
 `⟪dW, F dW⟫_ℝ ≤ 2 * eps`, then `kl ≤ eps`. -/
 theorem forgetting_kl_bound {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     (F : X →L[ℝ] X) (dW : X) (kl eps : ℝ)
@@ -65,14 +65,11 @@ theorem insight_consolidation_safe {X : Type*} [NormedAddCommGroup X]
   exact ⟨hcone hs, (Hagi.safeQP_descent C hconv h0 gI ds hs hmin).1⟩
 
 
-/-- **GateRetention** (единый план §6.3,
-LSL-мост): сертификат сохранения
-знаний при многошаговой консолидации:
-если каждый шаг лежит в гейт-конусе
-(⟪gold, d⟫ ≥ −ε), суммарный дрейф по
-золотому направлению на T шагах
-ограничен линейно: ∑ ⟪gold, ds_t⟫ ≥ −T·ε.
-Шаговая версия — insight_consolidation_safe. -/
+/-- Сохранение гейта при многошаговой консолидации: если каждый
+шаг лежит в гейт-конусе (⟪gold, d⟫ ≥ −ε), суммарный дрейф по
+золотому направлению на T шагах ограничен линейно:
+∑ ⟪gold, ds_t⟫ ≥ −T·ε. Одношаговая версия —
+`insight_consolidation_safe`. -/
 theorem gate_retention {X : Type*} [NormedAddCommGroup X]
     [InnerProductSpace ℝ X]
     (Cst : ℕ → Set X) (ds : ℕ → X) (gold : X) (heps : ℝ) (T : ℕ)
@@ -119,13 +116,12 @@ theorem tldr_two_tier_safety {m n r : Type} [Fintype m] [Fintype n] [Fintype r]
   ⟨tldr_drift_null A B x hx, forgetting_kl_bound F dW kl eps h_emp_second hball⟩
 
 /-- Exact scalar quadratic KL model `dW ↦ dW ^ 2 / 2` for fixed
-unit-Fisher curvature. This is not the true KL divergence of an arbitrary
-distribution. -/
+unit-Fisher curvature (not the true KL of an arbitrary
+distribution). -/
 noncomputable def scalarQuadraticKl (dW : ℝ) : ℝ := dW ^ 2 / 2
 
-/-- For the exact scalar model, the curvature inequality follows from
-`Real.inner_apply`, and `forgetting_kl_bound` gives the KL budget.
-This closes only fixed unit-Fisher curvature, not an arbitrary `F`. -/
+/-- For the exact scalar model, `forgetting_kl_bound` gives the KL
+budget (fixed unit-Fisher curvature only, not an arbitrary `F`). -/
 theorem forgetting_kl_quadratic_unit_fisher (dW eps : ℝ) (hball : dW ^ 2 ≤ 2 * eps) :
     scalarQuadraticKl dW ≤ eps := by
   have hcurvature :
@@ -138,9 +134,8 @@ theorem forgetting_kl_quadratic_unit_fisher (dW eps : ℝ) (hball : dW ^ 2 ≤ 2
   simpa only [ContinuousLinearMap.id_apply, Real.inner_apply, pow_two] using hball
 
 set_option linter.unusedDecidableInType false in
-/-- Kernel safety together with the exact scalar quadratic KL budget.
-The KL conclusion is limited to fixed unit-Fisher curvature; no bound for
-an arbitrary Fisher map `F` or an arbitrary distribution's true KL is claimed. -/
+/-- Kernel safety together with the scalar quadratic KL budget (fixed
+unit-Fisher curvature only). -/
 theorem tldr_two_tier_safety_unit_fisher {m n r : Type} [Fintype m] [Fintype n] [Finite r]
     (A : Matrix r m ℝ) (B : Matrix m n ℝ) (x : n → ℝ)
     (hx : B.mulVec x = 0) (dW eps : ℝ) (hball : dW ^ 2 ≤ 2 * eps) :

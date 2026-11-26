@@ -111,9 +111,8 @@ set_option linter.style.header false
 /-!
 # FrobeniusLMO — одна геометрия для SafeQP и Muon
 
-Мост плана (§2, LMO-унификация по PoLoRA 2607.17620,
-Lemma 2 «Spectral norm LMO»; corpus-подтверждение: Muon =
-steepest descent при spectral norm constraint): шаг Muon
+PoLoRA 2607.17620, Lemma 2 «Spectral norm LMO»;
+Muon = steepest descent при spectral norm constraint: шаг Muon
 (ортогонализация градиента) и SafeQP-шаг — одна и та же
 LMO-геометрия: экстремум линейной функции ⟨G, X⟩ по шару
 нормы.
@@ -126,8 +125,8 @@ LMO-геометрия: экстремум линейной функции ⟨G,
 
 Спектральный шар (Lemma 2 статьи: min = −η·‖G‖_nuc на
 X* = −η·sign(G)) — та же конструкция с ядерной дуальностью;
-в Mathlib v4.36.0 (pin scripts/mathlib-rev.txt) спектральная/ядерная дуальность
-отсутствует (hbridge-кандидат, план §3 докачки upstream).
+в Mathlib спектральная/ядерная
+дуальность отсутствует — не доказано.
 
 Доказано:
 * `lmo_lower_bound`: ∀ X с ‖X‖ ≤ η: −η·‖G‖ ≤ ⟨G, X⟩

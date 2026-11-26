@@ -366,7 +366,7 @@ cached per-token work `workSpend` (instantiate at
 `cachedTokenWork t`; the compute accounting), the risk channel
 spends ZERO error — exactness (`kv_cache_exact`) makes the error
 spend zero with the full prior risk as the explicit nonnegative
-remainder (the no-zero-pinning lesson) — that is the
+remainder — that is the
 certificate: correctness + the cost statement in one object. -/
 noncomputable def kv_step_certified {S TaskId : Type*}
     (M : Hagi.Cert.SystemMetrics S TaskId)

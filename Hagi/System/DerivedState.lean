@@ -8,9 +8,9 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# DerivedState — energy/effects as FUNCTIONS of weights (A18.6)
+# DerivedState — energy/effects as FUNCTIONS of weights
 
-Answer to audit W1 (addendum A18): in the abstract `GrowthState` the
+In the abstract `GrowthState` the
 fields `weights`/`energy`/`effects` are independent and coupled only
 through the h_emp_ premises of the stage theorems. This module adds the
 CONSTRUCTIVE counterpart: `derivedGrowthState` — a `GrowthState` whose
@@ -32,8 +32,7 @@ finite dataset (`FixedDataset`, a `Fintype` carrier):
 The coherence invariant (`coherentGrowth`, weights = projection of
 params) holds for `derivedGrowthState` by construction (`weights := θ`,
 `params := θ`); the genuine tie lives in the layer-5 bridge
-`Hagi/Semantics/DerivedStateCoherence.lean` (System layer 3 may not
-import Semantics — LayerLint).
+`Hagi/Semantics/DerivedStateCoherence.lean`.
 
 ## Honest pins
 
@@ -41,9 +40,9 @@ import Semantics — LayerLint).
   token-KL CE of the abstract energy: the CE smoothness machinery lives
   at Model layer 4, unreachable from this System-layer module; the
   measured energy field of the abstract `GrowthState` stays for the
-  general case (freeze identity, back-compat). The derived variant is
+  general case. The derived variant is
   the canonical COMPUTED representative (cf. `GrowthComputed.growthQuad`,
-  the pure-ε representative of cycle 35).
+  the pure-ε representative).
 * The derived grow/merge/compress stages do not move weights, so their
   gain/risk/cost effect channels are honest zeros and their energy
   channels equal `energyOf ds θ`; only the joint stage computes a real
@@ -210,7 +209,7 @@ theorem derived_energy_channel (ds : FixedDataset I d) (η : ℝ)
 
 /-- The weights/params coherence, construction level: the compressed
 weights are the coordinate view of the parameters — the abstract state's
-missing invariant (audit W1 /) holds for the derived state BY
+missing invariant holds for the derived state BY
 CONSTRUCTION. -/
 theorem derived_coe (ds : FixedDataset I d) (η : ℝ)
     (θ : EuclideanSpace ℝ (Fin d)) (i : Fin d) :

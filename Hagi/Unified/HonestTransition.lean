@@ -8,7 +8,7 @@ import Hagi.Cert.StepGen
 Дефект старого `CertifiedTransition.progress`: оно
 сертифицирует ПОЛОЖИТЕЛЬНОСТЬ ВЫЧИСЛЯЕМОГО ПОКАЗАТЕЛЯ
 (verify.decrease), а не реальное улучшение модели.
-Аудитор привёл контрпример: E(S)=0, G_grow=1,
+Контрпример: E(S)=0, G_grow=1,
 E_compress=100 — положительный сертификат при росте
 энергии.
 
@@ -93,9 +93,8 @@ theorem honest_two_steps_existent :
 
 /-! ### CertStep — минимальное ядро сертификата → единая запись StepRecord
 
-Минимальное ядро {drop > 0, obj s' ≤ obj s − drop}
-было единственным истинным дублем класса (a) — сливается с ЕДИНОЙ
-записью журнала `Hagi.Cert.StepRecord` (drop-ядро + свободная
+Ядро {drop > 0, obj s' ≤ obj s − drop}
+соединяется с единой записью журнала `Hagi.Cert.StepRecord` (drop-ядро + свободная
 телеметрия budget/risk/δ) этого файла. Старое имя — deprecated-алиас; все
 сертификаты HAGI обязаны давать мост в StepRecord (toRecord/toCertStep). -/
 

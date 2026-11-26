@@ -6,9 +6,9 @@ import Hagi.Architecture.CascadeLeak
 import Hagi.Cert.StepGen
 
 /-!
-# Canary-weight ramp certificate (audit §7, canary acceptance)
+# Canary-weight ramp certificate
 
-The audit §7 canary-acceptance contract: the route weight `w` is made
+The canary-acceptance contract: the route weight `w` is made
 continuous and rolled out canary-style from 0 to 1 while the
 e-process watches for harm — the leak is LINEAR in `w`
 (`cascade_leak_router_linear`), so the per-step exposure is
@@ -35,8 +35,7 @@ Pieces:
   exactly `((T+1)/2) · L · dR · px` — finite and controlled.
 * `canary_step_certified` — the ramp step AS a
   `Hagi.Cert.CertStepGen` (the kernel, `rd_step_certified`
-  pattern): the leak rides the RISK channel with a FREE remainder
-  (the no-zero-pinning lesson).
+  pattern): the leak rides the RISK channel with a FREE remainder.
 * `canaryVilleMonitorHold` — the monitor contract (PREMISE-form):
   whenever the e-process crosses the Ville threshold the ramp step
   is a certified HOLD. Cites `gate_anytime_valid` (the Ville
@@ -358,9 +357,8 @@ theorem canary_ramp_acceptance {S TaskId : Type*}
   · obtain ⟨j, hjmem, hjc⟩ := hcross
     exact Or.inl ⟨j, hjmem, hjc, hmon j hjc⟩
   · right
-    -- honest pin: the frozen-kernel embedding `certStep_to_gen` has
-    -- no delta channel, so the acceptance trajectory runs at the
-    -- zero delta level
+    -- the embedding `certStep_to_gen` has no delta channel, so the
+    -- acceptance trajectory runs at the zero delta level
     have noalarm : ∀ j (hj : j < T), ¬ (thresh ≤ eProc j) := by
       intro j hj hcontr
       exact absurd ⟨j, Finset.mem_range.mpr hj, hcontr⟩ hcross

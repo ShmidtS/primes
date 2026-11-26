@@ -17,9 +17,8 @@ variants diverged. Integration value is not capability alone:
 must be positive. A strong-but-far expert can be WORSE than no
 integration.
 
-This module adds the compatibility clause to the HAGI merge
-gate WITHOUT touching `merge_gate_certified` (the certified
-price/gap gate stands; this is the second, orthogonal gate):
+The compatibility clause added to the merge gate
+`merge_gate_certified` (an orthogonal, second gate):
 
 * `integration_net_gain` — the signed integration value:
   twoGap minus price;
@@ -29,10 +28,9 @@ price/gap gate stands; this is the second, orthogonal gate):
   divergence above the cap keeps the gate closed however
   large the raw capability gap is — the formal core of the
   MOPD amendment;
-* `mopd_kl_scaling_warning` — the conditional instability
-  propagation: under the (flagged) empirical scaling law,
-  a λ-fold divergence growth forces the tolerance budget
-  down by the same factor.
+* `mopd_kl_scaling_warning` — under the (flagged) empirical
+  scaling law, a λ-fold divergence growth forces the tolerance
+  budget down by the same factor.
 -/
 
 namespace Hagi.Ensemble
@@ -42,7 +40,7 @@ price (the quantity the certified gate compares to zero). -/
 noncomputable def integration_net_gain (twoGap : ℝ)
     (price : ℝ) : ℝ := twoGap - price
 
-/-- **The two-clause MOPD gate**: integrate iff the net gain
+/-- The two-clause MOPD gate: integrate iff the net gain
 is positive AND the policy divergence is within the
 compatibility cap. The clauses are independent: raw capability
 does not substitute for compatibility. -/
@@ -53,7 +51,7 @@ theorem integration_net_gain_pos {twoGap price Dpolicy Dmax : ℝ}
     (h : MOPDApproved twoGap price Dpolicy Dmax) :
     0 < integration_net_gain twoGap price := h.1
 
-/-- **The negative result (the MOPD amendment)**: divergence
+/-- The negative result of the MOPD amendment: divergence
 above the compatibility cap keeps the gate closed for ANY
 capability level — there is no twoGap large enough to buy
 compatibility. -/
@@ -62,9 +60,9 @@ theorem integration_rejects_far_teacher {twoGap price Dpolicy Dmax : ℝ}
     ¬ MOPDApproved twoGap price Dpolicy Dmax :=
   fun h => absurd h.2 (not_le.2 hfar)
 
-/-- **Conditional instability scaling (flagged empirical
-premise)**: if the policy divergence scales as λ times the
-baseline (the MOPD far-teacher regime, measured λ ≈ 5), then
+/-- Conditional instability scaling (flagged empirical
+premise): if the policy divergence scales as λ times the
+reference level (the MOPD far-teacher regime, measured λ ≈ 5), then
 any tolerance ε on the KL trajectory forces the divergence
 budget down by the same factor λ: the far teacher must be
 integrated λ times more gently, or not at all. -/
@@ -80,15 +78,6 @@ theorem mopd_kl_scaling_warning {Dbase Dpolicy : ℝ}
   rw [le_div_iff₀ heps]
   linarith
 
-/-- **Exact fivefold instability scaling (declared model instance)**:
-when the policy divergence is fixed to `5 * Dbase`, the fivefold
-safety hypothesis yields the tolerance reduction without an
-empirical scaling premise. This is an instance attached to the
-envisioned MOPD regime, not a proof of arbitrary MOPD scaling. -/
-theorem mopd_kl_scaling_warning_fivefold {Dbase : ℝ} (_hbase : 0 < Dbase)
-    {ε : ℝ} (heps : 0 < ε) (hsafe : (5 * Dbase) * ε ≤ 1) :
-    Dbase ≤ 1 / ε / 5 := by
-  exact mopd_kl_scaling_warning (Dpolicy := 5 * Dbase) rfl _hbase heps hsafe
 
 end Hagi.Ensemble
 

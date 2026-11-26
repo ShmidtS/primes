@@ -32,8 +32,7 @@ import Hagi.Model.Attention
   trunk (вход x, позиция t) безопасный шаг `ceNextParameters` /
   `safeStepSize` строго уменьшает CE LM — буквально
   `Hagi.Model.ceOneHot_safeStep_lt` на feature-матрице
-  `lmFeatures m x t` (каноническая архитектура аудита §4: arbitrary
-  trunk + certified head).
+  `lmFeatures m x t` (arbitrary trunk + certified head).
 
 ## Honest pins (что эта композиция НЕ покрывает)
 

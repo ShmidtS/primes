@@ -30,7 +30,7 @@ restored — exactly, with no partial borrowing from the candidate.
   code-level twin of `rollback_obj_exact`:
   source: hagi/selfmodel.py:175-183.
 
-## Honesty pins
+## Limits
 
 - The state model is the three-component snapshot of the source;
   backtracking (half-stepping the scale) is search INSIDE the
@@ -41,7 +41,7 @@ restored — exactly, with no partial borrowing from the candidate.
   non-finite gradient, gradient conflict, degenerate direction —
   source: hagi/selfmodel.py:95-124) leave the state untouched in
   the same way; the gate theorem covers them all as `gate = false`.
-- Neighbor coverage: `Hagi.Unified.CommitGate.holdSafe` pins only
+- Neighbor coverage: `Hagi.Unified.CommitGate.holdSafe` covers only
   the scalar potential; the state-unification `hold_rollback_total`
  is a different setting without the gate condition; TTCAT
  restores the last COMMITTED checkpoint, not the

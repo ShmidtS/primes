@@ -41,11 +41,11 @@ machine-checked контрпримером (дорогой блок с нуле�
   композиция верна для ЛЮБОГО certified-блока, но дорогой
   бесполезный кандидат НЕ допускается: gate реален, не телеметрия.
 
-## Honest pins (что эта адмиссия НЕ покрывает)
+## Limits (что эта адмиссия НЕ покрывает)
 
 - **gain — измеряемая величина** (certified drop шага обучения),
   а не доказанная априорная нижняя граница: посылка `hgain` в
-  `block_admission_sound` — на потребителе, как `estimatedGain`-pin
+  `block_admission_sound` — на потребителе, как посылка `estimatedGain`
  (`Hagi.Training.Admission`).
 - **Ville-часть — premise-form** (переиспользование паттерна
   `admit_sound` без пере-доказательства; слой Training(8) >
@@ -197,7 +197,7 @@ theorem orthoFiberCore_causal {d c : ℕ}
 /-- Блок-кандидат: орто-fiber-инъекция как `CertifiedBlock` —
 `hCausal` доказан (`orthoFiberCore_causal`), `hLip` — per-block
 premise (контракт операторная норма инъекции на
-потребителе; см. pins модуля). -/
+потребителе; см. раздел Limits). -/
 def mkOrthoFiberBlock {d c : ℕ} (U : Matrix (Fin d) (Fin c) ℝ)
     (A : Matrix (Fin d) (Fin d) ℝ) (hLip : ℝ≥0)
     (hhLip : ∀ x y : ℕ → Fin d → ℝ, ∀ t : ℕ,
@@ -223,7 +223,7 @@ end OrthoFiber
 `lmKVCost_grow`), прирост риска Δrisk (holdout-телеметрия),
 веса λM/λR и запас ε_cert (стиль MemoryCycle `AdmissionChecks`). -/
 structure BlockAdmissionChecks where
-  /-- Измеренный выигрыш (certified drop шага; premise, C390-pin). -/
+  /-- Измеренный выигрыш (certified drop шага; premise). -/
   gain : ℚ
   /-- Прирост стоимости (KV-прирост через lmKVCost_grow). -/
   Δcost : ℚ
@@ -304,7 +304,7 @@ omit [Nonempty K] in
 честная доля certified-шага (`hgain`: gain ≤ drop), чья holdout-
 телеметрия валидна (`hchan`: RiskChannel-контракт — точное
 равенство risk-полей holdout-средним; Ville/anytime-валидность
-измерений — premise-form паттерна `admit_sound`, см. pins),
+измерений — premise-form паттерна `admit_sound`, см. раздел Limits),
 и (iii) Δcost — точный KV-прирост (`hcost` через `lmKVCost_grow`),
 ТО grown trunk certified: (1) certified drop покрывает
 `λM·Δcost + λR·Δrisk + ε_cert` (стоимость и риск съедены

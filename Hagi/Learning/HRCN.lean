@@ -7,12 +7,10 @@ set_option maxHeartbeats 400000 in
 set_option linter.style.header false
 
 /-!
-# HRCN — Hybrid Retrieval-Cortex Network слой (исследовательский цикл 8)
+# HRCN — Hybrid Retrieval-Cortex Network слой
 
-Композиция синтеза RCDL+HAGI:
+Композиция RCDL и доменных проекторов HAGI:
 y(x) = W_base x + Σ_m P_m (s_{D_m}(x)).
-
-Главные теоремы (чистые, без эмпирики):
 - `domainTerm_gauge_shift`: gauge-сдвиг базы значений домена w
   меняет его вклад ровно на P_w(b);
 - `hrcn_cross_talk_zero`: этот сдвиг-gauge-эффект домена w имеет

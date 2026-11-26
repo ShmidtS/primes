@@ -5,10 +5,10 @@ import Hagi.Learning.TernaryPert
 set_option linter.style.header false
 
 /-!
-# Concentration — оценка партициона Хопфилда (цикл 28)
+# Concentration — оценка партициона Хопфилда
 
 Мост StatMech ↔ Learning: Frobenius-оценка (переиспользована
-из TernaryPert.frob_submul, цикл 11) даёт равномерную границу
+из TernaryPert.frob_submul) даёт равномерную границу
 энергии по всем спиновым конфигурациям:
   E(σ; J) = ‖J·σ‖²/(2N) ≤ ‖J‖²_F/2
 (через eunorm(spins σ) = √N), откуда верхняя оценка

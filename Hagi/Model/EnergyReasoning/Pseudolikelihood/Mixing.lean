@@ -712,7 +712,7 @@ end Hagi.Model.EnergyReasoning
 set_option linter.style.header false
 
 /-!
-# Greedy finite termination and the focused-policy invariance audit
+# Greedy finite termination and the focused-policy invariance premise
 
 The two honest closures of the
 greedy single-cell search story on a FINITE configuration space.
@@ -858,16 +858,6 @@ noncomputable def focusedDisagreementWeight (B : ι → α → ℝ)
     (K : ι → ι → α → α → ℝ) (y : ι → α) (i : ι) : ℝ :=
   ∑ a, max 0 (localField B K y i (y i) - localField B K y i a)
 
-/-- Local-field anchor on the Fin 2 × Bool fixture (`Bex`/
-`Kex`/`xtt`): at cell `0`, whenever `y 1 = true`, the field is
-`L_0(c) = if c then 3 else 0` — it depends ONLY on `y 1`, never on
-`y 0`. -/
-private theorem localField_cell0_fixture (y : Fin 2 → Bool)
-    (hy1 : y 1 = true) (c : Bool) :
-    localField Bex Kex y 0 c = if c then (3 : ℝ) else 0 := by
-  simp only [localField, Bex, Kex]
-  fin_cases c <;> norm_num [hy1]
-
 /-- Numeric anchor: at `xtt = (t, t)` the disagreement weight of
 cell `0` is `max 0 (3 − 3) + max 0 (3 − 0) = 3`. -/
 example : focusedDisagreementWeight Bex Kex xtt 0 = 3 := by
@@ -944,8 +934,7 @@ proved, not postulated. Primary instance: graph coloring with a
 conflict-count energy realized as the pairwise energy
 `Hagi.Energy.pairwiseEnergy`.
 
-* `energy_threshold_lt_min_penalty_implies_valid` — (A5 CORE,
-  premise-form) if the energy is a finite sum of nonnegative
+* `energy_threshold_lt_min_penalty_implies_valid` — if the energy is a finite sum of nonnegative
   penalties, every nonzero penalty is at least `pmin > 0`, and zero
   penalties imply validity, then energy `< pmin` gives validity.
   This is the reusable core covering integer-penalty families
@@ -1309,11 +1298,10 @@ with per-round tolerances:
 Structural fact driving the design: `latentUpdate N m G` and
 `latentEnergy N m G` do NOT depend on the visible state `y`, so the
 latent fixed point `z*` is STATIC across rounds — the coupling is
-one-way (z → visible through `attentionK`). Route R2 (small-gain
-floor `ε_round/(1−q)`) degenerates to R1's slack inequality in this
-regime (no moving latent target ⇒ no nonzero asymptotic floor);
-route R3 (joint Lyapunov `E_vis + c·‖z−z*‖²`) would need the
-z-differentiability that the two-phase protocol forbids claiming.
+one-way (z → visible through `attentionK`), so there is no moving
+latent target and hence no nonzero asymptotic floor; a joint Lyapunov
+function `E_vis + c·‖z−z*‖²` is NOT pursued (it would need the
+z-differentiability the two-phase protocol forbids claiming).
 
 Main results:
 
@@ -1337,7 +1325,7 @@ Main results:
   one z-phase step from ANY state contracts the latent error:
   `‖latentUpdate N m G z − z*‖ ≤ (Δ/m)·‖z − z*‖` for a fixed point
   `z*` — per-round tolerances satisfy η_t ≤ q·η_{t−1}, q = Δ/m,
-  WITHOUT restarting (the summability input of the R1 design).
+  WITHOUT restarting (the summability input of the design).
 * `alternating_round_slack_summable` — ROUND-ERROR
   SUMMABILITY: a round-guard slack sequence with premise-form
   geometric decay `slack (t+1) ≤ (Δ/m)·slack t` (delivered for
@@ -1366,18 +1354,17 @@ descent_budget` — TRAJECTORY TELESCOPING: rounds
   claimed: the names `alternating_round_converges` and
   `visible_descent_joint_z` are NONEXISTENT. What is proven: ONE round,
   strictly, under premises, plus the premise-form chain/summability
-  statements N1–N3 below.
+  statements below.
 * The latent block of a round is inexact but STATIC-TARGETED: the
   y-independence of `z*` is why no `ε_round/(1−q)` floor appears;
-  if the latent energy ever becomes y-dependent, R2's small-gain
-  machinery becomes necessary and this file's design must be
-  revisited.
-* convergence lift (N1–N3) stays PREMISE-FORM and FINITE:
-  the geometric slack decay and the per-round drops are HYPOTHESES;
-  the energy floor `Emin` is a PREMISE; the terminal statement is
-  the FINITE/STRICT form only (length bound via the ranking
-  argument). The UNCONDITIONAL analytic convergence statement
-  `alternating_round_converges` STILL does not exist and stays
+  a y-dependent latent energy would need a small-gain argument
+  that this file does not provide.
+* The convergence lift stays premise-form and finite: the geometric
+  slack decay and the per-round drops are HYPOTHESES; the energy
+  floor `Emin` is a PREMISE; the terminal statement is the
+  finite/strict form only (length bound via a ranking argument).
+  The UNCONDITIONAL analytic convergence statement
+  `alternating_round_converges` does not exist and stays
   nonexistent; the near-name
   `alternating_rounds_converge` (plural) is the finite terminal
   form and states termination, NOT convergence to a minimizer.
@@ -1452,7 +1439,7 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 brick) one z-phase step contracts the latent error toward the
 (y-independent, static) fixed point: for `latentUpdate N m G zstar =
 zstar`, `‖latentUpdate N m G z − zstar‖ ≤ (Δ/m)·‖z − zstar‖`. This
-is the summability input of the R1 design (per-round tolerance
+is the summability input of the design (per-round tolerance
 η_t ≤ q·η_{t−1}, q = Δ/m, without restarting the settle loop); the
 summable-series statement itself is NOT claimed here. -/
 theorem alternating_zphase_one_step_error (N : ι → Finset ι) (m : ℝ) (G : ι)
@@ -1465,7 +1452,7 @@ theorem alternating_zphase_one_step_error (N : ι → Finset ι) (m : ℝ) (G : 
 
 end ZPhase
 
-/-! ## N1: round-error summability (geometric slack budget) -/
+/-! ## Round-error summability (geometric slack budget) -/
 section SlackSummable
 
 private theorem slack_partial_sum {q : ℝ} (hq0 : 0 ≤ q) (hq1 : q < 1)
@@ -1527,7 +1514,7 @@ theorem alternating_round_slack_summable {Δ : ℕ} {m : ℝ}
 
 end SlackSummable
 
-/-! ## N2: trajectory telescoping and the descent budget -/
+/-! ## Trajectory telescoping and the descent budget -/
 section Trajectory
 
 variable {γ : Type*}
@@ -1580,7 +1567,7 @@ theorem alternating_trajectory_descent_budget {E : γ → ℝ} (y : ℕ → γ)
 
 end Trajectory
 
-/-! ## N3: terminal statement, finite form -/
+/-! ## Terminal statement, finite form -/
 section TerminalFinite
 
 variable {ι : Type*} [Fintype ι] [DecidableEq ι]

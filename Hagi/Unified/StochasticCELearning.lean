@@ -196,20 +196,6 @@ theorem sgd_induced_noise_descent (f : E → ℝ) (grad : E → E) (L γ : ℝ)
     _ = -(γ • (grad a + ((1 / γ) • (a - b) - grad a))) := by
         rw [hinner]
 
-/-- Square inner-product Cauchy–Schwarz: `⟪x, y⟫² ≤ ‖x‖² ‖y‖²` on a
-real inner product space. -/
-private theorem sq_inner_le (x y : E) :
-    (⟪x, y⟫_ℝ) ^ 2 ≤ ‖x‖ ^ 2 * ‖y‖ ^ 2 := by
-  have h := abs_real_inner_le_norm x y
-  have hU : (0:ℝ) ≤ ‖x‖ * ‖y‖ :=
-    mul_nonneg (norm_nonneg _) (norm_nonneg _)
-  have h2 : |⟪x, y⟫_ℝ| ^ 2 ≤ (‖x‖ * ‖y‖) ^ 2 := by
-    have ha : (0:ℝ) ≤ |⟪x, y⟫_ℝ| := abs_nonneg _
-    nlinarith [h, ha, hU]
-  rw [mul_pow] at h2
-  rw [← sq_abs]
-  exact h2
-
 /-- Local triangle inequality for the real absolute value (the
 pinned Mathlib revision does not re-export the abs_add lemma). -/
 private theorem abs_triangle (a b : ℝ) : |a + b| ≤ |a| + |b| := by

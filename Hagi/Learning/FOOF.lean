@@ -5,7 +5,7 @@ import Mathlib.LinearAlgebra.Matrix.PosDef
 set_option linter.style.header false
 
 /-!
-# FOOF — Fast Online Objective Function: мост Mesa/FOOF (цикл 9)
+# FOOF — Fast Online Objective Function: мост Mesa/FOOF
 
 Mesa-слой (arXiv:2610.03858): точное решение регуляризованной
 задачи наименьших квадратов по всей истории
@@ -17,15 +17,13 @@ Mesa-слой (arXiv:2610.03858): точное решение регуляриз
 квазиньютоновский шаг: невязка умножается на обратную
 регуляризованную ковариацию входов (отбеливание).
 
-Доказано строго:
 - `foof_normal_eq`: W* удовлетворяет нормальному уравнению
   W* (XXᵀ + λI) = V Xᵀ;
 - `foof_step_identity`: W* = W₀ − (W₀X − V)Xᵀ C⁻¹ — оптимум
   получается из текущих весов ОДНИМ отбеленным шагом по невязке
   (второпорядковое прекондиционирование без итераций).
 
-Не заявляем: положительную определённость C при λ>0
-(спектральная теорема — отдельная работа), онлайн-рекурренты.
+Не заявляем: онлайн-рекурренты.
 -/
 
 open Finset Matrix
@@ -45,13 +43,13 @@ noncomputable def foofW (V X : Matrix (Fin d) (Fin T) ℝ) (lam : ℝ) :
     Matrix (Fin d) (Fin d) ℝ :=
   V * Xᵀ * (regCov X lam)⁻¹
 
-/-- НОРМАЛЬНОЕ УРАВНЕНИЕ: W* (XXᵀ + λI) = V Xᵀ. -/
+/-- Нормальное уравнение: W* (XXᵀ + λI) = V Xᵀ. -/
 theorem foof_normal_eq (V X : Matrix (Fin d) (Fin T) ℝ) (lam : ℝ)
     (hinv : IsUnit (regCov X lam).det) :
     foofW V X lam * regCov X lam = V * Xᵀ :=
   nonsing_inv_mul_cancel_right _ _ hinv
 
-/-- FOOF-ШАГ (честная форма): приращение к оптимуму из текущих
+/-- FOOF-шаг: приращение к оптимуму из текущих
 весов — отбелённая невязка минус регуляризационный член:
 W* − W₀ = (V − W₀X)XᵀC⁻¹ − λ·W₀C⁻¹, C = XXᵀ + λI.
 При λ → 0 шаг — чистое second-order отбеливание невязки. -/
@@ -94,12 +92,11 @@ end Hagi.Learning.FOOF
 set_option linter.style.header false
 
 /-!
-# RegCovPD — положительная определённость XXᵀ + λI (цикл 10)
+# RegCovPD — положительная определённость XXᵀ + λI
 
-Замыкает посылку обратимости FOOF: при λ > 0 регуляризованная
+При λ > 0 регуляризованная
 ковариация C = XXᵀ + λI строго положительно определена
-(следовательно det C > 0 и C обратима) — без спектральной
-теоремы, через прямое коши-подобное тождество:
+(следовательно det C > 0 и C обратима) через тождество:
 
   v ⬝ᵥ (C *ᵥ v) = ‖Xᵀ *ᵥ v‖² + λ·‖v‖² > 0  (v ≠ 0, λ > 0).
 -/
@@ -201,10 +198,9 @@ theorem regCov_posDef [DecidableEq (Fin d)]
       regCov_quad_pos X lam hlam hv⟩
 
 
-/-- ЗАМЫКАНИЕ ПОСЫЛКИ FOOF: при λ > 0 матрица C = XXᵀ+λI
-обратима (det > 0 по положительной определённости) —
-предпосылка hinv в foof_normal_eq/foof_step_identity теперь
-ТЕОРЕМА, а не гипотеза. -/
+/-- При λ > 0 матрица C = XXᵀ+λI обратима (det > 0 по
+положительной определённости): предпосылка `hinv` в
+`foof_normal_eq` и `foof_step_identity`. -/
 theorem regCov_det_unit [DecidableEq (Fin d)]
     (X : Matrix (Fin d) (Fin T) ℝ) (lam : ℝ) (hlam : 0 < lam) :
     IsUnit (regCov X lam).det := by
@@ -216,12 +212,12 @@ end Hagi.Learning.RegCovPD
 set_option linter.style.header false
 
 /-!
-# FOOFUnique — единственность решения Mesa/FOOF (цикл 13)
+# FOOFUnique — единственность решения Mesa/FOOF
 
 Если оба W₁ и W₂ удовлетворяют нормальному уравнению
-W·(XXᵀ+λI) = VXᵀ и C = XXᵀ+λI обратима (теорема regCov_det_unit
-при λ>0), то W₁ = W₂ — аналитический оптимум регуляризованной
-least-squares задачи ЕДИНСТВЕНЕН.
+W·(XXᵀ+λI) = VXᵀ и C = XXᵀ+λI обратима (`regCov_det_unit`
+при λ>0), то W₁ = W₂: оптимум регуляризованной задачи
+наименьших квадратов единственен.
 -/
 
 open Finset Matrix
@@ -232,7 +228,7 @@ open Hagi.Learning.FOOF Hagi.Learning.RegCovPD
 
 variable {d T : ℕ}
 
-/-- ЕДИНСТВЕННОСТЬ: нормальное уравнение имеет не более одного
+/-- Единственность: нормальное уравнение имеет не более одного
 решения при обратимой C. -/
 theorem foof_normal_unique (V X : Matrix (Fin d) (Fin T) ℝ)
     (lam : ℝ) (hinv : IsUnit (regCov X lam).det)
@@ -251,9 +247,8 @@ theorem foof_normal_unique (V X : Matrix (Fin d) (Fin T) ℝ)
     exact hkey
   exact eq_of_sub_eq_zero hcanc
 
-/-- СЛЕДСТВИЕ: foofW — единственное решение нормального
-уравнения (при обратимости C, обеспечиваемой regCov_det_unit
-при λ > 0 в согласованном контексте DecidableEq). -/
+/-- `foofW` — единственное решение нормального уравнения при
+обратимой C. -/
 theorem foofW_unique (V X : Matrix (Fin d) (Fin T) ℝ)
     (lam : ℝ) (hinv : IsUnit (regCov X lam).det)
     (W : Matrix (Fin d) (Fin d) ℝ)

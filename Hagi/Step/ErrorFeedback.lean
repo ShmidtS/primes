@@ -16,7 +16,7 @@ import Mathlib.Tactic
 
 * CONTRACTIVE — `contractiveCompressor Q : ‖Q x‖ ≤ ‖x‖`
   (`Hagi.Optimization.EF21Markov.IsContractive` в squared-sum форме;
-  импорт в Step запрещён LayerLint — здесь нормированная форма);
+  здесь нормированная форма);
 * BOUNDED-ERROR — `boundedErrorCompressor Q ε : ‖Q x − x‖ ≤ ε`
   (тернарный паттерн `Hagi.Runtime.TernaryExact.qTern_error_in`,
   |x − qTern s x| ≤ s/2);

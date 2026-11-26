@@ -124,8 +124,6 @@ end Ternary
 # The STE step model (the optimizer that actually runs)
 
 The descent theorems describe
-
-Round-62 program item 4: the descent theorems describe
 gradient steps, while training runs Muon / LazyAdam /
 ternary master weights with straight-through estimation.
 This module models the STE step honestly: the effective

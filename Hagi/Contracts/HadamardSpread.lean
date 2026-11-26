@@ -41,7 +41,7 @@ energy-fraction premise, NOT probabilistic sphere averaging
 docstring as motivation only — the theorems carry no empirical
 numbers. In-scale coordinates contribute ε_small = s/2 per
 coordinate, not 0 (the real ternary grid is not exact on ℝ); that
-is the honest instantiation of the audit item's ε_small.
+is the honest instantiation of ε_small.
 -/
 
 open scoped Matrix Classical
@@ -181,7 +181,7 @@ theorem hadamard_ternary_error_bound {k : ℕ} (s : ℝ) (hs : 0 < s)
 `ρ · ‖x‖²`, the total ternary error is at most
 `2^k·(s/2)² + ρ·‖x‖²`. For spread vectors (ρ small) this beats the
 worst case `hadamard_ternary_error_worst_case` (ρ = 1) — the
-conditional theorem telling the audit's «после Адамара ≈0.33 vs
+conditional theorem telling the «после Адамара ≈0.33 vs
 худший случай α≈0.106» story. ρ is a PREMISE: Hadamard does not
 universally spread (bridge: `hadamard_not_universally_incoherent`). -/
 theorem hadamard_ternary_error_bound_of_spread {k : ℕ} (s ρ : ℝ) (hs : 0 < s)
@@ -198,7 +198,7 @@ theorem hadamard_ternary_error_bound_of_spread {k : ℕ} (s ρ : ℝ) (hs : 0 < 
 reference point (ρ = 1): without any spread premise the total
 ternary error on the Hadamard image is at most `2^k·(s/2)² + ‖x‖²`
 (the whole energy could, in the worst case, sit in saturating
-coordinates). This is the formal counterpart of the audit's
+coordinates). This is the formal counterpart of the
 worst-case α-regime that the spread premise improves upon. -/
 theorem hadamard_ternary_error_worst_case {k : ℕ} (s : ℝ) (hs : 0 < s)
     (x : (Fin k → ZMod 2) → ℝ) :
@@ -268,7 +268,7 @@ theorem x0_two_term_sum (F : (Fin 1 → ZMod 2) → ℝ) :
 spike `x0 = (2, 0)` is `H x0 = (√2, √2)` — energy 4 spread over
 BOTH coordinates, ∞-norm drops from 2 to √2 ≈ 1.41, below the
 ternary ceiling 3s/2 = 1.5 at s = 1. This is the n = 2 instance of
-the audit's post-Hadamard spreading mechanism. -/
+the post-Hadamard spreading mechanism. -/
 theorem x0_Hx (j : Fin 1 → ZMod 2) :
     (hadamardOrthonormal 1 *ᵥ x0) j = Real.sqrt 2 := by
   rcases zmod2_cases (j 0) with h | h

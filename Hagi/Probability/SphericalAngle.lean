@@ -13,7 +13,7 @@ namespace Hagi.Probability
 open Real Filter Topology
 
 /-!
-# Телесный угол гиперсферы и «пик размерностей» (R520)
+# Телесный угол гиперсферы и «пик размерностей»
 
 Ω_n = 2π^{n/2} / Γ(n/2) — площадь поверхности единичной (n−1)-сферы
 (полный телесный угол n-мерного пространства). Ключевые факты:
@@ -250,7 +250,7 @@ theorem Omega_7_gt_Omega_8 : sphericalAngle 8 < sphericalAngle 7 := by
   nlinarith [hπ, h3pos]
 
 
-/-! ## Дигамма-мосты (R562 шаг 1): ψ-значения в целых точках —
+/-! ## Дигамма-мосты: ψ-значения в целых точках —
 фундамент числового брекета континуального пика x* (ψ(x/2) =
 ln π). -/
 
@@ -302,7 +302,7 @@ theorem digamma_recurrence_bridge {s : ℂ} (hs : ∀ m : ℕ, s ≠ -m) :
   exact Complex.digamma_apply_add_one s hs
 
 
-/-- ψ непрерывна на правой полуплоскости {Re w > 2} (R566):
+/-- ψ непрерывна на правой полуплоскости {Re w > 2}
 Γ дифференцируема и ненулевая вне полюсов −ℕ₀, ψ = Γ'/Γ. -/
 theorem digamma_continuousOn_right :
     ContinuousOn (fun w : ℂ => Complex.digamma w) {w : ℂ | 2 < w.re} := by
@@ -335,7 +335,7 @@ theorem digamma_continuousOn_right :
   rw [hdig]
   exact hcontD.div hcontG hnz
 
-/-- Вещественная ветвь ψ: t ↦ Re ψ(t) непрерывна на [3,4] (R566)
+/-- Вещественная ветвь ψ: t ↦ Re ψ(t) непрерывна на [3,4]
 — композиция непрерывного вложения ℝ→ℂ, ψ (непрерывной на
 {Re > 2}) и Re. -/
 theorem digamma_re_continuousOn :
@@ -355,7 +355,7 @@ theorem digamma_re_continuousOn :
       (fun w _ => Set.mem_univ _)
   exact hcomp1.comp hembed.continuousOn hrel
 
-/-- **IVT корня диагаммы (R566)**: при γ-брекетах
+/-- **IVT корня диагаммы **: при γ-брекетах
 (1.5 − ln π < γ < 11/6 − ln π) существует s ∈ (3,4) с
 Re ψ(s) = ln π — фундамент континуального пика x* = 2s ∈ (6,8). -/
 theorem digamma_logpi_root_exists
@@ -391,9 +391,9 @@ theorem digamma_logpi_root_exists
   obtain ⟨s, hs_in, hs_eq⟩ := hsub hmem
   exact ⟨s, hs_in, hs_eq⟩
 
-/-- **Континуальный пик (R568)**: при γ-брекетах существует
+/-- **Континуальный пик **: при γ-брекетах существует
 x* ∈ (6,8) с пик-условием Re ψ(x*/2) = ln π — замыкание
-корне-теоремы R566 подстановкой x* = 2s. -/
+корне-теоремы подстановкой x* = 2s. -/
 theorem digamma_peak_exists
     (hγlo : (1.5:ℝ) - Real.log Real.pi < eulerMascheroniConstant)
     (hγhi : eulerMascheroniConstant < (11:ℝ)/6 - Real.log Real.pi) :
@@ -408,7 +408,7 @@ theorem digamma_peak_exists
   rw [hcast]
   exact hs_eq
 
-/-! ## Острый брекет пика (R569): ψ(7/2) = 46/15 − 2ln2 − γ
+/-! ## Острый брекет пика ψ(7/2) = 46/15 − 2ln2 − γ
 < ln π < ψ(4) — IVT сужает пик s* ∈ (7/2, 4), x* ∈ (7, 8) для
 γ > 46/15 − 2ln2 − ln π ≈ 0.5357 (реальный γ = 0.5772 ✓). -/
 
@@ -458,7 +458,7 @@ theorem digamma_seven_half_re :
   rw [hlog, hγc, hlast] at hstep1
   exact hstep1
 
-/-- **Острый брекет пика (R569)**: при γ-брекетах (нижняя
+/-- **Острый брекет пика **: при γ-брекетах (нижняя
 граница 46/15 − 2ln2 − ln π ≈ 0.5357 < γ < 11/6 − ln π)
 существует s* ∈ (7/2, 4) с Re ψ(s*) = ln π — сузило
 (3,4) до (7/2, 4) (пик x* = 2s* ∈ (7, 8)). -/

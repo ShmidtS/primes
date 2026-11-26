@@ -134,12 +134,6 @@ private theorem abs_ceResidual_le_one {V : Type} [Fintype V] {d : ℕ}
       abs_of_nonneg hnonneg]
     exact hle
 
-/-- Feature mass is nonnegative on every finite carrier. -/
-private theorem featureNormSum_nonneg {V : Type} [Fintype V] {d : ℕ}
-    (X : Matrix V (Fin d) ℝ) : 0 ≤ featureNormSum X := by
-  unfold featureNormSum
-  positivity
-
 /-- Feature-only norm bound for every raw CE residual gradient. In particular,
 zero feature mass forces the raw gradient to vanish; the converse is not
 asserted because residuals can cancel. -/

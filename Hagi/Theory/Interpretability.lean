@@ -201,7 +201,7 @@ rebuild of NO description — a short-description reconstruction of
 the FULL class is impossible by pigeonhole, so compact-description
 interpretability is a SPECIAL property, not a generic one.  (The
 loss-based `Rebuildable` negation would additionally need a
-quality-separation premise; pinned here in the exact form.) -/
+quality-separation premise; stated here in the exact form.) -/
 theorem exists_not_exact_rebuildable {Θ Sig : Type} [Fintype Θ]
     [Fintype Sig] [Nonempty Sig] (loss : Θ → ℝ) (θ : Θ) (ε : ℝ) (B : ℕ)
     (R : (Fin B → Sig) → Θ)

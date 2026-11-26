@@ -227,7 +227,7 @@ theorem selectedScale_strict_descent_of_exists {V : Type} [Fintype V]
   · exact selectedScale_strict_margin_of_exists X θ t h
 
 /-- The known code 31 has zero certified penalty for the actual witness
-successor, by the previously proved observed-penalty calculation. -/
+successor, by the observed-penalty calculation above. -/
 theorem ceQuantWitness_knownSampleScale_score :
     scalePenalty CEQuantized.ceQuantWitnessFeatures CEPackedStep.rawSuccessor
       Hagi.Runtime.knownSampleScale = 0 := by

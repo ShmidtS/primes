@@ -9,9 +9,9 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Foundations.ConeTakeoff — канонический конус-takeoff
+# Foundations.ConeTakeoff — конус-takeoff
 
-Канонические формы с горизонтом `T` в самой лемме:
+Формы с горизонтом `T` в самой лемме:
 
 * `cone_invariant_horizon` — инвариантность конуса
   `k * C t ≤ D t` на `0..T` при усечённых посылках.
@@ -25,13 +25,11 @@ open Finset Real
 namespace Hagi.Foundations
 
 --
-/-- **Канонический одношаговый конус-лемма **: при
+/-- **Одношаговая конус-лемма**: при
 точном шаге `C (t+1) = C t + γ·D t`, динамике
 `ρ·D t + β·C t ≤ D (t+1)`, `0 < C t`, конусе `k·C t ≤ D t`,
 `γ·k ≤ ρ` и `β ≥ γ·k² + (1−ρ)·k` — конус сохраняется на
-следующем шаге. Единственная копия hkey-тождества;
-`cone_invariant_horizon` и `RatioTakeoff.cone_ratio_step`
-делегируют сюда. -/
+следующем шаге. -/
 theorem cone_step (C D : ℕ → ℝ) (gamma rho beta k : ℝ) (t : ℕ)
     (hCpos : 0 < C t)
     (hs : C (t + 1) = C t + gamma * D t)

@@ -33,7 +33,7 @@ that drop minus `log ((hi u * ∑ hi) / (lo u * ∑ lo))` — the
 certified width link: descending the rational certificate
 descends the true CE down to the gap boundary.
 
-## Honest pins
+## Limits
 
 1. The bench objective is the exact rational product
    `∏ (∑ hi) / lo_y`; log monotonicity makes its descent
@@ -46,7 +46,7 @@ descends the true CE down to the gap boundary.
    constant is certified for the sandwich objective; the
    adaptive-majorizer η of `Hagi.Theory.AdaptiveMajorizer` is
    not used by the bench.
-3. Feature/weight snap-to-grid pins (family) live in
+3. Feature/weight snap-to-grid limits (family) live in
    the bench script, not here; this module is n,m-free.
 -/
 

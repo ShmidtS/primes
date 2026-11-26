@@ -4,9 +4,9 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 import Hagi.Ensemble.Hoeffding
 import Mathlib.Tactic
 /-!
-# Wave3: GitHub-scout finds, transported
+# ThermoCondensation — transported scaling laws
 
-Four transported upgrades:
+Transported results (sources cited per item):
 
 **1. `jl_inner_approx` (from amirzandieh/QJL — 1-bit JL transform
 with a formal attention error bound)**: if the KV projection
@@ -15,28 +15,25 @@ for q, k, q+k, the inner product — hence the attention logit —
 is approximated within (3/2)ε(‖q‖²+‖k‖²). Sharper formal
 guarantee than the TV-2δ bound for the compressed cache.
 
-**2. `schedule_descent` + `schedule_conflict_step` (the skill-it
-synthesis — from HazyResearch/skill-it, the only external
-competitor to our w_t-schedule niche)**: the mixture SCHEDULE as
+**2. `schedule_descent` + `schedule_conflict_step` (from HazyResearch/skill-it)**: the mixture SCHEDULE as
 a program: the skill-loss ODE dL/dt = −Σ_j w_j g_ij discretized
-— with nonneg cross-terms the descent is monotone; our
+— with nonneg cross-terms the descent is monotone; the
 conflict-constraint ⟨g_i, d⟩ ≥ 0 lifts to the schedule: a
 conflict-free step is descent for every corpus simultaneously.
 
 **3. `orthogonal_preserves_grad_dist` (from MaeChd/MUON-MVR —
 variance under orthogonalization)**: an exact orthogonalizer is
-an isometry — the grad-L2 mergeability distance (Wave2's
-polarization) is INVARIANT under orthogonalization: the Muon NS
+an isometry — the grad-L2 mergeability distance is INVARIANT under orthogonalization: the Muon NS
 update does not distort the mergeability metric; the
 variance-reduction question is orthogonal to the
 mergeability-prediction question.
 
 **4. head_start_persists (from sbintuitions/sparse-upcycling-
-scaling-laws — the critical-ratio analog)**: under equal descent
+scaling-laws)**: under equal descent
 rates the merge-vs-scratch head start is CONSTANT in time — the
 upcycling critical token ratio: merge wins for every budget
 below the (asymptotic) rate-divergence point. Combined with
-`Hagi.Wave2.merge_init_head_start`: the head start measured at
+`Hagi.External.merge_init_head_start`: the head start measured at
 step 0 persists to every step t (equal-slope regime).
 
 **Prescription**: treat the mixture `w_t` as a SCHEDULE (a conflict-free
@@ -52,8 +49,7 @@ namespace Hagi.External
 section Schedule
 
 /-- **The skill-it ODE discretized — the mixture-schedule
-descent** (from HazyResearch/skill-it, synthesized with our
-optics): the skill-loss dynamics dL_i/dt = −Σ_j w_j g_ij under
+descent** (from HazyResearch/skill-it): the skill-loss dynamics dL_i/dt = −Σ_j w_j g_ij under
 a mixture schedule w; the discrete step with a nonnegative
 descent field and positive rate is monotone descent. This is
 the formal core of "w_t as a program": every step of the
@@ -65,7 +61,7 @@ theorem schedule_descent (L c w r : ℝ)
   have h2 := mul_nonneg h hr
   linarith
 
-/-- **The conflict-free schedule step** (our constraint lifted
+/-- **The conflict-free schedule step** (the constraint lifted
 to the schedule): a step direction d with nonnegative inner
 product against every corpus gradient is a simultaneous descent
 for every corpus's loss — the schedule's conflict-constraint.
@@ -84,7 +80,7 @@ section JL
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
 /-- **The QJL attention-logit error bound** (from
-amirzandieh/QJL — transported): if the KV projection Φ
+amirzandieh/QJL): if the KV projection Φ
 approximately preserves norms —
 `(1−ε)‖v‖² ≤ ‖Φv‖² ≤ (1+ε)‖v‖²` for v ∈ {q, k, q+k} — then the
 attention logit (the inner product) is approximated within
@@ -128,13 +124,13 @@ section Orthogonal
 
 /-- **The orthogonalization invariance of the mergeability
 metric** (from MaeChd/MUON-MVR — variance under
-orthogonalization, synthesized with Wave2's grad-L2 predictor):
+orthogonalization, synthesized with the grad-L2 predictor):
 an exact orthogonalizer is an isometry — the gradient-space
 mergeability distance D_grad is INVARIANT under
 orthogonalization. The Muon NS update therefore does not
 distort the mergeability prediction: measure D_grad on the RAW
 gradients; the variance-reduction question (MUON-MVR) and the
-mergeability-prediction question (Wave2) are orthogonal axes. -/
+mergeability-prediction question are orthogonal axes. -/
 theorem orthogonal_preserves_grad_dist
     {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
     (Q : X ≃ₗᵢ[ℝ] X) (a b : X) :
@@ -156,15 +152,15 @@ end Hagi.External
 
 
 /-!
-# Wave4: GitHub-scout finds, transported
+# Transported scaling laws, part 2
 
-Four transported upgrades:
+Transported results:
 
 **1. `mup_scale_invariance`** (from microsoft/mup +
 vankadara-lab/mssp-moe — the μP width/depth/expert-count
 transfer): the 1/√n-scaled update has width-invariant relative
 norm: n·‖(1/√n)v‖² = ‖v‖² — the formal core of LR transfer
-across width. For our merge transitions (N, H, L change between
+across width. For merge transitions (N, H, L change between
 generations): the μP-scaled update is the scale-stable choice;
 `Hagi.Energy/BranchScale`'s 1/√(2L·loop) is the depth-instance of the
 same law — the two compose into an (N×H×L)-stable parametrization.
@@ -180,7 +176,7 @@ prescription — fit c from a small-|V| sweep, predict V*.
 **3. `phase_metric_monotone`** (from timaeus-research/devinterp
 — the LLC phase apparatus): a monotone phase metric cannot
 oscillate between phases: if the generation-over-generation
-phase metric (the LLC, or our interval-verdict bracket) is
+phase metric (e.g. the LLC) is
 monotone, later phases are ordered below earlier ones for ALL
 pairs — no phase revisits. The formal core of phase analysis
 without measure theory.
@@ -189,9 +185,7 @@ without measure theory.
 the grokking-via-weight-norm mechanism): the slingshot/grokking
 observable IS the weight-norm trajectory; frozen norms make the
 observable CONSTANT — the grokking lever is nullified by
-construction. Our ternary normalization (absmean scaling) fixes
-the norms — the formal explanation of our generations'
-stability: no slingshot dynamics because the slingshot
+construction: no slingshot dynamics because the slingshot
 observable has no dynamics.
 
 **Prescription**: at merges scale incoming updates by 1/√(H_new); the
@@ -209,10 +203,10 @@ section MuP
 variable {V : Type*} [NormedAddCommGroup V] [InnerProductSpace ℝ V]
 
 /-- **The μP scale invariance** (from microsoft/mup +
-mssp-moe — transported): the 1/√n-scaled update has the
+mssp-moe): the 1/√n-scaled update has the
 width-invariant relative norm — n·‖(1/√n)•v‖² = ‖v‖². The
 formal core of LR transfer across width: the μP-scaled update
-is invisible to the geometry at any width. Our merge
+is invisible to the geometry at any width. Merge
 transitions (N, H, L change between generations) get the
 scale-stable parametrization: scale incoming updates by
 1/√(H_new); the BranchScale 1/√(2L·loop) is the depth-instance
@@ -231,7 +225,7 @@ section Vocab
 
 /-- **The vocab critical point** (from facebookresearch/
 compute-optimal-tokenization — the only loss+|V|+compute
-coupled law found, transported): the two-channel vocab cost
+coupled law found): the two-channel vocab cost
 model — the uniform-softmax baseline CE = log V GROWS with V
 (the scratch-init head start of `Hagi.External/Diversity` shrinks), the
 sequence-length cost c/V SHRINKS (fewer tokens per document) —
@@ -257,14 +251,14 @@ end Vocab
 section Phase
 
 /-- **The monotone phase metric cannot revisit phases** (from
-timaeus-research/devinterp — the LLC phase apparatus,
-transported): if the generation-over-generation phase metric
-(the LLC, or our interval-verdict bracket) is monotone
+timaeus-research/devinterp — the LLC phase apparatus):
+if the generation-over-generation phase metric
+(e.g. the LLC) is monotone
 decreasing, then every later phase is ordered below every
 earlier one — ∀ i ≤ j, a j ≤ a i. No phase oscillation. The
 diagnostic: a measured oscillation (a (k+1) > a k for some k)
 falsifies the monotone-phase hypothesis — the growth loop is
-unstable and the schedule program (Wave3) must intervene. -/
+unstable and the mixture schedule must intervene. -/
 theorem phase_metric_monotone (a : ℕ → ℝ) (h : ∀ k, a (k+1) ≤ a k) :
     ∀ i j, i ≤ j → a j ≤ a i := by
   intro i j hij
@@ -277,15 +271,14 @@ end Phase
 section Slingshot
 
 /-- **The frozen-norm slingshot nullification** (from
-Omnigrok/Slingshot — the grokking-via-weight-norm mechanism,
-transported): the slingshot/grokking observable IS the
+Omnigrok/Slingshot — the grokking-via-weight-norm mechanism):
+the slingshot/grokking observable IS the
 weight-norm trajectory ‖w(t)‖ (the delayed-generalization
 lever is the norm decay); a FROZEN norm makes the observable
 constant — ∀ s t, ‖w(s)‖ = ‖w(t)‖ — no slingshot dynamics
-because the slingshot observable has no dynamics. Our ternary
+because the slingshot observable has no dynamics. The ternary
 body (absmean normalization fixes the scales) is in this
-regime BY CONSTRUCTION: the formal explanation of our
-generations' stability — the grokking lever is unavailable;
+regime BY CONSTRUCTION — the grokking lever is unavailable;
 emergence must route through the mixers/gates, not the norm
 dynamics. -/
 theorem frozen_norm_no_dynamics {W : Type*} [NormedAddCommGroup W]
@@ -302,9 +295,9 @@ end Hagi.External
 
 
 /-!
-# Wave5: the DepthBench synthesis + the scout imports
+# DepthBench synthesis (arXiv:2609.32534)
 
-The unification (arXiv:2609.32534 DepthBench + our formalization):
+The unification:
 **architecture scaling is useful only if it increases ACCESSIBLE
 COMPUTATIONAL DIVERSITY** — the same law for experts (inter-model:
 GapLaw/Jensen) and for layers (intra-model: DepthBench's finding
@@ -336,17 +329,17 @@ Composed from `phase_metric_monotone`.
 
 **4. The state-diversity unification (documented)**: the
 DepthBench layer-state diversity D_layer = Var_p(h_i − h_j) is
-the SAME object as our pairVarEq expert diversity — one
+the SAME object as the `pairVarEq` expert diversity — one
 quantity, I_eff = effective rank of accessible computational
 states; the next unit of architecture (expert / layer /
-cross-layer memory / width) is chosen by ΔI_eff/ΔT_wall (the
-Gittins index of Wave2 instantiated on the unified diversity).
+cross-layer memory / width) is chosen by ΔI_eff/ΔT_wall (a
+Gittins index on the unified diversity).
 The uniform-mixer warning (mHC's route-diversity loss): a mixer
 collapsing toward rank 1 destroys exactly the diversity being
-purchased — kept as the prescription; the honest rank statement
-lives in Matrix.rank and is not re-proved here.
+purchased; the rank statement
+is not re-proved here.
 
-**Prescription**: admit argmax ΔVar/ΔC (not min-CE); audit per-layer
+**Prescription**: admit argmax ΔVar/ΔC (not min-CE); set per-layer
 scales s_l² ∝ 1/v_l; stop depth where the layer value crosses λ; rank
 growth options by ΔI_eff/ΔT_wall.
 -/
@@ -389,8 +382,7 @@ section BranchUniformity
 /-- **The BranchScale min-max floor**: for ANY
 allocation of residual scales with total budget Σ s_l² = B
 over branches with variances v_l > 0, the worst per-layer
-variance contribution is at least B / Σ_l (1/v_l). honest
-boundary: only the LOWER bound is formalized; the
+variance contribution is at least B / Σ_l (1/v_l). Limit: only the LOWER bound is formalized; the
 attainability direction (the uniform allocation
 s_l²·v_l = const achieves the floor) is stated but not
 proven here — it remains an open construction. A single
@@ -430,7 +422,7 @@ values collapsing toward zero), the stop rule is sound: once
 layer L's value drops under ε, every later layer's value is
 under ε — depth L* = max{L: V_L > λ} is well-defined and the
 layers beyond it are economically dead (marginal value below
-cost). Composed from `Wave4.phase_metric_monotone` — the same
+cost). Composed from `phase_metric_monotone` — the same
 monotone-certificate structure serves both the phase tracker
 and the layer pruner. -/
 theorem dead_layer_stop (val : ℕ → ℝ) (hmono : ∀ k, val (k+1) ≤ val k)
@@ -647,7 +639,6 @@ set_option linter.style.header false
   «1,5% каркаса (ScaffoldFraction) + мёртвые слои за L
   (dead_layer_stop) + конденсация внутри CE-бюджета ε
   (condensation_epsilon_to_gap)».
-Файл в слое 4 (Budget): может импортировать Ensemble (3).
 -/
 
 namespace Hagi.Budget

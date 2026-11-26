@@ -9,9 +9,9 @@ import Hagi.Math.Foundations.Hoeffding
 set_option linter.style.header false
 
 /-!
-# T1a — the Hoeffding kernel (chord route)
+# The Hoeffding kernel (chord route)
 
-The admission-criterion core: for a
+For a
 pool of experts with probability weights p and logit
 deviations d whose pairwise disagreement is bounded by M,
 the mixture generating function obeys
@@ -23,13 +23,8 @@ E[d_u − d_v] = 0 identically). Via the twoGap identity of
 `Hagi.Ensemble.GapLaw`, the Jensen gap of any
 bounded-disagreement pool is at most ½·log cosh M.
 
-Route: the chord inequality of exp (convexity on [−M, M]),
-double-summed with the constant-factoring lemmas.
-
-**Honest boundary**: the Hoeffding tail form P(gap − mean ≥ t) is
-proven later in this file (`hoeffding_tail`); the admission criterion uses
-the exact ½·log cosh M bound (`half_log_cosh_le` gives the quadratic
-reduction).
+Route: the chord inequality of exp (convexity on [−M, M]).
+The tail form P(gap − mean ≥ t) is `hoeffding_tail` below.
 -/
 
 open Finset Real
@@ -40,7 +35,7 @@ namespace Hagi.Ensemble
 theorem exp_chord (x M : ℝ) (hM : 0 < M) (hx : -M ≤ x) (hx2 : x ≤ M) :
     Real.exp x ≤ (M - x) / (2 * M) * Real.exp (-M)
       + (x + M) / (2 * M) * Real.exp M :=
-  -- dedup: the symmetric special case of Chord.exp_chord_ab at a = -M
+  -- symmetric special case of Chord.exp_chord_ab at a = -M
   by
     have hlt : (-M:ℝ) < M := by linarith
     have h := Hagi.Foundations.exp_chord_ab (-M) M x hlt hx hx2
@@ -96,11 +91,10 @@ theorem sum_pair_const {V : Type} [Fintype V] (p : V → ℝ) (c : ℝ) (hsum : 
     _ = c := by ring
 
 
-/-- **T1a (Hoeffding kernel, product form)**: bounded
+/-- Hoeffding kernel, product form: bounded
 pairwise disagreement M forces the mixture generating
 function ≤ cosh M. Centering is automatic for product
-weights. With the twoGap identity: gap ≤ ½·log cosh M —
-the admission certificate for bounded-disagreement pools. -/
+weights. With the twoGap identity: gap ≤ ½·log cosh M. -/
 theorem sum2_mul {V : Type} [Fintype V] (f : V → V → ℝ) (c : ℝ) :
     ∑ u, ∑ v, c * f u v = c * (∑ u, ∑ v, f u v) := by
   have hinner : ∀ u : V, ∑ v, c * f u v = c * ∑ v, f u v := by
@@ -222,7 +216,7 @@ theorem half_log_cosh_le (M : ℝ) : Real.log (Real.cosh M) / 2 ≤ M ^ 2 / 4 :=
   have h := Hagi.Foundations.log_cosh_le M
   linarith [div_pos (by norm_num : (0:ℝ) < 2) (by norm_num : (0:ℝ) < 4)]
 
-/-- **Full quadratic admission bound**: the Jensen gap of a
+/-- Quadratic admission bound: the Jensen gap of a
 pool with pairwise disagreement ≤ M is at most M²/4 —
 composition of exp_prod_le_cosh (cosh bound) with the
 Mathlib cosh_le_exp_half_sq quadratic reduction. -/
@@ -263,12 +257,9 @@ theorem twoGap_bounded (V : Type) [Fintype V] (p d : V → ℝ) (M : ℝ)
   change (1/2) * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v)) ≤ M ^ 2 / 4
   nlinarith [hlogmono]
 
-/-- **The pre-gate skip certificate**: if the pool's
-disagreement diameter M obeys M²/4 < ε (the T1a quadratic
-gate), then the entire ensemble gain available from ANY merge
-of this pool is below ε — skipping the GPU merge cycle loses
-strictly less than ε nats. The controller decision SKIP is
-certified by one scalar measurement (M). -/
+/-- Pre-gate skip certificate: if M²/4 < ε, the entire ensemble
+gain available from any merge of this pool is below ε, so
+skipping the merge loses strictly less than ε nats. -/
 theorem merge_skip_certificate (V : Type) [Fintype V] [Nonempty V] (p d : V → ℝ) (M eps : ℝ)
     (hp : ∀ v, 0 ≤ p v) (hsum : ∑ v, p v = 1)
     (hM : 0 < M) (hD : ∀ u v, abs (d u - d v) ≤ M)
@@ -277,13 +268,9 @@ theorem merge_skip_certificate (V : Type) [Fintype V] [Nonempty V] (p d : V → 
   have hb := twoGap_bounded V p d M hp hsum hM hD
   linarith
 
-/-- **The materialized-gain ceiling through transport**: the
-ensemble gain that actually reaches the output through a
-transport channel of efficiency η ∈ [0,1] is at most η·G —
-composing the exact gap (≤ ½log cosh M) with the η-transport
-bound. The controller's effective value of a merge is
-η·twoGap, and the admission gate must compare it — not the
-raw gap — against ε. -/
+/-- The gain ceiling through transport: the ensemble gain reaching
+the output through a channel of efficiency η ∈ [0,1] is at
+most η·twoGap. -/
 theorem merge_value_ceiling (V : Type) [Fintype V] [Nonempty V] (p d : V → ℝ) (M eta : ℝ)
     (hp : ∀ v, 0 < p v) (hsum : ∑ v, p v = 1)
     (hM : 0 < M) (hD : ∀ u v, abs (d u - d v) ≤ M)
@@ -294,7 +281,7 @@ theorem merge_value_ceiling (V : Type) [Fintype V] [Nonempty V] (p d : V → ℝ
   have hgap0 : 0 ≤ Hagi.twoGap p d := Hagi.twoGap_nonneg hp hsum
   nlinarith [hb, hgap0, heta, heta1]
 
-/-- **Pair generating function factorization**: the double pair sum
+/-- Pair generating function factorization: the double pair sum
 factorizes into the product of the marginal generating functions. -/
 theorem pair_factor {V : Type} [Fintype V] (p d : V → ℝ) :
     ∑ u, ∑ v, p u * p v * Real.exp (d u - d v)
@@ -343,21 +330,15 @@ variable {k : Type} [Fintype k] [Nonempty k] [DecidableEq k]
 
 set_option linter.unusedDecidableInType false in
 -- hypothesis kept: documented API premise
-/-- **Domain-orthogonality guarantees the ensemble gap**
-(the tree-of-domains architecture theorem): if some token
-pair (u,v) carries pairwise disagreement |d_u − d_v| ≥ δ
-with positive softmax mass q = p_u·p_v — the signature of
-orthogonal domain specialists (the A-expert specializes on
-domain-A tokens while the B-expert stays at baseline) — the
-Jensen gap is bounded BELOW:
+/-- Domain-orthogonality guarantees the ensemble gap: if some
+token pair (u,v) carries pairwise disagreement |d_u − d_v| ≥ δ
+with positive softmax mass q = p_u·p_v, the Jensen gap is
+bounded below:
 
   twoGap ≥ ½·log(1 + q·(cosh δ − 1)) > 0 for δ > 0.
 
-Contrapositive = the/67 diagnosis made mathematical:
-siblings on the SAME mix drive every pairwise disagreement
-to 0 (collapse); siblings on ORTHOGONAL domains keep a
-guaranteed floor. The correct HAGI tree is
-sibling-per-domain, not sibling-per-seed. -/
+Contrapositive: siblings on orthogonal domains keep a
+guaranteed floor of disagreement. -/
 theorem domain_disagreement_floor (p d : k → ℝ)
     (hp : ∀ v, 0 < p v) (hsum : ∑ v, p v = 1)
     (u v : k) (delta : ℝ) (hdelta : 0 ≤ delta)
@@ -496,7 +477,7 @@ theorem domain_disagreement_floor (p d : k → ℝ)
   rw [show 1 / 2 * Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v))
       = Real.log (∑ u, ∑ v, p u * p v * Real.exp (d u - d v)) / 2 from by ring]
 
-/-- The exact CE-gap identity . -/
+/-- The exact CE-gap identity. -/
 theorem twoGap_ce_identity {k : Type} [Fintype k] (m d : k → ℝ) (t : k) :
     Hagi.twoGap (fun v => Real.exp (m v) / ∑ w, Real.exp (m w)) d
       = (Hagi.ceOneHot t (fun v => m v + d v)
@@ -566,13 +547,9 @@ theorem twoGap_ce_identity {k : Type} [Fintype k] (m d : k → ℝ) (t : k) :
   rw [hlogS]
   ring_nf
 
-/-- **The REAL CE admission gate** (composition of the exact
-identity with the quadratic bound): for experts z1 = m+d,
-z2 = m−d with softmax-midpoint weights, the true
-cross-entropy Jensen gap — the merge-cycle's actual expected
-loss reduction — is bounded by M²/4 whenever the per-PAIR
-half-deviation diameter obeys |d_u − d_v| ≤ M. One scalar
-measurement gates the real GPU merge decision. -/
+/-- CE admission gate: for experts z1 = m+d, z2 = m−d with
+softmax-midpoint weights, the cross-entropy Jensen gap is
+bounded by M²/4 whenever |d_u − d_v| ≤ M. -/
 theorem ce_gap_bounded {k : Type} [Fintype k] [Nonempty k] (m d : k → ℝ) (t : k) (M : ℝ)
     (hp : ∀ v, 0 < Real.exp (m v) / ∑ w, Real.exp (m w))
     (hsum : ∑ v, Real.exp (m v) / ∑ w, Real.exp (m w) = 1)
@@ -595,14 +572,11 @@ The two chord factors:
   generating function
 - `chord_factor2`: the same for Σ p e^{−d}
 
-**Negative finding (recorded)**: the product of the two
-chord bounds equals cosh²D + (μ/(2D))²·(e^D−e^{−D})²/4·…
-i.e. EXCEEDS cosh²D when μ ≠ 0 — the direct cosh²D product
-route does not close. The sharp M²/8 goes through the centered
-Hoeffding lemma (`hoeffding_fin` below) applied to the centered
-deviations d − μ (range ≤ 2D = the pairwise diameter M, mean zero):
-each factor ≤ e^{M²/8}, product ≤ e^{M²/4}, twoGap ≤ M²/8.
-((b)e^a − (a)e^b)/(b−a) ≤ e^{(b−a)²/8}.
+The product of the two chord bounds exceeds cosh²D when
+μ ≠ 0. The sharp M²/8 goes instead through the centered
+Hoeffding lemma (`hoeffding_fin` below) applied to d − μ
+(range ≤ 2D, mean zero): each factor ≤ e^{M²/8}, product
+≤ e^{M²/4}, twoGap ≤ M²/8.
 -/
 /-- The sharp two-factor chord bound: factor 1. -/
 theorem chord_factor1 {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
@@ -663,14 +637,9 @@ theorem chord_factor2 {V : Type} [Fintype V] (p d : V → ℝ) (D : ℝ)
       show (-(∑ v, p v * d v) + D) = D - ∑ v, p v * d v from by ring] at h
   exact h
 
-/-- **The certified pruning/merge certificate**:
-merging two leaves whose logits differ by at most delta at
-every token (the centroid-closeness / high-mutual-
-information regime) increases the cross-entropy by at most
-delta²/4 — the exact twoGap bound instantiated at the
-half-deviation diameter M = delta. The tree can BREATHE:
-grow on new information, shrink on consolidation, with the
-computational budget held by the merge certificate. -/
+/-- Merging two leaves whose logits differ by at most delta at
+every token increases the cross-entropy by at most delta²/4
+(the exact twoGap bound at half-deviation diameter M = delta). -/
 alias prune_certificate := _root_.Hagi.Ensemble.ce_gap_bounded
 
 section HoeffdingFin
@@ -678,9 +647,8 @@ section HoeffdingFin
 /-!
 ### Hoeffding lemma, finite form
 
-The sharp `(b − a)²/8` half of the chord bound: for a FINITE weighted
-(recorded negative finding above): for a FINITE weighted
-ensemble `w` on `V` with values `d v ∈ [a, b]` and exact
+The sharp `(b − a)²/8` half of the chord bound: for a finite
+weighted ensemble `w` on `V` with values `d v ∈ [a, b]` and exact
 weighted mean `∑ w v * d v = 0`, the weighted exponential
 sum obeys the centered Hoeffding (sub-Gaussian) bound for
 every `t`:
@@ -689,15 +657,12 @@ every `t`:
 
 Bridged from the Mathlib measure-theoretic
 `hasSubgaussianMGF_of_mem_Icc_of_integral_eq_zero` via the
-`PMF.ofFintype` / `PMF.integral_eq_sum` machinery. This is
-the engine of the bounded-CMI ⟹ generalization route (plan
-§2, Steinke–Zakynthinou stage 1) and closes the twoGap ≤
-M²/8 gap factor by factor.
+`PMF.ofFintype` / `PMF.integral_eq_sum` machinery.
 -/
 
 variable {V : Type*} [Fintype V] [Nonempty V]
 
-/-- **Finite Hoeffding lemma**: for weights `w` (positive,
+/-- Finite Hoeffding lemma: for weights `w` (positive,
 summing to 1) and centered bounded values `d v ∈ [a, b]`
 (`∑ w v * d v = 0`), the weighted mgf is sub-Gaussian with
 the SHARP variance proxy `(b − a)²/4`:

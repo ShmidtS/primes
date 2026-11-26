@@ -7,7 +7,7 @@ import Hagi.External.Flywheel.SVD
 /-!
 # MuonSpectral — rank-one спектральный шаг и `σ_max`
 
-C670. Спектральный срез шага Muon (hagi/core.py:1755 @ca52eb4):
+Спектральный срез шага Muon (hagi/core.py:1755 @ca52eb4):
 `newton_schulz_orthogonalize(G, iters=3)` (core.py:1350 @ca52eb4)
 приближает полярный фактор `U Vᵀ` градиента. Здесь — rank-one ядро:
 среди шагов `Δ = u ⊗ v` с единичными `u`, `v` (у такого шага
@@ -28,7 +28,7 @@ C670. Спектральный срез шага Muon (hagi/core.py:1755 @ca52eb
 
 Честная граница (down-scope): полный шаг Muon `U Vᵀ` (все ранги;
 `⟨G, Δ⟩ ≤ ‖G‖_*·‖Δ‖₂`) требует неравенства фон Неймана о следе /
-дуальности спектральной и ядерной норм — в Mathlib v4.36 pin их нет
+дуальности спектральной и ядерной норм — в Mathlib их нет
 (диагональный срез — `Hagi.Step.MuonAlign.muon_alignment_optimal`).
 -/
 

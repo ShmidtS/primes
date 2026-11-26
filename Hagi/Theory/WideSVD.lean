@@ -8,7 +8,7 @@ import Hagi.Theory.MuonWide
 /-!
 # WideSVD — вещественный прямоугольный SVD из квадратного (pad-to-square)
 
-C679. Для широкой вещественной `G : Matrix m n ℝ` (`card m ≤ card n`)
+Для широкой вещественной `G : Matrix m n ℝ` (`card m ≤ card n`)
 существует разложение `G = U·diag σ·Vᵀ` с `U : m×m`, `V : n×m`,
 `UᵀU = 1`, `VᵀV = 1`, `σ ≥ 0`. Тем самым гипотеза `G = U·diag σ·Vᵀ`
 в MuonWide (T1–T5) снимается: `wide_alignment_exact'`,
@@ -26,14 +26,14 @@ C679. Для широкой вещественной `G : Matrix m n ℝ` (`card
 Граница: порядок `σ` (↓) не утверждается — он зависит от перенумерации
 `Fintype.equivFin`; MuonWide он не нужен. Порядок `σ` (↓) не утверждается.
 
-C680 (S1, S3): `wfrobSq_eq_sum_sigma_sq` — `‖G‖_F² = Σ σ i²` для спектра из
+Нормировка и сертификат: `wfrobSq_eq_sum_sigma_sq` — `‖G‖_F² = Σ σ i²` для спектра из
 `exists_wide_svd`; `wnormed_sigma_le_one` — спектр нормированного `Ĝ = G/‖G‖_F`
 лежит в `[0, 1]`; `wide_alignment_ge_gradient'` — T3 без единой посылки о
 структуре `G`; `muon_step_useful_wide` — сертификат спуска для широкого шага.
 
 Граница: только широкая форма `card m ≤ card n` (высокий случай —
 `MuonWide.code_ns_eq_wide_iter`); носитель сертификата — координатное
-пространство `m → n → ℝ`, мост к слою `W1` и носителю C676 не формализован;
+пространство `m → n → ℝ`, мост к слою `W1` и носителю `MuonDescentW1` не формализован;
 проверка `norm < 1e-12 → return X` (core.py:1355) и число итераций вне теории.
 -/
 
@@ -323,7 +323,7 @@ theorem wide_step_optimal' (G : Matrix m n ℝ) (hmn : Fintype.card m ≤ Fintyp
     (mul_eq_one_comm.mp hU) hV hσ
   exact ⟨σ, Δ, hσ, hΔ, heq, hle⟩
 
-/-! ### C680: нормировка широкого градиента (S1) и сертификат спуска (S3)
+/-! ### Нормировка широкого градиента (S1) и сертификат спуска (S3)
 
 Короткий путь: `Σ σ i² = ‖G‖_F²` для спектра из `exists_wide_svd`, поэтому
 `wsmax`/`padSquare`-оценки не нужны — `σ i ≤ √(Σ σ²)`. -/

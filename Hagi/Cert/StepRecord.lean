@@ -8,29 +8,24 @@ set_option linter.style.header false
 set_option relaxedAutoImplicit false
 
 /-!
-# StepRecord — единая запись журнала одного шага (A19.2, beat)
+# StepRecord — единая запись журнала одного шага
 
-Аудит A19 N2/N3: 24 cert-структуры со спад-неравенством пере-записывают
-одно и то же «drop > 0, obj s' ≤ obj s − drop» плюс разрозненную
-телеметрию. Этот модуль — ЕДИНАЯ запись журнала (LOG-этап certify-then-
-commit SSOT): drop-ядро (единственный закон — спад) + свободные
-телеметрические скаляры (budgetSpend / riskSpend / delta — данные
-журнала, БЕЗ законов; законы остаются в замороженных носителях).
-Телескоп получается бесплатно: один инстанс `AdditiveLedger`,
-ни одной новой индукции.
+Единая запись журнала одного шага: drop-ядро (единственный закон —
+спад) + телеметрические скаляры (budgetSpend / riskSpend / delta —
+данные без законов; законы остаются в cert-носителях). Телескоп —
+один инстанс `AdditiveLedger`.
 
 Модуль — лист (не импортирует cert-структуры); мосты `toRecord` для
-ядра живут в `Hagi.Cert.Core`/`StepGen`, для Unified/Training-носителей
-— в их собственных файлах (направление слоёв). Инвентарь и классификация (a)/(b)/(c) — в карточке модуля STATUS.md.
+ядра живут в `Hagi.Cert.Core`/`StepGen`.
 -/
 
 namespace Hagi.Cert
 
 variable {S : Type*}
 
-/-- ЕДИНАЯ запись журнала одного сертифицированного шага: сертифициро-
-ванная нижняя граница спада с obj-chain-законом + телеметрия трат как
-данные (без законов — журнал REPORTS, законы проверяют носители). -/
+/-- Запись журнала одного сертифицированного шага: сертифицированная
+нижняя граница спада с законом спада + телеметрия трат как данные
+(законы проверяют носители). -/
 structure StepRecord (obj : S → ℝ) (s s' : S) where
   /-- Сертифицированная нижняя граница спада objective. -/
   drop : ℝ
@@ -55,18 +50,16 @@ def StepRecord.core {obj : S → ℝ} {s s' : S} (drop : ℝ) (hpos : 0 < drop)
   riskSpend := 0
   delta := 0
 
-/-! ## Телескоп (бесплатно) -/
+/-! ## Телескоп -/
 
-/-- `StepRecord` списывает certified drop из objective (≤-закон;
-единственный инстанс записи — телеметрия законов не несёт). -/
+/-- `StepRecord` списывает certified drop из objective (≤-закон). -/
 instance stepRecord_objective (obj : S → ℝ) :
     AdditiveLedger S obj (StepRecord obj) where
   spend c := c.drop
   step_descend c := c.descent
 
 /-- Телескоп журнала: терминальный objective ≤ начального минус сумма
-записанных drop'ов — one-line специализация `additive_ledger_telescope`
-(индукция — единственная, в `Hagi.Foundations`). -/
+записанных drop'ов — специализация `additive_ledger_telescope`. -/
 theorem stepRecord_telescope {obj : S → ℝ}
     (n : ℕ) (t : ℕ → S)
     (steps : ∀ j : ℕ, StepRecord obj (t j) (t (j + 1))) :

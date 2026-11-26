@@ -9,12 +9,10 @@ import Hagi.Learning.HRCN
 set_option linter.style.header false
 
 /-!
-# SoftRouterMix — мягкая калиброванная смесь вместо жёстких ±10 (цикл 19)
+# SoftRouterMix — мягкая калиброванная смесь вместо жёстких ±10
 
-Аудит §7 (T): «Мягкая калиброванная смесь вместо жёстких ±10:
-CE смеси не хуже взвешенного среднего CE (Jensen)». Честная
-раскладка — ДВЕ разные смеси, обе истинные, но по разным
-причинам (challenge-pin: их нельзя смешивать в одном
+CE смеси не хуже взвешенного среднего CE (Jensen). Две разные
+смеси, истинные по разным причинам (их нельзя смешивать в одном
 утверждении):
 
 * ЛОГИТ-смесь Σwᵢzᵢ (side роутера): `soft_router_ce_bound` —
@@ -28,12 +26,9 @@ CE смеси не хуже взвешенного среднего CE (Jensen)�
   вогнутость логарифма (`mixture_log_weighted_le`), верно для
   ЛЮБЫХ положительных векторов — нормализация pᵢ не нужна.
 
-Связь с Hedge: веса роутера w из mirror-спуска
-(`router_regret_bound`, `Hagi.Optimization.MirrorHedgeRouting`)
-— в точности вероятностный вектор (симплекс), т.е. посылки
-`soft_router_ce_bound` совпадают с Hedge-симплексом: regret
-роутера ограничивает ΣwᵢCEᵢ, а этот модуль замыкает цепочку
-на CE самой смеси.
+Веса роутера w из mirror-спуска (`router_regret_bound`) —
+вероятностный вектор, т.е. посылки `soft_router_ce_bound`
+совпадают с Hedge-симплексом.
 
 Жёсткий роутинг — отрицательный якорь: one-hot w = δⱼ
 вырождает смесь в один эксперт (`one_hot_no_gain`: выигрыша
@@ -96,11 +91,9 @@ theorem mixture_log_weighted_le
 noncomputable def ceDist {k : Type*} (p : k → ℝ) (t : k) : ℝ :=
   -Real.log (p t)
 
-/-- ДИСТРИБУТИВНАЯ СТОРОНА аудита §7: CE метки y у смеси
-распределений p̄ = Σwᵢpᵢ не хуже взвешенного среднего CE
-компонент (чистая вогнутость log; нужны только положительные
-pᵢ — нормализация не используется, утверждение сильнее
-симплексного). -/
+/-- CE метки y у смеси распределений p̄ = Σwᵢpᵢ не хуже
+взвешенного среднего CE компонент (вогнутость log; нужны
+только положительные pᵢ). -/
 theorem mixture_ce_le_weighted_avg {k : Type*}
     (w : ι → ℝ) (hw0 : ∀ i, 0 ≤ w i) (hw1 : ∑ i, w i = 1)
     (p : ι → k → ℝ) (hp : ∀ i v, 0 < p i v) (t : k) :
@@ -124,8 +117,7 @@ variable {k : Type*} [Fintype k] [Nonempty k]
 
 /-- Взвешенный Дженсен для lse: lse(Σᵢwᵢzᵢ) ≤ Σᵢwᵢ·lse(zᵢ)
 для вероятностного вектора весов w. Обобщение равномерного
-`lse_mean_le_mean_lse` (1/N → w): поточечный взвешенный AM-GM
-на tᵢᵥ = exp(zᵢᵥ)/Sᵢ, разбиение Хёльдера, логарифмирование. -/
+`lse_mean_le_mean_lse`. -/
 theorem lse_weighted_le {N : ℕ} (w : Fin N → ℝ) (hw0 : ∀ a, 0 ≤ w a)
     (hw1 : ∑ a, w a = 1) (z : Fin N → k → ℝ) :
     lse (fun v => ∑ a, w a * z a v) ≤ ∑ a, w a * lse (z a) := by
@@ -193,12 +185,9 @@ theorem lse_weighted_le {N : ℕ} (w : Fin N → ℝ) (hw0 : ∀ a, 0 ≤ w a)
   rw [hconv] at hlog
   exact hlog
 
-/-- ЛОГИТНАЯ СТОРОНА аудита §7 (требование T): CE one-hot
-метки t у смеси логитов Σᵢwᵢzᵢ не хуже взвешенного среднего CE
-экспертов. Веса w — вероятностный вектор (Hedge-симплекс
-роутера: mirrorStep держит ровно такие посылки). Причина —
-выпуклость lse + линейность целевого члена, НЕ вогнутость
-softmax. -/
+/-- CE one-hot метки t у смеси логитов Σᵢwᵢzᵢ не хуже
+взвешенного среднего CE экспертов (w — вероятностный вектор).
+Причина — выпуклость lse + линейность целевого члена. -/
 theorem soft_router_ce_bound {N : ℕ} (t : k) (w : Fin N → ℝ)
     (hw0 : ∀ a, 0 ≤ w a) (hw1 : ∑ a, w a = 1) (z : Fin N → k → ℝ) :
     ceOneHot t (fun v => ∑ a, w a * z a v)
@@ -223,8 +212,7 @@ section HardRouting
 variable {k : Type*} [Fintype k]
 
 /-- Вырожденный якорь: one-hot роутинг w = δⱼ даёт смесь,
-равную одному эксперту, — смешивание не даёт НИЧЕГО (равенство
-в обе стороны вырождения). -/
+равную одному эксперту. -/
 theorem one_hot_no_gain {N : ℕ} (j : Fin N) (z : Fin N → k → ℝ) (t : k) :
     ceOneHot t (fun v => ∑ a, (if a = j then (1:ℝ) else 0) * z a v)
       = ceOneHot t (z j) := by
@@ -248,21 +236,17 @@ theorem lse_wz (z : Fin 2 → ℝ) (h0 h1 : ℝ)
   congr 1
   rw [Fin.sum_univ_two, hz.1, hz.2]
 
-/-- ОТРИЦАТЕЛЬНЫЙ ЯКОРЬ (жёсткая ошибка): hard-роутинг на
-неверного уверенного эксперта wz2 при метке 0 платит ПОЛНУЮ
-цену CE = log(e²+1) ≈ 2.13 — режим «20·(1−acc)»: уверенная
-некалиброванная ошибка не смягчается ничем. -/
+/-- Отрицательный якорь: hard-роутинг на неверного уверенного
+эксперта wz2 при метке 0 платит полную цену CE = log(e²+1). -/
 theorem hard_wrong_full_price :
     ceOneHot 0 wz2 = Real.log (1 + Real.exp 2) := by
   unfold ceOneHot
   rw [lse_wz wz2 0 2 ⟨rfl, rfl⟩]
   simp [Real.exp_zero, wz2]
 
-/-- КАЛИБРОВОЧНАЯ ПОБЕДА (строгий якорь): мягкая смесь ½/½
-противоположно уверенных экспертов даёт CE = log 2 ≈ 0.69 —
-СТРОГО меньше полной цены log(e²+1) ≈ 2.13 неверного жёсткого
-маршрута. Мягкость весов — именно то, что смягчает цену
-ошибки. -/
+/-- Мягкая смесь ½/½ противоположно уверенных экспертов даёт
+CE = log 2 — строго меньше полной цены log(e²+1) неверного
+жёсткого маршрута. -/
 theorem soft_beats_hard_wrong :
     ceOneHot 0 (fun v => (wz1 v + wz2 v) / 2) < Real.log (Real.exp 2 + 1) := by
   have hmix : (fun v => (wz1 v + wz2 v) / 2) = fun _ => 1 := by
@@ -289,47 +273,24 @@ end Hagi.Learning.SoftRouterMix
 set_option linter.style.header false
 
 /-!
-# SoftRouterTotal — сквозной regret-бандл мягкого роутера (цикл 20)
+# SoftRouterTotal — сквозной regret-бандл мягкого роутера
 
-Композиция `soft_router_ce_bound` (по-раундовая
-калибровка смеси логитов) + регрет-носитель Hedge
-(`Hagi.Optimization.MirrorHedgeRouting.router_regret_bound` с
-выведенной посылкой выживания `Hagi.Optimization.MirrorHedgeSurvivor.
-hsurv_derived`). Итог — `soft_router_total_bound`: за T раундов
-мягкий роутинг с Hedge-весами wᵗ = ewNorm CE-потерь конкурентен
-ЛЮБОМУ одиночному эксперту в ретроспективе (total mixture CE ≤
-best-expert total CE + log N/η + η·T/2), причём калиброванный CE
-гарантирован на КАЖДОМ шаге. Новая математики нет — только
-суммирование-склейка; обе стороны процитированы.
+Композиция `soft_router_ce_bound` и регрет-носителя Hedge
+(`router_regret_bound` с посылкой выживания `hsurv_derived`).
+Итог — `soft_router_total_bound`: за T раундов мягкий роутинг
+с Hedge-весами конкурентен любому одиночному эксперту
+(total mixture CE ≤ best-expert total CE + log N/η + η·T/2),
+причём калиброванный CE гарантирован на каждом шаге.
 
-Challenge-pins (честные границы, все три в докстрингах):
+Честные границы:
 
-* ИДЕНТИФИКАЦИЯ ПОТЕРЬ: Hedge-носитель (`hedge_step`) требует
-  потерь экспертов в [0, 1]. CE ≥ 0 всегда (кирпич
-  `ceOneHot_nonneg`: lse z ≥ z t, сумма exp доминирует целевой
-  член), но CE ≤ 1 — РЕАЛЬНАЯ посылка (режим exact-expert
-  abstention: эксперты с CE > 1 — уверенно неверные уровня wz2 —
-  исключены; для них нужен масштабированный η, не заявлено).
-* ИНДЕКС ЭКСПЕРТОВ: носитель `ewNorm` фиксирован во вселенной
-  `Type` 0, а индексирует экспертов `Fin N` — композиция
-  заявлена на `Fin N` с `[Nonempty (Fin N)]`, оба носителя
-  применяются дословно.
-* GUARD / SLEEPING EXPERTS: у носителя Hedge НЕТ механизма
-  спящих экспертов (веса обновляются по всем экспертам каждый
-  раунд). Честная версия: бандл верен относительно ЛЮБОГО
-  одиночного эксперта i (параметрически) — в частности любого
-  guard-доступного; анти-лок-ин носителя
-  (`ewNorm_survivor_lower`) не даёт роутеру навсегда shut out
-  эксперта. Regret относительно лучшей ПОСЛЕДОВАТЕЛЬНОСТИ
-  доступных экспертов (настоящий sleeping-experts regret) НЕ
-  заявлен — gap зафиксирован.
+* CE ≤ 1 — реальная посылка (эксперты с CE > 1 исключены;
+  масштабированный η не заявлен);
+* sleeping-experts regret здесь не заявлен (модуль
+  `Hagi.Learning.SleepingRouter` ниже);
+* oblivious-последовательности, без подобранного η.
 
-Honest scope: без drift/адаптивности (логиты и метки —
-адверсариальные последовательности), константа регрета ровно как
-у носителя (log N/η + η·T/2), без подобранного η. Якорь
-`total_bound_anchor`: 2 эксперта, 3 раунда, η = 1/2 — числовая
-проверка композиции (веса раунда 0 равномерны 1/2, 1/2, смесь
-строго положительного CE; итог < 4·L + 3 при L = log(1+e⁻²)).
+Якорь `total_bound_anchor` — числовая проверка композиции.
 -/
 
 namespace Hagi.Learning.SoftRouterTotal
@@ -349,16 +310,13 @@ theorem ceOneHot_nonneg {k : Type*} [Fintype k] [Nonempty k]
   rw [Real.log_exp] at h2
   linarith
 
-/-- ГЛАВНЫЙ РЕЗУЛЬТАТ — сквозной бандл: за T раундов с
+/-- Сквозной бандл: за T раундов с
 Hedge-весами wᵗ = ewNorm CE-потерь (η ∈ (0,1]) и посылкой CE ≤ 1
 (exact-expert abstention) суммарный CE мягкой смеси не превосходит
 суммарный CE ЛЮБОГО одиночного эксперта плюс константу регрета
 носителя log N/η + η·T/2. Композиция: по-раундовая калибровка
 `soft_router_ce_bound` + агрегация `hsurv_derived` +
-`router_regret_bound` (Hedge-носитель); новые факты — только
-неотрицательность CE и суммирование. Эксперты — `Fin N` (вселенная
-носителя Type 0, индексирует Fin N); sleeping-experts regret не
-заявлен (см. докстринг модуля). -/ 
+`router_regret_bound`. Эксперты — `Fin N`. -/
 theorem soft_router_total_bound {k : Type*} [Fintype k] [Nonempty k]
     {N : ℕ} [Nonempty (Fin N)]
     (eta : ℝ) (heta : 0 < eta ∧ eta ≤ 1) (T : ℕ)
@@ -408,8 +366,7 @@ section Anchor
 
 /-- Якорные эксперты (Fin 2): эксперт 0 = `wz1` (уверенно прав на
 метке 0, CE = log(1+e⁻²) ≈ 0.13), эксперт 1 = константа 1
-(откалиброванный сиделец на заборе, CE = log 2 ≈ 0.69). Оба CE ≤ 1
-— посылка exact-expert abstention выполнена. -/
+(CE = log 2). Оба CE ≤ 1. -/
 noncomputable def az : ℕ → Fin 2 → Fin 2 → ℝ := fun _ i v =>
   if i = 0 then (if v = 0 then 2 else 0) else 1
 
@@ -475,10 +432,9 @@ noncomputable def anchorMix (t : ℕ) : ℝ := ceOneHot 0
   (fun v => ∑ i : Fin 2,
     ewNorm (fun t i => ceOneHot 0 (az t i)) (1/2) t i * az t i v)
 
-/-- ЧИСЛОВАЯ ПРОВЕРКА КОМПОЗИЦИИ (2 эксперта, 3 раунда, η = 1/2):
-(а) НЕВАКУУНСТВО — на раунде 0 Hedge-веса равномерны (1/2, 1/2),
-смесь (3/2, 1/2) даёт СТРОГО положительный CE log(e^(3/2)+e^(1/2)) −
-3/2 > 0; (б) ИТОГ — инстанциация `soft_router_total_bound` даёт
+/-- Числовая проверка композиции (2 эксперта, 3 раунда, η = 1/2):
+(а) невакуумность — на раунде 0 Hedge-веса равномерны (1/2, 1/2),
+смесь (3/2, 1/2) даёт строго положительный CE; (б) итог — инстанциация `soft_router_total_bound` даёт
 total ≤ 3·L + 2·log 2 + 3/4 (regret-константа log 2/(1/2) + (1/2)·3/2
 при N = 2, T = 3), численно < 4·L + 3 при L = log(1+e⁻²). -/
 theorem total_bound_anchor :
@@ -553,51 +509,34 @@ end Hagi.Learning.SoftRouterTotal
 set_option linter.style.header false
 
 /-!
-# SleepingRouter — sleeping-experts regret мягкого роутера (цикл 21)
+# SleepingRouter — sleeping-experts regret мягкого роутера
 
- закрывает honest gap (`SoftRouterTotal`): у Hedge-носителя
-нет механизма спящих экспертов — веса обновляются по ВСЕМ экспертам
-каждый раунд, поэтому его regret не покрывает конкуренцию с лучшим
-ДОСТУПНЫМ экспертом, когда guard-гатенные эксперты спят на части
-раундов. Здесь — классический imputed-loss редукционный трюк
+У Hedge-носителя веса обновляются по всем экспертам каждый раунд,
+поэтому его regret не покрывает конкуренцию с лучшим доступным
+экспертом. Здесь — классический imputed-loss трюк
 (Freund–Schapire share updates / specialists):
 
 * спящие эксперты обновляются ПОТЕРЕЙ СМЕСИ m_t (не своими ℓ):
   `w(t+1,i) = w(t,i)·(if awake then e^{-ηℓ} else e^{-η m_t})`;
-* KEY IDENTITY `swWeight_eq_ewWeight`: этот процесс ОПРЕДЕЛЕНИЯМИ
-  совпадает с `ewWeight (swLoss l a eta) eta` на импутированных
-  потерях `swLoss t i = if awake then ℓ else m_t` — весь носитель
-  (`hsurv_derived` + `router_regret_bound`) применяется ДОСЛОВНО,
-  без изменений доказательства;
-* SELF-CONSISTENCY `algLoss_eq_mixLoss`: потери алгоритма (полная
-  нормировка ewNorm) на импутированных потерях РАВНЫ m_t —
-  awake-часть даёт (P/W)·m_t, asleep-часть (1−P/W)·m_t;
-* ТЕЛЕСКОП-КАНЦЕЛЯЦИЯ: `Σ_{t: i awake}(m_t − ℓ_t^i) = A − L*` —
-  асимные члены `Σ_{asleep(i)} m_t` сокращаются ТОЧНО (равенство,
-  даже неотрицательность m_t не нужна).
+* `swWeight_eq_ewWeight`: этот процесс совпадает с Hedge на
+  импутированных потерях `swLoss t i = if awake then ℓ else m_t`,
+  так что носитель (`hsurv_derived` + `router_regret_bound`)
+  применяется дословно;
+* `algLoss_eq_mixLoss`: потери алгоритма на импутированных потерях
+  равны m_t;
+* телескоп-канцеляция: `Σ_{t: i awake}(m_t − ℓ_t^i) = A − L*` —
+  asleep-члены сокращаются точно.
 
-Итог — `sleeping_hedge_regret` (носитель) и
-`sleeping_router_total_bound` (композиция апгрейд): мягкий
-роутер конкурирует с ЛЮБЫМ экспертом i НА ЕГО СОБСТВЕННЫХ
-ДОСТУПНЫХ РАУНДАХ — total mixture CE ≤ Σ_{t: i awake} CE_i +
-log N/η + η·T/2 при по-раундовой калибровке `soft_router_ce_bound`
- на awake-supported симплекс-весах `swPredW`.
+Итог — `sleeping_hedge_regret` и `sleeping_router_total_bound`:
+мягкий роутер конкурирует с любым экспертом i на его доступных
+раундах: total mixture CE ≤ Σ_{t: i awake} CE_i + log N/η + η·T/2.
 
-Challenge-pins (честные границы):
+Честные границы:
 
-* AWAKE-NONEMPTY: посылка «в каждом раунде хоть один эксперт
-  доступен» — СТОЯЩАЯ предпосылка (раунд без доступных экспертов не
-  имеет предсказания; исключён моделированием, не замят молча).
-* ДИАПАЗОН ПОТЕРЬ: `m_t ∈ [0,1]` ВЫВЕДЕНО (`mixLossOf_mem`: выпуклая
-  комбинация awake-потерь из [0,1]) — посылка hedge_step не
-  протащена, а доказана.
-* SCOPE: последовательности oblivious (адаптивный адверсарий НЕ
-  заявлен — скоуп носителя наследован дословно); regret против
-  ФИКСИРОВАННОГО эксперта на его awake-раундах; best-switching
-  последовательность экспертов НЕ заявлена (fixed-share — future).
-* ПРЕДСКАЗАНИЕ: смесь логитов по awake-supported весам `swPredW`
-  (спящие эксперты исключены из предсказания гвардом; их веса
-  эволюционируют импутацией и возвращаются при пробуждении).
+* «в каждом раунде хоть один эксперт доступен» — посылка;
+* `m_t ∈ [0,1]` выведено (`mixLossOf_mem`);
+* oblivious-последовательности; regret против фиксированного
+  эксперта; best-switching не заявлен.
 -/
 
 namespace Hagi.Learning.SleepingRouter
@@ -683,7 +622,7 @@ theorem mixLossOf_mem (w : ι → ℝ) (lt : ι → ℝ) (A : ι → Bool)
   rw [hsum] at hle
   exact hle
 
-/-- KEY IDENTITY: спящий процесс — это в точности Hedge (`ewWeight`)
+/-- Спящий процесс — это в точности Hedge (`ewWeight`)
 на импутированных потерях (индукция по t, обе ветки
 определительные). Весь существующий носитель применим дословно. -/
 theorem swWeight_eq_ewWeight (l : ℕ → ι → ℝ) (a : ℕ → ι → Bool) (eta : ℝ)
@@ -706,7 +645,7 @@ theorem ewPot_sw (l : ℕ → ι → ℝ) (a : ℕ → ι → Bool) (eta : ℝ) 
   exact Finset.sum_congr rfl fun j _ =>
     (swWeight_eq_ewWeight l a eta t j).symm
 
-/-- SELF-CONSISTENCY: потери алгоритма (полная нормировка `ewNorm`)
+/-- Потери алгоритма (полная нормировка `ewNorm`)
 на импутированных потерях РАВНЫ awake-нормированной потере смеси:
 awake-часть даёт (P/W)·m_t, asleep-часть (1−P/W)·m_t. -/
 theorem algLoss_eq_mixLoss (l : ℕ → ι → ℝ) (a : ℕ → ι → Bool) (eta : ℝ)
@@ -793,7 +732,7 @@ theorem algLoss_eq_mixLoss (l : ℕ → ι → ℝ) (a : ℕ → ι → Bool) (e
   field_simp
   ring
 
-/-- ГЛАВНЫЙ РЕЗУЛЬТАТ НОСИТЕЛЯ — sleeping-experts regret (маски
+/-- Sleeping-experts regret (маски
 рованная версия `hsurv_derived` + `router_regret_bound`): смесь
 конкурирует с экспертом i НА ЕГО СОБСТВЕННЫХ AWAKE-РАУНДАХ с
 константой носителя log K/η + η·T/2. Асимные члены сокращаются
@@ -963,19 +902,14 @@ section Total
 
 variable {k : Type*} [Fintype k] [Nonempty k]
 
-/-- ГЛАВНЫЙ РЕЗУЛЬТАТ КОМПОЗИЦИИ — апгрейд
-(`soft_router_total_bound` со спящими экспертами). За T раундов с
+/-- `soft_router_total_bound` со спящими экспертами. За T раундов с
 guard-маской a (каждый раунд хоть один эксперт доступен, CE ≤ 1 —
 exact-expert abstention) суммарный CE мягкой awake-смеси
 НА ДОСТУПНЫХ РАУНДАХ ЭКСПЕРТА i не превосходит суммарный CE
 эксперта i на тех же раундах плюс константа носителя
 log N/η + η·T/2. Композиция: по-раундовая калибровка
-(`swPredW_ce`) + `sleeping_hedge_regret`; новые факты — только
-суммирование-склейка. Honest scope: oblivious-последовательности
-(без drift/адаптивности — скоуп носителя); regret против
-ФИКСИРОВАННОГО эксперта на его awake-раундах (best-switching не
-заявлен); CE смеси на раундах, где i спит, НЕ ограничивается (там
-роутер конкурирует с другими доступными экспертами). -/
+(`swPredW_ce`) + `sleeping_hedge_regret`. CE смеси на раундах,
+где i спит, не ограничивается. -/
 theorem sleeping_router_total_bound {N : ℕ} [Nonempty (Fin N)]
     (eta : ℝ) (heta : 0 < eta ∧ eta ≤ 1) (T : ℕ)
     (lab : ℕ → k) (z : ℕ → Fin N → k → ℝ) (a : ℕ → Fin N → Bool)
@@ -1116,14 +1050,9 @@ theorem sleep_anchor_mix_eq (t : ℕ) :
       subst hx
       exact (sleep_anchor_mask_odd t h).2
 
-/-- ЧИСЛОВАЯ ПРОВЕРКА (2 эксперта, чередующаяся доступность,
-4 раунда, η = 1/2): (а) НЕВАКУУНСТВО — смесь строго положительна
-(каждый m_t = CE доступного эксперта > 0); (б) ТОЧНОЕ ЗНАЧЕНИЕ —
-total = 2·L + 2·log 2 (чётные раунды — эксперт 0, нечётные — 1);
-(в) REGRET-ПРОВЕРКА — инстанциация `sleeping_hedge_regret` для
-i = 0: LHS = 0 (на чётных раундах смесь вырождена в эксперта 0) ≤
-константа 2·log 2 + 1. Все три — через ГЛАВНЫЕ определения/теоремы,
-не самостоятельные леммы. -/
+/-- Числовая проверка (2 эксперта, чередующаяся доступность,
+4 раунда, η = 1/2): смесь строго положительна;
+total = 2·L + 2·log 2; regret для i = 0 равен нулю. -/
 theorem sleeping_router_anchor :
     (0:ℝ) < ∑ t ∈ Finset.range 4,
         swMixLoss sleep_anchor_loss sleep_anchor_mask (1 / 2) t
@@ -1215,7 +1144,7 @@ end Hagi.Learning.SleepingRouter
 set_option linter.style.header false
 
 /-!
-# RouterMix — mirror-роутинг доменов HRCN (цикл 16)
+# RouterMix — mirror-роутинг доменов HRCN
 
 Связка RCDL-синтеза: веса доменов p обновляются зеркальным
 спуском (mirrorStep) по доменным потерям ℓ; выход слоя —
@@ -1226,10 +1155,8 @@ set_option linter.style.header false
 - `router_is_simplex`: после mirror-шага веса остаются
   строго положительным распределением (делегация
   mirrorStep_pos/mirrorStep_sum_one);
-- `routerMix_switch`: ДВУХДОМЕННАЯ ИНВАРИАНТНОСТЬ — при смене
-  весов роутера вклад каждого домена не меняется (слой
-  домена не зависит от чужих весов): isolate w → zero
-  cross-talk энд-ту-энд (совместно с hrcn_cross_talk_zero).
+- `routerMix_switch`: при смене весов роутера вклад каждого
+  домена не меняется (слой домена не зависит от чужих весов).
 -/
 
 open Finset
@@ -1268,7 +1195,7 @@ theorem router_is_simplex
   ⟨fun w => mirrorStep_pos p₀ ℓ T hT hp₀ w,
     mirrorStep_sum_one p₀ ℓ T hT hp₀⟩
 
-/-- ДВУХДОМЕННАЯ ИНВАРИАНТНОСТЬ: замена веса домена u ≠ w в
+/-- Инвариантность: замена веса домена u ≠ w в
 роутере не меняет вклад домена w (вклады доменов не зависят
 от чужих весов). -/
 theorem routerMix_switch (doms : Finset (Fin k → ZMod 2))

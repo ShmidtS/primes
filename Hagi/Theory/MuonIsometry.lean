@@ -7,7 +7,7 @@ import Hagi.Theory.MuonSpectral
 /-!
 # MuonIsometry — полный шаг Muon оптимален на группе изометрий
 
-C672. Продолжение `Hagi.Theory.MuonSpectral` (rank-one срез). Полный шаг
+Продолжение `Hagi.Theory.MuonSpectral` (rank-one срез). Полный шаг
 Muon — это полярный фактор `U Vᵀ` градиента `G = U Σ Vᵀ`: идеальный
 Newton–Schulz (hagi/core.py:1350 @ca52eb4, итерация
 `X ← X(3I − XᵀX)/2`, core.py:1363) выдаёт матрицу с ортонормальными

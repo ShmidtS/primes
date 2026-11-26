@@ -10,7 +10,6 @@ import Mathlib.Tactic
 
 MemoryCapacity (ёмкость памяти), RoutingCapacity (ёмкость
 маршрутизации), GainRecoverability (восстановимость выигрыша).
-Слит из трёх модулей; namespace и имена сохранены.
 -/
 
 /-!
@@ -192,9 +191,8 @@ Three regimes (proved as a total trichotomy):
 * ρ_info = 0 — the DEGENERATE regime: retained information is
   zero (or bits infinite): no capability survives.
 
-All statements are exact finite algebra — no analogy is claimed
-about the 148 dynamics themselves; only the RATIO STRUCTURE is
-imported (honest boundary).
+Exact finite algebra: only the ratio structure is used, no
+claim about the dynamics themselves.
 -/
 
 namespace Hagi.Information

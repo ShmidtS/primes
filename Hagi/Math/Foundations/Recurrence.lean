@@ -7,9 +7,9 @@ import Mathlib.Tactic
 set_option linter.style.header false
 
 /-!
-# Foundations.Recurrence — каноническая рекуррентная лемма
+# Foundations.Recurrence — линейная рекуррента
 
-Канонические леммы для линейной рекурренты
+Леммы для линейной рекурренты
 `x_{t+1} ≤ rho * x_t + c` на горизонте `t < T`: посылки
 только при `t < T`, горизонт `T` — в самой лемме.
 -/
@@ -300,20 +300,10 @@ theorem disp_recurrence_general {D : ℕ → ℝ} {a s : ℝ}
 
 Formal core of the spectral theory of grokking
 (arXiv:2609.26679): for homogeneous networks with squared
-loss and L2 weight decay, the generalization (grokking)
-timescale is controlled by the product `η·λ` of learning
-rate and weight decay — residual components decay with rate
-`η·λ`, so the time to drive a residual from `r₀` below `ε`
-scales as `ln(r₀/ε)/(η·λ)`.
-
-`grokking_threshold_time`: an exact exponential residual
-dynamic `r(t+1) = r(t) − η·λ·r(t)` reaches the threshold
-`ε` by time `T = ⌈ln(r₀/ε)/(η·λ)⌉` — the inverse-product
-scaling law, derived from `(1−ηλ)^T ≤ exp(−ηλT)`.
-
-## References
-
-[1] arXiv:2609.26679 (2026).
+loss and L2 weight decay the residual decays with rate
+`η·λ` (learning rate times weight decay), so the time to drive
+a residual from `r₀` below `ε` scales as `ln(r₀/ε)/(η·λ)`.
+The threshold time follows from `(1−ηλ)^T ≤ exp(−ηλT)`.
 -/
 
 /-- The key one-sided exponential bound: for `0 ≤ x ≤ 1`,
@@ -352,9 +342,7 @@ theorem one_sub_pow_le_exp (x : ℝ) (T : ℕ) (hx : 0 ≤ x) (hx1 : x ≤ 1) :
 /-- **Grokking threshold time**: under the exact
 residual dynamics `r(t+1) = r(t) − η·λ·r(t)` with `η·λ ∈
 (0,1]`, the residual at time `T ≥ ln(r₀/ε)/(η·λ)` is at most
-`ε` — the inverse-product scaling of the generalization
-timescale in `η·λ` (the formal core of the grokking phase
-geometry). -/
+`ε`: the inverse-product scaling of the grokking timescale. -/
 theorem grokking_threshold_time (eta lam r0 eps : ℝ)
     (heta : 0 < eta) (hlam : 0 < lam) (hr0 : 0 < r0)
     (heps : 0 < eps) (hepsr : eps ≤ r0)
@@ -435,7 +423,7 @@ theorem certified_descent_with_grokking_tail
 
 Formal core of the growing-batch convergence results
 (Improved Convergence Rates for Stochastic Multi-Gradient
-Descent, Corollary 3.1 family; plan §2): under the standard
+Descent, Corollary 3.1 family): under the standard
 quadratic-descent recursion
 
   E(t+1) ≤ ρ·E(t) + η²·σ²/b(t),  ρ = 1 − ηL < 1,
@@ -445,12 +433,7 @@ the accumulated noise term CONSTANT in T:
 
   E(T) ≤ ρ^T·E(0) + η²σ² / (b₀·(1 − ρδ⁻¹))     (ρ·δ⁻¹ < 1)
 
-— the noise floor does not accumulate: the tail is
-extinguished exactly as the grokking residual,
-and the horizon bound is the contraction floor
-c/(1−ρ) from `recurrence_upper`. The learning-rate cap
-η = 1/L plus batch scaling plus this
-stabilization complete the schedule algebra.
+— the noise floor does not accumulate.
 -/
 
 /-- **Growing-batch stabilization**: under the recursion
@@ -462,8 +445,8 @@ contraction decays), for every horizon `T ≥ 1`
 
 where `c = η²σ²/b₀`: the accumulated stochastic noise dies
 at the CONTRACTION rate — geometrically growing batches
-extinguish the noise tail completely (plan §2, growing-batch
-family of Improved Convergence Rates, Corollary 3.1). -/
+extinguish the noise tail completely (Improved Convergence Rates
+for Stochastic Multi-Gradient Descent, Corollary 3.1). -/
 theorem growing_batch_stabilized (E : ℕ → ℝ)
     (rho eta L sigma2 b0 delta : ℝ)
     (hrho : 0 < rho) (hrho1 : rho < 1) (hrho_eq : rho = 1 - eta * L)

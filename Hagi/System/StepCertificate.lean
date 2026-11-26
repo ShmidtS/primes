@@ -2,7 +2,7 @@ import Hagi.System.GrowthState
 import Hagi.Cert.StepGen
 
 /-!
-# StepCertificate — полный сертификат шага (P2.10)
+# StepCertificate — полный сертификат шага
 
 Спуск, риск, ошибка обобщения, стоимость в одном контракте:
 базовый Certificate (decrease/riskSpend/budgetSpend) плюс
@@ -14,7 +14,7 @@ namespace Hagi.System
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
 
-/-- P2.10: ПОЛНЫЙ СЕРТИФИКАТ ШАГА — спуск, риск, ошибка
+/-- ПОЛНЫЙ СЕРТИФИКАТ ШАГА — спуск, риск, ошибка
 обобщения (полоса epsG), стоимость в одном контракте. -/
 structure StepCertificate (X : Type*) [NormedAddCommGroup X]
     [InnerProductSpace ℝ X] where
@@ -67,7 +67,7 @@ theorem safe_selection_productive
   have hle' := hle _ _ hmem
   linarith [hle']
 
-/-- АУДИТ v4 §3.4: ДОПУСТИМОСТЬ кандидата — риск и бюджет
+/-- ДОПУСТИМОСТЬ кандидата — риск и бюджет
 укладываются в лимиты шага (не только decrease > 0). -/
 def StepFeasible (riskLim budgetLim : ℝ) (c : StepCertificate X) : Prop :=
   c.base.riskSpend ≤ riskLim ∧ c.base.budgetSpend ≤ budgetLim
@@ -85,7 +85,7 @@ noncomputable def bestFeasibleDecrease (riskLim budgetLim : ℝ)
 /-- ОТБОР ПОЛНОЗВУЧЕН: если ДОПУСТИМЫЙ кандидат с положительным
 decrease существует, отбор среди допустимых даёт положительный
 decrease — сертификат продуктивности уважает бюджет и риск
-(закрытие разрыва «выбор проверяет только спуск», аудит v4 §3.4). -/
+(закрытие разрыва «выбор проверяет только спуск»). -/
 theorem safe_feasible_selection_productive
     (riskLim budgetLim : ℝ)
     (cands : List (StepCertificate X))
@@ -109,9 +109,9 @@ theorem safe_feasible_selection_productive
 носителе не записан, это данные потребителя (без молчаливого
 0-пиннинга); траты берутся из чисел носителя. -/
 
-/-- полный сертификат шага как шаг общего ядра
-(premise-form: числа-траты — носителя, точные законы —
-посылки потребителя; riskRem — свободный параметр). -/
+/-- Полный сертификат шага как шаг общего ядра: траты — из чисел
+носителя, точные законы — посылки потребителя; `riskRem` — свободный
+параметр. -/
 noncomputable def StepCertificate.toCertStepGen {TaskId : Type*}
     {S : Type*} (c : StepCertificate X)
     (hpos : 0 < c.base.decrease)

@@ -5,9 +5,9 @@ import Hagi.Unified.HonestTransition
 import Hagi.Unified.LoopInstances
 
 /-!
-# TernaryWitness — многомерный составной свидетель (аудит-3, Фаза 4.2)
+# TernaryWitness — многомерный составной свидетель
 
-Связывает «острова» формализации в один результат:
+Соединяет в один результат:
 многомерная квадратичная цель (DescentCoreQuad.quadE, k → ℝ)
 + реальный тернарный квантователь (Runtime.qTern, сетка {-1,0,+1}·s)
 + контракт шага (Unified.HonestTransition).
@@ -86,16 +86,14 @@ noncomputable def quant_jump_honest (s : ℝ) (hs : 0 < s) (a x : k → ℝ)
   riskBound := le_refl (0:ℝ)
   budgetBound := le_refl 0
 
-/-! ### Полный StepCert: квантованный прыжок в универсальном цикле -/
+/-! ### Полный StepCert: квантованный прыжок -/
 
 open Hagi.Unified.CertifiedLoop Hagi.Unified.LinkedQVec
   Hagi.Unified.LoopInstances
 
-/-- Финальное звено цепочки: тернарно-квантованный прыжок —
-ПОЛНЫЙ StepCert (спуск выведен из дисторсии квантователя,
-качество покомпонентно держится через монотонность измерителя
-quadMeasured: энергия падает ⇒ оценка растёт), готовый к
-телескопированию универсальной certified_loop. -/
+/-- Тернарно-квантованный прыжок — ПОЛНЫЙ StepCert (спуск выведен из
+дисторсии квантователя, качество держится через монотонность
+quadMeasured: энергия падает ⇒ оценка растёт). -/
 noncomputable def ternaryStepCert (s : ℝ) (hs : 0 < s) (a x : k → ℝ)
     (hin : ∀ i, ternInRange s (a i))
     (hxe : (Fintype.card k : ℝ) * s ^ 2 / 8 < quadE a x) :

@@ -14,7 +14,7 @@ open Finset Real
 
 
 /-!
-# Концентрация меры Гиббса при T → 0 (R386)
+# Концентрация меры Гиббса при T → 0
 
 Термодинамический закон для обучения: при температуре T
 распределение Гиббса p_T(v) ∝ exp(−E(v)/T) концентрируется
@@ -68,10 +68,10 @@ theorem gibbs_concentration {V : Type*} [Fintype V] [DecidableEq V] [Nonempty V]
   exact (one_div_ge_sub hx).trans hcanon
 
 open Filter in
-/-- **Предел концентрации при охлаждении (R387)**: вдоль
+/-- **Предел концентрации при охлаждении **: вдоль
 annealing-графика T_n = δ/(n+1) доля глобального минимума
 стремится к 1 — закон охлаждения в предельной форме.
-Маршрут: R386-оценка при T = T_n (показатель −δ/T_n = −(n+1)
+Маршрут: -оценка при T = T_n (показатель −δ/T_n = −(n+1)
 — точное сокращение через field_simp), share ≤ 1
 (`Finset.single_le_sum`), и двусторонний squeeze с
 exp(−(n+1)) → 0 (`Tendsto.add_atBot` + `Real.tendsto_exp_atBot`). -/
@@ -87,7 +87,7 @@ theorem gibbs_concentration_tendsto {V : Type*} [Fintype V]
   have hδT : ∀ n, -δ / (δ/((n+1 : ℕ) : ℝ)) = -((n+1 : ℕ) : ℝ) := by
     intro n
     field_simp
-  -- per-n bound from R386
+  -- per-n bound from
   have hbound : ∀ n, (1:ℝ)
       - ((Finset.univ.erase vstar).card : ℝ) * Real.exp (-((n+1 : ℕ) : ℝ))
       ≤ Real.exp (-(E vstar)/(δ/((n+1 : ℕ) : ℝ)))
@@ -141,7 +141,7 @@ theorem gibbs_concentration_tendsto {V : Type*} [Fintype V]
   exact tendsto_of_tendsto_of_tendsto_of_le_of_le hlow tendsto_const_nhds
     (fun n => hbound n) (fun n => hle n)
 
-/-- **Сэндвич свободной энергии (R390)**: F(T) = −T·ln Z
+/-- **Сэндвич свободной энергии **: F(T) = −T·ln Z
 зажат между `E* − T·ln|V|` (энтропийный пол: Z ≤ n·e^{−E*/T})
 и `E(v)` для любого v (вариационная верхняя: Z ≥ e^{−E(v)/T}
 через single-член). Ядро границ simulated annealing:
@@ -201,12 +201,12 @@ theorem free_energy_sandwich {V : Type*} [Fintype V] [Nonempty V]
   exact ⟨hlower, hupper⟩
 
 open Filter in
-/-- **KL к минимизатору стремится к нулю (R391)**:
+/-- **KL к минимизатору стремится к нулю **:
 `−ln share(T_n) → 0` вдоль annealing-графика —
 `KL(p_{T_n} ‖ δ_{vstar})` ( KL на точечную меру = −ln p(v*)
 ) экспоненциально гаснет: охлаждение = поток информации.
-Мост Гиббс-вертикали к KL/Pinsker-конвейеру (R375–R377):
-R387 + непрерывность log. -/
+Мост Гиббс-вертикали к KL/Pinsker-конвейеру:
+`gibbs_concentration_tendsto` + непрерывность log. -/
 theorem gibbs_neg_log_share_tendsto {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ)
     (hδ : 0 < δ) (vstar : V)
@@ -227,11 +227,11 @@ theorem gibbs_neg_log_share_tendsto {V : Type*} [Fintype V]
   rw [hone] at hlog
   simpa using hlog.neg
 
-/-- **Избыточная энергия Гиббс-состояния (R392)**:
+/-- **Избыточная энергия Гиббс-состояния **:
 Σ (E v − E*)·e^{−Ev/T} ≤ Δ·(Z − w_*) — ядро физического
 смысла охлаждения (без нормализации): ожидаемая энергия
 над основным состоянием ограничена зазором Δ на массу
-конкурентов; вместе с R386 (масса конкурентов ≤
+конкурентов; вместе с пер-n оценкой концентрации (масса конкурентов ≤
 (n−1)e^{−δ/T}) — экспоненциальное гашение избыточной
 энергии при охлаждении. -/
 theorem gibbs_excess_energy_bound {V : Type*} [Fintype V]
@@ -269,13 +269,13 @@ theorem gibbs_excess_energy_bound {V : Type*} [Fintype V]
   have h1 : (0:ℝ) ≤ Real.exp (-(E v)/T) := le_of_lt (exp_pos _)
   exact mul_le_mul_of_nonneg_right (hΔ v) h1
 
-/-- **Капстоун охлаждения (R393)**: нормализованная
+/-- **Капстоун охлаждения **: нормализованная
 ожидаемая энергия Гиббс-состояния
 
   ⟨E⟩_T = (∑ E v·e^{−Ev/T})/Z ≤ E* + Δ·(n−1)·e^{−δ/T}
 
-— композиция R392 (избыточная энергия ≤ зазор × масса
-конкурентов) и R386 (масса конкурентов ≤ (n−1)e^{−δ/T}):
+— композиция `gibbs_excess_energy_bound` (избыточная энергия ≤ зазор × масса
+конкурентов) и (масса конкурентов ≤ (n−1)e^{−δ/T}):
 при охлаждении T → 0 ожидаемая энергия экспоненциально
 прижимается к энергии основного состояния. Полный
 физический сертификат T-контура. -/
@@ -294,9 +294,9 @@ theorem gibbs_expected_energy_bound {V : Type*} [Fintype V]
   have hZpos : (0:ℝ) < Z :=
     Finset.sum_pos (fun v _ => exp_pos _)
       ⟨Classical.arbitrary V, Finset.mem_univ _⟩
-  -- R386: share = wstar/Z >= 1 - C e
+  -- share = wstar/Z >= 1 - C e
   have hshare := gibbs_concentration E δ vstar hgap T hT
-  -- R392: excess
+  -- excess
   have hexcess := gibbs_excess_energy_bound E T hT vstar Δ hmin hΔ
   -- decompose A = sum E v w = E* Z + sum (Ev-E*) w
   have hA : ∑ v, E v * Real.exp (-(E v)/T)
@@ -344,11 +344,11 @@ theorem gibbs_expected_energy_bound {V : Type*} [Fintype V]
   linarith
 
 open Filter in
-/-- **Предел ожидаемой энергии (R394)**: вдоль
+/-- **Предел ожидаемой энергии **: вдоль
 annealing-графика T_n = δ/(n+1) ожидаемая энергия
 Гиббс-состояния стремится к энергии основного состояния:
 ⟨E⟩_{T_n} → E*. Двусторонний squeeze: нижняя — взвешенное
-среднее не ниже минимума; верхняя — R393 с
+среднее не ниже минимума; верхняя — `gibbs_expected_energy_bound` с
 e^{−δ/T_n} = e^{−(n+1)} → 0. Предельная форма физики
 охлаждения: энергия системы прижимается к основному
 состоянию по закону, а не по эвристике. -/
@@ -381,7 +381,7 @@ theorem gibbs_expected_energy_tendsto {V : Type*} [Fintype V]
       _ ≤ ∑ v, E v * Real.exp (-(E v)/Tn n) :=
           Finset.sum_le_sum (fun v _ =>
             mul_le_mul_of_nonneg_right (hmin v) (le_of_lt (exp_pos _)))
-  -- upper from R393
+  -- upper from
   have hupper : ∀ n, (∑ v, E v * Real.exp (-(E v)/Tn n))
       / (∑ v, Real.exp (-(E v)/Tn n))
       ≤ E vstar + Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
@@ -426,9 +426,9 @@ theorem gibbs_expected_energy_tendsto {V : Type*} [Fintype V]
 
 open Filter in
 open Filter in
-/-- **TV-идентификация (R395)**: (1/2)·∑|p_T(v) − δ_{v*}(v)|
+/-- **TV-идентификация **: (1/2)·∑|p_T(v) − δ_{v*}(v)|
 = 1 − share(T) — TV-расстояние Гиббс-меры до точечной массы
-минимизатора равно массе конкурентов. Вместе с R387:
+минимизатора равно массе конкурентов. Вместе с `gibbs_concentration_tendsto`:
 TV(p_{T_n}, δ_{v*}) → 0 — метрическое замыкание Гиббс-
 вертикали (охлаждение сходится в TV). -/
 theorem gibbs_tv_eq {V : Type*} [Fintype V] [DecidableEq V]
@@ -497,7 +497,7 @@ theorem gibbs_tv_eq {V : Type*} [Fintype V] [DecidableEq V]
   ring
 
 open Filter in
-/-- TV-следствие (R395): вдоль annealing-графика TV → 0. -/
+/-- TV-следствие вдоль annealing-графика TV → 0. -/
 theorem gibbs_tv_tendsto {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ)
     (hδ : 0 < δ) (vstar : V)
@@ -527,12 +527,12 @@ theorem gibbs_tv_tendsto {V : Type*} [Fintype V]
     rw [hzero] at hstep
     exact hstep
   exact hlim
-/-- **TV-треугольник (R396)**: TV(p_T, p_S) ≤ (1 − share_T)
+/-- **TV-треугольник **: TV(p_T, p_S) ≤ (1 − share_T)
 + (1 − share_S) — взаимная сходимость: обе Гиббс-меры
 прижимаются к одной точечной массе, поэтому прижимаются
 друг к другу (Коши-свойство охлаждения). Поточечный
 треугольник через δ_{v*} (abs_add_le) + tv-идентификация
-R395. -/
+. -/
 theorem gibbs_tv_mutual {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (E : V → ℝ) (T S : ℝ) (hT : 0 < T) (hS : 0 < S)
     (vstar : V) :
@@ -588,10 +588,10 @@ theorem gibbs_tv_mutual {V : Type*} [Fintype V] [DecidableEq V]
     Finset.sum_nonneg (fun v _ => abs_nonneg _)
   linarith
 
-/-- **Количественный Коши (R397)**: вдоль annealing-графика
+/-- **Количественный Коши **: вдоль annealing-графика
 TV(p_n, p_m) ≤ C·(e^{−(n+1)} + e^{−(m+1)}) — явная
 экспоненциальная скорость взаимного сближения Гиббс-мер
-(R396 × R386): последовательность охлаждения Коши со
+(`gibbs_tv_mutual` × пер-n оценка): последовательность охлаждения Коши со
 скоростью e^{−n}. -/
 theorem gibbs_tv_mutual_bound {V : Type*} [Fintype V]
     [DecidableEq V] [Nonempty V] (E : V → ℝ) (δ : ℝ) (hδ : 0 < δ)
@@ -615,7 +615,7 @@ theorem gibbs_tv_mutual_bound {V : Type*} [Fintype V]
     field_simp
   -- triangle
   have htri := gibbs_tv_mutual E _ _ hTn hTm vstar
-  -- share bounds from R386
+  -- share bounds from
   have hb1 := gibbs_concentration E δ vstar hgap _ hTn
   have hb2 := gibbs_concentration E δ vstar hgap _ hTm
   rw [hδTn] at hb1
@@ -647,7 +647,7 @@ theorem gibbs_tv_mutual_bound {V : Type*} [Fintype V]
       sq_nonneg (((Finset.univ.erase vstar).card : ℕ) : ℝ)]
   exact htri.trans hcomb
 
-/-- **Острая нижняя граница свободной энергии (R398)**:
+/-- **Острая нижняя граница свободной энергии **:
 F(T) = −T·ln Z ≥ E* − T·ln(1 + (n−1)·e^{−δ/T}) — при
 малых T зазор δ улучшает энтропийный пол T·ln|V| до
 T·ln(1+(n−1)e^{−δ/T}) ≈ T(n−1)e^{−δ/T} — экспоненциально
@@ -743,10 +743,10 @@ theorem free_energy_sharp_lower {V : Type*} [Fintype V]
   exact hstep
 
 open Filter in
-/-- **Предел свободной энергии (R399)**: вдоль
+/-- **Предел свободной энергии **: вдоль
 annealing-графика F(T_n) = −T_n·ln Z_n → E* — свободная
 энергия прижимается к энергии основного состояния.
-Двусторонний squeeze: верхняя R390 (F ≤ E*), нижняя R398
+Двусторонний squeeze: верхняя `free_energy_sandwich` (F ≤ E*), нижняя `free_energy_sharp_lower`
 (F ≥ E* − T_n·ln(1+Ce^{−(n+1)})) с ошибкой ≤
 δ·C·e^{−(n+1)}/(n+1) → 0 (ln(1+x) ≤ x через
 `Real.add_one_le_exp`). Nernst-стиль: при T → 0 свободная
@@ -764,15 +764,15 @@ theorem free_energy_tendsto {V : Type*} [Fintype V]
   have hδT : ∀ n, -δ / (δ/((n+1 : ℕ) : ℝ)) = -((n+1 : ℕ) : ℝ) := by
     intro n
     field_simp
-  -- upper: F <= E* (R390 upper part with vstar)
+  -- upper: F <= E* (upper part with vstar)
   have hupper : ∀ n, -(δ/((n+1 : ℕ) : ℝ))
         * Real.log (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))))
       ≤ E vstar := by
     intro n
-    have hR390 := (free_energy_sandwich E (δ/((n+1 : ℕ) : ℝ))
+    have hfree := (free_energy_sandwich E (δ/((n+1 : ℕ) : ℝ))
       (hTnpos n) vstar hmin).2
-    exact hR390
-  -- lower from R398
+    exact hfree
+  -- lower from
   have hlower0 : ∀ n, E vstar - (δ/((n+1 : ℕ) : ℝ))
         * Real.log (1 + (((Finset.univ.erase vstar).card : ℕ) : ℝ)
           * Real.exp (-((n+1 : ℕ) : ℝ)))
@@ -934,10 +934,10 @@ theorem free_energy_tendsto {V : Type*} [Fintype V]
     (fun n => hlower0 n) (fun n => hupper n)
 
 open Filter in
-/-- **Нернст для Гиббс-ансамбля (R400)**: энтропия
+/-- **Нернст для Гиббс-ансамбля **: энтропия
 S_n = (⟨E⟩_{T_n} − F(T_n))/T_n → 0 — остаточная энтропия
-исчезает при охлаждении. Двусторонний squeeze из R393/R394
-(⟨E⟩-эксцесс ≤ ΔCe^{−(n+1)}) и R398 (F-дефект ≤
+исчезает при охлаждении. Двусторонний squeeze из `gibbs_expected_energy_bound`/`gibbs_expected_energy_tendsto`
+(⟨E⟩-эксцесс ≤ ΔCe^{−(n+1)}) и `free_energy_sharp_lower` (F-дефект ≤
 T_n·ln(1+Ce^{−(n+1)})) с полиномиально-экспоненциальной
 оценкой (n+1)e^{−(n+1)} ≤ 2e^{−(n+1)/2} (из e^x ≥ 1+x,
 `Real.add_one_le_exp`). Третий закон термодинамики HAGI:
@@ -971,7 +971,7 @@ theorem gibbs_entropy_tendsto_zero {V : Type*} [Fintype V]
       _ ≤ ∑ v, E v * Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ))) :=
           Finset.sum_le_sum (fun v _ =>
             mul_le_mul_of_nonneg_right (hmin v) (le_of_lt (exp_pos _)))
-  -- <E> - E* <= Delta * C * e^{-(n+1)}  (R393)
+  -- <E> - E* <= Delta * C * e^{-(n+1)}
   have hδT : ∀ n, -δ / (δ/((n+1 : ℕ) : ℝ)) = -((n+1 : ℕ) : ℝ) := by
     intro n
     field_simp
@@ -988,7 +988,7 @@ theorem gibbs_entropy_tendsto_zero {V : Type*} [Fintype V]
       rw [hC]
     rw [hCeq] at hb
     linarith
-  -- 0 <= E* - F <= T * ln(1 + C e^{-(n+1)})  (R398)
+  -- 0 <= E* - F <= T * ln(1 + C e^{-(n+1)})
   have hupperF : ∀ n, (0:ℝ) ≤ E vstar
         - (-(δ/((n+1 : ℕ) : ℝ))
           * Real.log (∑ v, Real.exp (-(E v)/(δ/((n+1 : ℕ) : ℝ)))))
@@ -1165,7 +1165,7 @@ theorem gibbs_entropy_tendsto_zero {V : Type*} [Fintype V]
     (fun n => (hcomb n).2) (by simpa using hpart1.add hpart2)
 
 
-/-- **Апостериорное отношение (R401)**: для конкурента с
+/-- **Апостериорное отношение **: для конкурента с
 δ-зазором p_v ≤ e^{−δ/T}·p_{v*} — likelihood-ratio
 сертификат: относительный вес проигравшего экспоненциально
 гасится температурой. Основа admission-гейта T-контура
@@ -1209,10 +1209,10 @@ theorem gibbs_posterior_ratio {V : Type*} [Fintype V]
 
 open Finset in
 /-- **Второй закон: неотрицательность
-энтропии Гиббса (R418)**: S(p_T) =
+энтропии Гиббса **: S(p_T) =
 ∑ w·(−ln w) ≥ 0 — почленно: w ≤ 1 (как
 вес вероятностной меры, single_le_sum) ⟹
-−ln w ≥ 0 ⟹ каждый член ≥ 0. Вместе с R400
+−ln w ≥ 0 ⟹ каждый член ≥ 0. Вместе с `gibbs_entropy_tendsto_zero`
 (Нернст S→0) даёт 0 ≤ S_n → 0 — полный
 третий закон в обеих сторонах. -/
 theorem gibbs_entropy_nonneg {V : Type*} [Fintype V]

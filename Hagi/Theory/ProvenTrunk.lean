@@ -44,7 +44,7 @@ Trunk = [RMSNorm, MLP, ConvAtt] на одном носителе `V` (без
 Frobenius² = 4 → ‖W‖_F = 2, `trunkLip = 6 · 9 · 2 = 108`
 (`witness_trunkLip`, `#eval`-зеркало на ℚ ниже).
 
-## Honest pins
+## Limits
 
 - Константы derivable-but-not-tight (наследие атомов: Frobenius
   вместо op-norm, ℓ2→ℓ1 √n-мосты, sup-norm-оценка внимания);

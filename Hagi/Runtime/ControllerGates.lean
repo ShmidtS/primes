@@ -9,7 +9,6 @@ set_option linter.style.header false
 
 /-!
 # ControllerGates — mathematical kernels for engineering upgrades
-kernels for engineering upgrades
 
 * Variance gating: the logit range scales linearly under
   temperature division (`logitRange_scale`), so the `R²/8`

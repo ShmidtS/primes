@@ -11,14 +11,14 @@ import Hagi.Growth.GainDecomposition
 set_option linter.style.header false
 
 /-!
-# GrowthBridge — consolidated growth bridges
+# GrowthBridge — growth bridges
 
-TakeoffCounted, FastGrowth, WallClockTakeoff, FrontierProduction,
-GrowthGate, ChainToCone, T3Ignition and the growth-state takeoff
-bridges; namespace blocks and declaration FQNs preserved.
+Deterministic takeoff laws (counted, wall-clock), frontier production,
+growth gates, chain-to-cone, ignition, and the takeoff bridge from the
+additive `grow` update of `GrowthState` to multiplicative growth.
 -/
 
-section C238_fastgrowth
+section fastgrowth
 /-!
 # Foundations.TakeoffCounted — считанный takeoff
 
@@ -250,8 +250,8 @@ namespace Hagi
 
 end Hagi
 
-end C238_fastgrowth
-section C238_wallclock
+end fastgrowth
+section wallclock
 /-!
 # WallClockTakeoff — takeoff в астрономическом (wall-clock) времени
 
@@ -271,11 +271,7 @@ section C238_wallclock
   `C (t+1) ≥ C t·exp(a·s t)` — `C T ≥ C 0·exp(a·Σs t)`;
 * `wallclock_rate_from_cone`: при пер-цикловом множителе
   `(1+α)^(s t)`, полу успеха `p₀·T − Δ ≤ Σ s t` и константном τ:
-  `C T ≥ C 0·exp(k_eff·W − ln(1+α)·Δ)`,
-  `k_eff = p₀·ln(1+α)/τ`, `W = T·τ`;
-* `wallclock_rate_from_cone_concentrated`: Δ :=
-  `concDelta T δ = √(2T·log(1/δ))` (гипотеза — концентрация
-  R95, здесь не перепроверяется);
+  `C T ≥ C 0·exp(k_eff·W − ln(1+α)·Δ)`, `k_eff = p₀·ln(1+α)/τ`, `W = T·τ`;
 * `wallclock_rate_avg_tau`: версия с переменным τ_t при
   `Σ τ t ≤ T·τ̄`.
 -/
@@ -555,25 +551,6 @@ theorem wallclock_rate_from_cone (C : ℕ → ℝ) (s : ℕ → ℕ)
     _ ≥ C 0 * Real.exp ((p0 * L / tau) * ((T : ℝ) * tau) - L * Delta) :=
         mul_le_mul_of_nonneg_left hexp hC0.le
 
-/-- При посылках `wallclock_rate_from_cone` с Δ :=
-`concDelta T δ` (концентрированный полу успеха — гипотеза;
-вероятностная гарантия — `success_count_lower_p0`, не здесь):
-`C T ≥ C 0·exp((p₀·log(1+α)/τ)·(T·τ) − log(1+α)·concDelta T δ)`. -/
-theorem wallclock_rate_from_cone_concentrated (C : ℕ → ℝ) (s : ℕ → ℕ)
-    (alpha tau p0 delta : ℝ)
-    (halpha : 0 < alpha) (htau : 0 < tau)
-    (_hdelta : 0 < delta) (_hdelta1 : delta < 1)
-    (hC0 : 0 < C 0)
-    (hmul : ∀ t, C (t + 1) ≥ C t * (1 + alpha) ^ (s t))
-    (T : ℕ)
-    (hcount : p0 * (T : ℝ) - concDelta T delta
-      ≤ ∑ t ∈ Finset.range T, (s t : ℝ)) :
-    C T ≥ C 0 * Real.exp ((p0 * Real.log (1 + alpha) / tau) * ((T : ℝ) * tau)
-      - Real.log (1 + alpha) * concDelta T delta) :=
-  wallclock_rate_from_cone C s alpha tau p0 (concDelta T delta)
-    halpha htau hC0 hmul T hcount
-
-
 /-- При `0 < α`, `0 < τ̄`, `0 ≤ p₀`, `0 < C 0`, пер-цикловом
 множителе `(1+α)^(s t)`, `T ≠ 0`, `Σ τ t ≤ T·τ̄` и
 `p₀·T − Δ ≤ Σ (s t:ℝ)`:
@@ -632,21 +609,21 @@ export Hagi.Dynamics (wallclock_rate_from_cone)
 end Hagi
 
 
-end C238_wallclock
-section C238_frontprod
+end wallclock
+section frontprod
 /-!
 # FrontierProduction — сертифицированное производство frontier и семантика capability
 
-* `injection_law_of_measured` (III-a): если `D (t+1) ≥ κ·dis t`
+* `injection_law_of_measured`: если `D (t+1) ≥ κ·dis t`
   и потребность обновления `ρ·D t + β·C t − ξ t ≤ κ·dis t`, то
   выполнен `InjectionLaw D C xi rho beta`.
-* `certified_cycle_renewal` (III-b): если измеренная сумма n
+* `certified_cycle_renewal`: если измеренная сумма n
   проб разногласия в [0,1] превышает `n·thr + 2n·ε` и
   `D (t+1) ≥ κ·disMean`, то renewal-закон одного цикла выполнен
   на этом событии с вероятностью `≥ 1 − 2e^{−2nε²}`.
   Посылка `hD` (разногласие ⇒ frontier) — архитектурная, не
   выводится здесь; многoцикловая версия не формализована.
-* `CapabilitySound` (IV): `C t ≤ U t` для всех t; связка C с
+* `CapabilitySound`: `C t ≤ U t` для всех t; связка C с
   реальной моделью — посылка.
 * `geometric_growth_lifts_utility`: если `CapabilitySound C U` и
   `C 0 * (1 + alpha) ^ T ≤ C T`, то `C 0 * (1 + alpha) ^ T ≤ U T`.
@@ -656,7 +633,7 @@ open Finset Real
 
 namespace Hagi.Growth
 
-/-! ## III-a: детерминированная редукция β-посылки -/
+/-! ## Детерминированная редукция β-посылки -/
 
 /-- Абстрактный закон производства frontier:
 `∀ t, D (t+1) ≥ ρ·D t + β·C t − ξ t`. -/
@@ -672,7 +649,7 @@ theorem injection_law_of_measured (D C dis xi : ℕ → ℝ) (kappa rho beta : �
     InjectionLaw D C xi rho beta :=
   fun t => le_trans (h t) (hD t)
 
-/-! ## III-b: статистическая сертификация одного цикла -/
+/-! ## Статистическая сертификация одного цикла -/
 
 variable {V : Type} [Fintype V] [Nonempty V]
 
@@ -769,8 +746,8 @@ theorem geometric_growth_lifts_utility (C U : ℕ → ℝ) (alpha : ℝ) (T : �
 end Hagi.Growth
 
 
-end C238_frontprod
-section C238_gate
+end frontprod
+section gate
 /-!
 # GrowthGate — вердикты двумерного контроллера (G_F, R_repr)
 
@@ -814,8 +791,8 @@ end GrowthGate
 end Hagi.Growth
 
 
-end C238_gate
-section C238_chain
+end gate
+section chain
 /-!
 # ChainToCone — from the disagreement chain to the growth cone
 
@@ -1010,8 +987,8 @@ theorem geometric_growth_from_certificate
 
 end Hagi.Growth
 
-end C238_chain
-section C238_t3
+end chain
+section t3
 /-!
 # T3Ignition — условие зажигания конуса через эффективную конверсию
 
@@ -1112,8 +1089,8 @@ theorem T3_ignition
 
 end Hagi.Growth
 
-end C238_t3
-section C238_unified
+end t3
+section unified
 /-!
 # FastGrowth ↔ GrowthState — the takeoff laws on the growth state
 
@@ -1446,4 +1423,4 @@ end GrowthBridge
 
 end Hagi.Unified
 
-end C238_unified
+end unified

@@ -19,19 +19,19 @@ namespace Hagi.Probability
 open Finset Real Set
 
 /-!
-# Хорда экспоненты (R498)
+# Хорда экспоненты
 
 Выпуклость e^{r*y} через ConvexOn.comp_linearMap даёт хорду:
 e^{r*x} <= ((b-x)/(b-a)) e^{r a} + ((x-a)/(b-a)) e^{r b} для
 x in [a,b], a < b. Базовый кирпич Hoeffding/Bennett CGF-оценок.
-Процесс-урок: приоритет оператора `•` выше `/` — веса в smul
+Замечание: приоритет оператора `•` выше `/` — веса в smul
 нужны в скобках: `((b - x) / (b - a)) • a`.
 -/
 
-/-! ## Шаг Хёффдинга: взвешенное хордовое MGF (R499)
+/-! ## Шаг Хёффдинга: взвешенное хордовое MGF
 
 E_q e^{r(g - mu)} <= ((b-mu)/(b-a)) e^{r(a-mu)} + ((mu-a)/(b-a)) e^{r(b-mu)}:
-хорда R498 суммируется с весами q, аффинные веса усредняются к
+хорда суммируется с весами q, аффинные веса усредняются к
 барицентру (sum q (b - g) = b - mu, sum q (g - a) = mu - a),
 константы выносятся из сумм через mul_sum-коммутационный simp.
 -/
@@ -117,7 +117,7 @@ theorem hoeffding_chord_mgf {V : Type*} [Fintype V] [Nonempty V]
       simp [Finset.mul_sum, mul_comm, mul_assoc, mul_left_comm]
     rw [e1, e2, hwavg1, hwavg2]
 
-/-! ## Хорда логарифма (R500)
+/-! ## Хорда логарифма
 
 Вогнутость ln: (1-w) ln a + w ln b <= ln((1-w)a + w b) для
 a,b > 0, 0 < w < 1. Через strictConcaveOn_log_Ioi.concaveOn;
@@ -140,10 +140,10 @@ theorem log_chord {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (w : ℝ)
   rw [hcombo] at h
   simpa using h
 
-/-! ## Взвешенное AM-GM (R501)
+/-! ## Взвешенное AM-GM
 
 a^{1-w} * b^w <= (1-w) a + w b для a,b > 0, w in (0,1):
-экспоненцирование хорды логарифма R500; rpow-канал через
+экспоненцирование хорды логарифма; rpow-канал через
 log_rpow + exp_log (positivity для rpow-положительности). -/
 theorem amgm_weighted {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (w : ℝ)
     (hw : 0 < w) (hw2 : w < 1) :
@@ -164,10 +164,10 @@ theorem amgm_weighted {a b : ℝ} (ha : 0 < a) (hb : 0 < b) (w : ℝ)
   exact le_trans (Real.exp_le_exp.mpr h)
     (le_of_eq (Real.exp_log (by positivity : (0:ℝ) < (1 - w) * a + w * b)))
 
-/-! ## Неравенство Юнга (R502)
+/-! ## Неравенство Юнга
 
 x*y <= x^p/p + y^q/q для x,y >= 0, 1 < p, 1/p + 1/q = 1:
-обобщённый AM-GM R501 на X = x^p, Y = y^q с весом 1/q,
+обобщённый AM-GM на X = x^p, Y = y^q с весом 1/q,
 степени сокращаются каналом (z^r)^(1/r) = z (log_rpow +
 exp_log); degenerate-случаи через zero_rpow + positivity.
 Фундамент Hölder/Minkowski-вертикали. -/
@@ -250,11 +250,11 @@ theorem young_two {x y : ℝ} (hx : 0 ≤ x) (hy : 0 ≤ y) {p q : ℝ}
       rw [← hconv]
       exact hgam
 
-/-! ## Конечный Гёльдер (R503)
+/-! ## Конечный Гёльдер
 
 sum |a*b| <= (sum |a|^p)^{1/p} * (sum |b|^q)^{1/q} для
 сопряжённых 1/p+1/q=1: нормировка X=|a|/PA, Y=|b|/PB,
-per-term Young R502, суммирование; PA^p = sum |a|^p через
+per-term Young, суммирование; PA^p = sum |a|^p через
 rpow_mul (1/p*p=1); degenerate-случаи SA=0/SB=0 через
 single_le_sum + zero_rpow. Замыкает Young->Hoelder
 вертикаль (Minkowski далее). -/
@@ -369,11 +369,11 @@ theorem hoelder_finite {V : Type*} [Fintype V] (a b : V → ℝ) {p q : ℝ}
       rw [div_le_iff₀ (show (0:ℝ) < PA * PB from mul_pos hPApos hPBpos)] at hchain
       rwa [one_mul] at hchain
 
-/-! ## Конечный Минковский (R504)
+/-! ## Конечный Минковский
 
 (sum |a+b|^p)^{1/p} <= (sum |a|^p)^{1/p} + (sum |b|^p)^{1/p}:
 разложение X = sum |a+b|*|a+b|^{p-1}, треугольник,
-Гёльдер R503 на оба слагаемых с ключевым тождеством
+Гёльдер на оба слагаемых с ключевым тождеством
 (|a+b|^{p-1})^q = |a+b|^p ((p-1)q = p из p*q = p+q),
 финал через X = X^{1/p}*X^{1/q} и сокращение
 le_of_mul_le_mul_right. Замыкает Young->Hoelder->Minkowski
@@ -508,9 +508,9 @@ theorem minkowski_finite {V : Type*} [Fintype V] (a b : V → ℝ) {p q : ℝ}
       exact hchain
     exact le_of_mul_le_mul_right hstep hXqpos
 
-/-! ## Сравнение норм L1 <= Lp (R505)
+/-! ## Сравнение норм L1 <= Lp
 
-sum |g| <= (sum |g|^p)^{1/p} * n^{1/q}: Hoelder R503 с
+sum |g| <= (sum |g|^p)^{1/p} * n^{1/q}: Hoelder с
 константной второй функцией 1; sum |1|^q = n. Базовый
 кирпич норм-сравнений для оценок качества/объёма. -/
 theorem lp_one_le_card {V : Type*} [Fintype V] (g : V → ℝ) {p q : ℝ}
@@ -534,11 +534,11 @@ theorem lp_one_le_card {V : Type*} [Fintype V] (g : V → ℝ) {p q : ℝ}
     rw [mul_one]
   rwa [hL] at h
 
-/-! ## Взвешенный Гёльдер (R506)
+/-! ## Взвешенный Гёльдер
 
 sum w*|a*b| <= (sum w|a|^p)^{1/p} * (sum w|b|^q)^{1/q} для
 w >= 0: поглощение веса w = w^{1/p} * w^{1/q} (rpow_add при
-w>0, zero_rpow при w=0), применяем невзвешенный Гёльдер R503
+w>0, zero_rpow при w=0), применяем невзвешенный Гёльдер
 к (w^{1/p}|a|, w^{1/q}|b|) и сворачиваем (w^{1/p})^p = w.
 Ключ к вероятностным Lp-оценкам HAGI (средние по q-мерам). -/
 theorem hoelder_weighted {V : Type*} [Fintype V] (w a b : V → ℝ) {p q : ℝ}
@@ -616,10 +616,10 @@ theorem hoelder_weighted {V : Type*} [Fintype V] (w a b : V → ℝ) {p q : ℝ}
   rw [Finset.sum_congr rfl (fun v _ => (habsorb v).symm)]
   exact h
 
-/-! ## Среднее <= RMS-мощность (R507)
+/-! ## Среднее <= RMS-мощность
 
 Взвешенное E|g| <= (E|g|^p)^{1/p} при sum w = 1:
-взвешенный Гёльдер R506 с константной второй функцией;
+взвешенный Гёльдер с константной второй функцией;
 мгновенное следствие. Ключ к Jensen/Lyapunov-оценкам. -/
 theorem lp_mean_le_rms {V : Type*} [Fintype V] (w g : V → ℝ) {p q : ℝ}
     (hw : ∀ v, 0 ≤ w v) (hw1 : ∑ v : V, w v = 1)
@@ -642,11 +642,11 @@ theorem lp_mean_le_rms {V : Type*} [Fintype V] (w g : V → ℝ) {p q : ℝ}
     rw [mul_one]
   rwa [hL] at h
 
-/-! ## Взвешенный Минковский (R508)
+/-! ## Взвешенный Минковский
 
 (sum w|a+b|^p)^{1/p} <= (sum w|a|^p)^{1/p} + (sum w|b|^p)^{1/p}
-для w >= 0: та же схема R504 (разложение/треугольник),
-взвешенный Гёльдер R506 на оба слагаемых, сокращение
+для w >= 0: та же схема (разложение/треугольник),
+взвешенный Гёльдер на оба слагаемых, сокращение
 le_of_mul_le_mul_right. Полная взвешенная Lp-вертикаль. -/
 theorem minkowski_weighted {V : Type*} [Fintype V] (w a b : V → ℝ) {p q : ℝ}
     (hw : ∀ v, 0 ≤ w v) (hp : 1 < p) (hpq : 1 / p + 1 / q = 1) :
@@ -790,10 +790,10 @@ theorem minkowski_weighted {V : Type*} [Fintype V] (w a b : V → ℝ) {p q : �
       exact hchain
     exact le_of_mul_le_mul_right hstep hXqpos
 
-/-! ## Монотонность Ляпунова (R509)
+/-! ## Монотонность Ляпунова
 
 (E|g|^r)^{1/r} <= (E|g|^s)^{1/s} при 0 < r < s, sum w = 1:
-R507 применён к |g|^r с показателем p = s/r, сте-
+применён к |g|^r с показателем p = s/r, сте-
 пенной коллапс (|g|^r)^{s/r} = |g|^s, финал через
 rpow_le_rpow (обе части h в степень 1/r) и
 rpow_mul-сокращение. Лестница моментов замкнута. -/

@@ -547,19 +547,6 @@ theorem hb_general_window (L mu lam : ℝ) (hμ : 0 < mu)
     rw [← hhi]
     linarith [mul_le_mul_of_nonneg_left hlamL hpos.le, hhi]
 
-/-- ИТОГОВЫЙ ТЕМП: √β общих параметров = (√L−√μ)/(√L+√μ)
-(эквивалентно (√κ−1)/(√κ+1) при κ = L/μ — см.
-hb_rate_from_kappa). -/
-theorem hb_general_rate (L mu : ℝ) (hμ : 0 < mu) (hL : mu ≤ L) :
-    Real.sqrt (((Real.sqrt L - Real.sqrt mu)
-      / (Real.sqrt L + Real.sqrt mu))^2)
-      = (Real.sqrt L - Real.sqrt mu) / (Real.sqrt L + Real.sqrt mu) :=
-  Real.sqrt_sq (div_nonneg
-    (by
-      have h := Real.sqrt_le_sqrt hL
-      linarith [Real.sqrt_nonneg mu, Real.sqrt_nonneg L])
-    (by positivity))
-
 /-! ### Траектория критической моды -/
 
 /-- Вторая скалярная рекуррента реальной пары Heavy Ball: два шага

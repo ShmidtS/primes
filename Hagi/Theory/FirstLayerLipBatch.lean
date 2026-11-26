@@ -8,15 +8,15 @@ import Hagi.Theory.MuonDescentW1Rect
 /-!
 # FirstLayerLipBatch — гладкость CE-слоя `W1` по БАТЧУ входов
 
-C685. Батч-версия `Hagi.Theory.FirstLayerLip.w1CE_descent_lemma` (C684):
+Батч-версия `Hagi.Theory.FirstLayerLip.w1CE_descent_lemma`:
 цель — сумма CE по входам `x : τ → δ → ℝ` (`w1BatchCE`, тот же объект,
 что `w1BatchObjR`), направление — `D_batch = Σ_t g_t ⊗ x_t`
 (`w1BatchDescentDir` = минус `w1BatchGradR`).
 
 * `xMaxSq`, `S_batch` — `S_batch = ‖wo‖_F²·Σ_t ‖x t‖₂²` (сумма
-  констант C684 по входам); `S_batch_le_max`: `S_batch ≤
+  констант `w1CE_descent_lemma` по входам); `S_batch_le_max`: `S_batch ≤
   B·‖wo‖_F²·max_t ‖x t‖₂²` (батч непустой: `Nonempty τ`).
-* `w1BatchCE_descent_lemma` — сумма лемм C684 с `S_t = ‖wo‖_F²·‖x t‖₂² ≤ S_batch`.
+* `w1BatchCE_descent_lemma` — сумма лемм `w1CE_descent_lemma` с `S_t = ‖wo‖_F²·‖x t‖₂² ≤ S_batch`.
 * `w1BatchCE_drop_of_step`, `w1BatchCE_optimal_step_drop` — шаг
   `W1 + γ•D_batch`: drop ≥ `nlDrop γ S_batch ‖D_batch‖_F`,
   `γ*_batch = 1/S_batch`, drop `‖D_batch‖²/(2S_batch)`.
@@ -24,7 +24,7 @@ C685. Батч-версия `Hagi.Theory.FirstLayerLip.w1CE_descent_lemma` (C684
   lm.py:299 @ca52eb4): `S_mean = S_batch/B`, `γ* = B/S_batch`,
   drop `‖D_batch/B‖²/(2·S_batch/B)`.
 
-Условие то же, что в C684: маски активации каждого входа равны вдоль
+Условие то же: маски активации каждого входа равны вдоль
 шага (relu-блок негладкий на kink). -/
 
 set_option relaxedAutoImplicit false
@@ -51,7 +51,7 @@ noncomputable def xMaxSq (x : τ → δ → ℝ) : ℝ :=
   Finset.sup' Finset.univ Finset.univ_nonempty (fun t => ∑ j, x t j ^ 2)
 
 /-- Гладкость суммы CE по батчу: `S_batch = ‖wo‖_F²·Σ_t ‖x t‖₂²`
-(сумма констант C684 по входам; `S_batch_le_max` даёт границу
+(сумма констант `w1CE_descent_lemma` по входам; `S_batch_le_max` даёт границу
 `‖wo‖_F²·B·max_t ‖x t‖₂²`). -/
 noncomputable def S_batch (wo : ι → K → ℝ) (x : τ → δ → ℝ) : ℝ :=
   (∑ i, ∑ v, wo i v ^ 2) * ∑ t, ∑ j, x t j ^ 2
@@ -105,10 +105,10 @@ theorem sum_sq_smul (c : ℝ) (D : ι → δ → ℝ) :
 
 /-- **`w1BatchCE_descent_lemma`**: гладкость суммы CE по `W1` внутри
 области активации КАЖДОГО входа батча с константой
-`S_batch = ‖wo‖_F²·Σ_t ‖x t‖₂²` (сумма констант C684; через максимум:
+`S_batch = ‖wo‖_F²·Σ_t ‖x t‖₂²` (сумма тех же констант; через максимум:
 `S_batch ≤ B·‖wo‖_F²·max_t ‖x t‖₂²` — `S_batch_le_max`):
 `CE_batch (V1) ≤ CE_batch (W1) − Σᵢⱼ D_batch i j·Δ i j + S_batch/2·‖Δ‖_F²`,
-`Δ = V1 − W1`, `D_batch = Σ_t g_t ⊗ x_t`. Вывод: сумма лемм C684
+`Δ = V1 − W1`, `D_batch = Σ_t g_t ⊗ x_t`. Вывод: сумма тех же лемм
 (`w1CE_descent_lemma`) с `S_t ≤ S_batch` (`sum_xMaxSq_le`). -/
 theorem w1BatchCE_descent_lemma (y : τ → K) (b : ι → ℝ) (wo : ι → K → ℝ)
     (x : τ → δ → ℝ) (W1 V1 : ι → δ → ℝ)

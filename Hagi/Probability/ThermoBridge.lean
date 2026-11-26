@@ -69,8 +69,8 @@ theorem batchVar_expQ (g : V → ℝ) {b : ℕ} [Nonempty (Fin b)] :
 end Hagi.Probability
 
 /-!
-# WSqD — the full warm-stable-decay noise budget (
-plan §5.4, source 2607.10959 + 1711.00489)
+# WSqD — the full warm-stable-decay noise budget;
+arXiv:2607.10959 + 1711.00489)
 
 The WSqD scheduler runs THREE phases: warmup, a long
 STABLE phase at constant batch B₀, and a DECAY phase with
@@ -266,9 +266,8 @@ set_option linter.style.header false
 batch-increase
 
 Формализация ядра «Don't Decay the Learning Rate, Increase
-the Batch Size» (arXiv:1711.00489, Smith et al.; план §2,
-терм-ось): убывание LR и рост batch — ОДНА математика на
-двух осях. Шумовой бюджет шага пропорционален σ²η² (LR-ось)
+the Batch Size» (arXiv:1711.00489, Smith et al.; терм-ось): убывание LR и рост
+batch — ОДНА математика на двух осях. Шумовой бюджет шага пропорционален σ²η² (LR-ось)
 или σ²/B (batch-ось); при перекрёстном соответствии
 
   η₀ = 1/√B₀,  r = 1/√c  (⟺ r²·c = 1)

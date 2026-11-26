@@ -364,7 +364,7 @@ theorem fisher_alloc_mono (c κ w : Fin d → ℝ) (B : ℝ)
   exact Real.log_le_log (div_pos (mul_pos (hc i) (hκ j)) (hw i)) hle
 
 open Hagi.Budget in
-/-- Isotropic pin: when the curvature is the same everywhere (uniform
+/-- Isotropic case: when the curvature is the same everywhere (uniform
 κ, w), the optimal allocation is UNIFORM — no Fisher gain in the
 isotropic case, exactly as the lip-form predicts. -/
 theorem fisher_alloc_isotropic_uniform (c κ w : Fin d → ℝ) (B : ℝ)

@@ -61,7 +61,7 @@ asymptotically tight: z₁ = (A,−A), z₂ = (−A,A), equal weights,
 R = 2A gives gap = log cosh A ~ A²/2 = R²/8). Under a pairwise
 diameter hypothesis the provable constant is ½
 (`poe_logZ_pairwise`, via R i:= 2·Σ_j w_j D_ij and the weighted
-Cauchy–Schwarz `weighted_var_bound`). The audit's M²/8 per-token
+Cauchy–Schwarz `weighted_var_bound`). The M²/8 per-token
 form holds as `poe_softmax_speed` — when each expert's spread
 around μ is ≤ M (the K = 2 case has μ = the midpoint, recovering
 the pairwise statement).
@@ -85,15 +85,12 @@ namespace Hagi.Energy
 
 /-! ## Pillar 2: the log-sum-exp deviation bounds -/
 
-/-- DEPRECATED bridge alias: the softmax of the logits `x` over a
-finite vocabulary. Canonical definition is `Hagi.Prelude.softDef`
-(single-softmax unification, audit A18.1); see `smax_eq_softDef`.
-Kept as a shim so existing names survive the freeze. -/
+/-- The softmax of the logits `x` over a finite vocabulary:
+a bridge alias of `Hagi.Prelude.softDef` (see `smax_eq_softDef`). -/
 noncomputable def smax {V : Type} [Fintype V] (x : V → ℝ) : V → ℝ :=
   Hagi.Prelude.softDef x
 
-/-- Bridge: `smax` is definitionally the canonical softmax
-`Hagi.Prelude.softDef` (audit A18.1 unification). -/
+/-- Bridge: `smax` is definitionally `Hagi.Prelude.softDef`. -/
 theorem smax_eq_softDef {V : Type} [Fintype V] (x : V → ℝ) :
     smax x = Hagi.Prelude.softDef x := rfl
 
@@ -267,8 +264,8 @@ by the centering identity (`sum_w_center`). The gap's sign is
 
 Sharpness: two experts z₁ = (A,−A), z₂ = (−A,A), equal weights,
 R = 2A: the gap is `log cosh A ~ A²/2 = R²/8` — asymptotically
-tight. NOTE: the audit's pairwise form
-`(1/8)·∑_{ij} w_i w_j D_ij²` is REFUTED (see `poe_logZ_pairwise`
+tight. NOTE: the pairwise form
+`(1/8)·∑_{ij} w_i w_j D_ij²` is FALSE (see `poe_logZ_pairwise`
 and the module header); the per-expert range form above is the
 correct sharp law, and ½ is the provable pairwise constant. -/
 theorem poe_logZ_second_order {V K : Type} [Fintype V] [Nonempty V]
@@ -363,7 +360,7 @@ theorem poe_logZ_second_order {V K : Type} [Fintype V] [Nonempty V]
 deviation from the pooled mean has range ≤ M, the per-token
 normalizer error of softmax-speed PoE pooling is ≤ M²/8 — compute
 pooled mean logits plus the M²/8 correction, no long-exponent
-products. (The audit's M²/8 per-token form is exactly this:
+products. (Here
 each expert's spread around μ is ≤ M — the K = 2 case has
 μ = the midpoint, recovering the pairwise statement.) -/
 theorem poe_softmax_speed {V K : Type} [Fintype V] [Nonempty V] [Fintype K]
@@ -474,10 +471,10 @@ centered deviation via the identity
 weighted variance bound `weighted_var_bound` absorbs the inner
 square: `(2∑_j w_j D_ij)² ≤ 4∑_j w_j D_ij²`.
 
-**HONESTY NOTE — the audit's pairwise 1/8 constant is REFUTED**:
+**The pairwise 1/8 constant is FALSE**:
 for z₁ = (1,−1), z₂ = (0,0), w = (½,½), the true gap is
 `½·log[cosh(1)/cosh²(½)] ≈ 0.0968` while
-`⅛·∑_{ij} w_i w_j D_ij² = 0.0625` (with D = 1) — the claimed
+`⅛·∑_{ij} w_i w_j D_ij² = 0.0625` (with D = 1) — the 1/8
 bound FAILS. The sharp law is the per-expert range form
 (`poe_logZ_second_order`, constant 1/8); ½ is the provable
 pairwise constant. -/

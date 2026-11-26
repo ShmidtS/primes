@@ -8,9 +8,9 @@ import Hagi.Math.Foundations.Hoeffding
 set_option linter.style.header false
 
 /-!
-# P0-4 / теорема E аудита — Azuma для истории-зависимых успехов
+# Azuma для истории-зависимых успехов
 
-Аудит (§12, теорема E): `AdaptiveSuccess` требует
+`AdaptiveSuccess` требует
 fresh-randomness-per-cycle (итог цикла — функция только ω_t).
 Настоящий self-improvement loop зависит от ВСЕЙ истории:
 S_t = f(ω_0..ω_{t-1}, ω_t). Формализуем мартингальную версию.
@@ -206,7 +206,7 @@ theorem azumaSum_snoc (X : ∀ t, (Fin t → V) → ℝ) (n : ℕ)
 центрированных приращениях (|X| ≤ c, E[X_{t+1}|π] = 0 при
 каждом префиксе pref) mgf суммы ограничен e^{nλ²c²/2}.
 Зависимость от ВСЕЙ истории допустима — усиление
-fresh-randomness модели (P0-4, теорема E аудита). -/
+зависимости только от свежей случайности модели. -/
 theorem azuma_mgf (q : V → ℝ)
     (hq0 : ∀ v, 0 ≤ q v) (hq1 : ∑ v, q v = 1)
     (X : ∀ t, (Fin t → V) → ℝ) (c : ℝ) (hc : 0 < c)
@@ -471,7 +471,7 @@ theorem azumaSum_ext (X Y : ∀ t, (Fin t → V) → ℝ)
         = azumaSum Y n (fun i => ω i.castSucc) + Y (n + 1) ω
       rw [ih (fun i => ω i.castSucc), h (n + 1) ω]
 
-/-- **История-зависимые успехи (P0-4, теорема E аудита)**:
+/-- **История-зависимые успехи**:
 успех S_{t+1} — функция ПРЕФИКСА (вся история + свежая
 случайность), значения в [0,1], условные полы при КАЖДОМ
 префиксе: Σ_v q v · S_{t+1}(snoc π v) ≥ p₀. Тогда

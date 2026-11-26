@@ -10,7 +10,7 @@ bounded-weight attention)
 
 The per-block premises
 `CertifiedBlock.hLip` / `hCausal` (`Hagi.Model.LMCompose`, разрядка
-заявлена в honest pins того модуля) are DISCHARGED here for concrete
+заявлена в разделе Limits того модуля) are DISCHARGED here for concrete
 real-world atoms with derived constants (derivability, not tightness):
 
 * (a) RMSNorm atom `x ↦ g·x/(‖x‖₂/√n + ε)` (HAGI_v2 ε-floor semantics,
@@ -37,24 +37,24 @@ real-world atoms with derived constants (derivability, not tightness):
   classical two-leg decomposition (weight-shift leg
   `≤ (Σ|Δw|)·B_V·R_x` via the operator bound + input radius;
   value-shift leg `≤ B_V·d` via convexity `Σ w = 1`). Closes the
- honest pin: the value-bounded carrier exists as a
+  limit: the value-bounded carrier exists as a
   DOMAIN-BOUNDED theorem (explicit radius/value premises), not as an
   unconditional `CertifiedBlock`.
 
-## Honest pins (negatives and limits)
+## Limits (negatives and limits)
 
 - Attention with x-DEPENDENT scores and NO value bound is NOT globally
   Lipschitz even under `|logits| ≤ B`: the weight-shift leg is bounded
   by `M·‖w(x)−w(y)‖₁` with `M = sup_i ‖x i‖∞` — the obstruction is the
   UNBOUNDED VALUES, not the softmax (softmax itself is globally
-  ≤ 1/2-Lipschitz in ℓ2, Pauli et al. 2023 — pinned, not restated).
+  ≤ 1/2-Lipschitz in ℓ2, Pauli et al. 2023 — cited, not reproved).
   With a certified value bound the positive side is
   derivable — `attn_xdep_lipschitz` gives `B_V·(1 + L_w·R_x)` under
   (i) the operator bound `‖A u − A z‖₁ ≤ B_V·‖u − z‖₁`, (ii) the input
   radius `‖x i‖₁ ≤ R_x`, (iii) weight stability
   `‖w(x)−w(y)‖₁ ≤ L_w·‖x−y‖₁` (classically `L_w = 2·L_s` via the
-  softmax TV-bound `‖sm a − sm b‖₁ ≤ 2‖a−b‖∞` — pinned, not
-  restated). `CertifiedBlock.hLip` remains unconditional, so the
+  softmax TV-bound `‖sm a − sm b‖₁ ≤ 2‖a−b‖∞` — cited, not
+  reproved). `CertifiedBlock.hLip` remains unconditional, so the
   value-bounded version is a domain-bounded theorem, not a
   `CertifiedBlock` instance — the honest asymmetry stands.
 - RMSNorm WITHOUT the ε-floor (`x ↦ x/‖x‖`) is not defined at 0 and
@@ -62,8 +62,8 @@ real-world atoms with derived constants (derivability, not tightness):
   unit vectors); the ε-floor is exactly what makes the unconditional
   constant derivable. The derived `G(n+1)/ε` is honest but NOT tight
   (true near-zero slope is `1/ε` per coordinate plus saturation).
-- MLP constant uses the Frobenius bound (`‖W‖₂ ≤ ‖W‖_F`, pin);
-  the op-norm lemma is absent from the pinned Mathlib.
+- MLP constant uses the Frobenius bound (`‖W‖₂ ≤ ‖W‖_F`);
+  the op-norm lemma is absent from the pinned-version Mathlib.
 - Constants are per-position ℓ1 (the `dPre` metric of LMCompose);
   ℓ2→ℓ1 conversions cost the √n factors. Derivability is the goal,
   not optimality.
@@ -923,10 +923,10 @@ output is Lipschitz with the DERIVED constant
 `B_V·(1 + L_w·R_x)` — the classical two-leg decomposition:
 weight-shift `≤ (Σ|Δw|)·B_V·R_x`, value-shift `≤ B_V·d` (convexity
 `Σ w = 1`). Without the value bound the map is NOT globally
-Lipschitz (see the module pins); the radius is exactly the
-domain-bounded carrier the pin called for. Weight stability with
+Lipschitz (see the module Limits); the radius is exactly the
+domain-bounded carrier required. Weight stability with
 `L_w = 2·L_s` follows from score Lipschitzness via the softmax
-TV-bound `‖sm a − sm b‖₁ ≤ 2‖a − b‖∞` (pinned, not restated). -/
+TV-bound `‖sm a − sm b‖₁ ≤ 2‖a − b‖∞` (cited, not reproved). -/
 theorem attn_xdep_lipschitz
     (A : V → V → ℝ) (w : (Fin n → V → ℝ) → Fin n → ℝ)
     (x y : Fin n → V → ℝ)
@@ -1059,7 +1059,7 @@ changes the CE of its output by at most `2·D·√(m·n)·‖x‖₂`, with the
 explicit weight-space constant `kappa = 2·‖x‖₂`
 (`blockCE_weight_lipschitz`).
 
-## Honest pins (what this derivation does NOT cover)
+## Limits (what this derivation does NOT cover)
 
 - Only the linear-block + ident-CE class. Arbitrary trunks (attention,
   RoPE, nonlinear stacks) keep their abstract `h_emp_smooth` /
@@ -1067,7 +1067,7 @@ explicit weight-space constant `kappa = 2·‖x‖₂`
   (DerivAlong bridge) still needs a measured `κ = sup‖∇E‖`.
 - Frobenius is an upper bound of the ℓ2 operator norm
   (`‖W‖₂ ≤ ‖W‖_F`); the exact op-norm `mulVec` lemma is absent from the
-  pinned Mathlib, so the derivation uses the elementary Frobenius bound.
+  pinned-version Mathlib, so the derivation uses the elementary Frobenius bound.
 - `L_soft = 2` is the frozen in-repo estimate (sup-norm contraction),
   not the tight Euclidean constant.
 -/
@@ -1249,7 +1249,7 @@ changes by at most
 with NO Lipschitz premise: the `hlip`/`kappa` hypothesis of
 `Hagi.Research.Legacy.TopLevel.quant_loss_bridge` (its documented h_emp_lip-style
 premise) is DERIVED here with `kappa = 2` for the linear-block +
-softmax-CE head. Pins: linear/ident-CE class only; Frobenius bound. -/
+softmax-CE head. Limits: linear/ident-CE class only; Frobenius bound. -/
 theorem quant_loss_bridge_derived (t : V) (W Wq : Matrix V (Fin n) ℝ)
     (x : Fin n → ℝ) (D : ℝ) (hD : 0 ≤ D)
     (hres : ∀ i j, |Wq i j - W i j| ≤ D) :

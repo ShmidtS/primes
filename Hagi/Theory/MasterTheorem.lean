@@ -20,7 +20,7 @@ preserved constraints, OR safely refuses; across the trajectory
 total quality loss, risk, compute budget stay within proven
 bounds.»
 
-## Clause-by-clause honesty audit
+## Clause-by-clause honesty
 
 | Пункт | Формальный пункт |
 |---|---|

@@ -20,7 +20,7 @@ Upstream source-anchors (C:\HAGI_v2, read-only):
 - `hagi/trunk_ops.py:286-303` — adapter_warm_start: копия
   факторов src в dst («copy semantics — source untouched by
   construction»);
-- `hagi/unified.py:147-165` — wave210 использование: fresh слот
+- `hagi/unified.py:147-165` — использование: fresh слот
   нейтрален (B=0 ⇒ identity), certified-обучение только
   fresh-домена;
 - `hagi/lm.py:770-777` — forward `x + B(A x)` из своего слота.
@@ -48,7 +48,7 @@ Upstream source-anchors (C:\HAGI_v2, read-only):
   слот, которого не касались, держит выход ТОЧНО — индукция по
   списку обновлений.
 
-## Honest pins (что этот мост НЕ покрывает)
+## Limits (что этот мост НЕ покрывает)
 
 - **Transfer-качество НЕ гарантируется**: T1/T2 (better/worse
   than cold) — bench-ЭМПИРИКА (3/3 пары T1 по AUC), не
@@ -62,7 +62,7 @@ Upstream source-anchors (C:\HAGI_v2, read-only):
   (B=0 ⇒ identity, `adapter_neutral_B`); в теоремах изоляции
   не участвует.
 - **Обучение trunk/head** — вне носителя: банк замораживает
-  общий trunk (wave210: «never changes the incumbent path»);
+  общий trunk («never changes the incumbent path»);
   если trunk обновляется — см. `trunk_update_needs_projection`.
 -/
 
@@ -79,7 +79,7 @@ section Bank
 
 variable {ι r d : Type*} [Fintype r] [Fintype d] [DecidableEq ι]
 
-/-- Bank доменных адаптеров (wave210): тотальная карта домен →
+/-- Bank доменных адаптеров (wave 210): тотальная карта домен →
 слот-пара (down `A`, up `B`) — Lean-форма `AdapterBank.
 _adapters : dict[domain, LowRankAdapter]` (trunk_ops.py:317).
 Слоты гомогенные: один (r, d) на банк по построению. -/
@@ -94,7 +94,7 @@ def bankUpdate (bank : AdapterBankState ι r d) (j : ι)
     (a : AdaptState r d) : AdapterBankState ι r d :=
   fun i => if i = j then a else bank i
 
-/-- Warm-start перенос (wave210b / adapter_warm_start,
+/-- Warm-start перенос (adapter_warm_start,
 trunk_ops.py:286): слот dst получает КОПИЮ факторов слота src.
 Копия, не ссылка: в Lean-значениях присваивание пары = копия —
 source untouched by construction. -/

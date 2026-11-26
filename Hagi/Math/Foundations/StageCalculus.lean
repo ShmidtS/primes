@@ -10,7 +10,7 @@ set_option linter.style.header false
 /-!
 # StageCalculus — pure stage-arithmetic of the macro cycle
 
-Layer-0 arithmetic lemmas with no Hagi dependencies:
+Arithmetic lemmas with no Hagi dependencies:
 `compress_stage`, `adaptive_ns_exists`, `compound_budget`.
 -/
 

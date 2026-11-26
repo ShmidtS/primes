@@ -4,11 +4,11 @@ import Hagi.Theory.GrowSnap
 import Hagi.Theory.CoverageReading
 
 /-!
-# DerivedConfig — выводимая конфигурация обучения (C683)
+# DerivedConfig — выводимая конфигурация обучения
 
 Сборка доказанных оптимумов в одну структуру. Каждый компонент
-`optimalConfig` подставляется в СУЩЕСТВУЮЩУЮ теорему напрямую
-(переформулировки нет — Freeze identity). Числовые входы и
+`optimalConfig` подставляется в существующую теорему напрямую.
+Числовые входы и
 сравнение с кодом hagi @ca52eb4 — `scripts/derive_config.py` и
 `docs/DERIVED-CONFIG.md`.
 

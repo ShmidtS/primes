@@ -9,7 +9,7 @@ set_option linter.style.header false
 /-!
 # ResidualVQ: product-of-quantized-factors error
 
-The empirical A8 verdict: one-stage quantization of a factorized
+The empirical verdict: one-stage quantization of a factorized
 adapter q(A)·q(B) at ~3.2-bit per factor collapses nonlinear
 adapters, while two-stage ResidualVQ (6.4-bit body + BF16 head)
 restores them. The Lean slice of that verdict:

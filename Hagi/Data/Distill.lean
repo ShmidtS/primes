@@ -813,9 +813,8 @@ theorem fresh_data_prevents_collapse_uniform (p : ℕ → V → ℝ) (d : V → 
 
 
 /-- **Entropy floor с TV-сертификатом**
-— замена посылки hcert (KL-формы, опровергнутой ревизией:
-KL ≤ δ НЕ спасает энтропию — sharpening tail) на
-Pinsker/Fannes-форму: если полная вариация fresh-смеси и
+— посылка в Pinsker/Fannes-форме
+(KL ≤ δ НЕ спасает энтропию — sharpening tail): если полная вариация fresh-смеси и
 следующего поколения ограничена (сертификат |H(fm)−H(p')| ≤ B,
 B — Fannes-граница через τ = tvDist, см. AntiCollapse),
 то entropy floor выполняется с эффективным δ_eff = B:
@@ -853,47 +852,21 @@ variational lower bound on the mutual information»):
   KL(post ‖ model): контрастивная оценка терминально точна
   ⟺ модель равна постериору.
 
-Плановая переформулировка IB-строк (§2 плана): вместо
-НЕоцениваемого MI — surrogate-bound; здесь он доказан.
 -/
 
 open Finset
 
 /-!
-# Canonical — ONE definition per information-theoretic
-concept (architecture audit P0-1, stage 0/1;
-lives in Data for LayerLint reasons: bridges Data+Energy)
+# Canonical information-theoretic objects and their bridges
 
-The audit found the same mathematical objects under 3–4
-names (KL, entropy, TV). The pass already bridged some
-(Distill.klDiv delegates, DField/FannesSmooth have rfl
-bridges); this module COMPLETES the canonicalization:
-canonical names in ONE namespace, every historical variant
-bridged to the canonical form, nothing deleted (Этап 0: the
-old names stay as delegation aliases — Hyrum).
+The classical KL, entropy, TV and cross-entropy all reduce to the
+`Hagi.Prelude` definitions; every variant in the repo is bridged to
+that form by an `..._eq_canonical` theorem (the variant names are kept
+as delegation aliases). Cross-entropy `CE` is `Hagi.Prelude.ceDef`.
 
-Canonical choices (all reduce to the Prelude definitions,
-the oldest and most widely consumed):
-
-* `Canonical.KL`    = Prelude.klDef   = Σ q·log(q/p)
-* `Canonical.H`     = Prelude.entDef  = −Σ p·log p
-* `Canonical.TV`    = Prelude.tvDef   = (Σ|p−q|)/2
-* `Canonical.CE`    = cross-entropy   = −Σ q·log p
-
-Bridged variants (each `..._eq_canonical`):
-
-* KL:  Data.Distill.klDiv (delegate),
-       Data.DField (rfl; сам KLdiv удалён, аудит 2026-10-24),
-       Energy.FreeEnergy.kldiv (new bridge below);
-* H:   Data.DistillRecursion.shannonEntropy (new),
-       Information.DiscreteFannes.shannon (new);
-* TV:  Data.FannesSmooth.tvDist (rfl),
-       Information.DiscreteFannes.tvHalf (new).
-
-not unified (deliberately, per the audit §2/§24): the
-matrix/spectral entropy `Information.EntropyDefs.entropy`
-is a different mathematical object (cfc of a PSD matrix);
-it is related to the classical H only through the
+Not unified: the matrix/spectral entropy
+`Hagi.Information.entropy` is a different object (cfc of a
+PSD matrix), related to the classical entropy only through the
 diagonal-entropy bridge hypothesis of DiscreteFannes.
 -/
 

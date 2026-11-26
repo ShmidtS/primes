@@ -4,14 +4,10 @@ import Hagi.Benchmarks.QuadraticEndToEnd
 import Hagi.Benchmarks.TernaryWitness
 
 /-!
-# Hagi.Benchmarks — quarantined toy witness modules (A5 §R3)
+# Hagi.Benchmarks — quarantined toy witness modules
 
-These demonstration modules (quadratic/quartic/ternary toy witnesses for
-`certified_loop`-family capstones) are intentionally OUTSIDE the root
-`Hagi` import closure (A5 R3 "18 toy -> Benchmarks" — the remainder was
-already quarantined in `Hagi/Research/Legacy`). They remain buildable and
-tracked by Freeze via the `Hagi.Benchmarks` lean_lib, but their
-declarations are no longer part of the root census / NamePool surface.
-Load-bearing quad modules (QuadMachine, DescentCoreQuad, QuadEta,
-ToyTrajectory, LoopInstances) stay in the root closure.
+Toy witnesses (quadratic/quartic/ternary) for the
+`certified_loop`-family capstones, intentionally OUTSIDE the root `Hagi`
+import closure. Load-bearing quad modules (QuadMachine, DescentCoreQuad,
+QuadEta, ToyTrajectory, LoopInstances) stay in the root closure.
 -/

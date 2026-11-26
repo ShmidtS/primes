@@ -61,9 +61,9 @@ import Hagi.Step.AdamDirection
   НОВЫХ гипотезных блока trailing (growth / Adam / holdout), между
   собой независимые. Внутри (12) клоз `exists_useful_eta` следует
   из тех же гипотез, поэтому в конъюнкцию не дублируется.
-- `hagi_master_v35` — += (O1)–(O6) optimizer-блок (C668–C687), единый контракт посылок `OptimizerPremises`.
+- `hagi_master_v35` — += (O1)–(O6) optimizer-блок, единый контракт посылок `OptimizerPremises`.
 
-НЕ дублирует `MasterTheorem.lean` (центральная теорема A17 audit'а:
+НЕ дублирует `MasterTheorem.lean` (центральная теорема:
 certified-or-refuse дихотомия reference-machine noisy-PL траекторий) — здесь машина
 v3 bench-контура (distill + self-compress + adapter bank), другой носитель и делегаты.
 -/
@@ -76,7 +76,7 @@ open scoped InnerProductSpace
 open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.NegativeTransfer
 
-/-- **(master_theorem_v3, — спецификация машины)**: клозы (1)–(5)
+/-- **master_theorem_v3 — спецификация машины**: клозы (1)–(5)
 карты выше выполняются одновременно для любого прогона v3-машины;
 каждая конъюнкта — делегат к существующей теореме БЕЗ ослабления
 гипотез. -/
@@ -123,7 +123,7 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.NegativeTransfer Hagi.Theory.GrowSnap
   Hagi.Theory.CoverageReading
 
-/-- **(hagi_master_v31, — консолидация certified-машины v3.1)**:
+/-- **hagi_master_v31 — certified-машина v3.1**:
 клозы (1)–(8); (1)–(5) — проекции `master_theorem_v3`. -/
 theorem hagi_master_v31
     {d : Type*} [Fintype d] [Nonempty d] {ι : Type}
@@ -182,7 +182,7 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.NegativeTransfer Hagi.Theory.CoverageReading
   Hagi.Theory.GrowSnap
 
-/-- **(hagi_master_v32, — консолидация certified-машины v3.2)**:
+/-- **hagi_master_v32 — certified-машина v3.2**:
 клозы (1)–(10); (1)–(8) — проекции `hagi_master_v31`. -/
 theorem hagi_master_v32
     {d : Type*} [Fintype d] [Nonempty d] {ι : Type}
@@ -246,7 +246,7 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.NegativeTransfer Hagi.Theory.CoverageReading
   Hagi.Theory.GrowSnap
 
-/-- **(hagi_master_v33, — консолидация certified-машины v3.3)**:
+/-- **hagi_master_v33 — certified-машина v3.3**:
 клозы (1)–(11); (1)–(10) — проекции `hagi_master_v32`; (11) добавляет
 `hw : 0 < w`, `hdiv : w ∣ B`. -/
 theorem hagi_master_v33
@@ -317,7 +317,7 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.HoldoutGateTwoWay Hagi.Theory.HoldoutRisk Hagi.Step
   Hagi.Probability
 
-/-- **(hagi_master_v34, — консолидация certified-машины v3.4)**:
+/-- **hagi_master_v34 — certified-машина v3.4**:
 клозы (1)–(14); (1)–(11) — проекции `hagi_master_v33`; (12)–(14) — три
 независимых гипотезных блока (growth / Adam / holdout). -/
 theorem hagi_master_v34
@@ -420,7 +420,7 @@ open Hagi.Theory.AdapterGrowth Hagi.Theory.MiniHagiLoop
   Hagi.Theory.MuonWide Hagi.Theory.MomentumAlign
 
 /-- **`OptimizerPremises`** — единый контракт посылок оптимизаторного
-блока v3.5 (C668–C687): слой `W1 : ι → δ → ℝ`, батч `x`/`y`, метка `t`.
+блока v3.5: слой `W1 : ι → δ → ℝ`, батч `x`/`y`, метка `t`.
 Поля — в точности посылки доказанных теорем (без ослабления):
 `S_batch > 0`, равные ReLU-маски до/после шага `1/S_batch`, вне kink
 на батче, батч-градиент ≠ 0; вне kink, `g ≠ 0` и `x ≠ 0` для
@@ -441,9 +441,9 @@ structure OptimizerPremises
   hgS : Hagi.Theory.BatchRankOne.rowGrad xs b wo W1
     (Hagi.Energy.smax (w1L W1 b wo xs)) (Hagi.Theory.MuonDescentW1.onehot t) ≠ 0
 
-/-- **(hagi_master_v35, — консолидация optimizer-блока)**: клозы
+/-- **hagi_master_v35 — optimizer-блок**: клозы
 (1)–(14) карты v3.4 — проекции `hagi_master_v34`; оптимизаторный блок
-(C668–C687) = контракт (O7) ∧ (O1) ∧ … ∧ (O6), каждая конъюнкта —
+= контракт (O7) ∧ (O1) ∧ … ∧ (O6), каждая конъюнкта —
 делегат к доказанной теореме без ослабления посылок:
 (O1) grad structure — `w1_grad_rank_one`, `batch_directional_derivative`;
 (O2) smooth step — `w1BatchCE_optimal_step_drop` (γ* = 1/S_batch, сумма

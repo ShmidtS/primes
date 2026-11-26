@@ -8,13 +8,13 @@ import Hagi.Theory.FunctionPreservingGrowth
 /-!
 # MuonDescent — нормировка градиента и сертификат спуска Muon-шага
 
-C675. Замыкает цепочку C668–C674. Обновление слоя `W1 -= η·X₃`
+Обновление слоя `W1 -= η·X₃`
 (core.py:1755 @ca52eb4), где `X₃ = ns_iter 3 Ĝ`, `Ĝ = G/‖G‖_F`
 (нормировка core.py:1353).
 
 * `smax_smul` — (S1) `smax (c • G) = |c|·smax G` (через `smax_eq_opNorm`).
 * `normed_sigma_le_one` — (S1) `G ≠ 0 ⇒ ∀ i, σ i (Ĝ) ≤ 1`: гипотеза
-  `σ ≤ 1` теорем C674 снята для нормированного градиента.
+  `σ ≤ 1` теорем `MuonAlignment` снята для нормированного градиента.
 * `muon_step_inner_ge_frob` — (S1) `1 ≤ ⟨Ĝ, ns_iter k Ĝ⟩` и
   `‖G‖_F ≤ ⟨G, ns_iter k Ĝ⟩`.
 * `useful_of_neg_fderiv` — (S2) абстрактный сертификат: дифференциал
@@ -26,7 +26,7 @@ C675. Замыкает цепочку C668–C674. Обновление слоя
 
 Честная граница: в `muon_step_useful` носитель — `Matrix n n ℝ` со
 sup-нормой Mathlib (на утверждение не влияет: дифференцируемость —
-гипотеза) и связь `f'(W)[Δ] = ⟨g, Δ⟩` — ГИПОТЕЗА (C668/C669 доказывают
+гипотеза) и связь `f'(W)[Δ] = ⟨g, Δ⟩` — ГИПОТЕЗА (`FirstLayerGrad`/`BatchRankOne` доказывают
 её для функционального носителя `ι → δ → ℝ` в виде
 `f'(W)[Δ] = −⟨batchGrad, Δ⟩`, т.е. `g = −batchGrad`); существование
 `η` — локальное, величина шага `η = cos_lr·0.7` не выводится; сходимость
@@ -118,7 +118,7 @@ theorem sigma_le_smax [Nonempty n] (G : Matrix n n ℝ) (i : n) :
   Finset.le_sup' _ (Finset.mem_univ i)
 
 /-- **(S1) `normed_sigma_le_one`**: для `G ≠ 0` все сингулярные значения
-нормированного градиента `≤ 1` — гипотеза `σ ≤ 1` (C674 T3/T4) снята. -/
+нормированного градиента `≤ 1` — гипотеза `σ ≤ 1` снята. -/
 theorem normed_sigma_le_one [Nonempty n] {G : Matrix n n ℝ} (hG : G ≠ 0) (i : n) :
     Hagi.External.Flywheel.Matrix.SVD.Real.realSingularValues (normed G) i ≤ 1 := by
   have hs : 0 < Real.sqrt (frobSq G) := Real.sqrt_pos.2 (frobSq_pos hG)
@@ -151,7 +151,7 @@ theorem muon_step_inner_ge_frob [Nonempty n] {G : Matrix n n ℝ} (hG : G ≠ 0)
   rw [← mul_assoc, hd, one_mul, mul_one] at hu
   exact hu
 
-/-- **(S1) `normed_near_optimal`**: T3 (C674) на нормированном градиенте
+/-- **(S1) `normed_near_optimal`**: T3 `MuonAlignment` на нормированном градиенте
 без гипотезы `σ ≤ 1`. -/
 theorem normed_near_optimal [Nonempty n] {G : Matrix n n ℝ} (hG : G ≠ 0) :
     39 / 40 * ∑ i ∈ Hagi.Theory.MuonAlignment.kept (normed G),
@@ -171,7 +171,7 @@ theorem useful_of_neg_fderiv {E : Type*} [NormedAddCommGroup E] [NormedSpace ℝ
 
 /-- **(S2) `muon_step_useful`** — сертификат спуска Muon-шага: если `f`
 дифференцируема в `W` с дифференциалом `φ`, `φ Δ = ⟨g, Δ⟩` (связь с
-градиентом — гипотеза; для носителя C669 `g = −batchGrad`), и `g ≠ 0`,
+градиентом — гипотеза; для носителя `BatchRankOne` `g = −batchGrad`), и `g ≠ 0`,
 то для малого `η` шаг кода `W ← W − η·X₃` строго убывает `f`. -/
 theorem muon_step_useful [Nonempty n] (G W : Matrix n n ℝ) (f : Matrix n n ℝ → ℝ)
     (φ : Matrix n n ℝ →L[ℝ] ℝ) (hL : HasFDerivAt f φ W)

@@ -4,9 +4,9 @@ import Hagi.Training.MacroStatCert
 
 /-!
 # FourCertTransition — four-certificate composition on one versioned
-transition (A16)
+transition)
 
-The A16 composition record: FOUR certificates — micro-optimization
+FOUR certificates — micro-optimization
 (`FullStepCert`), resource ledger, quality growth, macro-statistics
 (`MacroStatCert`) — all referencing the SAME versioned state
 transition `S_t → S_{t+1}` on the canonical carrier
@@ -21,9 +21,8 @@ certificates are indexed by — no cross-transition mixing.
   extracts it from any certificate);
 * `GrowthCert` — the missing fourth certificate (premise-form): the
   quality channels of the canonical state change EXACTLY by the recorded
-  per-channel deltas `growth` (telemetry tie — TrainState §4.1: quality
-  change is bound to a transition only by a Transition-level
-  certificate), and no protected channel degrades;
+  per-channel deltas `growth` (a Transition-level certificate is the
+  only place quality change is bound to a transition), and no protected channel degrades;
 * `FourCertTransition` — the versioned composition record;
 * `fourCert_commit_descent` — composition soundness (positive
   consistency): a COMMIT decision executes the micro-certified post-state
@@ -82,10 +81,8 @@ def fullStepCert_resource (h : FullStepCert s s') : ResourceCert s s' where
 
 /-! ## GrowthCert — the quality growth certificate (premise-form) -/
 
-/-- The growth certificate of ONE transition (the fourth A16 book,
-premise-form): the quality channels of the canonical state change
-EXACTLY by the recorded per-channel deltas (`qual_tie` — the §4.1
-telemetry tie: a transition cannot set quality arbitrarily), and no
+/-- The growth certificate of ONE transition (premise-form): the quality channels of the canonical state change
+EXACTLY by the recorded per-channel deltas (`qual_tie`: a transition cannot set quality arbitrarily), and no
 protected channel degrades (`protected_ok` — the safety interlock on
 `SafetyState.protectedChannels`). No claim is made that quality grows:
 the deltas are recorded telemetry, their signs are the consumer's to

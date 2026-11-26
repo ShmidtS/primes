@@ -42,8 +42,7 @@ inverse temperature β, over the FREE cells of a CRAM problem.
 * `conditionalDist_eq_localField_softmax` — the local Gibbs
   conditional satisfies `softDef(−β·H(y^{i←a})) =
   softDef(−β·L_i)` for EVERY β: the constant `β·C_i(y)` cancels
-  in softmax (shift-invariance — NOT in the Prelude, added here
-  as minimal private lemmas; audit note in the plan).
+  in softmax (shift-invariance; the lemmas are private to this file).
 * `localFieldLogit` — the −β-scaled local-field logit vector
   `z_i(a) = −β·L_i(a)` (the local training logits).
 * `freeCellPseudolikelihood` — the free-cell PL objective

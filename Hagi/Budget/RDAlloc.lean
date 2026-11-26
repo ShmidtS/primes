@@ -10,7 +10,7 @@ set_option linter.style.header false
 /-!
 # RDAlloc: the rate-distortion compression step certificate
 
-Audit §7 item 7 — the slow-loop RD-compression composition: the
+The slow-loop RD-compression composition: the
 per-stage bit allocation, the staged quantization error law, the
 iso-Frobenius sensitivity, and the certified-transition kernel
 assembled into ONE step certificate. Every ingredient is cited

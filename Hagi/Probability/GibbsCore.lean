@@ -13,10 +13,8 @@ set_option linter.style.header false
 /-!
 # Каноническое распределение Гиббса
 
-Начало M4-консолидации Гиббс-семейства: единое
-определение массы `gibbsW` и нормирующей константы
-`gibbsZ` вместо inline-расписываний в десятке
-модулей. Базовые леммы: позитивность, нормировка,
+Единое определение массы `gibbsW` и нормирующей
+константы `gibbsZ`. Базовые леммы: позитивность, нормировка,
 сдвиг-инвариантность свободной энергии.
 -/
 
@@ -339,8 +337,8 @@ namespace Hagi.Probability
 open Finset Real
 
 open Finset in
-/-- **Нижняя грань энергии (R420)**: E* ≤ ⟨E⟩_T
-почленно (E* · w_v ≤ E_v · w_v). Вместе с R393
+/-- **Нижняя грань энергии **: E* ≤ ⟨E⟩_T
+почленно (E* · w_v ≤ E_v · w_v). Вместе с `gibbs_expected_energy_bound`
 полный сэндвич:
 E* ≤ ⟨E⟩_T ≤ E* + Δ·(n−1)·e^{−δ/T} —
 энергия Гиббса зажата между
@@ -368,9 +366,9 @@ theorem gibbs_expected_energy_lower {V : Type*} [Fintype V]
   rwa [le_div_iff₀ hZpos]
 
 open Finset in
-/-- **Верхняя грань свободной энергии (R421)**:
+/-- **Верхняя грань свободной энергии **:
 F(T) = −T·ln Z ≤ E* поточено (Z ≥ w*,
-логарифм монотонен, −T < 0). Вместе с R398
+логарифм монотонен, −T < 0). Вместе с `free_energy_sharp_lower`
 полный сэндвич свободной энергии:
 E* − T·ln(1+(n−1)e^{−δ/T}) ≤ F(T) ≤ E* —
 сжимается к E* при охлаждении. -/
@@ -400,10 +398,10 @@ theorem free_energy_upper {V : Type*} [Fintype V]
   linarith
 
 open Finset in
-/-- **Разложение перекрёстной энтропии (R422)**:
+/-- **Разложение перекрёстной энтропии **:
 ∑ w·ln(w·n) = ∑ w·ln w + ln n — тождество
 энтропия/KL: KL(pḟ‖u) =
-−S + ln n. Вместе с R418 (S ≥ 0) даёт
+−S + ln n. Вместе с (S ≥ 0) даёт
 KL(pḟ‖u) ≤ ln n; мост к Пинскеру на
 Гиббс-парах: охлаждение убивает энтропию
 → KL к равномерному растёт до ln n (порядок
@@ -455,7 +453,7 @@ theorem gibbs_kl_uniform_split {V : Type*} [Fintype V]
   rw [hsecond]
 
 open Finset in
-/-- **Элементарный зазор Гиббса (R432)** — первый кирпич моста к
+/-- **Элементарный зазор Гиббса** — первый кирпич моста к
    multiplicative weights (RAG-опора: arXiv 2608.09389, EW-regret ≤ M√(2 ln
    A·T)): ⟨E⟩_T ≤ E_min + T·n для ЛЮБЫх E (без гэп-предположений!).
    Доказательство: x + T ≤ T·e^{x/T} почленно + свёртка w·e^{(E−Emin)/T} =
@@ -547,7 +545,7 @@ theorem gibbs_energy_gap_crude {V : Type*} [Fintype V]
 
 open Finset in
 /-- **Log-декомпозиция Гиббс-веса
-(R445)** (PAC-Bayes/Катони, RAG arXiv
+** (PAC-Bayes/Катони, RAG arXiv
 2609.12891): ln(ρ_v·n) = ln n − ln Z −
 E_v/T — вес = сложение
 случайности,
@@ -583,14 +581,14 @@ theorem gibbs_weight_log_decomp {V : Type*} [Fintype V]
   ring
 
 open Finset in
-/-- **KL-тождество Катони (R446)**:
+/-- **KL-тождество Катони **:
 KL(ρḟ‖unif) = −ln Z − ⟨E⟩/T + ln n —
 суммарование
 log-декомпозиции
-R445: λ⟨r⟩ + KL(ρḟ‖π) =
+λ⟨r⟩ + KL(ρḟ‖π) =
 −ln Z_π в uniform-случае.
 Связь с известным:
-вместе с R422 (KL = ln n − S)
+вместе с `gibbs_kl_uniform_split` (KL = ln n − S)
 даёт F = ⟨E⟩ − T·S — гибсовская
 свободная энергия из
 PAC-Bayes-тожества. Мост
@@ -634,9 +632,9 @@ theorem gibbs_katoni_kl {V : Type*} [Fintype V]
   ring
 
 open Finset in
-/-- **Общий второй закон (R447)**: KL(ρḟ‖γ) ≥ 0 для любых двух
+/-- **Общий второй закон **: KL(ρḟ‖γ) ≥ 0 для любых двух
    распределений на конечном носителе: ln u ≤ u−1 почленно с u := γ/ρ даёт
-   ρ·ln(ρ/γ) ≥ ρ−γ; телескоп даёт 0. Обобщение R418 (Гибс-случай) на
+   ρ·ln(ρ/γ) ≥ ρ−γ; телескоп даёт 0. Обобщение (Гибс-случай) на
    произвольные пары; основа для вариационного принципа Гиббса. -/
 theorem finite_kl_nonneg {V : Type*} [Fintype V] [Nonempty V]
     (ρ γ : V → ℝ)
@@ -647,20 +645,20 @@ theorem finite_kl_nonneg {V : Type*} [Fintype V] [Nonempty V]
 
 open Finset in
 /-- **Вариационный
-принцип Гиббса (R448)**:
+принцип Гиббса**:
 для любого распределения ρ:
 ⟨E⟩_ρ + T·Σρ ln ρ ≥ −T·ln Z —
 свободная энергия
 любого ρ (⟨E⟩ − T·S
 с S = −Σρ ln ρ) не меньше
 гиббсовой F = −T ln Z.
-Вывод: R447 (KL ≥ 0) на
+Вывод: `finite_kl_nonneg` (KL ≥ 0) на
 Гиббс-мере γ с
 разворачиванием
 T·KL почленно
 (T·KL = T·Σρ ln ρ + ⟨E⟩ + T ln Z).
 Равенство на Гиббсе —
-R446. Минимум свободной
+`gibbs_katoni_kl`. Минимум свободной
 энергии достигается
 равновесным
 распределением. -/
@@ -714,9 +712,9 @@ theorem gibbs_variational {V : Type*} [Fintype V]
   linarith
 
 open Finset in
-/-- **Нижняя грань свободной энергии (R449)**:
+/-- **Нижняя грань свободной энергии **:
 E_min − T·ln n ≤ F = −T·ln Z.
-Вместе с R421 (F ≤ E*) — сэндвич свободной энергии:
+Вместе с `free_energy_upper` (F ≤ E*) — сэндвич свободной энергии:
 E_min − T·ln n ≤ F ≤ E_min.
 Классическая термодинамика: свободная энергия
 зажата между основанием с энтропийным
@@ -759,14 +757,14 @@ theorem gibbs_free_energy_lower {V : Type*} [Fintype V]
   exact h4
 
 open Finset in
-/-- **Максимальная энтропия (R450)**:
+/-- **Максимальная энтропия **:
 S(ρ) = −Σρ ln ρ ≤ ln n для любого
 распределения на n-точечном
 носителе — равновесие
 (uniform) максимизирует энтропию.
-Вывод: R447 с γ = uniform:
+Вывод: `finite_kl_nonneg` с γ = uniform:
 KL(ρḟ‖unif) ≥ 0 ⇔ S ≤ ln n.
-Вместе с R418 (S ≥ 0) и R429 (Нернст
+Вместе с S ≥ 0 и Нернст
 на термостате) — полный
 энтропийный контур любого
 распределения: 0 ≤ S ≤ ln n. -/
@@ -1503,7 +1501,7 @@ theorem free_energy_variational (q p U : V → ℝ)
     Finset.sum_pos (fun w _ => mul_pos (hp w) (Real.exp_pos _))
       Finset.univ_nonempty
   have hklT : 0 ≤ Hagi.Prelude.klDef (V := V) q (tilted (V := V) p U) :=
-    -- R334: delegates to the canon Hagi.Prelude.kl_nonneg
+    -- delegates to the canon Hagi.Prelude.kl_nonneg
     -- (kldiv' IS klDef by rfl)
     Hagi.Prelude.kl_nonneg q (tilted (V := V) p U)
       hq (tilted_pos p U hp) hq1 (tilted_sum_one p U hp hp1)

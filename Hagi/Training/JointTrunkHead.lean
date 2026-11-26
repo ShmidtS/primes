@@ -9,7 +9,7 @@ import Hagi.Theory.ProvenTrunk
 /-!
 # JointTrunkHead — одновременный certified шаг trunk+head
 
- (G2-хвост из A19): закрыть брешь AlternatingJoint —
+: закрыть брешь AlternatingJoint —
 там чередование (extractor заморожен внутри фазы, движется только
 на admission-границах), а ОДНОВРЕМЕННЫЙ шаг по (θ_trunk, θ_head)
 оставался под пином `crmsm_joint_separation`. Здесь
@@ -25,7 +25,7 @@ trunk-канал: CE-lip 2‖·‖sup (`ce_head_lipschitz_in_logits`,
 ) + логит-смещение от смены ствола, доминируемое
 headLip-нормой НОВОЙ головы HL и MEASURED trunk-смещением d.
 
-## Honest pins
+## Honest limits
 
 - **Cross-член поглощается, не исчезает.** Взаимодействие
   head-шага со сменой ствола не зануляется: вся разность
@@ -52,8 +52,8 @@ headLip-нормой НОВОЙ головы HL и MEASURED trunk-смещени
 - Trunk-«параметры» в ProvenTrunk — данные уровня модуля (g, W₁,
   W₂); константы derivable-but-not-tight (наследие атомов).
 
-Layer decision: Training (8) — модуль расширяет семейство
-AlternatingJoint (8) и потребляет Theory (7) + Model (≤7).
+Layer decision: Training — модуль расширяет семейство
+AlternatingJoint и потребляет Theory + Model.
 -/
 
 set_option relaxedAutoImplicit false
@@ -456,7 +456,7 @@ trunk-канал 2·HL·dd:
   x t даёт − 2A²/R² (R = ceStepRange > 0);
 - trunk-канал: CE-lip 2‖·‖sup + `trunk_disp_logit_le` на НОВОЙ
   голове (θ'-взвешенная headLip-норма HL, measured смещение dd).
-Cross-член ПОГЛОЩёН треугольником в 2·HL·dd (см. pins модуля). -/
+Cross-член ПОГЛОЩёН треугольником в 2·HL·dd (см. limits модуля). -/
 theorem joint_head_trunk_step_le (m : LM V K d)
     (bs' : List (CertifiedBlock V)) (x : ℕ → V → ℝ) (t : ℕ)
     (tgt : K)
@@ -769,7 +769,7 @@ theorem provenTrunk_mlp_param_disp (g : V → ℝ) (G : ℝ≥0)
 `alternating_trajectory_bound_derived` c damageB = 2·headLip·D);
 фактические значения могут лежать ниже любой из
 них — теорема сравнивает гарантии, а не
-траектории (честный pin). -/
+траектории (честное ограничение). -/
 theorem joint_bound_beats_alternating_bound
     (L0 δh Δh damageJ damageB k : ℝ)
     (hcond : k * (δh - damageJ) > k * Δh - damageB) :

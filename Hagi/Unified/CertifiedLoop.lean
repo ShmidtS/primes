@@ -41,7 +41,7 @@ structure StepCert (obj : S → ℝ) (M : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ)
     (s s' : S) (bt b' : ℝ) where
   /-- Риск-трата шага (НЕЗАВИСИМЫЙ канал: риск ≠ бюджет,
-  spec P0-3.2 — запрет отождествления risk и compute cost). -/
+  риск ≠ compute cost). -/
   riskSpend : ℝ
   /-- Бюджетная (вычислительная) трата шага. -/
   budgetSpend : ℝ
@@ -370,7 +370,7 @@ end Hagi.Unified.CertifiedLoop
 
 Капстон `certified_loop` переформулирован над цепями
 `Hagi.Cert.CertStepGenBounded` общего ядра (`TaskId` произвольный —
-жёсткий `Fin 5` цикла не нужен), legacy-носители — premise-free
+жёсткий `Fin 5` цикла не нужен), носители `StepCert` — premise-free
 view:
 
 * `certified_loop_kernel` — КАПСТОН НА ЯДРЕ: bounded-цепь даёт
@@ -380,9 +380,8 @@ view:
   траектория `StepCert` погружается в ядерную цепь БЕЗ посылок
   hbudeq/hrisk/hrisk'/hfloors (bounded-маршрут;
   riskLim ≥ 0 ВЫВОДИТСЯ из riskBound + неотрицательности траты);
-* `certified_loop_eq_kernel` — заключения legacy `certified_loop`
+* `certified_loop_eq_kernel` — заключения `certified_loop`
   ВЫВЕДЕНЫ из ядерного капстона (+ риск-агрегация как бонус);
-  формулировка legacy капстона НЕ изменена (Freeze).
 
 Честные границы: ядерный floor — floor на ОБЪЕКТИВЕ; измеримое
 качество `FloorKept` цикла — канал исполнения, восстановлен
@@ -517,11 +516,11 @@ theorem certified_loop_kernel {deltaLevel : S → ℝ}
   have hd := delta_ledger_fin M obl n t steps deltas hdeltas
   exact ⟨h1, h2, h3, h4, by linarith, by linarith⟩
 
-/-! ## Мост: legacy-траектория → ядерная цепь (premise-free) -/
+/-! ## Мост: траектория `StepCert` → ядерная цепь (premise-free) -/
 
 variable {S : Type*}
 
-/-- Монотонность объективы вдоль legacy-цепи: obj не возрастает
+/-- Монотонность объективы вдоль траектории `StepCert`: obj не возрастает
 (следствие actualDescent каждого шага), без ядра. -/
 theorem legacy_obj_anti (obj : S → ℝ) (Mm : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ) (f : ℕ → S) (b : ℕ → ℝ) (n : ℕ)
@@ -569,7 +568,7 @@ def bridgeMetrics (obj : S → ℝ) (b : ℕ → ℝ) (riskLim : ℝ) (n : ℕ) 
 def bridgeObl (obj : S → ℝ) (x : S) : StepObligations Unit where
   floor _ := obj x
 
-/-- Один legacy-шаг как bounded-шаг ядра на носителях моста:
+/-- Один шаг `StepCert` как bounded-шаг ядра на носителях моста:
 посылок hbudeq/hrisk/hrisk'/hfloors НЕТ — нестрогих законов
 StepCert достаточно, риск-носитель и floor держатся
 следствиями самого StepCert. -/
@@ -618,7 +617,7 @@ def stepCert_to_kernel_bounded (obj : S → ℝ) (Mm : MeasuredState S)
     intro _
     exact hmono
 
-/-- Траекторный мост: вся legacy-цепь Fin n — ядерная bounded-цепь
+/-- Траекторный мост: вся траектория `StepCert` на Fin n — ядерная bounded-цепь
 на носителях моста (TaskId = Unit, состояние ℕ × S). -/
 def legacy_chain (obj : S → ℝ) (Mm : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ) (f : ℕ → S) (b : ℕ → ℝ) (n : ℕ)
@@ -638,9 +637,8 @@ def legacy_chain (obj : S → ℝ) (Mm : MeasuredState S)
 
 /-- ГЛАВНЫЙ МОСТ: заключения `certified_loop` ВЫВЕДЕНЫ из ядерного
 капстона `certified_loop_kernel` через `legacy_chain` (плюс
-риск-леджер — бонус ядра). Формулировка legacy капстона не
-изменена: это ОТДЕЛЬНАЯ теорема, доказательство которой
-не использует legacy `certified_loop`. -/
+риск-леджер — бонус ядра). Это ОТДЕЛЬНАЯ теорема, доказательство
+которой не использует `certified_loop`. -/
 theorem certified_loop_eq_kernel (obj : S → ℝ) (Mm : MeasuredState S)
     (floor : Fin 5 → ℝ) (riskLim : ℝ)
     (f : ℕ → S) (b drops spends : ℕ → ℝ) (n : ℕ)

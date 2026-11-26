@@ -30,7 +30,7 @@ open Finset Matrix
 /-- Squared Frobenius norm of a matrix (the misalignment
 budget). -/
 def frobSq {m n : ℕ} (M : Matrix (Fin m) (Fin n) ℝ) : ℝ :=
-  Hagi.Core.frobSq M  -- dedup: делегат каноническому определению
+  Hagi.Core.frobSq M
 
 /-- Cauchy–Schwarz for dotProduct, squared form. -/
 theorem dotCS {n : ℕ} (a b : Fin n → ℝ) :

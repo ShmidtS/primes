@@ -8,13 +8,11 @@ import Hagi.Ensemble.Hoeffding
 set_option linter.style.header false
 
 /-!
-/-!
 # Uniform-certification block: the probabilistic method
 
 Хорошие точки, двусторонние массы, нижняя граница класса, калибровка
 допуска — на ядре `hoeffding_union_tail`; внешний потребитель —
 `Hagi.Growth.Thermostat` (`calibrated_good_point`).
--/
 -/
 
 open Finset Real
@@ -26,8 +24,7 @@ namespace Hagi.Ensemble
 то существует "хорошая точка" v: ∀ k, d k v < ε.
 От противного: если каждая точка проигрывает какому-то k,
 плохое множество покрывает всю вероятностную массу (1), но
-union bound даёт ≤ |K|·c < 1. Первое применение
-uniform-convergence конвейера к existential-утверждению. -/
+union bound даёт ≤ |K|·c < 1. -/
 variable {K : Type*} [Fintype K]
 
 theorem uniform_good_point {V K : Type*} [Fintype V]
@@ -51,13 +48,11 @@ theorem uniform_good_point {V K : Type*} [Fintype V]
     exact Finset.sum_le_sum_of_subset_of_nonneg hsub
       (fun v _ _ => le_of_lt (hw v))
   -- `hoeffding_union_tail`: mass of the bad set
-  have hR384 := hoeffding_union_tail w d a b (fun v => (hw v).le) hw1 hlt hbd hc hε
+  have hunion := hoeffding_union_tail w d a b (fun v => (hw v).le) hw1 hlt hbd hc hε
   linarith
 
-/-! ### Масса хороших точек: ≥ 1 − |K|·e^{−2ε²/(b−a)²} —
-вероятностная форма uniform convergence: почти вся масса
-сосредоточена на точках, хороших для ВСЕГО класса сразу.
-Расщепление filter/filter_not + union bound. -/
+/-! ### Масса хороших точек: ≥ 1 − |K|·e^{−2ε²/(b−a)²} — почти вся
+масса сосредоточена на точках, хороших для всего класса сразу. -/
 theorem uniform_good_mass {V K : Type*} [Fintype V]
     [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
     (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
@@ -65,7 +60,7 @@ theorem uniform_good_mass {V K : Type*} [Fintype V]
     (hc : ∀ k, ∑ v, w v * d k v = 0) {ε : ℝ} (hε : 0 ≤ ε) :
     1 - (Fintype.card K : ℝ) * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2)
       ≤ ∑ v ∈ Finset.univ.filter (fun v => ∀ k, d k v < ε), w v := by
-  have hR384 := hoeffding_union_tail w d a b (fun v => (hw v).le) hw1 hlt hbd hc hε
+  have hunion := hoeffding_union_tail w d a b (fun v => (hw v).le) hw1 hlt hbd hc hε
   -- bad set = filter (exists k) equals filter (not good)
   classical
   have hsplit : ∑ v ∈ Finset.univ.filter (fun v => ∀ k, d k v < ε), w v
@@ -88,10 +83,8 @@ theorem uniform_good_mass {V K : Type*} [Fintype V]
   rw [hw1] at hsplit
   linarith
 
-/-! ### Двусторонняя граница : масса {∃k |d k v| ≥ ε}
-≤ 2|K|e^{−2ε²/(b−a)²} — расщепление |d| на
-верх/низ через индикаторы, union bound к d и −d (границы
-[−b,−a], среднее −0). -/
+/-! ### Двусторонняя граница: масса {∃k |d k v| ≥ ε}
+≤ 2|K|e^{−2ε²/(b−a)²} (union bound к d и −d). -/
 theorem two_sided_union_tail {V K : Type*} [Fintype V]
     [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
     (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
@@ -202,9 +195,8 @@ theorem two_sided_union_tail {V K : Type*} [Fintype V]
     _ = 2 * (Fintype.card K : ℝ)
         * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) := by ring
 
-/-! ### Двусторонняя масса хороших точек : ≥
-1 − 2|K|e^{−2ε²/(b−a)²} — вероятностная форма
-двусторонней uniform convergence (двусторонняя граница + filter-расщепление). -/
+/-! ### Двусторонняя масса хороших точек: ≥
+1 − 2|K|e^{−2ε²/(b−a)²}. -/
 theorem two_sided_good_mass {V K : Type*} [Fintype V]
     [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
     (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
@@ -213,7 +205,7 @@ theorem two_sided_good_mass {V K : Type*} [Fintype V]
     1 - 2 * (Fintype.card K : ℝ)
         * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2)
       ≤ ∑ v ∈ Finset.univ.filter (fun v => ∀ k, |d k v| < ε), w v := by
-  have hR404 := two_sided_union_tail w d a b hw hw1 hlt hbd hc hε
+  have htwo := two_sided_union_tail w d a b hw hw1 hlt hbd hc hε
   classical
   have hsplit : ∑ v ∈ Finset.univ.filter (fun v => ∀ k, |d k v| < ε), w v
       + ∑ v ∈ Finset.univ.filter (fun v => ∃ k, ε ≤ |d k v|), w v
@@ -237,9 +229,8 @@ theorem two_sided_good_mass {V K : Type*} [Fintype V]
 
 /-! ### Нижняя граница класса : если каждая точка
 проигрывает какому-то k (нет ε-хорошей точки), то
-|K| ≥ e^{2ε²/(b−a)²} — экспоненциальная нижняя оценка
-размера покрывающего класса (контрапозиция вероятностного метода в
-размерной форме: covering-number bound). -/
+|K| ≥ e^{2ε²/(b−a)²} — контрапозиция вероятностного метода
+(covering-number bound). -/
 theorem class_size_lower {V K : Type*} [Fintype V]
     [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
     (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
@@ -249,7 +240,7 @@ theorem class_size_lower {V K : Type*} [Fintype V]
     Real.exp (2 * ε ^ 2 / (b - a) ^ 2)
       ≤ (Fintype.card K : ℝ) := by
   -- `hoeffding_union_tail` gives |K| * c >= 1
-  have hR384 := hoeffding_union_tail w d a b (fun v => (hw v).le) hw1 hlt hbd hc hε
+  have hunion := hoeffding_union_tail w d a b (fun v => (hw v).le) hw1 hlt hbd hc hε
   -- the bad filter covers everything: mass = 1
   have hsub : (Finset.univ : Finset V)
       ⊆ Finset.univ.filter (fun v => ∃ k, ε ≤ d k v) :=
@@ -260,7 +251,7 @@ theorem class_size_lower {V K : Type*} [Fintype V]
     exact Finset.sum_le_sum_of_subset_of_nonneg hsub
       (fun v _ _ => le_of_lt (hw v))
   have hkey : (1:ℝ) ≤ (Fintype.card K : ℝ)
-      * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) := h1le.trans hR384
+      * Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) := h1le.trans hunion
   -- divide: exp(2..) <= |K|
   have hcpos : (0:ℝ) < Real.exp (-2 * ε ^ 2 / (b - a) ^ 2) :=
     exp_pos _
@@ -279,9 +270,8 @@ theorem class_size_lower {V K : Type*} [Fintype V]
   rwa [hinv] at this
 
 /-! ### Калибровка допуска: ε := (b−a)·√(ln(1/θ)/2)
-даёт РОВНО e^{−2ε²/(b−a)²} = θ — термостатный θ
-переводится в ε-допуск Хёфдинга: хвост класса при калиброванном ε есть
-|K|·θ. -/
+даёт ровно e^{−2ε²/(b−a)²} = θ: хвост класса при
+калиброванном ε есть |K|·θ. -/
 theorem tolerance_calibration (b θ : ℝ) (hb : 0 < b) (hθ1 : 0 < θ)
     (hθ2 : θ < 1) :
     Real.exp (-2 * ((b * Real.sqrt (Real.log (1/θ)/2)) ^ 2) / b ^ 2)
@@ -305,9 +295,7 @@ theorem tolerance_calibration (b θ : ℝ) (hb : 0 < b) (hθ1 : 0 < θ)
 
 /-! ### Калиброванная двусторонняя масса: при
 ε = (b−a)√(ln(1/θ)/2) масса точек,
-хороших для всего класса, ≥ 1 − 2|K|θ — финальное звено
-моста: охлаждение (θ) → ε-допуск → сертифицированная
-равномерная точность. -/
+хороших для всего класса, ≥ 1 − 2|K|θ. -/
 theorem calibrated_two_sided_mass {V K : Type*} [Fintype V]
     [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
     (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)
@@ -330,11 +318,11 @@ theorem calibrated_two_sided_mass {V K : Type*} [Fintype V]
     apply mul_nonneg
     · exact hR
     · exact Real.sqrt_nonneg _
-  have hR405 := two_sided_good_mass w d a b hw hw1 hlt hbd hc hεpos
+  have hmass := two_sided_good_mass w d a b hw hw1 hlt hbd hc hεpos
   -- rewrite the exp factor via `tolerance_calibration`
   have hcal := tolerance_calibration (b - a) θ (by linarith) hθ1 hθ2
-  rw [hcal] at hR405
-  exact hR405
+  rw [hcal] at hmass
+  exact hmass
 
 /-! ### Двусторонняя хорошая точка: при
 2|K|e^{−2ε²/(b−a)²} < 1 существует v: ∀k |d k v| < ε
@@ -357,14 +345,13 @@ theorem two_sided_good_point {V K : Type*} [Fintype V]
     rw [← hw1]
     exact Finset.sum_le_sum_of_subset_of_nonneg hsub
       (fun v _ _ => le_of_lt (hw v))
-  have hR404 := two_sided_union_tail w d a b hw hw1 hlt hbd hc hε
+  have htwo := two_sided_union_tail w d a b hw hw1 hlt hbd hc hε
   linarith
 
 
 /-! ### Калиброванная хорошая точка: при 2|K|θ < 1
 существует v, равномерно ε_θ-хорошая для всего класса,
-ε_θ = (b−a)√(ln(1/θ)/2) — сэмпл-
-сложность моста в θ-параметризации: термостатная θ\нгарантирует существование репрезентативной точки. -/
+ε_θ = (b−a)√(ln(1/θ)/2). -/
 theorem calibrated_good_point {V K : Type*} [Fintype V]
     [Nonempty V] [Fintype K] (w : V → ℝ) (d : K → V → ℝ)
     (a b : ℝ) (hw : ∀ v, 0 < w v) (hw1 : ∑ v, w v = 1)

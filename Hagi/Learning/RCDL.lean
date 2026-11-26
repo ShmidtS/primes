@@ -7,15 +7,13 @@ set_option linter.style.header false
 /-!
 # RCDL — Retrieval-Centric Deep Learning: дуальность и gauge-инвариантность
 
-Исследовательский цикл 5 (источник: arXiv:2610.03858,
-Schlegel et al., "Retrieval-Centric Deep Learning in Growing
-Nonparametric Neural Networks"):
+Источник: arXiv:2610.03858, Schlegel et al., "Retrieval-Centric
+Deep Learning in Growing Nonparametric Neural Networks".
 
 1. `dual_apply`: ТОЧНАЯ дуальная форма линейного слоя после T
    шагов SGD: (W₀ + Σₜ vₜ xₜᵀ) q = W₀ q + Σₜ vₜ (xₜᵀ q) —
    слой эквивалентен ненормализованному linear attention с
-   ключами xₜ и значениями vₜ. Никакой эмпирики: чистая
-   дистрибутивность, но она — фундамент RCDL.
+   ключами xₜ и значениями vₜ. Чистая дистрибутивность.
 
 2. `weightedSoftmax` и `gauge_shift`: взвешенный софтмакс
    s_D(q) = Σ e^{⟨kᵢ,q⟩} ṽᵢ / Σ e^{⟨kᵢ,q⟩} wᵢ и строгая
@@ -23,7 +21,7 @@ Nonparametric Neural Networks"):
    вектор b (ṽᵢ → ṽᵢ + b·wᵢ) НЕ меняет s_D(q). Именно эта
    инвариантность позволяет выбирать калибровочный сдвиг для
    гарантии положительных весов новых ключей без клиппинга
-   (доказательство корректности сдвига — следующая цель).
+   (см. `gauge_exists`).
 
 Честная граница: функциональный градиент Фреше по гауссовым
 смесям и theorem о regret RCDL здесь НЕ формализуются.

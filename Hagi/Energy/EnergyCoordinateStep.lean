@@ -10,9 +10,8 @@ set_option linter.style.header false
 /-!
 # Coordinate minimization as an exact KL certificate
 
-Track E2 (addendum A9 + A9-supplement, CRAM / arXiv:2611.17309): the
-single-variable free energy and the EXACT monotone certificate for soft
-coordinate updates — the A9-preferred discrete alternative to Euler steps
+The single-variable (CRAM / arXiv:2611.17309) free energy and the EXACT monotone certificate for soft
+coordinate updates — the discrete alternative to Euler steps
 of the continuous flow (which carry no monotonicity guarantee; the paper's
 own caveat).
 
@@ -36,7 +35,7 @@ support ceremony is needed for `klDef p q_i`. The constant `c` cancels
 exactly — it is kept in the statement only to match the CRAM form
 `F_i(p_i) + C(y_{-i})`.
 
-Addendum A11 bridge B1 (the FullBridge section below): the single-cell
+Full bridge (the FullBridge section below): the single-cell
 certificate is connected to the FULL mean-field free energy
 `meanFieldFreeEnergy` of `Hagi.Energy.PairwiseCategorical`:
 `meanField_coordinate_update_eq_singleCell` (updating one coordinate

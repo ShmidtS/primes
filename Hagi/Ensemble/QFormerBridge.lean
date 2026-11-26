@@ -7,9 +7,8 @@ import Mathlib.Tactic
 /-!
 # punctured CE - unbiased Bernoulli masking
 
-Phase B. Sources: 2609.34475 (PAD
-discipline), 2607.18042 (bridge tokens); the masking
-unbiasedness is the standard Bernoulli subsampling identity.
+Sources: 2609.34475 (PAD discipline), 2607.18042 (bridge
+tokens).
 
 Model: each index i is kept with probability p by an
 independent Bernoulli b i; the punctured sum is
@@ -17,15 +16,11 @@ S b = sum b i * x i.
 
 Theorems:
 
-* punctured_expectation - UNBIASEDNESS up to the factor:
-E[S b] = p * sum x i (independence + linearity).
-* punctured_concentrates - Hoeffding: the punctured sum
-with bounded terms concentrates around its mean at the
-standard exp(-2 eps^2 / n) rate.
+Unbiasedness up to the factor: E[S b] = p * sum x i (linearity
+under the Bernoulli marginal).
 
-Honest boundary: CE-level unbiasedness of the LOSS (not
-just the sum) additionally requires reweighting by 1/p -
-stated in the docstring, not formalized. -/
+Not formalized: concentration of the punctured sum; CE-level
+unbiasedness of the loss (requires reweighting by 1/p). -/
 
 namespace Hagi.Data
 open Finset
@@ -35,12 +30,11 @@ is true. -/
 def puncturedSum {n : ℕ} (x : Fin n → ℝ) (b : Fin n → Bool) : ℝ :=
   ∑ i, (if b i = true then (1:ℝ) else 0) * x i
 
-/-- UNBIASEDNESS from marginality: if the mask weights W
+/-- Unbiasedness from marginality: if the mask weights W
 give each index the Bernoulli(p) marginal
 (sum of W over masks with b i = t is p resp. 1 - p), then
 the weighted punctured sum is exactly p times the full sum
-(linearity of expectation; the probabilistic marginality
-itself is the standard Bernoulli fact, taken as the
+(linearity of expectation; the Bernoulli marginality is the
 hypothesis hmar). -/
 theorem punctured_unbiased {n : ℕ} (x : Fin n → ℝ)
     (W : (Fin n → Bool) → ℝ)
@@ -106,7 +100,7 @@ set_option linter.style.header false
 /-!
 # QFormer bridge - zero-init identity (function-preserving)
 
-Phase B. Sources: 2609.31448 (ViSTA:
+Sources: 2609.31448 (ViSTA:
 learned queries U, zero-init output projection => Z = V
 exactly - the bridge is INCLUDED without changing the
 behavior), 2609.34598 (fixed summary-token count as KV),
@@ -119,10 +113,8 @@ bridge output is exactly zero.
 * `vista_residual_identity` - inserting the bridge into
 the residual stream changes nothing: V + bridge = V.
 
-Honest boundary: fixed-rate cost (K summary tokens
-regardless of input length) is definitional; the CLAIM
-that this preserves downstream quality while compressing
-is empirical (2609.31448), not proven. -/
+Not proven: that compressing to K summary tokens preserves
+downstream quality (empirical, 2609.31448). -/
 
 namespace Hagi.Ensemble
 
@@ -141,7 +133,7 @@ theorem vista_bridge_zero {d : ℕ} (U : Fin 1 → (Fin d → ℝ))
   simp
 
 /-- Inserting the bridge into the residual stream changes
-nothing: the function is PRESERVED on inclusion. -/
+nothing: the function is preserved. -/
 theorem vista_residual_identity {d : ℕ} (U : Fin 1 → (Fin d → ℝ))
     (A : Fin d → ℝ) (Vres : ℝ) :
     Vres + bridgeOut U A 0 = Vres := by

@@ -3,9 +3,9 @@ import Hagi.Cert.StepGen
 
 /-!
 # CanonicalTrainState — единое каноническое состояние обучения
-с инвариантом полного откката (user audit 3.1)
+с инвариантом полного откката
 
-Контракт поверх Freeze-locked `Hagi.State.TrainState` (§4.1):
+Контракт поверх `Hagi.State.TrainState`:
 
 * `CanonicalTrainState` — канонический носитель: ВСЁ состояние
   целиком — веса, Adam-буферы оптимизатора (momentum/variance),
@@ -24,11 +24,7 @@ import Hagi.Cert.StepGen
 один адаптер показывает, что ядро может вести это
   состояние.
 
-Честный объём (honest scope): это ОПРЕДЕЛЕНИЕ КОНТРАКТА + инвариант,
-НЕ миграция. Кандидаты на миграцию (последующие транши):
-`Hagi.Model.EnergyReasoning.CRAMState`, потребители
-`Hagi.System.GrowthState`, файлы `Hagi.Model.*` — всё это остаётся
-раздельным и не трогается здесь.
+Честный объём: это ОПРЕДЕЛЕНИЕ КОНТРАКТА + инвариант, НЕ миграция.
 -/
 
 set_option relaxedAutoImplicit false
@@ -43,8 +39,7 @@ variable {TaskId : Type*}
 /-- ЕДИНОЕ каноническое состояние обучения : полный
 носитель — всё, что откатывается при Hold, целиком. Шесть подсостояний
 §4.1 (веса, Adam-буферы, память, бюджет, риск, качество) — через
-Freeze-locked `core : TrainState`; три поля аудита, которых в TrainState
-нет: router/expert-гейты, параметры квантования, trust-ledger. -/
+`core : TrainState`; три поля, которых в TrainState нет: router/expert-гейты, параметры квантования, trust-ledger. -/
 structure CanonicalTrainState (n a e q r c k : ℕ) where
   /-- Шесть подсостояний §4.1: веса, Adam m/v-буферы, память,
   budget/risk-ledger, качество. -/

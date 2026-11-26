@@ -18,17 +18,10 @@ import Hagi.Research.RsiCriterion
 import Hagi.Research.SeedOnly
 
 /-!
-# Hagi.Research — quarantined research models (A5 §R4)
+# Hagi.Research — quarantined research models
 
-These research-model modules (Omni cross-modal invariants, Percolation
-site thresholds, Schelling routing/selection, Discovery PPT) are
-intentionally OUTSIDE the root `Hagi` import closure (A5 R4 "Research
-quarantine"). They form a closed consumer cluster (no main theorem in the
-root closure cites them), remain buildable and tracked by Freeze via the
-`Hagi.Research` lean_lib, but their declarations are no longer part of the
-root census / NamePool surface. Original namespaces (Hagi.Omni,
-Hagi.Percolation, Hagi.Discovery, Hagi.Optimization.Schelling*,
-Hagi.Optimization.MarkovPercolation, Hagi.Contracts.Schelling*) are kept,
-so all public FQNs are unchanged. Quarantine: outside default build targets
-(X9); built explicitly in ci.sh because Freeze inventory imports it.
+Research-model modules (Omni cross-modal invariants, Percolation
+site thresholds, Schelling routing/selection, Discovery PPT). They are
+intentionally OUTSIDE the root `Hagi` import closure and form a closed
+consumer cluster (no main theorem in the root closure cites them).
 -/

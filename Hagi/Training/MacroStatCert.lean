@@ -5,9 +5,9 @@ import Hagi.Cert.EvalBinding
 import Hagi.Probability.Concentration
 
 /-!
-# MacroStatCert — statistically valid macro-cycle certificate (A16 TT-CAT)
+# MacroStatCert — statistically valid macro-cycle certificate (TT-CAT)
 
-The macro-loop certificate of the A16 TT-CAT two-level training design:
+The macro-loop certificate of the TT-CAT two-level training design:
 every `K` micro-steps the controller forms a quality estimate `ΔQ̂_K`
 with a typed confidence radius, and takes ONE of three decisions —
 `commit` (LCB `ΔQ̂_K − r_conf` above threshold), `hold` (statistical
@@ -15,7 +15,7 @@ uncertainty zone — no state change), `rollback` (UCB confirms
 degradation OR a hard limit is breached — restore the last committed
 checkpoint).
 
-Composition, no new probability (thin-adapter convention):
+Composition, no new probability:
 
 * the anytime-validity premise is carried by `Hagi.Contracts.VilleMonitor.EProcMonitor`
  — the decision consumes the monitor's α and firing predicate;
@@ -29,8 +29,7 @@ Composition, no new probability (thin-adapter convention):
 * `r_conf` is `Hagi.Cert.ConfidenceRadius` type — a radius is
   never silently mixed with a risk level.
 
-Honest pins (A16 acceptance bar — "plain Freedman on reused data is
-insufficient"):
+Honest limits ("plain Freedman on reused data is insufficient"):
 
 1. **Data freshness / independence binder (premise-form)**: the
    e-process factors must have conditional mean ≤ 1 on data the macro
@@ -54,7 +53,7 @@ namespace Hagi.Training
 
 /-! ## The three-way decision -/
 
-/-- The macro-cycle decision (A16 TT-CAT): commit the new state, hold
+/-- The macro-cycle decision (TT-CAT): commit the new state, hold
 (no state change), or roll back to the last committed checkpoint. -/
 inductive MacroDecision where
   /-- LCB above threshold — commit the new state. -/
@@ -141,7 +140,7 @@ degradation. -/
 
 /-! ## The macro-cycle certificate -/
 
-/-- The macro statistical certificate (A16 four-certificate rule):
+/-- The macro statistical certificate (four-certificate rule):
 the versioned state transition `sBefore → sAfter` (the `S_t → S_{t+1}`
 binding shared by all four certificates), the last committed
 checkpoint `sCheckpoint` (the rollback target), the quality estimate
@@ -214,7 +213,7 @@ theorem rollback_sound {S : Type*} {objective : S → ℝ}
 e-process premises — the trajectory `L` fed to the monitor is a
 nonnegative supermartingale with `μ[L 0] ≤ 1` (premise-form e-process
 validity; on ADAPTIVELY reused data this premise is NOT derivable —
-see the module pins) — and the two policy premises:
+see the module limits) — and the two policy premises:
 `hembed` (`gate_anytime_valid` embedding shape): if the
 committed gain is FALSE (`¬goodGain`), the e-process has crossed the
 threshold `mon.α⁻¹` by horizon `n` — the e-process DETECTS the false
@@ -224,8 +223,7 @@ commit;
 then the probability of a FALSE COMMIT is at most `α`, i.e.
 `μ.real {ω | committed ∧ ¬goodGain ω} ≤ mon.α`. Proof: direct descent
 from `Hagi.Contracts.VilleMonitor.monitor_ville_valid` (
-Ville engine) by measure monotonicity — exactly the
-`audit_monitor_fires` proof shape; no new concentration. -/
+Ville engine) by measure monotonicity . -/
 theorem commit_sound {S : Type*} {objective : S → ℝ}
     {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
     [IsProbabilityMeasure μ] {𝒢 : Filtration ℕ m0}
@@ -250,11 +248,11 @@ theorem commit_sound {S : Type*} {objective : S → ℝ}
 
 /-! ## Demo: the pre-split fresh-sample instantiation -/
 
-/-- The monitor over a PRE-SPLIT fresh factor batch (the honest first
-instantiation of the A16 acceptance bar): level `α`, e-value exactly
+/-- The monitor over a PRE-SPLIT fresh factor batch (the first
+instantiation of the acceptance bar): level `α`, e-value exactly
 the product of the factor list. FACTOR VALIDITY (each factor has
-conditional mean ≤ 1 on the pre-split data) is PREMISE-FORM — pin #1
-of the module; nothing here claims a bound on adaptively reused data. -/
+conditional mean ≤ 1 on the pre-split data) is PREMISE-FORM;
+nothing here claims a bound on adaptively reused data. -/
 def freshBatchMonitor (α : ℝ) (hα : 0 < α) (facs : List ℝ) :
     EProcMonitor where
   α := α

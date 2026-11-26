@@ -14,7 +14,7 @@ set_option linter.style.header false
 /-!
 # Single-cell descent on the categorical pairwise energy
 
-Track E2 (addendum A9 + A9-supplement, CRAM / arXiv:2611.17309): the discrete
+The discrete (CRAM / arXiv:2611.17309)
 single-cell core — the exact energy delta of moving ONE cell, the greedy
 nonincrease certificate, and the three DISTINCT stationarity/validity notions
 (never conflated).
@@ -41,7 +41,7 @@ nonincrease certificate, and the three DISTINCT stationarity/validity notions
   global-min (witness below), global-min ↛ valid, valid ↛ anything. The only
   implication that holds is `global_minimum_is_coordinate_minimum`.
 
-## Honest boundaries (A9 'not to adopt' list)
+## Honest boundaries
 
 Energy descent is NOT correctness: no minimum notion implies
 `IsValidSolution`, and validity says nothing about energy. The greedy
@@ -60,7 +60,7 @@ variable {ι : Type*} [Fintype ι] [DecidableEq ι]
 variable {α : Type*}
 
 /-- Local field `L_i(a) = B_i(a) + Σ_{j ≠ i} K_ij(a, y_j)`
-(A9-supplement form: the computable one-sided field). -/
+(the computable one-sided field). -/
 noncomputable def localField (B : ι → α → ℝ) (K : ι → ι → α → α → ℝ)
     (y : ι → α) (i : ι) (a : α) : ℝ :=
   B i a + ∑ j ∈ Finset.univ \ {i}, K i j a (y j)
@@ -265,9 +265,7 @@ def IsGlobalMinimum (B : ι → α → ℝ) (K : ι → ι → α → α → ℝ
     (y : ι → α) : Prop :=
   ∀ y' : ι → α, pairwiseEnergy B K y ≤ pairwiseEnergy B K y'
 
-/-- Validity certificate: per-cell constraint satisfaction (the
-A9 'AcceptedSolution = preserves_givens + satisfies_constraints' spirit at
-the abstract carrier level; givens are per-cell constraints `C i`).
+/-- Validity certificate: per-cell constraint satisfaction (per-cell constraints `C i`).
 NEVER implied by any energy-minimum notion: energy is efficiency of search,
 the constraint certificate is correctness. -/
 def IsValidSolution (C : ι → α → Prop) (y : ι → α) : Prop :=
@@ -283,7 +281,7 @@ theorem global_minimum_is_coordinate_minimum (B : ι → α → ℝ)
 end Minima
 
 section Fixture
-/-! ## Fin 2 × Bool fixture (vacuity audit; carrier Bex/Kex/xex/xtt) -/
+/-! ## Fin 2 × Bool fixture (carrier Bex/Kex/xex/xtt) -/
 
 open Hagi.Energy
 
@@ -309,12 +307,6 @@ with `B' i a = if a then 0 else (i + 1)` and the symmetric `Kex`, the state
 `(t, f)` is a coordinate minimum with energy `2`, while the global minimum
 is `(f, t)` with energy `1`. -/
 noncomputable def Bc : Fin 2 → Bool → ℝ := fun i a => if a then 0 else (i : ℝ) + 1
-
-/-- `E(t,t) = (1/2)·(2 + 2) = 2` (B-part zero at `t`). -/
-private theorem Ectt : pairwiseEnergy Bc Kex xtt = 2 := by
-  simp [pairwiseEnergy, pairwiseInteractionSum, Fin.sum_univ_two, Bc, Kex,
-    Finset.sum_singleton, xtt]
-  norm_num
 
 /-- The witness state `xex = (t, f)`: `E = B_0(t) + B_1(f) = 0 + 2 = 2`. -/
 private theorem Ecxex : pairwiseEnergy Bc Kex xex = 2 := by

@@ -39,8 +39,7 @@ historical namespaces so every fully-qualified name is stable.
   (`BlockAdmission → CertCEHoldout → Statistics`), so merging it
   here would create an import cycle — kept separate, names stable.
 
-Honest pins live in each section; the with-replacement surrogate
-pin is closed by the section above it.
+Limits are stated in each section.
 Layer: Theory — consumes the `Hagi.Probability` tower
 (CertifiedEstimator / Concentration / Azuma / FreedmanAdaptive),
 `Hagi.Unified.AnytimeMartingale` (Ville) and
@@ -1683,8 +1682,7 @@ theorem holdout_wr_upper [Nonempty Ω] {f : Ω → ℝ} (hf : ∀ v, 0 ≤ f v �
 /-- **(c) Главный результат: без-возвратная holdout-концентрация**
 (Freedman-адаптированная форма с частичным fpc-кредитом):
 `P[|wrMean − μ| ≥ ε] ≤ 2·exp(−kε²/(2(σ̂²(2N−k)/N + ε)))`.
-Посылки: `0 < k`; `k + 1 ≤ N` (при k = N оценка детерминирована —
-PIN); `σ̂² > 0` (при σ̂² = 0 f константна, событие пусто — PIN). -/
+Посылки: `0 < k`; `k + 1 ≤ N` (при k = N оценка детерминирована); `σ̂² > 0` (при σ̂² = 0 f константна, событие пусто). -/
 theorem holdout_wr_concentration [Nonempty Ω] {f : Ω → ℝ}
     (hf : ∀ v, 0 ≤ f v ∧ f v ≤ 1)
     {k : ℕ} (hk : 0 < k) (hkN : k + 1 ≤ Fintype.card Ω)

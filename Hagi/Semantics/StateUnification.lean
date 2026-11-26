@@ -9,32 +9,25 @@ import Hagi.Semantics.Split
 set_option linter.style.header false
 
 /-!
-# StateUnification — единое состояние: связка трёх носителей (A17 stage 1)
+# StateUnification — единое состояние: связка трёх носителей
 
-Внешний аудит cb541cc (addendum A17, stage 1): качество должно
-измеряться ЧЕРЕЗ семантику модели (params → forward → loss → metrics
-одной цепочкой), а `StageSemantics`/`Transition` — привязаны к
+Качество измеряется ЧЕРЕЗ семантику модели (params → forward → loss →
+metrics одной цепочкой), а `StageSemantics`/`Transition` — привязаны к
 каноническому носителю `CanonicalTrainState`.  Этот модуль — связка
-(tie/invariant theorems, NOT a migration): ни одно утверждение
-существующих модулей не меняется.
-
-Слоёвое размещение: модуль обязан видеть `Hagi.Model.StageSemantics`
-(layer 4) и `Hagi.Semantics.Split` (layer 5), поэтому живёт в
-`Hagi/Semantics/` (layer 5), а не в `Hagi/State/` (layer 3, куда
-LayerLint импорт верхних слоёв запрещает) — отклонение от буквы
-задания зафиксировано в survey/plan/receipt .
+(tie/invariant theorems): ни одно утверждение существующих модулей
+не меняется. Модуль живёт в `Hagi/Semantics/`, так как видит
+`Hagi.Model.StageSemantics` и `Hagi.Semantics.Split`.
 
 ## Главные элементы
 
 * `coherentGrowth` + `growth_coherent_advance_iff` — ИНВАРИАНТ
   weights/params для `GrowthState`: `advance` сохраняет когерентность
   РОВНО тогда, когда направление спуска лежит в ядре проекции `f`
-  (честная формализация разрыва: audit "no invariant tying them").
+  (формализация разрыва: инварианта, связывающего их, нет).
 * `repairGrowth` + `growth_repair_coherent` — явное каноническое
   восстановление когерентности после `advance` (repair-условие).
 * `qualityThroughModel` — ЕДИНЫЙ семантический путь
-  params → forward (`ModelSpec.head`) → loss (`combineObjective`,
-) → метрика (сумма по датасету).
+  params → forward (`ModelSpec.head`) → loss (`combineObjective`) → метрика (сумма по датасету).
 * `measuredQuality` + `measureQuality_through_model` — мост,
   закрывающий external-measurement gap `Transition.measureQuality`:
   значение качества становится ФУНКЦИЕЙ новых params через
@@ -43,16 +36,13 @@ LayerLint импорт верхних слоёв запрещает) — отк�
   `CanonicalTrainState` к `Transition.trainStep` и к ledger-полям
   `GrowthState` (проекции канонических шагов).
 
-## Пины (что остаётся внешним — честно)
+## Что остаётся внешним
 
-- Реальный forward глубоких сетей: `ModelSpec.head` — поле-гипотеза
-  (конкретные головы живут в своих модулях, ledger).
-- `advance`'s energy/gap/capability — измеренные ВХОДЫ `u.eff`
-  (запрет §5 назначать их из params сохраняется).
+- Реальный forward глубоких сетей: `ModelSpec.head` — поле-гипотеза.
+- `advance`'s energy/gap/capability — измеренные ВХОДЫ `u.eff`.
 - Проекция `f` — гипотеза (закон линейности на аффинных
   обновлениях), не теорема о конкретной f.
-- `QualityVector`-каналы без `ModelSpec` — прежний внешний телеметр;
-  канал-специфичные датасеты (разные ds на канал) — позже (YAGNI).
+- Канал-специфичные датасеты (разные ds на канал) не формализованы.
 -/
 
 set_option relaxedAutoImplicit false
@@ -64,7 +54,7 @@ open Hagi.Model Hagi.State Hagi.System
 /-! ## (a) Когерентность `GrowthState`: weights = f params
 
 `GrowthState` несёт ДВА параметрических поля — `params : X` и
-`weights : Fin weightDim → ℝ` — без инварианта (аудит A17).
+`weights : Fin weightDim → ℝ` — без инварианта.
 Связку задаёт проекция `f` с законом аффинной линейности. -/
 
 variable {X : Type*} [NormedAddCommGroup X] [InnerProductSpace ℝ X]
@@ -76,10 +66,8 @@ def coherentGrowth (S : GrowthState X) (f : X → (Fin S.weightDim → ℝ)) : P
 
 /-- ТЕОРЕМА РАЗРЫВА:
 `advance` сохраняет когерентность РОВНО тогда, когда направление
-спуска лежит в ядре проекции f.  Доказательство существенно
-использует закон аффинной линейности f и активность шага (0 < eta).
-Направление вне ядра ЧЕСТНО ЛОМАЕТ инвариант — это условие ремонта,
-а не постулат сохранения. -/
+спуска лежит в ядре проекции f.  Использует закон аффинной линейности f и активность шага (0 < eta).
+Направление вне ядра ломает инвариант — это условие ремонта. -/
 theorem growth_coherent_advance_iff (S : GrowthState X) (u : StageInput X)
     (f : X → (Fin S.weightDim → ℝ))
     (hf : ∀ (p d : X) (η : ℝ), f (p - η • d) = f p - (fun i => η * f d i))
@@ -103,8 +91,8 @@ theorem growth_coherent_advance_iff (S : GrowthState X) (u : StageInput X)
     have hzi : f u.stepDir i = 0 := by simpa using congrFun hd i
     rw [Pi.sub_apply, hzi, mul_zero, sub_zero, ← congrFun h i]
 
-/-- Каноническое восстановление: weights := f params (params, ledger
-и все остальные поля не трогаются — repair ровно одного разрыва). -/
+/-- Каноническое восстановление: weights := f params (остальные поля
+не трогаются). -/
 def repairGrowth (S : GrowthState X) (f : X → (Fin S.weightDim → ℝ)) :
     GrowthState X where
   weightDim := S.weightDim
@@ -147,18 +135,14 @@ theorem growth_repair_fixes_coherent (S : GrowthState X)
     simp only [repairGrowth] at h ⊢
     rw [h]
 
-/-! ## (b) Качество ЧЕРЕЗ семантику модели (params → forward → loss)
-
-Единый семантический путь: `combineObjective` на каждой
-точке датасета, суммированный.  Это и есть стрелка аудита
-params → forward → loss → metrics ОДНОЙ цепочкой. -/
+/-! ## (b) Качество ЧЕРЕЗ семантику модели (params → forward → loss) -/
 
 variable {Θ X' V : Type}
 
 /-- Метрика качества ЧЕРЕЗ семантику модели: сумма объединённой
 цели `combineObjective m o θ x y` (= objective-лосс на forward
 `m.head θ x`) по датасету ds.  Единственный датасет — один лосс на
-все каналы (пин: канал-специфичные датасеты — позже, YAGNI). -/
+все каналы. -/
 def qualityThroughModel (m : ModelSpec Θ X' V) (o : ObjectiveSpec V)
     (θ : Θ) (ds : List (X' × (V → ℝ))) : ℝ :=
   (ds.map (fun p => combineObjective m o θ p.1 p.2)).sum
@@ -176,22 +160,18 @@ theorem qualityThroughModel_nonneg (m : ModelSpec Θ X' V) (o : ObjectiveSpec V)
 variable {n a e q r c k : ℕ}
 
 /-- Измеренное качество TrainState ЧЕРЕЗ модель: каждый канал
-quality-телеметра — семантическая метрика на ТЕКУЩИХ весах.
-Закрывает external-measurement gap: значение качества теперь
-ФУНКЦИЯ params (weights) через forward → loss, а не произвольный
-внешний вектор. -/
+quality-телеметра — семантическая метрика на ТЕКУЩИХ весах
+(значение качества — функция params через forward → loss). -/
 def measuredQuality (m : ModelSpec (Fin n → ℝ) X' V) (o : ObjectiveSpec V)
     (S : TrainState n a r c k) (ds : List (X' × (V → ℝ))) :
     QualityVector :=
   fun _ => qualityThroughModel m o S.model.weights ds
 
-/-- МОСТ (закрытие external-measurement gap): единственный способ
-записать качество — `Transition.measureQuality`; если измерение
-идёт через модель, то после параметрического шага `trainStep`
-телеметр равен семантической метрике на НОВЫХ параметрах
-`w − η·g` — дефинициально (rfl), т.е. связь не может потеряться.
-Старое качество остаётся прежним (`trainStep_quality_unchanged`) —
-обновление телеметра — только явное измерение. -/
+/-- МОСТ: единственный способ записать качество —
+`Transition.measureQuality`; после параметрического шага `trainStep`
+телеметр равен семантической метрике на НОВЫХ параметрах `w − η·g`
+(дефинициально). Обновление телеметра — только явное измерение
+(`trainStep_quality_unchanged`). -/
 theorem measureQuality_through_model (m : ModelSpec (Fin n → ℝ) X' V)
     (o : ObjectiveSpec V) (S : TrainState n a r c k) (u : TrainingInput n c)
     (ds : List (X' × (V → ℝ))) :
@@ -200,17 +180,15 @@ theorem measureQuality_through_model (m : ModelSpec (Fin n → ℝ) X' V)
       = fun _ => qualityThroughModel m o
           (fun i => S.model.weights i - u.eta * u.grad i) ds := rfl
 
-/-- Все каналы измеряются на ОДНОМ семантическом пути: каждый канал
-`measuredQuality` равен `qualityThroughModel` на текущих весах
-(стрелка аудита params → forward → loss → metrics, одна цепочка). -/
+/-- Каждый канал `measuredQuality` равен `qualityThroughModel` на
+текущих весах. -/
 theorem all_channels_measure_same_path (m : ModelSpec (Fin n → ℝ) X' V)
     (o : ObjectiveSpec V) (S : TrainState n a r c k)
     (ds : List (X' × (V → ℝ))) (i : Fin 5) :
     measuredQuality m o S ds i = qualityThroughModel m o S.model.weights ds :=
   rfl
 
-/-! ## (c) Привязка CanonicalTrainState к Transition и
-StageSemantics -/
+/-! ## (c) Привязка CanonicalTrainState к Transition и StageSemantics -/
 
 /-- Канонический шаг: `trainStep` на core носителе, router/quant/
 trust и Hold-семантика `CanonicalTrainState` не трогаются. -/
@@ -218,8 +196,7 @@ noncomputable def canonicalTrainStep (cs : CanonicalTrainState n a e q r c k)
     (u : TrainingInput n c) : CanonicalTrainState n a e q r c k :=
   { cs with core := trainStep cs.core u }
 
-/-- Проекция канонического шага — обычный `trainStep` (адаптер
-точен: canonical-обёртка ничего не теряет и не добавляет). -/
+/-- Проекция канонического шага — обычный `trainStep`. -/
 theorem canonicalTrainStep_core (cs : CanonicalTrainState n a e q r c k)
     (u : TrainingInput n c) :
     (canonicalTrainStep cs u).core = trainStep cs.core u := rfl
@@ -231,17 +208,16 @@ theorem canonicalTrainStep_hold (cs : CanonicalTrainState n a e q r c k) :
   hold_rollback_total cs
 
 /-- Канонический параметрический шаг НЕ меняет quality-телеметр:
-измерение качества — только событие `measureQuality` (запрет §5
-перенесён на канонический носитель). -/
+измерение качества — только событие `measureQuality`. -/
 theorem canonicalTrainStep_quality_external
     (cs : CanonicalTrainState n a e q r c k) (u : TrainingInput n c) :
     (canonicalTrainStep cs u).core.qual = cs.core.qual :=
   trainStep_quality_unchanged cs.core u
 
-/-- Объединяющий мост (a17 stage 1 главная цепочка): канонический
-шаг + явное измерение через модель дают качество, равное
-семантической метрике на обновлённых параметрах.  Полная цепь:
-CanonicalTrainState → trainStep (params) → forward → loss → metric. -/
+/-- Объединяющий мост: канонический шаг + явное измерение через
+модель дают качество, равное семантической метрике на обновлённых
+параметрах.  Полная цепь: CanonicalTrainState → trainStep (params) →
+forward → loss → metric. -/
 theorem canonical_step_measure_through_model (m : ModelSpec (Fin n → ℝ) X' V)
     (o : ObjectiveSpec V) (cs : CanonicalTrainState n a e q r c k)
     (u : TrainingInput n c) (ds : List (X' × (V → ℝ))) :
@@ -251,10 +227,9 @@ theorem canonical_step_measure_through_model (m : ModelSpec (Fin n → ℝ) X' V
           (fun i => cs.core.model.weights i - u.eta * u.grad i) ds := rfl
 
 /-- Проекция канонического состояния в ledger-поля GrowthState:
-weights/params (через вложение emb), energy/budget/risk — из core.
-Остальные поля GrowthState — нули/входы цикла: адаптер переносит
-ИМЕННО то, что ведут оба носителя, не изобретая семантику
-(честный объём, . -/
+weights/params (через вложение emb), energy/budget/risk — из core;
+остальные поля GrowthState — нули. Адаптер переносит только то, что
+ведут оба носителя. -/
 def toGrowthState (emb : (Fin n → ℝ) → X) (cs : CanonicalTrainState n a e q r c k)
     (sp : StageParams) (eff : StageEffects) : GrowthState X where
   weightDim := n

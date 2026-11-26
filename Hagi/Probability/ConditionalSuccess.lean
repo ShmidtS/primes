@@ -7,8 +7,7 @@ set_option linter.style.header false
 /-!
 # conditional success probability → concentration → exponential capability growth
 
-The CENTRAL missing stochastic half of the fast-growth chain
-(roadmap §12–14, external review §10): `Hagi.Dynamics.FastGrowth`
+The stochastic half of the fast-growth chain: `Hagi.Dynamics.FastGrowth`
 proved the deterministic core `capability_exp_growth_counted`
 (C_T ≥ C₀·(1+α)^{Σs_t}) — exponential in the SUCCESS COUNT —
 but the probability layer that turns the success count into
@@ -223,9 +222,7 @@ theorem success_count_lower_p0 {S : ℕ → Ω → ℝ} {T : ℕ} {delta p0 : �
 variable {C : ℕ → Ω → ℝ}
 
 /-- общий телескоп лог-разностей, однократно: сумма
-`f (t+1) − f t` по `t < T` равна `f T − f 0`. Ранее этот блок
-(с точностью до знака от `Finset.sum_range_sub'`) дублировался
-байт-в-байт в `log_growth` и `exp_growth_prob_form`. -/
+`f (t+1) − f t` по `t < T` равна `f T − f 0`. -/
 theorem sum_range_succ_sub_eq (f : ℕ → ℝ) (T : ℕ) :
     ∑ t ∈ Finset.range T, (f (t + 1) - f t) = f T - f 0 := by
   have h0 := Finset.sum_range_sub' f T

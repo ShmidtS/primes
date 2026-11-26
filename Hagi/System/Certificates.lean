@@ -95,7 +95,7 @@ structure StageCycleCertChain where
 
 
 /-- The penalty term grows by at most the probe drop
-(dedup: one-line delegation to the canonical
+(delegates to
 `Hagi.Foundations.hagiPotential_penalty_drop`). -/
 alias penalty_drop_bound := _root_.Hagi.Foundations.hagiPotential_penalty_drop
 

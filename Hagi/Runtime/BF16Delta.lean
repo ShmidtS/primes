@@ -390,7 +390,7 @@ theorem guardedRead_nearest_returns_new (anchor new delta recovered : Code)
   · simp [guardedRead, hGuard]
 
 
-/-! ## nearest-normal relative rounding error (A8 F3)
+/-! ## nearest-normal relative rounding error
 
 The `Fin 128` fraction carrier plus the implicit leading one give 8
 significant bits, so nearest selection inside the normal range
@@ -612,7 +612,7 @@ private theorem abs_sub_le_of_isNearest_pos {t : ℚ} (ht : 0 < t)
     (by positivity : (0 : ℚ) ≤ (2 : ℚ) ^ (-8 : ℤ)))
 
 
-/-- Public sign-symmetric form of the nearest-normal relative bound. -/
+/-- Sign-symmetric form of the nearest-normal relative bound. -/
 theorem abs_sub_le_of_isNearest_normal {x : ℚ} (hx0 : x ≠ 0)
     (hmin : (2 : ℚ) ^ (-126 : ℤ) ≤ |x|)
     (hmax : |x| ≤ (2 : ℚ) ^ (127 : ℤ))

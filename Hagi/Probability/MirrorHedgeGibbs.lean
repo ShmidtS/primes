@@ -23,11 +23,11 @@ namespace Hagi.Probability
 
 open Finset Real Filter
 
-/-- **Экспоненциальное затухание флуктуаций энергии Гиббса (R498)**:
+/-- **Экспоненциальное затухание флуктуаций энергии Гиббса **:
 если все энергии лежат в [E*, E* + Δ] и есть зазор δ > 0,
 то дисперсия энергии при распределении Гиббса не превосходит
-Δ² · (n−1) · exp(−δ/T). Доказательство связывает R393
-(экспоненциальная оценка избытка среднего) с R496
+Δ² · (n−1) · exp(−δ/T). Доказательство связывает `gibbs_expected_energy_bound`
+(экспоненциальная оценка избытка среднего) с `excess_ge_var_over_range`
 (Бхатия—Дэвис: Var ≤ (b−μ)(μ−a)). Это даёт сертифицированную
 границу энергетических флуктуаций для термостатного stop-gate. -/
 theorem gibbs_energy_variance_bound
@@ -62,7 +62,7 @@ theorem gibbs_energy_variance_bound
       (Finset.sum_div Finset.univ (fun v => Real.exp (-(E v) / T)) Z).symm
     rw [hsd]
     exact div_self hZpos.ne'
-  -- Convert the normalized Gibbs mean into the partition-function form R393.
+  -- Convert the normalized Gibbs mean into the partition-function form.
   have hμeq : μ =
       (∑ v : V, E v * Real.exp (-(E v) / T)) / Z := by
     calc
@@ -109,7 +109,7 @@ theorem gibbs_energy_variance_bound
       ≤ Δ * (((Finset.univ.erase vstar).card : ℕ) : ℝ)
         * Real.exp (-δ / T) := by
     linarith [hμupper]
-  -- Apply the sharper Bhatia-Davis variance inequality (R496).
+  -- Apply the sharper Bhatia-Davis variance inequality.
   have hbd := bhatia_davis p E (E vstar) (E vstar + Δ) hp hp1
     hmin (fun v => by linarith [hΔ v])
   have hvar : ∑ v : V, p v * (E v - μ) ^ 2
@@ -309,7 +309,7 @@ theorem gibbs_var_steps_bound {V : Type*} [Fintype V] [DecidableEq V]
       * (E v - ∑ w, (Real.exp (-(E w)/(δ/((n+1 : ℕ) : ℝ)))
         / ∑ u, Real.exp (-(E u)/(δ/((n+1 : ℕ) : ℝ)))) * E w) ^ 2
       ≤ eps := by
-  -- everything in explicit form (no set — R504/R512 lessons)
+  -- everything in explicit form (no set)
   have hcpos : (0:ℝ) < (Δ ^ 2
       * (((Finset.univ.erase vstar).card : ℕ) : ℝ)) :=
     mul_pos (sq_pos_of_pos hΔpos) hcard
@@ -367,9 +367,9 @@ theorem gibbs_var_steps_bound {V : Type*} [Fintype V] [DecidableEq V]
             exact ne_of_gt hcpos)
 
 /-- Standalone mean-excess certificate in P-form:
-⟨E⟩_{p_T} - E* <= Δ(n−1)e^{−δ/T} (R393 repackaged with
+⟨E⟩_{p_T} - E* <= Δ(n−1)e^{−δ/T} (`gibbs_expected_energy_bound` repackaged with
 normalized Gibbs weights).  Combined with var_le_delta_excess
-R513 yields the variance gate directly from the excess
+it yields the variance gate directly from the excess
 certificate (no exponential indentation). -/
 theorem gibbs_excess_mean_bound {V : Type*} [Fintype V] [DecidableEq V]
     [Nonempty V] (E : V → ℝ) (δ T : ℝ) (hδ : 0 < δ) (hT : 0 < T)
@@ -402,7 +402,7 @@ theorem gibbs_excess_mean_bound {V : Type*} [Fintype V] [DecidableEq V]
   have hconst : ∑ v : V, p v * E vstar = E vstar := by
     rw [Finset.sum_congr rfl (fun v _ => mul_comm (p v) (E vstar)),
       ← Finset.mul_sum, hp1, mul_one]
-  -- R393 is already in P-form: ⟨E⟩ ≤ E* + Δ(n−1)e^{−δ/T}
+  -- is already in P-form: ⟨E⟩ ≤ E* + Δ(n−1)e^{−δ/T}
   have hR := gibbs_expected_energy_bound E δ T hT vstar Δ hmin hgap hΔ
   -- hR : (∑ E e)/Z ≤ E* + Δ(n−1)e^{−δ/T}; goal: (∑ E e)/Z − E* ≤ Δ(n−1)e^{−δ/T}
   linarith

@@ -99,9 +99,8 @@ equals `‖A‖^2` and the statement reduces to `‖A‖^2 ≤ ‖A - B‖^2` fo
 rank-zero `B`.
 
 * `factor_update_rank_le` — `rank(A * Bᵀ) ≤ card r` for low-rank
-  factor updates `A : m×r`, `B : n×r`; the twin of the existing
-  `Hagi.Architecture.block_rank_le` (which covers the `Aᵀ * B`
-  orientation for LiveDelta blocks).
+  factor updates `A : m×r`, `B : n×r`; `Hagi.Architecture.block_rank_le` covers the `Aᵀ * B`
+  orientation.
 -/
 
 section Rectangular
@@ -245,7 +244,7 @@ section FactorRank
 open Matrix
 
 /-- Low-rank factor updates span at most `card r` directions:
-`rank(A * Bᵀ) ≤ card r` for `A : m×r`, `B : n×r`. The twin of
+`rank(A * Bᵀ) ≤ card r` for `A : m×r`, `B : n×r`. Same bound as
 `Hagi.Architecture.block_rank_le` (LiveDelta blocks, `Aᵀ * B`
 orientation). -/
 theorem factor_update_rank_le {r : Type*} [Fintype r]

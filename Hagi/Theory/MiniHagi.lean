@@ -38,7 +38,7 @@ invariant under a GPM step, so a measured task-B decrease is a
 canonical decrease: continual training descends the canonical
 objective with zero forgetting, certified.
 
-## Honest pins
+## Limits
 
 1. The model is a linear head over the FIXED byte-feature trunk
    (family): GPM zero-forgetting and the grow mechanics

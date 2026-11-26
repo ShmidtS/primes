@@ -260,7 +260,7 @@ theorem exp_le_expUpper_inv {m : ℕ} (hm : 0 < m) {x : ℝ}
       = (1 - x / m) ^ m * Real.exp x := mul_comm _ _
     _ ≤ 1 := h
 
-/-! ## Sandwich bounds: anti-monotonicity and the honest pin -/
+/-! ## Sandwich bounds and anti-monotonicity -/
 
 variable {V : Type} [Fintype V] [Nonempty V]
 
@@ -328,7 +328,7 @@ wall `loN1 (z v)` and the denominator contribution `hiM3
 depends on the companion logit — so no summed
 anti-monotonicity theorem exists under these (weak,
 pointwise-nested) hypotheses.  Together with
-`sum_phat_anti_mono_single_domain` this CLOSES the pinned
+`sum_phat_anti_mono_single_domain` this CLOSES the
 open question with an exact characterization: summed `p̂`
 anti-monotonicity holds exactly when the refinement moves
 only the denominator walls of one band. -/

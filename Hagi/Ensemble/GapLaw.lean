@@ -26,7 +26,7 @@ is *exactly* (not approximately)
 
 `twoGap d = ½ · log ∑_u ∑_v p_u p_v · cosh(d_u − d_v)`
 
-where p is the softmax of the midpoint `m` (twoGapRecenter).
+where p is the softmax of the midpoint `m`.
 This is the MGF of the *pairwise logit difference* under the
 softmax measure — the exact object behind the Hessian heuristic
 `½·Tr[H·Cov(d)]`:
@@ -61,26 +61,15 @@ the quadratic law).
   strictly positive gap — the divergent-leaf regime where ensemble
   ranking beats standalone ranking, from the law's viewpoint.
 
-**Prescription for the code.** The gap is computable *before the
-merge* from the leaves' logit deviations alone: one forward pass
-per leaf, the softmax `pairVarEq` at the pooled midpoint, then the double
-sum `∑ p_u p_v cosh(d_u − d_v)` — `O(N·V)` once, versus measuring
-CE deltas by re-running. The Hessian heuristic `½Tr[H·Cov]` is the
-small-deviation limit; the exact identity has no approximation
-error and should be the production form.
-
-**The exchangeable rate law (P4, in the docstring).** For
+**The exchangeable rate law.** For
 exchangeable leaves with common deviation scale, the averaged
 deviation has covariance `(1 − 1/N)·Σ` (the mean of N iid
 deviations cancels `(1/N)` of the common mass), so the gap
 satisfies `Gap(N) = G∞·(1 − 1/N)` with `G∞ = ½·Tr[H·Σ]`-scale:
 the gap grows with N and saturates at `G∞`, with increments
 `Gap(N+1) − Gap(N) ≈ G∞/N²` — the 1/(2N)-per-pair regime of the
-measurement (0.40 → 0.44 → 0.47: increments 0.04, 0.03, i.e.
-G∞/N² with G∞ ≈ 0.4·N₀² for the launch scale N₀; consistent). The
-`grow_epsilon_stop` ε-criterion then reads: stop when
-`G∞/N² < ε` — i.e. `N > sqrt(G∞/ε)` — a *derived* SATURATED
-threshold replacing the empirical TOL_GAP.
+measurement. The `grow_epsilon_stop` ε-criterion then reads: stop
+when `G∞/N² < ε`, i.e. `N > sqrt(G∞/ε)`.
 -/
 
 open Finset
@@ -119,7 +108,7 @@ theorem twoGap_pos_measure (hp : ∀ u, 0 < p u) :
   obtain ⟨u₀, hu₀⟩ := hwit
   exact Finset.sum_pos' hpos ⟨u₀, Finset.mem_univ u₀, hu₀⟩
 
-/-- **The cosh form: antisymmetry kills the sinh part.** The gap
+/-- The cosh form: antisymmetry kills the sinh part. The gap
 MGF `∑ p_u p_v exp(d_u − d_v)` equals `∑ p_u p_v cosh(d_u − d_v)`
 exactly: the sinh part cancels by the (u,v) ↔ (v,u) symmetry of
 the symmetric measure `p_u p_v`. This is why the gap is always
@@ -167,7 +156,7 @@ theorem twoGap_cosh :
   rw [hR2, hsplit, hA']
   ring
 
-/-- **The gap is nonnegative** — the two-point tightness witness
+/-- The gap is nonnegative — the two-point tightness witness
 of the lse-Jensen bound: `(CE₁ + CE₂)/2 ≥ CE(merge)`, with the
 difference exactly the nonneg MGF term. -/
 theorem twoGap_nonneg (hp : ∀ u, 0 < p u)
@@ -192,7 +181,7 @@ theorem twoGap_nonneg (hp : ∀ u, 0 < p u)
     Real.log_nonneg hle
   linarith
 
-/-- **The gap is zero iff the leaves agree up to a shift** —
+/-- The gap is zero iff the leaves agree up to a shift —
 consensus is the exact zero of the pair ensemble gain (the
 two-point form of `consensus_no_gain`). -/
 theorem twoGap_zero_iff (hp : ∀ u, 0 < p u)
@@ -326,7 +315,7 @@ theorem twoGap_zero_iff (hp : ∀ u, 0 < p u)
       norm_num
     rw [h1, Real.log_one, mul_zero]
 
-/-- **The variance normalization of the quadratic law.** The
+/-- The variance normalization of the quadratic law. The
 softmax-measure second moment of the pairwise difference is
 twice the deviation variance:
 

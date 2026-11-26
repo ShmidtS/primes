@@ -7,13 +7,13 @@ import Hagi.Unified.CountableStitching
 import Hagi.Training.MacroStatCert
 
 /-!
-# Adaptive anytime validation via stitched Ville (A16/A17)
+# Adaptive anytime validation via stitched Ville
 
-The adaptive macro-loop route the pin deferred: the loop
+The adaptive macro-loop route: the loop
 EVALUATES CHECKPOINTS ADAPTIVELY (which checkpoint to evaluate, and
 whether to commit or roll back, chosen from PAST validation
 results), and classical fixed-sample bounds do not transfer to such
-reused data. This module lifts the pin through the stitched
+reused data. This module lifts the limit through the stitched
 Ville masters `stitching_eprocess_anytime`
 `stitching_countable_ville` — at the `MacroStatCert` level: an
 anytime-valid commit control over ANY adaptively chosen sequence of
@@ -35,7 +35,7 @@ Modeling (honest, no new probability — composition only):
   with uniform weights `w k = 1/K`; the bound never consults the
   selection rule. No predictability or stopping-time machinery is
   needed (and none is smuggled: `μ.real` is monotone on arbitrary
-  sets, the frozen convention).
+  sets).
 
 Main statements:
 
@@ -53,7 +53,7 @@ Main statements:
 * `adaptive_commit_bridge` — the `MacroStatCert` bridge: a
   finite family of macro certificates, each under its own
   premise bundle, has `μ.real {∃ k, commit k ∧ ¬goodGain k} ≤
-  ∑ k, α k` (per-round `commit_sound` + finite union). The frozen
+  ∑ k, α k` (per-round `commit_sound` + finite union). The
  statement is cited verbatim, not modified.
 * `adaptive_commit_bridge_uniform` — the equal-level corollary
   `∑ k, α = K•α`.
@@ -65,8 +65,8 @@ Honest scope:
    a FRESH conditional draw given the past. It is STRICTLY WEAKER
    than mutual independence across rounds (dependent increments
    with conditional mean ≤ 1 still qualify) and STRICTLY STRONGER
-   than full reuse — see pin 2.
-2. **Full-reuse-no-fresh-draws regime NOT covered (negative pin)**:
+   than full reuse — see limit 2.
+2. **Full-reuse-no-fresh-draws regime NOT covered (negative result)**:
    if the same data is FULLY reused with no fresh conditional draw,
    the e-process degenerates to a deterministic function of
    already-observed values and NO supermartingale binder is
@@ -74,7 +74,7 @@ Honest scope:
    `E ≡ 2` at `α = 1/2` crosses the threshold at t = 0 with
    probability 1 while the unit-budget premise `μ[E 0] ≤ 1` fails
    (`μ[E 0] = 2 > 1`); the theorems below are vacuous there. This
-   is exactly the A16 acceptance bar: plain Freedman on reused data
+   is exactly the acceptance bar: plain Freedman on reused data
    is insufficient, and the honest lift requires per-round
    conditional (fresh-draw) validity — not claimed for full reuse.
 3. **Constant honesty**: `K·α` is the stitched uniform constant, not
@@ -194,7 +194,7 @@ stitched-master per-round premise (each round's e-process is a
 nonnegative `𝒢`-supermartingale with unit initial budget — the
  binder; per-round CONDITIONAL validity given the common
 filtration, i.e. a fresh conditional draw per round — full reuse
-without fresh draws is NOT covered, see the module pins) and the
+without fresh draws is NOT covered, see the module limits) and the
 embedding premise (a FALSE commit at round `k` embeds in
 round `k`'s e-process crossing `α⁻¹` within the horizon), the
 probability of a false commit over ANY adaptively chosen sequence of
@@ -291,7 +291,7 @@ theorem adaptive_anytime_budget_split {Ω : Type*}
     (le_of_eq (adaptiveRoundWeights_tsum K hK)) hE hEnn hE0 hsum
     tr.α_pos tr.horizon
 
-/-! ## The MacroStatCert bridge (frozen statement cited) -/
+/-! ## The MacroStatCert bridge -/
 
 /-- **The adaptive commit bridge (→)**: a finite family of
 macro-cycle certificates `certs : Fin K → MacroStatCert S objective`,
@@ -300,13 +300,11 @@ each under its own premise bundle — its monitor trajectory
 embedding (a false commit at k embeds in `L k` crossing
 the k-th monitor's threshold) and the guard (a fired monitor never
 commits) — has total false-commit probability at most the level sum
-`∑ k, (certs k).mon.α`. Per round this is EXACTLY the frozen
+`∑ k, (certs k).mon.α`. Per round this is
 `Hagi.Training.commit_sound` (cited verbatim); the finite
 union is `measureReal_iUnion_fintype_le`. The bound covers ANY
 adaptive schedule over the K cycles (the union event does not
-consult the schedule), which is the adaptive-data route
-module pin deferred to "the stitched masters, pointer only" — this
-module is that pointer's target. -/
+consult the schedule). -/
 theorem adaptive_commit_bridge {S : Type*} {objective : S → ℝ}
     {Ω : Type*} {m0 : MeasurableSpace Ω} {μ : Measure Ω}
     [IsProbabilityMeasure μ] {𝒢 : Filtration ℕ m0}

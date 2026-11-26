@@ -7,9 +7,6 @@ import Hagi.Math.Foundations.StageCalculus
 /-!
 # ProjectionDescent — канонический Step-слой вертикали спуска проекции
 
-Канонический оптимизационный слой теории проекции
-(Step не импортирует Audit):
-
 Для выпуклого C и минимизатора расстояния ds до g0:
 
 * `min_dist_to_vi`: `⟪g0 − ds, w − ds⟫ ≤ 0` для всех `w ∈ C`;

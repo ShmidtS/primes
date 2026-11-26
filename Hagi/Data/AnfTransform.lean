@@ -9,7 +9,7 @@ set_option linter.style.header false
 /-!
 # ANF/Möbius (Zhegalkin) transform: the compiler-correctness core
 
-Track E5. The Python V3 compiler
+The Python V3 compiler
 side synthesizes Boolean functions into ANF (algebraic normal form)
 via the Möbius/Zhegalkin butterfly and evaluates back; this module
 lands the ANF CORE bridge on the Lean side, over the exact Boolean
@@ -45,7 +45,7 @@ Contents:
   eval → original, and the XOR coefficient spot check (constant
   term false, single-variable term true — the canonical linear ANF).
 
-Honest scope (E5 ladder, follow-up beats): `compose3`, context
+Honest scope (follow-up work): `compose3`, context
 signatures, argument ranges, and collision abstention are NOT
 claimed here — only the core transform/involution/roundtrip. The
 Walsh–Hadamard `vennWalsh` (`Hagi.Data.BoolVenn`) is a
@@ -103,7 +103,7 @@ theorem anf_snoc_true {n : ℕ} (f : (Fin (n + 1) → Bool) → Bool)
   · rfl
   · next h => exact absurd h (by simp)
 
-/-- GF(2) four-term shuffle (decide-level; the pinned Mathlib has no
+/-- GF(2) four-term shuffle (decide-level; Mathlib has no
 `Std.Commutative Bool.xor` instances to delegate to). -/
 theorem anf_xor4 (a b c d : Bool) :
     ((a ^^ b) ^^ (c ^^ d)) = ((a ^^ c) ^^ (b ^^ d)) := by
@@ -493,7 +493,7 @@ carriers:
   supplies EXACTLY the candidate's argument positions — the
   context's true-position set `{i | x i}` equals `argRanges`
   (`∀ i, x i = decide (i ∈ R)`). Decidable, so dispatch is
-  computable. Modeling note (probe-audited): the weaker subset
+  computable. Modeling note: the weaker subset
   reading ("all of R is supplied") is UNSOUND for the
   disjointness composition — two candidates with empty ranges
   both trivially apply and may disagree — so exact-match is the

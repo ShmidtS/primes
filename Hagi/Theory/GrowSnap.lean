@@ -41,7 +41,7 @@ assert'ы: obj_after_snap ≤ obj_before + bound (bound ≥ факт),
 знаменатели ≤ 2^k на каждой границе, telescoped
 obj_final ≤ obj_cycle_start + Σ bounds.
 
-## Honest pins (что этот мост НЕ покрывает)
+## Limits (что этот мост НЕ покрывает)
 
 - **Certified-шаги** — measured (drop > 0)
   snap-BOUND certified, но не монотонность obj через снап

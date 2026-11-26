@@ -11,7 +11,7 @@ import Hagi.Step.Muon
 # Newton–polar iteration, scalar core
 
 The scalar engine of the Newton polar-factorization
-iteration (Higham 1986 quadratic convergence; plan §2
+iteration (Higham 1986 quadratic convergence;
 Muon two-level structure — exact O_t = UVᵀ vs NS
 approximation with explicit error):
 

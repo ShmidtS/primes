@@ -9,13 +9,13 @@ import Hagi.Theory.NegativeTransfer
 /-!
 # FirstLayerLip — вычислимая константа `L` для CE relu-блока по `W1`
 
-C684. Закрывает главный honest-gap `docs/DERIVED-CONFIG.md` («Adam lr:
-`L` не измеряется»). Носитель — слой `W1 : ι → δ → ℝ` из
+Вычислимая константа гладкости `L` (её не измеряет код Adam).
+Носитель — слой `W1 : ι → δ → ℝ` из
 `Hagi.Theory.FirstLayerGrad` (`w1Pre`, `w1L`); цель одного входа
 `w1CE W1 = ceOneHot t (w1L W1 b wo x)`. Норма параметра —
 `parNorm W1 = √(Σᵢⱼ W1 i j²)` (Frobenius функционального носителя).
 
-Две РАЗНЫЕ константы, которые код и теория до C684 смешивали:
+Две РАЗНЫЕ константы, которые код смешивает:
 
 * `w1CE_lipschitz_param` — липшицевость ФУНКЦИИ по параметру
   (глобально, через kink): `Lfun = 2·‖wo‖_F·‖x‖₂`

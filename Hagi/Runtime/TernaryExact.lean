@@ -47,8 +47,7 @@ def ternInRange (s x : ℝ) : Prop := |x| ≤ 3 * s / 2
 /-- **The saturation tail** — the measured saturation mass of a
 weight vector: the sum of squared overshoots
 `Σ_{|w i| > 3s/2} (|w i| − s)²` over the out-of-range
-coordinates. Computable from a checkpoint (see the module
-docstring: the pre-quantization diagnostic). -/
+coordinates, computable from a checkpoint. -/
 noncomputable def satTail (s : ℝ) {n : ℕ} (w : Fin n → ℝ) : ℝ :=
   ∑ i ∈ Finset.univ.filter (fun i => ¬ ternInRange s (w i)), (|w i| - s) ^ 2
 
@@ -186,7 +185,7 @@ private theorem sqrt_add_le (a b : ℝ) (ha : 0 ≤ a) (hb : 0 ≤ b) :
     _ = Real.sqrt a + Real.sqrt b :=
         abs_of_nonneg (add_nonneg (Real.sqrt_nonneg _) (Real.sqrt_nonneg _))
 
-/-! ## The honest global energy bridge -/
+/-! ## The global energy bridge -/
 
 /-- If `dE ≤ kappa * √(Σ quantization squares)`, then
 `dE ≤ kappa * (√n * s / 2 + √(satTail s w))`: the energy cost
@@ -213,7 +212,7 @@ theorem quant_energy_bridge_saturation {n : ℕ} (w : Fin n → ℝ) (s kappa dE
     le_trans h_emp_lip (mul_le_mul_of_nonneg_left (le_trans h1 h2) hkappa)
   linarith
 
-/-! ## Recovery of the old bridge when nothing saturates -/
+/-! ## The bound when nothing saturates -/
 
 /-- If all coordinates are in range, the saturation tail
 vanishes: the half-step bound `|w i - qTern s (w i)| ≤ s / 2`
@@ -244,8 +243,7 @@ theorem no_saturation_recover {n : ℕ} (w : Fin n → ℝ) (s kappa dE : ℝ)
 coordinate deviations) bounds the objective error by
 `L·(m·s/2)` — the concrete rounding feed for the State-layer
 trajectory theorem's binder (`Hagi.State.coord_err_bound`; the
-import Runtime→State is barred by LayerLint cross-folder rule,
-so the concrete form lives beside `qTern`). -/
+concrete form lives beside `qTern`). -/
 theorem ternary_coord_err {m : ℕ} (w w' : Fin m → ℝ) (s L : ℝ)
     (F : (Fin m → ℝ) → ℝ)
     (hs : 0 < s) (hin : ∀ i, ternInRange s (w i))
@@ -283,15 +281,10 @@ in the 8-bit alphabet payload. The five symbols themselves are encoded by
 the existing injective `Hagi.Energy.tritEncode`; this module does not define
 another base-3 packing polynomial.
 
-Douglas Jones' overview of balanced ternary notation is useful background:
-<http://homepage.divms.uiowa.edu/~jones/ternary/numbers.shtml>. The proofs
-here depend only on the actual local definitions and lemmas.
-
-The results concern this fixed block representation alone. They establish
-neither heap/ABI/layout behavior nor storage-latency or global model-size
-optimality. Decoding recovers each quantized `qTern level value`, never the
-raw real input, and does not attach special validity to the unused payloads
-243 through 255.
+The results concern this fixed block representation alone: no heap/ABI/
+layout, latency or model-size optimality claims. Decoding recovers each
+quantized `qTern level value`, never the raw real input, and assigns no
+meaning to the unused payloads 243 through 255.
 -/
 
 namespace Hagi.Runtime
@@ -381,22 +374,19 @@ end Hagi.Runtime
 # Byte-aligned packed ternary blocks with a finite dyadic scale
 
 A block carries one of 255 finite scale codes and the existing five-trit
-and the existing five-trit
-exactly `(k.val + 1) / 128`; in particular, code zero denotes `1 / 128`,
-not zero.  Nonpositive levels and arbitrary real-valued scales are outside
-this finite family.
+payload; scale code `k` denotes exactly `(k.val + 1) / 128`; in
+particular, code zero denotes `1 / 128`, not zero.  Nonpositive levels
+and arbitrary real-valued scales are outside this finite family.
 
 The logical payload is byte-aligned: the low byte is the existing
-little-endian base-3 ordinal `Hagi.Energy.tritEncode`, and the high byte is
-`k.val + 1`.  The `BitVec.ofFin`/`BitVec.toFin` API used here is the pinned
-Lean API (`BitVec.toFin_ofFin` is `rfl`); the official API reference is
-<https://leanprover-community.github.io/mathlib4_docs/Mathlib/Data/BitVec.html>.
-The decoder rejects a missing (zero) high byte and reserved ternary bytes
-243 through 255 rather than assigning them an invented meaning.
+little-endian base-3 ordinal `Hagi.Energy.tritEncode`, and the high byte
+is `k.val + 1`.  The decoder rejects a missing (zero) high byte and
+reserved ternary bytes 243 through 255 rather than assigning them an
+invented meaning.
 
-The injectivity and width results are only about uniform fixed-width codes
-for this named finite family.  They are not statements about entropy,
-universal compression, ABI/RAM layout, native speed, or latency.  Likewise,
+The injectivity and width results are only about uniform fixed-width
+codes for this named finite family — not statements about entropy,
+universal compression, ABI/RAM layout, speed or latency.  Likewise,
 `reference64BitCounter` is a named 64-bit-per-weight reference resource
 model, not evidence about physical storage.
 -/
@@ -442,9 +432,7 @@ def dyadicBlock (k : DyadicScaleCode) (word : Fin 5 → Fin 3) : BitVec 16 :=
   BitVec.ofFin ⟨dyadicPayload k word, dyadicPayload_lt_two_pow_sixteen k word⟩
 
 set_option maxRecDepth 8192 in
-/-- The existing five-trit ordinal in fact occupies the valid base-3 range,
-not merely the eight-bit range.  This finite kernel computation supplements
-the public `tritEncode_lt` bound without introducing another encoder. -/
+/-- The five-trit ordinal occupies the valid base-3 range. -/
 theorem tritEncode_lt_243 (word : Fin 5 → Fin 3) :
     Hagi.Energy.tritEncode word < 243 := by
   decide +revert
@@ -528,7 +516,7 @@ theorem dyadicPayload_injective :
   · exact Fin.ext hscale
   · exact Hagi.Energy.tritEncode_injective htrit
 
-/-- The current sixteen-bit embedding is injective on the entire named
+/-- The sixteen-bit embedding is injective on the entire named
 finite family. -/
 theorem dyadicBlock_injective :
     Function.Injective (fun p : DyadicScaleCode × (Fin 5 → Fin 3) =>

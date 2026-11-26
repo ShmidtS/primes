@@ -38,7 +38,7 @@ measured current-task decrease is a canonical decrease: the
 third continual phase descends the canonical objective with
 certified zero forgetting on both past tasks.
 
-## Honest pins
+## Limits
 
 1. The 2-block trunk is trained ONLY in phase A (joint fd
    gradients through both blocks, form) and FROZEN
@@ -47,7 +47,7 @@ certified zero forgetting on both past tasks.
    linear head over the frozen trunk features.
 2. η = 1/10 with snap-to-grid candidates (1/10000 head /
    candidate grid; grow fibers and trunk-input features on the
-   1/1000 grid; fd step h = 1/1000) — docstring-pinned in the
+   1/1000 grid; fd step h = 1/1000) — stated in the docstring in the
    bridge script.
 3. The corpus is LIVE and prunes across sessions; the bench
    asserts N > 0 and reports the run-time N.

@@ -59,7 +59,7 @@ noncomputable def trainStep (S : TrainState n a r c k)
       model := { S.model with
           weights := fun i => S.model.weights i - u.eta * u.grad i }
       opt := { S.opt with
-          -- аудит-4 P0: оптимизатор обновляется вместе с шагом:
+          -- оптимизатор обновляется вместе с шагом:
           -- моменты поглощают ФАКТИЧЕСКИЙ применённый градиент
           m := fun i => S.opt.m i - u.grad i
           v := fun i => S.opt.v i + u.grad i ^ 2
@@ -106,7 +106,7 @@ def measureQuality (S : TrainState n a r c k)
       = S.opt.schedStep + 1 := rfl
 
 /-! ### Guided-шаг: градиент ВЫЧИСЛЯЕТСЯ переходом из функции
-потерь (аудит-4 P0: направление связано с конкретным лоссом,
+потерь (направление связано с конкретным лоссом,
 а не подаётся извне произвольным вектором) -/
 
 /-- Функция потерь guided-обучения: квадратичное расстояние

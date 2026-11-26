@@ -83,7 +83,7 @@ theorem rank_le_nonnegRank (M : Matrix m n ℝ)
 def factorGap (M : Matrix m n ℝ) : Prop :=
   M.rank < nonnegRank M
 
-/-! ## Честная вероятность (§12 разбора) -/
+/-! ## Вероятность дополнения -/
 
 variable {Ω : Type} [MeasurableSpace Ω]
 
@@ -114,7 +114,7 @@ theorem positive_measure_pos_prob (μ : Measure Ω)
   have hc' : (μ Fᶜ).toReal < 1 := by linarith
   exact (ENNReal.toReal_lt_toReal hFc ENNReal.one_ne_top).mp hc'
 
-/-! ## Три режима (§5 разбора) -/
+/-! ## Три режима -/
 
 /-- Режим A: фактор `W` использует всю внутреннюю
 размерность (`W.rank = k`). Режим C (`regimeCFactor`) —

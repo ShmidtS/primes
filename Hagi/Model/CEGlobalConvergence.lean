@@ -27,8 +27,7 @@ The two halves are deliberately independent:
 
 * the PL rate (`pl_descent_step`, `ce_global_convergence`): on an
   abstract real inner product space, the descent lemma with
-  smoothness constant `L` (premise form, following the repo's
-  premise-ledger descent pattern) plus the PL inequality in
+  smoothness constant `L` (a premise) plus the PL inequality in
   gradient-norm form `2 * μ * (f x - fstar) ≤ ‖grad x‖ ^ 2` gives
   the one-step contraction with factor `1 - μ / L` and, by
   induction over the gradient-descent iterate, the geometric rate

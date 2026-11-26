@@ -11,11 +11,10 @@ set_option linter.style.header false
 
 /-!
 # MemorySemantics — единая сертифицированная запись в память
-(аудит v18 P1: MemoryReadWriteCorrectness + CertifiedMemoryAdmission)
 
-Аудит: «запись и чтение действительно соответствуют адресуемой
-памяти» + «допущенная запись имеет необходимый запас полезности».
-Обе половины соединены в ОДИН сертификат записи:
+«Запись и чтение действительно соответствуют адресуемой
+памяти» + «допущенная запись имеет необходимый запас полезности»
+соединены в ОДИН сертификат записи:
 
 * `RamWriteCert`: адресуемая запись с точной RAM-семантикой
   (чтение по ключу возвращает значение, чужие адреса не тронуты);
@@ -23,7 +22,7 @@ set_option linter.style.header false
   (novelty ∧ gain) — «не каждое новое знание автоматически
   становится постоянной частью системы».
 
-Носители нетронуты: GDN-семантика — Model.GDNBridge
+GDN-семантика — Model.GDNBridge
 (gdn_transpose_is_ramWrite: нейро-дельта == Matrix.updateRow),
 Admission-контроллер — Unified.MemoryCycle.
 -/
@@ -84,7 +83,7 @@ structure CertifiedMemoryWrite {m n : ℕ}
 
 /-- Звучность допуска: из сертификата следует строгий запас
 полезности (gain покрывает стоимость+риск+запас) —
-«необходимый запас полезности» из аудита. -/
+«необходимый запас полезности». -/
 theorem certified_gain_margin {m n : ℕ}
     {S : Matrix (Fin m) (Fin n) ℝ} {i : Fin m} {v : Fin n → ℝ}
     {c : Hagi.Growth.AdmissionChecks}

@@ -27,7 +27,7 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
   grown LM и старая LM вычисляют одни и те же логиты/вероятности.
 * (b) `blocksLip_grow_identity` — константа Липшица не меняется
   (`L_old · 1 = L_old`: lip-добавка на шаге 0 = 0, выведена);
-  общий случай — per-block premise контракта (см. pins).
+  общий случай — per-block premise контракта (см. раздел Limits).
 * (e) Post warm-up сертификат роста — `warmup_safe`: при
   identity-старте и certified-шагах train-objective ≤ fOld при
   любом вердикте holdout-гейта.
@@ -61,7 +61,7 @@ BlockDiag, `zero_init_identity` Core/NonlinearStep0) не подключена
   `hasFDerivAt_reluL` (relu-блок дифференцируем по b1 вне kink),
   `useful_of_adam_first_relu` (T4: Adam-first на b1-блоке).
   Слой `W1` (производная по матрице, rank-one градиент, T5) —
-  следующий модуль `Hagi/Theory/FirstLayerGrad.lean` (C668).
+  следующий модуль `Hagi/Theory/FirstLayerGrad.lean`.
 * (c) `function_preserving_admissible` — в НЕЙТРАЛЬНОЙ конфигурации
   адмиссии (λM = λR = 0, ε_cert = 0) identity-блок проходит
   `blockAdmissionRule` при любом Δcost: gain = 0 на шаге 0 (точное
@@ -80,7 +80,7 @@ Cycle-соответствие: `scripts/bench_bridge.py --mode grow` испол
 нейтральный блок и учит его после — семантика
 `function_preserving_admissible` + certified head-step.
 
-## Honest pins (что этот мост НЕ покрывает)
+## Limits (что этот мост НЕ покрывает)
 
 - **gain после шага 0** — measured (certified drop шага обучения),
   не доказанная нижняя граница; на шаге 0 gain = 0 по построению.
@@ -99,8 +99,7 @@ Cycle-соответствие: `scripts/bench_bridge.py --mode grow` испол
   b1-блок дифференцируем и Adam-first даёт СТРОГОЕ убывание CE
   для малого η (`useful_of_adam_first_relu`) — но без certified-
   величины drop (range-лемма линейна по η, здесь смещение логитов
-  нелинейно). Слой `W1` формализован отдельно (C668,
-  `Hagi/Theory/FirstLayerGrad.lean`): `hasFDerivAt_w1L`,
+  нелинейно). Слой `W1` формализован отдельно (`Hagi/Theory/FirstLayerGrad.lean`): `hasFDerivAt_w1L`,
   rank-one градиент, `useful_of_adam_first_w1` — тот же уровень
   (строгое убывание, без certified-величины).
   Для ЛИНЕЙНОГО носителя (Wo-блок при фиксированных скрытых
@@ -706,7 +705,7 @@ relu(a@W1+b1)@Wo`): градиент CE по Wo идёт через residual-п�
 `P`, якобиан `J : K → P → ℝ`, направление `d : P → ℝ`,
 смещение логитов `D v = Σ_i J v i * d i`. НЕЛИНЕЙНЫЙ носитель `b` дифференцируем вне kink
 (`hasFDerivAt_reluL`); матрица `W1` — `Hagi/Theory/FirstLayerGrad.lean`
-(C668: `hasFDerivAt_w1L`, rank-one градиент). -/
+(`hasFDerivAt_w1L`, rank-one градиент). -/
 
 /-- Градиент `CE ∘ L` по параметрам линейного носителя (chain rule
 для линейной части): `g i = Σ_v J v i * (y v − p v)` = `Jᵀ ∇CE`. -/
@@ -976,7 +975,7 @@ theorem hasFDerivAt_reluL {ι K : Type} [Fintype ι] [Fintype K] (w b : ι → �
 `reluL w · wo` (b1-блок lm.py:581), все pre-активации ненулевые,
 `g = chainGrad (reluJac w b wo) (softmax z) (onehot t) ≠ 0`, Adam-first
 `d` ⇒ `∃ η > 0, CE_t (reluL w (b + η • d) wo) < CE_t (reluL w b wo)`.
-Закрывает honest-pin для нелинейного носителя на уровне
+Доказывает нелинейного носителя на уровне
 СТРОГОГО УБЫВАНИЯ (certified-величина drop — не выводится). -/
 
 theorem useful_of_adam_first_relu {ι K : Type} [Fintype ι] [Nonempty ι] [Fintype K]
