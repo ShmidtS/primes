@@ -1,0 +1,63 @@
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
+import Mathlib.Tactic
+
+/-!
+# AdamSNR — Adam как функция SNR и связь с g-SNR-скейлингом (SGD-SaI)
+
+Второй момент Adam — половина памяти оптимизатора на таблицах
+(`v_v` в optimal_lm.py). SGD-SaI (Xu et al. 2024, arXiv 2412.11768) заменяет
+его lr-скейлингом по SNR градиента на инициализации. Для стационарного
+градиента `g ~ (μ, σ²)`: `m̂ → μ`, `v̂ → μ² + σ²`.
+
+* `adamFactor μ σ = μ/√(μ²+σ²)` — стационарный множитель Adam;
+* `adamFactor_abs_le_one` — насыщение: `|adamFactor| ≤ 1` при любом SNR;
+* `adamFactor_snr_le` — малый SNR (`|μ| ≤ εσ`) даёт `|adamFactor| ≤ ε`;
+* `adamFactor_eq_snr_scale` — `adamFactor = (μ/σ)/√(1+(μ/σ)²)`: SaI-фактор
+  `μ/σ` с множителем `1/√(1+SNR²) ≤ 1`.
+
+Следствие: при малом SNR Adam ≈ SaI в первом порядке; при большом Adam
+насыщается (шаг ≤ lr), SaI растёт линейно — SaI без второго момента
+безопасен только в режиме малого SNR.
+-/
+
+namespace Hagi.Step.AdamSNR
+
+/-- Стационарный Adam-шаг для градиента с mean μ и std σ (m̂ → μ, v̂ → μ²+σ²):
+`μ / √(μ² + σ²) = sign μ · SNR/√(1+SNR²)`, `SNR = |μ|/σ`. -/
+noncomputable def adamFactor (μ σ : ℝ) : ℝ := μ / Real.sqrt (μ ^ 2 + σ ^ 2)
+/-- SaI-фактор: `lr·SNR·g`, для `g ≈ μ` — шаг `μ·|μ|/σ` (линейный по SNR). -/
+noncomputable def saiFactor (μ σ : ℝ) : ℝ := μ * |μ| / σ
+/-- Adam-фактор ограничен 1 по модулю (насыщение) при `σ > 0`. -/
+theorem adamFactor_abs_le_one (μ σ : ℝ) (hσ : 0 < σ) : |adamFactor μ σ| ≤ 1 := by
+  unfold adamFactor
+  rw [abs_div, abs_of_pos (Real.sqrt_pos.2 (by nlinarith [sq_nonneg μ, sq_nonneg σ]))]
+  have h : |μ| ≤ Real.sqrt (μ ^ 2 + σ ^ 2) := by
+    apply (Real.le_sqrt (abs_nonneg _) (by nlinarith [sq_nonneg μ, sq_nonneg σ])).2
+    nlinarith [sq_abs μ]
+  have hden : 0 < Real.sqrt (μ ^ 2 + σ ^ 2) := Real.sqrt_pos.2 (by nlinarith [sq_nonneg μ, sq_nonneg σ])
+  exact (div_le_one hden).2 h
+/-- Малый SNR: Adam-фактор `≈ μ/σ` (SaI в первом порядке). Точная граница:
+`|μ|/√(μ²+σ²) ≥ |μ|/√(σ²(1+ε²)) = (|μ|/σ)/√(1+ε²)` при `|μ| ≤ εσ`. -/
+theorem adamFactor_snr_le (μ σ : ℝ) (hσ : 0 < σ) (ε : ℝ) (hε : 0 < ε)
+    (hμ : |μ| ≤ ε * σ) : |adamFactor μ σ| ≤ ε := by
+  unfold adamFactor
+  rw [abs_div, abs_of_pos (Real.sqrt_pos.2 (by nlinarith [sq_nonneg μ, sq_nonneg σ]))]
+  have hs : σ ≤ Real.sqrt (μ ^ 2 + σ ^ 2) := by
+    apply (Real.le_sqrt hσ.le (by nlinarith [sq_nonneg μ, sq_nonneg σ])).2
+    nlinarith [sq_nonneg μ]
+  calc |μ| / Real.sqrt (μ ^ 2 + σ ^ 2) ≤ |μ| / σ := div_le_div₀ (abs_nonneg μ) (le_refl _) hσ hs
+    _ ≤ ε * σ / σ := (div_le_div_of_nonneg_right hμ hσ.le)
+    _ = ε := by field_simp
+/-- Первый порядок: `adamFactor μ σ = (μ/σ)·(1/√(1+SNR²))` — множитель `≤ 1`. -/
+theorem adamFactor_eq_snr_scale (μ σ : ℝ) (hσ : 0 < σ) :
+    adamFactor μ σ = (μ / σ) / Real.sqrt (1 + (μ / σ) ^ 2) := by
+  unfold adamFactor
+  have hsq : μ ^ 2 + σ ^ 2 = σ ^ 2 * (1 + (μ / σ) ^ 2) := by
+    field_simp [ne_of_gt hσ]; ring
+  have h : Real.sqrt (μ ^ 2 + σ ^ 2) = σ * Real.sqrt (1 + (μ / σ) ^ 2) := by
+    rw [hsq, Real.sqrt_mul (sq_nonneg σ), Real.sqrt_sq hσ.le]
+  rw [h, div_div]
+
+end Hagi.Step.AdamSNR
