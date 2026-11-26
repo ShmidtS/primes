@@ -322,6 +322,7 @@ import Hagi.Model.Mixup
 import Hagi.Step.GradCentralization
 import Hagi.Unified.MachineProto
 import Hagi.Unified.TrainBudget
+import Hagi.Unified.Rollback
 import Hagi.Semantics.FunctionalState
 import Hagi.Model.Grokfast
 import Hagi.Unified.HonestTransition
