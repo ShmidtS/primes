@@ -46,6 +46,21 @@ moment does (`adam_not_invariant`: `β₂^d·v₀ ≠ v₀`). The clipped g-SNR 
 therefore also removes the rare-byte touch-step growth of
 `touchStep_dense_mono` — PROPOSAL 15 subsumes PROPOSAL 14 for tables.
 
+## Applicability boundary (must read for continual training)
+
+Adam is scale-invariant: `adamFactor_scale_inv` (AdamSNR.lean) shows that
+rescaling the gradient `g → c·g` leaves the stationary Adam factor unchanged.
+A frozen `row_lr` does not have this property: the step grows linearly in
+`c` (`fixed_rate_step_scales`). This is exactly the failure documented by
+AdaShift (Zhou et al. 2018, correlation of `g_t` and `v_t`) and Adam-Rel
+(Ellis et al., NeurIPS 2024, nonstationary gradient magnitude → oversized
+updates). In HAGI continual training every new domain can rescale the
+gradients, so **the SNR warmup must be rerun per domain** (the adapter /
+growth gate is a natural trigger); between warmups the clipped rate is only
+valid while the gradient scale is stationary. Adam-Rel's alternative — reset
+the Adam timestep per epoch — keeps the second moment and is the safer
+choice when warmup cannot be afforded.
+
 ## Minimal diff (sketch)
 
 ```python

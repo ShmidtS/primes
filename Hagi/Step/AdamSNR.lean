@@ -30,6 +30,12 @@ import Mathlib.Tactic
   не входит); `adam_not_invariant` — второй момент Adam, напротив, зависит
   от простоя `d` между касаниями: g-SNR-скейлинг решает и проблему редких
   строк (proposal 14), без хранения `v`.
+
+Граница применимости (AdaShift 2018; Adam-Rel, NeurIPS 2024): Adam
+scale-invariant (`adamFactor_scale_inv`: `g → c·g` не меняет фактор), а
+фиксированный `row_lr` даёт шаг, растущий линейно по `c`
+(`fixed_rate_step_scales`). При смене домена (другой масштаб градиента)
+оценку SNR надо переоценивать — proposal 15 требует warmup на каждом домене.
 -/
 
 namespace Hagi.Step.AdamSNR
@@ -119,5 +125,19 @@ theorem adam_not_invariant (v0 b2 : ℝ) (hv : 0 < v0) (hb0 : 0 < b2) (hb1 : b2 
   have hlt : b2 ^ d * v0 < 1 * v0 := mul_lt_mul_of_pos_right hpow hv
   rw [one_mul] at hlt
   linarith
+
+/-- Adam scale-invariant: multiplying the gradient by `c > 0` (a new domain with
+a different loss scale) leaves the stationary factor unchanged. -/
+theorem adamFactor_scale_inv (μ σ c : ℝ) (hc : 0 < c) :
+    adamFactor (c * μ) (c * σ) = adamFactor μ σ := by
+  unfold adamFactor
+  have h : Real.sqrt ((c * μ) ^ 2 + (c * σ) ^ 2) = c * Real.sqrt (μ ^ 2 + σ ^ 2) := by
+    have heq : (c * μ) ^ 2 + (c * σ) ^ 2 = c ^ 2 * (μ ^ 2 + σ ^ 2) := by ring
+    rw [heq, Real.sqrt_mul (sq_nonneg c), Real.sqrt_sq hc.le]
+  rw [h, mul_div_mul_left _ _ (ne_of_gt hc)]
+/-- A fixed per-row rate measured before a gradient rescale `g → c·g` makes the
+step grow linearly in `c` — the Adam-Rel / AdaShift failure mode of
+schedule-frozen second-moment surrogates. -/
+theorem fixed_rate_step_scales (lr g c : ℝ) : lr * (c * g) = c * (lr * g) := by ring
 
 end Hagi.Step.AdamSNR
