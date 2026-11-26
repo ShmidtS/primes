@@ -320,6 +320,7 @@ import Hagi.Unified.DescentCoreDiag
 import Hagi.Model.Mixup
 import Hagi.Step.GradCentralization
 import Hagi.Unified.MachineProto
+import Hagi.Unified.TrainBudget
 import Hagi.Semantics.FunctionalState
 import Hagi.Model.Grokfast
 import Hagi.Unified.HonestTransition
