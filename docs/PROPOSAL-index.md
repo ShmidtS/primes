@@ -1,6 +1,6 @@
 # PROPOSAL index — HAGI_v2 port packages from primes
 
-Ten self-contained proposals for the HAGI_v2 implementation
+Twelve self-contained proposals for the HAGI_v2 implementation
 agent. Each cites Lean anchors proved and frozen in primes
 (anchors to re-verify before port), a minimal Python diff, sanity numbers, a validation
 criterion, and limits. Proposals are mutually independent —
@@ -18,6 +18,7 @@ apply in any order.
 | 9 | [PROPOSAL-muon-guards.md](PROPOSAL-muon-guards.md) | Theory implemented in primes; code-side pending in HAGI_v2 | Changed algorithm: NO — guards and telemetry for the Muon step on the growth-block layer W1: skip if ‖G‖_F ≤ eps, warn if σ_max(X₃) > 1+1e-6, accept the step only if the loss decreases on a small batch (operational ∃η), log ⟨G,X₃⟩/‖X₃‖_F and ‖G‖₁/√(mn). |
 | 10 | [DERIVED-CONFIG.md](DERIVED-CONFIG.md) | Proposed (derivation only) | Every training parameter is DERIVED (formula + number) or HONEST-GAP; code gaps: cosine floor 3/20 vs eta_min = 0, LCB probe and holdout below derived sizes, growth L is the CE value, not a Lipschitz constant. Script `scripts/derive_config.py`. |
 | 11 | [PROPOSAL-smoothness-logging.md](PROPOSAL-smoothness-logging.md) | Theory implemented in primes; code-side pending in HAGI_v2 | Changed algorithm: NO, guards: NO — two telemetry values (`‖wo‖_F²` per block, `max_t ‖x t‖₂²` and `Σ_t ‖x t‖₂²` per batch) turn the proved smoothness `S_batch = ‖wo‖_F²·Σ_t‖x t‖₂²` of the W1 layer into a number: log `S_batch`, `gamma_star = 1/S_batch`, `gamma_star_mean = B/S_batch` next to the Adam lr; optional warn if `lr > 2/S_mean` (outside the proved descent zone `γ ≤ 2/L`). |
+| 12 | [PROPOSAL-ef21-adaptive-scale.md](PROPOSAL-ef21-adaptive-scale.md) | EF21Scale | Theory implemented in primes; code-side pending in HAGI_v2 | Changed algorithm: YES (one line) — ternary EF21 scale `s = ‖m‖_∞/2` per step instead of frozen `0.2·max|m|`: a frozen scale zeroes the direction when `‖m‖_∞ < s/2` (every step rejected), the adaptive one keeps alignment ≥ `‖m‖_∞‖m‖₁/2 − n‖m‖_∞²/8`. |
 
 Numbering keeps the historical ids: #1 (the weaker e^R majorizer,
 replaced coefficient-for-coefficient by #2) is removed, and the
