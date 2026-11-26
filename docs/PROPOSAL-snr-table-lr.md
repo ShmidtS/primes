@@ -31,6 +31,7 @@ the gradient SNR at initialisation and matches AdamW on Transformers.
   below the Adam factor — the clipped-SaI step never under-steps Adam.
 - `clipped_le_sqrt2_adam` (AdamSNR.lean): at `SNR ≤ 1` it exceeds Adam by at
   most `√2`.
+- `clipped_le_sqrt2_adam_high` (AdamSNR.lean): the same at `SNR ≥ 1`.
 
 Consequently the plain SaI factor `μ/σ` overshoots Adam by `√(1+SNR²)` at
 high SNR (frequent bytes); the clipped factor stays within `√2` at low SNR
