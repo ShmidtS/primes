@@ -36,6 +36,15 @@ touch step is clipped only by `ε`. Lazy: the step is `lr·g/√v₀`, the same 
 for a frequently seen row. The first moment is already lazy in effect
 (`m` decays but `mh/√vh` stays bounded only through `v`).
 
+## Literature (ask.sciencemadereadable)
+
+STEP (Lu et al. 2023, arXiv 2302.01172): the accuracy drop of SR-STE with Adam
+"originates from poorly estimated second moment (variance) in Adam states
+given by the masked weights"; the fix is a reliable variance estimate first,
+then a fixed variance as precondition. The same failure mode as
+`touchStep_dense_mono` for rare rows: `v → 0` between touches, step capped only
+by `eps` (`touchStep_le_eps`).
+
 ## Minimal diff
 
 ```python
