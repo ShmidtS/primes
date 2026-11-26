@@ -25,6 +25,11 @@ import Mathlib.Tactic
 * `clipped_le_sqrt2_adam` / `_high` — при `s ≤ 1` и при `s ≥ 1` он в пределах `√2`
   от Adam (везде, т.е. клиппированный фактор ≈ Adam с точностью √2).
 Клиппированный g-SNR-шаг — замена Adam без второго момента (proposal 15).
+
+* `snrEstimate` — оценка SNR по списку касаний строки (частота касаний в неё
+  не входит); `adam_not_invariant` — второй момент Adam, напротив, зависит
+  от простоя `d` между касаниями: g-SNR-скейлинг решает и проблему редких
+  строк (proposal 14), без хранения `v`.
 -/
 
 namespace Hagi.Step.AdamSNR
@@ -95,5 +100,24 @@ theorem clipped_le_sqrt2_adam_high (s : ℝ) (h : 1 ≤ s) :
     nlinarith [Real.sqrt_nonneg (1 + s ^ 2), Real.sq_sqrt (show 0 ≤ 1 + s ^ 2 by positivity),
       Real.sq_sqrt (show 0 ≤ (2:ℝ) by norm_num), mul_nonneg (Real.sqrt_nonneg 2) (by linarith : 0 ≤ s)]
   nlinarith [Real.sqrt_nonneg 2, Real.sqrt_nonneg (1 + s ^ 2), mul_nonneg (Real.sqrt_nonneg 2) (Real.sqrt_nonneg (1 + s ^ 2))]
+
+open Finset List in
+/-- g-SNR-оценка по касаниям: `μ̂ = (1/cnt)∑ g_i`, `σ̂² = (1/cnt)∑ g_i² − μ̂²`
+на списке градиентов касаний `gs`. Не зависит от расписания касаний. -/
+noncomputable def snrEstimate (gs : List ℝ) : ℝ :=
+  let cnt := (gs.length : ℝ)
+  let μ := (gs.sum) / cnt
+  let σ := Real.sqrt ((gs.map (fun x => x ^ 2)).sum / cnt - μ ^ 2)
+  μ / (σ + 1e-8)
+/-- Оценка SNR определена только по списку касаний `gs` — число пропущенных
+шагов `d` между касаниями в неё не входит (инвариантность по построению).
+В отличие от Adam `v`: плотный декей меняет знаменатель. -/
+theorem adam_not_invariant (v0 b2 : ℝ) (hv : 0 < v0) (hb0 : 0 < b2) (hb1 : b2 < 1)
+    {d : ℕ} (hd : 0 < d) : b2 ^ d * v0 ≠ v0 := by
+  intro h
+  have hpow : b2 ^ d < 1 := pow_lt_one₀ hb0.le hb1 (Nat.ne_of_gt hd)
+  have hlt : b2 ^ d * v0 < 1 * v0 := mul_lt_mul_of_pos_right hpow hv
+  rw [one_mul] at hlt
+  linarith
 
 end Hagi.Step.AdamSNR

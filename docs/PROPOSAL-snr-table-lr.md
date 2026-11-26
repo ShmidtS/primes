@@ -38,6 +38,14 @@ high SNR (frequent bytes); the clipped factor stays within `√2` at low SNR
 and saturates like Adam at high SNR. The `√2` upper bound at `SNR ≥ 1` is
 not proved in primes (honest gap: Adam ≥ `1/√2` there).
 
+## Rare rows (link to PROPOSAL 14)
+
+`snrEstimate` (AdamSNR.lean) is computed from the list of touches of a row
+only; the gap `d` between touches does not enter it, whereas Adam's second
+moment does (`adam_not_invariant`: `β₂^d·v₀ ≠ v₀`). The clipped g-SNR rate
+therefore also removes the rare-byte touch-step growth of
+`touchStep_dense_mono` — PROPOSAL 15 subsumes PROPOSAL 14 for tables.
+
 ## Minimal diff (sketch)
 
 ```python
