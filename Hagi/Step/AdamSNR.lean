@@ -20,6 +20,10 @@ import Mathlib.Tactic
 Следствие: при малом SNR Adam ≈ SaI в первом порядке; при большом Adam
 насыщается (шаг ≤ lr), SaI растёт линейно — SaI без второго момента
 безопасен только в режиме малого SNR.
+
+* `adam_le_clipped` — клиппированный SaI-фактор `min(s,1)` доминирует Adam;
+* `clipped_le_sqrt2_adam` — при `s ≤ 1` он в пределах `√2` от Adam.
+Клиппированный g-SNR-шаг — замена Adam без второго момента (proposal 15).
 -/
 
 namespace Hagi.Step.AdamSNR
@@ -59,5 +63,26 @@ theorem adamFactor_eq_snr_scale (μ σ : ℝ) (hσ : 0 < σ) :
   have h : Real.sqrt (μ ^ 2 + σ ^ 2) = σ * Real.sqrt (1 + (μ / σ) ^ 2) := by
     rw [hsq, Real.sqrt_mul (sq_nonneg σ), Real.sqrt_sq hσ.le]
   rw [h, div_div]
+
+/-- Clipped g-SNR factor `min(s,1)` dominates the Adam factor for `s ≥ 0`:
+the clipped-SaI step is never smaller than Adam's. -/
+theorem adam_le_clipped (s : ℝ) (hs : 0 ≤ s) :
+    s / Real.sqrt (1 + s ^ 2) ≤ min s 1 := by
+  have hsq : 0 < Real.sqrt (1 + s ^ 2) := by positivity
+  have hone : 1 ≤ Real.sqrt (1 + s ^ 2) := (Real.one_le_sqrt (x := 1 + s ^ 2)).2 (by nlinarith [sq_nonneg s])
+  have hA : s / Real.sqrt (1 + s ^ 2) ≤ s := by
+    rw [div_le_iff₀ hsq]
+    nlinarith [mul_nonneg hs (by linarith : 0 ≤ Real.sqrt (1 + s ^ 2))]
+  have hB : s / Real.sqrt (1 + s ^ 2) ≤ 1 := (div_le_one hsq).2 (by
+    apply (Real.le_sqrt (by positivity) (by positivity)).2; nlinarith)
+  exact le_min_iff.2 ⟨hA, hB⟩
+/-- Low SNR (`s ≤ 1`): Adam ≥ clipped/√2 — within `√2`. -/
+theorem clipped_le_sqrt2_adam (s : ℝ) (hs : 0 ≤ s) (h : s ≤ 1) :
+    min s 1 ≤ Real.sqrt 2 * (s / Real.sqrt (1 + s ^ 2)) := by
+  have hsq : 0 < Real.sqrt (1 + s ^ 2) := by positivity
+  rw [min_eq_left h, ← mul_div_assoc, le_div_iff₀ hsq]
+  have h2 : Real.sqrt (1 + s ^ 2) ≤ Real.sqrt 2 := by
+    apply Real.sqrt_le_sqrt (by nlinarith [sq_nonneg s])
+  nlinarith [mul_le_mul_of_nonneg_left h2 hs, mul_nonneg (Real.sqrt_nonneg 2) hs]
 
 end Hagi.Step.AdamSNR
