@@ -28,3 +28,4 @@ Statuses: Proposed = ready for the HAGI_v2 agent, pending its port +
 validation (`real ≥ certified` every step) as specified per document;
 «Theory implemented in primes» = the Lean side is done, the
 code-side port is pending.
+| 13 | [PROPOSAL-paired-gain-eb.md](PROPOSAL-paired-gain-eb.md) | PairedGain | Theory implemented in primes; code-side pending in HAGI_v2 | Changed algorithm: YES (one function) — paired-gain lower bound `mean − 2.4·SE` becomes `mean − r_EB` with `r_EB = √(2σ̂²L/n) + 2bL/n`, clipped `b = 2`: `admit_false_le_shifted` gives `P[false admit] ≤ α` for any n and any null `μ ≤ g₀`; the normal heuristic has no finite-sample guarantee |
