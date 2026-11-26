@@ -45,6 +45,14 @@ Hagi/Model/LMCompose.lean:114	CertifiedBlock|decl
 Hagi/Model/LMCompose.lean:136	lmTrunk|decl
 Hagi/Model/LMCompose.lean:215	lmLogits|decl
 Hagi/Model/NormAct.lean:166	swish|decl
+Hagi/Optimization/PercolationPath.lean:106	vacantGraph|decl
+Hagi/Optimization/PercolationPath.lean:125	crosses_pos|decl
+Hagi/Optimization/PercolationPath.lean:178	descentPath_drop|decl
+Hagi/Optimization/PercolationPath.lean:204	kernelDescentPath|decl
+Hagi/Optimization/PercolationPath.lean:230	exists_descentGraph_edge_of_useful_step|decl
+Hagi/Optimization/PercolationPath.lean:238	descentPath_apply_pos|decl
+Hagi/Optimization/PercolationPath.lean:39	routingKernelSupported|decl
+Hagi/Optimization/PercolationPath.lean:75	historyLaw_walk_pos|decl
 Hagi/Optimization/PolarExpressCert.lean:372	polar_express_step3_bound|decl
 Hagi/Optimization/PolarExpressCert.lean:402	polar_express_cycle_cert|decl
 Hagi/Probability/Azuma.lean:169	azumaSum|decl

@@ -701,6 +701,22 @@ RNG runtime, generalization, меньший FLOP count или улучшенны
   Jordan-фактор [`hb_critical_trajectory_bound`](Hagi/Optimization/MomentumHB.lean),
   а у фактической пары HeavyBall второй коэффициент —
   `β+eta(1-β)` по [`hb_pair_second_order`](Hagi/Optimization/MomentumHB.lean).
+- Percolation path optimizer (вероятностный путь): входы — цель `f : V → ℝ`,
+  ядро шага `K : V → PMF V`, старт `a`, горизонт `T`. Шаги: (1) проверить,
+  что `K` не ведёт вверх ([`descentOrStayKernel`](Hagi/Optimization/PercolationPath.lean)),
+  а всякое убывание поддержано
+  ([`descentKernelFullSupport`](Hagi/Optimization/PercolationPath.lean));
+  (2) задать траекторию спуска длины `T`
+  ([`descentPath`](Hagi/Optimization/PercolationPath.lean), для итерации
+  step-отображения — [`descentPath_of_iterate`](Hagi/Optimization/PercolationPath.lean));
+  (3) применить [`descentPath_apply_pos_of_full_support`](Hagi/Optimization/PercolationPath.lean).
+  Гарантия: `0 < historyLaw (PMF.pure a) (fun _ => K) T T ω` для поставленной
+  траектории `ω` и `f b < f a`
+  ([`descentPath_drop`](Hagi/Optimization/PercolationPath.lean)). Для решётки
+  открытых сайтов — [`crosses_pos`](Hagi/Optimization/PercolationPath.lean):
+  пересечение по открытым сайтам ⇒ положительная масса точной истории.
+  Это масса поставленной траектории, не вероятность попадания и не порог
+  перколяции; кода-потребителя в HAGI_v2 нет.
 
 ## 6. Квантование и распределение памяти/битов
 

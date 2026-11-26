@@ -790,6 +790,13 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - **`InexactContraction.lean`** — `inexact_contraction_halt`: при `0 < q < 1`, `0 ≤ ε`, `x(k+1)≤q*x k+ε`, `0 < B`, `x0≤B` и `q^K < (τ-ε/(1-q))/B` доказано `x K < τ`.
 - **`LRSchedule.lean`** — Для непустого конечного индекса `polyWeights C eps` неотрицательны и суммируются в `1`. При `0 < eps` и `C u < C w` теорема `polyWeights_strict_mono` даёт
 
+## Hagi/Optimization/PercolationPath.lean
+
+- `routingKernelSupported` (Hagi/Optimization/PercolationPath.lean:39): носитель строки ядра — ровно рёбра графа `∀ a b, b ∈ (K a).support ↔ G.Adj a b`; `historyLaw_walk_pos` (Hagi/Optimization/PercolationPath.lean:75): для поддержанного ядра `K`, walk `w` и старта в носителе `0 < historyLaw initial (fun _ => K) w.length w.length (walkVertex w)`.
+- `vacantGraph` (Hagi/Optimization/PercolationPath.lean:106): решётка `grid L = Fin (L+1) × Fin (L+1)`, соседство Манхэттена, сайт открыт ⟺ `ω c ≠ q`; `crosses_pos` (Hagi/Optimization/PercolationPath.lean:125): пересечение связной компоненты от отмеченного верхнего множества до нижнего + поддержанное ядро ⇒ `∃ a b w, top a ∧ bottom b ∧ 0 < historyLaw (PMF.pure a) (fun _ => K) w.length w.length (walkVertex w)`.
+- Мост к оптимизации: путь спуска = перколяция ландшафта. `kernelDescentPath` (Hagi/Optimization/PercolationPath.lean:204) — траектория с шагами в носителе `K` и строгим убыванием `f`; `descentPath_apply_pos` (Hagi/Optimization/PercolationPath.lean:238): при `0 < T` ⇒ `∃ ω, 0 < historyLaw (PMF.pure a) (fun _ => K) T T ω ∧ (строгий спуск) ∧ f b < f a`; `descentPath_drop` (Hagi/Optimization/PercolationPath.lean:178): `descentPath f T a b` и `0 < T` ⇒ `f b < f a`.
+- `exists_descentGraph_edge_of_useful_step` (Hagi/Optimization/PercolationPath.lean:230): сертифицированный первый шаг `f (a + η•d) < f a` — ребро `descentGraph f (fun x => x + η•d)`. Ядро с точной строгой поддержкой нетотально на конечном `V` (нет бесконечного спуска), поэтому поддержка односторонняя (`supportedDescentKernel`, `descentKernelFullSupport`, `descentOrStayKernel`); вероятности попадания в точку и порога перколяции нет. Код-мост: next (графовой маршрутизации в HAGI_v2 @ca52eb4 нет).
+
 ## Hagi/Research/MarkovPercolation.lean
 
 - `historyLaw_walk_support`: любой маршрут графа поддерживается однородным

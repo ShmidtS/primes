@@ -362,6 +362,7 @@ import Hagi.Energy.Landauer
 import Hagi.Pretraining.Speedrun
 import Hagi.Optimization.OptimizerVariants
 import Hagi.Optimization.PolarExpressCert
+import Hagi.Optimization.PercolationPath
 import Hagi.Optimization.Checkpoint
 import Hagi.Probability.GibbsCore
 import Hagi.Step.BatchBudget
