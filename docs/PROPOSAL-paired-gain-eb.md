@@ -39,7 +39,11 @@ growth blocks of `selfdev/unified.py`.
 | 0.3 | 2.0 | 0.033 | 0.011 |
 
 The EB radius is ≈1.5–3× wider than the normal heuristic — the price of a
-guarantee. Clipping the differences to `b = 2` nat (CE of a byte model rarely
+guarantee. It shrinks with `n` (`radius_anti`): at `n → 4n` the additive term
+drops 4×, the square-root term 2× (`radius_quarter_add`, `_sqrt`). With the
+EB gate `ADAPTER_VAL_WINDOWS = 1024` keeps the radius at 0.11 nat (σ̂ = 1,
+b = 4) — still far below a typical gain of 0.1–0.5 nat — and cuts the
+validation phase 4× (57 s → 3 s at 4096 → 1024). Clipping the differences to `b = 2` nat (CE of a byte model rarely
 differs by more) costs almost nothing; a heavy-tailed sample makes the
 heuristic under-estimate while EB uses the measured variance.
 

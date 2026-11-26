@@ -21,7 +21,9 @@ import Hagi.Probability.EmpiricalBernstein
 
 * `centX`, `centX_sum` — центрированная разность `D − μ`, `μ = ∑ q·D`;
 * `admit_false_le_shifted` — общий случай: истинный выигрыш `μ ≤ g₀` ⇒ приём
-  с вероятностью ≤ `α` (гейт `FIBER_MIN_GAIN = 0.01` и адаптерный `0.005`).
+  с вероятностью ≤ `α` (гейт `FIBER_MIN_GAIN = 0.01` и адаптерный `0.005`);
+* `radius_anti`, `radius_quarter_add`, `radius_quarter_sqrt` — радиус убывает
+  по `n`: при `n → 4n` аддитивный член меньше в 4, корневой — в 2 раза.
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -123,5 +125,27 @@ theorem admit_false_le_shifted (q : V → ℝ) (hq0 : ∀ v, 0 ≤ q v) (hq1 : �
       rw [hdiv] at hle
       linarith [hμ])
   exact h.trans hmono
+
+/-- EB-радиус убывает по `n`: больше окон — уже граница. -/
+theorem radius_anti (sig b α : ℝ) (hα : 0 < α) (hα2 : α < 1) (n m : ℕ) (hn : 0 < n) (hnm : n ≤ m)
+    (hsig : 0 ≤ sig) (hb : 0 ≤ b) :
+    radius sig b m α ≤ radius sig b n α := by
+  have hL : 0 ≤ Real.log (2 / α) := Real.log_nonneg (by rw [le_div_iff₀ hα]; linarith [hα2])
+  unfold radius
+  gcongr <;> omega
+/-- При `m = 4n` аддитивный член меньше в 4 раза, корневой — в 2. -/
+theorem radius_quarter_add (b α : ℝ) (n : ℕ) (hn : 0 < n) :
+    2 * b * Real.log (2 / α) / (4 * n) = (2 * b * Real.log (2 / α) / n) / 4 := by
+  field_simp
+theorem radius_quarter_sqrt (sig α : ℝ) (hsig : 0 ≤ sig) (hα : 0 < α) (hα2 : α < 1)
+    (n : ℕ) (hn : 0 < n) :
+    Real.sqrt (2 * sig * Real.log (2 / α) / (4 * n)) = Real.sqrt (2 * sig * Real.log (2 / α) / n) / 2 := by
+  have hn' : (0:ℝ) < n := by exact_mod_cast hn
+  have hsqrt : Real.sqrt (((4:ℝ)) * (n : ℝ)) = 2 * Real.sqrt (n : ℝ) := by
+    rw [Real.sqrt_mul (show 0 ≤ (4:ℝ) by norm_num)]; norm_num
+  have hL : 0 ≤ Real.log (2 / α) := Real.log_nonneg (by rw [le_div_iff₀ hα]; linarith)
+  have hnn : 0 ≤ 2 * sig * Real.log (2 / α) := by positivity
+  push_cast
+  rw [Real.sqrt_div hnn, Real.sqrt_div hnn, hsqrt, div_div, mul_comm (Real.sqrt (n : ℝ)) ((2:ℝ))]
 
 end Hagi.Probability.PairedGain
