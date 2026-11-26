@@ -17,6 +17,10 @@ import Hagi.Optimization.EF21Quantizer
 * `qTernVec_inner_ge_adaptive` — адаптивный `s = ‖u‖_∞/2` сохраняет
   `‖u‖_∞/2·‖u‖₁ − card n·‖u‖_∞²/8` при любом уровне градиента.
 
+* `certifiedDrop_mono`, `qTernVec_certifiedDrop_ge` — сертифицированный drop
+  `2A²/R` вдоль квантованного направления не ниже `2(s‖u‖₁ − card n·s²/2)²/R`
+  (когда нижняя граница неотрицательна).
+
 Отсюда: масштаб должен пересчитываться на каждом шаге (или сжиматься при
 нулевой доле), а не замораживаться на первом.
 -/
@@ -96,5 +100,22 @@ theorem qTernVec_inner_ge_adaptive (u : n → ℝ) (M : ℝ) (hM : 0 < M) :
   have h2 : (Fintype.card n : ℝ) * (M / 2) * (M / 2) / 2 = (Fintype.card n : ℝ) * M * M / 8 := by ring
   rw [h2] at this
   exact this
+
+/-- Сертифицированное снижение range-based шага вдоль направления с alignment `A`. -/
+noncomputable def certifiedDrop (A R : ℝ) : ℝ := 2 * A ^ 2 / R
+/-- Drop монотонен по alignment при положительном диапазоне. -/
+theorem certifiedDrop_mono (A A' R : ℝ) (hR : 0 < R) (h : 0 ≤ A) (hA : A ≤ A') :
+    certifiedDrop A R ≤ certifiedDrop A' R := by
+  unfold certifiedDrop
+  have hsq : A ^ 2 ≤ A' ^ 2 := pow_le_pow_left₀ h hA 2
+  have : 2 * A ^ 2 ≤ 2 * A' ^ 2 := by linarith
+  exact div_le_div_of_nonneg_right this hR.le
+/-- Сертифицированный drop EF21-шага: `A = ⟨m, Q m⟩ ≥ s‖m‖₁ − card n·s²/2`. -/
+theorem qTernVec_certifiedDrop_ge {n : Type*} [Fintype n] (s R : ℝ) (hs : 0 < s) (hR : 0 < R)
+    (u : n → ℝ)
+    (h0 : 0 ≤ s * (∑ i, |u i|) - (Fintype.card n : ℝ) * s * s / 2) :
+    certifiedDrop (s * (∑ i, |u i|) - (Fintype.card n : ℝ) * s * s / 2) R ≤
+      certifiedDrop (∑ i, u i * qTernVec s u i) R :=
+  certifiedDrop_mono _ _ _ hR h0 (qTernVec_inner_ge s hs u)
 
 end Hagi.Optimization.EF21Quantizer
