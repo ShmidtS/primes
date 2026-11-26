@@ -205,4 +205,26 @@ theorem ema_convex_le (dm : ℕ → ℝ) (hd : ∀ t, 0 ≤ dm t ∧ dm t ≤ 1)
   have h := hconv.map_sum_le hnonneg hsum hmem
   simpa [nsmul_eq_mul] using h
 
+/-- Доля старых весов (до смены домена) в EMA после `k` шагов с постоянным `d`:
+`∏_{j<k} d = d^k`. -/
+theorem emaWeights_const_prod (d : ℝ) (k : ℕ) :
+    ∏ j ∈ Finset.Ico 0 k, d = d ^ k := by
+  induction k with
+  | zero => simp
+  | succ k ih => rw [Finset.prod_Ico_succ_top (Nat.zero_le k), ih]; ring
+/-- При `d ≤ 1 − δ` доля старого веса убывает геометрически. -/
+theorem ema_stale_decay (d δ : ℝ) (hd0 : 0 ≤ d) (hd : d ≤ 1 - δ) (k : ℕ) :
+    d ^ k ≤ (1 - δ) ^ k := by
+  exact pow_le_pow_left₀ hd0 hd k
+/-- Экспоненциальная граница: `d^k ≤ exp(−k·δ)` при `0 < d`, `log d ≤ −δ`. -/
+theorem ema_stale_exp (d : ℝ) (k : ℕ) (δ : ℝ) (hd0 : 0 < d) (hd : Real.log d ≤ -δ) :
+    d ^ k ≤ Real.exp (-(k : ℝ) * δ) := by
+  have hpos : 0 < d ^ k := pow_pos hd0 k
+  rw [← Real.exp_log hpos, Real.log_pow]
+  apply Real.exp_le_exp.mpr
+  have hk : (0:ℝ) ≤ k := Nat.cast_nonneg k
+  have := mul_le_mul_of_nonneg_left hd hk
+  push_cast at this
+  nlinarith
+
 end Hagi.Step
