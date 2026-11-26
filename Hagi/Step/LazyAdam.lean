@@ -142,6 +142,12 @@ set_option linter.style.header false
 Так эффект LazyAdam в optimal_lm.py (CE 1.334 → 1.183) — не потеря весов
 (`dense_decay_loss` при λ = lr·wd ~ 1e-7 ничтожна), а стабильность шага
 редкого байта. Полная траекторная эквивалентность не доказана.
+
+* `vh_lazy_ge_dense`: после bias-correction ленивый второй момент `v₀`
+  доминирует плотный `β₂^d·v₀` при любом простое `d ≤ t`;
+* `touchStep_le_eps`: шаг касания ограничен `lr/ε` — при плотном декее
+  (`v_v.mul_(b2)` на всех строках) редкий байт достигает именно этой
+  границы (`lr/ε ~ 1e5·lr`), при ленивом — остаётся `lr·g/√v₀`.
 -/
 
 open Finset
@@ -211,5 +217,29 @@ theorem touchStep_dense_mono (lr eps g v0 b2 : ℝ) (h : 0 ≤ lr * g) (hε : 0 
     have : 0 ≤ Real.sqrt (b2^e * v0) := Real.sqrt_nonneg _
     linarith
   exact div_le_div₀ h (le_refl _) hpos hd
+
+/-- Bias-corrected second moment after `d` skipped steps at global step `t`. -/
+noncomputable def vh (b2 v0 : ℝ) (d t : ℕ) : ℝ := b2^d * v0 / (1 - b2^t)
+/-- Lazy decay (`v_d = v0`) dominates dense decay (`v_d = b2^d v0`) after
+bias correction whenever `b2^(t-d) <= 1`, i.e. always for `b2 <= 1`. -/
+theorem vh_lazy_ge_dense (b2 v0 : ℝ) (h : 0 ≤ v0) (hb0 : 0 ≤ b2) (hb1 : b2 ≤ 1)
+    (d t : ℕ) (hd : d ≤ t) (hden : 0 < 1 - b2^t) :
+    b2^d * v0 / (1 - b2^t) ≤ v0 / (1 - b2^t) := by
+  apply div_le_div_of_nonneg_right _ hden.le
+  rw [mul_comm]
+  exact mul_le_of_le_one_right h (pow_le_one₀ hb0 hb1)
+/-- The admissible touch step is bounded by `lr*|g|/eps` for any staleness. -/
+theorem touchStep_le_eps (lr eps g v : ℝ) (hg : |g| ≤ 1) (hl : 0 ≤ lr) (hε : 0 < eps) :
+    |touchStep lr eps g v| ≤ lr / eps := by
+  unfold touchStep
+  rw [abs_div, abs_mul, abs_of_nonneg hl]
+  have h1 : |g| ≤ 1 := hg
+  have h2 : 0 ≤ Real.sqrt v := Real.sqrt_nonneg v
+  have hden : |Real.sqrt v + eps| = Real.sqrt v + eps := abs_of_nonneg (by linarith)
+  rw [hden]
+  calc lr * |g| / (√v + eps) ≤ lr * 1 / (√v + eps) := by
+          exact div_le_div_of_nonneg_right (mul_le_mul_of_nonneg_left h1 hl) (by linarith)
+    _ = lr / (√v + eps) := by ring
+    _ ≤ lr / eps := div_le_div₀ hl (le_refl _) hε (by linarith [Real.sqrt_nonneg v])
 
 end Hagi.Step
