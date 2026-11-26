@@ -227,4 +227,25 @@ theorem ema_stale_exp (d : ℝ) (k : ℕ) (δ : ℝ) (hd0 : 0 < d) (hd : Real.lo
   push_cast at this
   nlinarith
 
+/-- EMA потока `w` с постоянным `d`, стартующая с `e0`: `e_{k+1} = d·e_k + (1−d)·w_{k+1}`. -/
+noncomputable def emaFrom (d : ℝ) (w : ℕ → ℝ) (e0 : ℝ) : ℕ → ℝ
+  | 0 => e0
+  | k + 1 => d * emaFrom d w e0 k + (1 - d) * w (k + 1)
+/-- Вклад стартового значения в EMA после `k` шагов — ровно `d^k`. -/
+theorem ema_init_share (d : ℝ) (w : ℕ → ℝ) (k : ℕ) (e0 e0' : ℝ) :
+    emaFrom d w e0 k - emaFrom d w e0' k = d ^ k * (e0 - e0') := by
+  induction k generalizing e0 e0' with
+  | zero => simp [emaFrom]
+  | succ k ih =>
+    rw [emaFrom, emaFrom]
+    calc d * emaFrom d w e0 k + (1 - d) * w (k + 1) - (d * emaFrom d w e0' k + (1 - d) * w (k + 1))
+        = d * (emaFrom d w e0 k - emaFrom d w e0' k) := by ring
+      _ = d * (d ^ k * (e0 - e0')) := by rw [ih e0 e0']
+      _ = d ^ (k + 1) * (e0 - e0') := by rw [pow_succ]; ring
+/-- При `e0 = w 0` (копия стартовых весов) и `|d| ≤ 1` вклад `w 0` убывает как `d^k`. -/
+theorem ema_init_copy_share_le (d : ℝ) (w : ℕ → ℝ) (k : ℕ) (hd : |d| ≤ 1) :
+    |d| ^ k * |w 0| ≤ |w 0| := by
+  calc |d| ^ k * |w 0| ≤ 1 ^ k * |w 0| := by gcongr
+    _ = |w 0| := by simp
+
 end Hagi.Step
