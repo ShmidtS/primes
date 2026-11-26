@@ -32,15 +32,28 @@ magnitude with a global timestep produces oversized updates; resetting the
 timestep removes them. AdaShift (Zhou et al. 2018) — the same mechanism via
 `g_t`/`v_t` correlation.
 
+## Interaction with the EMA schedule (must read)
+
+`step_count` also drives the EMA rate `d_t = min(0.99, (1+t)/(10+t))`
+(optimal_lm.py:216). Resetting `step_count` restarts that schedule at
+`d ≈ 0.1`, so the EMA of the new domain would mix the previous domain's
+weights with a share of up to 90% for its first ~100 steps
+(`ema_stale_decay`, Hagi/Step/AdamDirection.lean). At the capped `d = 0.99`
+the stale share is `< 1%` after ~460 steps instead. **Reset a separate Adam
+timestep, not `step_count`.**
+
 ## Minimal diff
 
 ```python
-# at the start of train_optimal for a NEW domain (not for resumed epochs)
-self.step_count = 0
+# __init__: self.adam_ts = 0
+# step(): ts = self.adam_ts; self.adam_ts += 1   # Adam bias-correction only
+# at the start of train_optimal for a NEW domain:
+self.adam_ts = 0
 self.v_m = [t.zeros_like(p) for p in self.vecs]
 self.v_v = [t.zeros_like(p) for p in self.vecs]
+# step_count (EMA schedule, lr schedule) is NOT reset
 ```
 
-Resetting only `step_count` keeps the first moment (momentum carry-over) and
+Resetting only `adam_ts` keeps the first moment (momentum carry-over) and
 still removes the bias-correction lag; resetting the moments too is the
 conservative Adam-Rel choice.
