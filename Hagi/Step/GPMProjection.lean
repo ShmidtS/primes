@@ -17,6 +17,12 @@ Gradient Projection Memory: обновление не меняет компон�
 
 Граница: память — точный ортонормированный базис; SVD-усечение в коде
 приближённое, ошибка не моделируется (см. `ContinualForgetting`).
+
+`truncation_loses_old`: `update_gpm_bases` объединяет старый базис с новым
+через QR и обрезает до `max_k` (optimal_lm.py:766). Направление, не вошедшее
+в усечённый базис, теряет защиту: спроецированный шаг имеет на нём ненулевую
+компоненту. Сохранение прошлых выходов гарантировано только для строк
+итоговой памяти.
 -/
 
 namespace Hagi.Step.GPM
@@ -63,5 +69,23 @@ theorem projOut_orth (U : Fin k → (Fin n → ℝ)) (hU : Orthonormal U) (j : F
 theorem gpm_outputs_preserved (U : Fin k → (Fin n → ℝ)) (hU : Orthonormal U) (j : Fin k)
     (w g : Fin n → ℝ) : dot (w - projOut U g) (U j) = dot w (U j) := by
   rw [dot_sub_left, projOut_orth U hU j g, sub_zero]
+
+/-- Базисные векторы в `Fin 2 → ℝ`. -/
+def e1 : Fin 2 → ℝ := ![1, 0]
+def e2 : Fin 2 → ℝ := ![0, 1]
+def U1 : Fin 1 → (Fin 2 → ℝ) := fun _ => e1
+theorem U1_orthonormal : Orthonormal U1 := by
+  refine ⟨fun i => ?_, fun i j _ => ?_⟩
+  · have hi : i = 0 := Subsingleton.elim _ _
+    subst hi
+    simp [U1, e1, dot, Fin.sum_univ_two]
+  · exact absurd (Subsingleton.elim i j) (by assumption)
+/-- Truncation of the merged GPM basis can drop an old direction `e₂`:
+the projected step then has a nonzero component on `e₂` — the old output
+`<w, e₂>` is no longer preserved (`gpm_outputs_preserved` only covers
+rows of the truncated memory). -/
+theorem truncation_loses_old : dot (projOut U1 e2) e2 ≠ 0 := by
+  unfold projOut dot
+  simp [U1, e1, e2, Fin.sum_univ_two]
 
 end Hagi.Step.GPM
