@@ -55,3 +55,8 @@ self.v_v[idx].mul_(t.where(act, b2, 1.0)).add_((1.0 - b2) * g * g)
 with `act` broadcast to the shape of `v_m[idx]` (rows × 1). The bias
 correction `1 − β^ts` is unchanged (it is a global counter; `vh_lazy_ge_dense`
 shows the lazy value dominates for any `d ≤ ts`).
+
+> CE numbers quoted from HAGI_v2 commits before `d90720a` were measured
+> with the certified path training `epochs // 10` (see
+> `Hagi/Unified/TrainBudget.lean`); the bounds above do not depend on the
+> training budget, the empirical margins may change at full length.

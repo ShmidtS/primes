@@ -49,3 +49,8 @@ row_lr = lr * torch.clamp(snr, max=1.0)          # clipped g-SNR rate
 
 Memory: `-2·|table|` floats for `v_m`, `v_v`, `+2·|table|` during the
 warmup only. Matrices keep Muon (`lr_muon`), which has no second moment.
+
+> CE numbers quoted from HAGI_v2 commits before `d90720a` were measured
+> with the certified path training `epochs // 10` (see
+> `Hagi/Unified/TrainBudget.lean`); the bounds above do not depend on the
+> training budget, the empirical margins may change at full length.

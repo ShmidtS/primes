@@ -61,3 +61,8 @@ def paired_gain(before, after, alpha: float = 0.01, b: float = 2.0):
 ```
 
 `z` is dropped; `alpha` replaces it. The gate thresholds stay unchanged.
+
+> CE numbers quoted from HAGI_v2 commits before `d90720a` were measured
+> with the certified path training `epochs // 10` (see
+> `Hagi/Unified/TrainBudget.lean`); the bounds above do not depend on the
+> training budget, the empirical margins may change at full length.
