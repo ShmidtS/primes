@@ -137,7 +137,7 @@ set_option linter.style.header false
 
 * `touchStep_dense_mono`: с плотным декеем второго момента шаг касания
   редкого байта (`v_d = β₂^d·v₀`) растёт по числу пропущенных шагов `d`;
-  с ленивым (`v_d = v₀`) — постоянен (`touchStep_lazy_const`).
+  с ленивым (`v_d = v₀`) — постоянен по построению.
 
 Так эффект LazyAdam в optimal_lm.py (CE 1.334 → 1.183) — не потеря весов
 (`dense_decay_loss` при λ = lr·wd ~ 1e-7 ничтожна), а стабильность шага
@@ -211,7 +211,5 @@ theorem touchStep_dense_mono (lr eps g v0 b2 : ℝ) (h : 0 ≤ lr * g) (hε : 0 
     have : 0 ≤ Real.sqrt (b2^e * v0) := Real.sqrt_nonneg _
     linarith
   exact div_le_div₀ h (le_refl _) hpos hd
-theorem touchStep_lazy_const (lr eps g v0 : ℝ) (d : ℕ) :
-    touchStep lr eps g v0 = touchStep lr eps g v0 := rfl
 
 end Hagi.Step
