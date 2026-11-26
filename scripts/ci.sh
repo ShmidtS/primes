@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# R115 CI battery: build + full Phase-0 lint suite.
+# CI battery: build + full lint suite.
 # Rules: build green; triviality 0; axioms clean; docstring names/numbers pass.
 set -uo pipefail
 cd "$(dirname "$0")/.."
@@ -111,19 +111,19 @@ step "ChallengeCheck (Comparator-challenges: pinned honest statements)"
 out=$(python scripts/ChallengeCheck.py 2>&1 | tail -1)
 echo "$out"; case "$out" in CHALLENGE:\ PASS*) ;; *) echo "CHALLENGECHECK: FAIL"; fail=1;; esac
 
-step "StatementDupCheck (audit v6: no two decls share statement hash)"
+step "StatementDupCheck (no two decls share statement hash)"
 out=$(python scripts/StatementDupCheck.py 2>&1 | tail -1)
 echo "$out"; case "$out" in STMDUP:\ PASS*) ;; *) fail=1;; esac
 
-step "MachineDiffTest (audit v7 stage 6: reference machine differential tests)"
+step "MachineDiffTest (reference machine differential tests)"
 out=$(python scripts/MachineDiffTest.py 2>&1 | tail -1)
 echo "$out"; case "$out" in MACHINEDIFF:\ PASS*) ;; *) fail=1;; esac
 
 
-step "AllAxiomCheck (audit 5 H3: axioms of ALL Hagi.* theorems)"
+step "AllAxiomCheck (axioms of ALL Hagi.* theorems)"
 out=$(lake env lean --run scripts/AllAxiomCheck.lean 2>/dev/null | tail -1)
 echo "$out"; case "$out" in ALLAXIOMS:\ PASS*) ;; *) echo "ALLAXIOMCHECK: FAIL"; fail=1;; esac
 python scripts/TestAllAxiomCheck.py | tail -1 | grep -q "ALLAXIOMS: REGRESSION PASS" \
   || { echo "ALLAXIOMS: regression FAIL"; fail=1; }
-# Final gate (audit H2 fix): late-stage failures must affect exit code
+# Final gate: late-stage failures must affect exit code
 if [ "$fail" -eq 0 ]; then echo "CI: PASS"; else echo "CI: FAIL"; exit 1; fi

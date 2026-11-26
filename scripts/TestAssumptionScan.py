@@ -83,7 +83,7 @@ example (h_sample_input' : True) : True := by trivial
 
 
 class UnprefixedEmpiricalRegistry(unittest.TestCase):
-    """C218: per-file count registry (shrink-only, not a name-registry)."""
+    """Per-file count registry (shrink-only, not a name-registry)."""
 
     def setUp(self):
         self.saved = dict(AssumptionScan.UNPREFIXED_EMPIRICAL)

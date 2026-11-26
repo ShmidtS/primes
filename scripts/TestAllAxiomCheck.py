@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""Execution-grounded regressions for the real axiom traversal.
-
-The original failure was a forbidden axiom hidden in an `opaque` value:
-the traversal missed it.  The fixture is appended to the actual scanner
-source and evaluated in its frontend environment, not a copy of collectAll.
-All custom axioms/sorries exist only in ignored .tmp probe files.  The
-production Hagi environment remains free of these declarations.
+"""Regressions for the real axiom traversal (a forbidden axiom hidden in an
+`opaque` value must be caught). The fixture is appended to the actual scanner
+source and evaluated in its frontend environment; custom axioms/sorries exist only
+in ignored .tmp probe files. Run `python scripts/TestAllAxiomCheck.py`
+-> ALLAXIOMS: REGRESSION PASS.
 """
 
 from pathlib import Path

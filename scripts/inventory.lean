@@ -12,7 +12,7 @@ import Hagi
 import Hagi.Research.Legacy
 import Hagi.Benchmarks
 import Hagi.Research
-/- C347: quarantined speculative growth modules (A14 QW7) stay
+/- Quarantined speculative growth modules stay
 frozen-tracked though outside the root closure. -/
 import Hagi.Growth.Takeoff
 import Hagi.Growth.LinearCone
@@ -31,7 +31,7 @@ open Lean
 
 namespace CanonPrivate
 
-/- C406: canonical private-name hashing (move-invariant Freeze).
+/- Canonical private-name hashing (move-invariant Freeze).
 
 Private constants carry path-keyed internal names; any statement
 referencing one in a type position bakes the defining-module path
@@ -41,7 +41,7 @@ id (own user-name leaf + own normalized type). Self-references map to
 `⟦priv.self⟧`. Types without private references hash exactly as
 before, so unaffected statement-hashes are preserved by construction. -/
 
-/- C415: alpha-invariant statement hashing.
+/- Alpha-invariant statement hashing.
 
 Lean `Expr` is de Bruijn internally: bound variables are indices and
 binder names are display-only annotations. `Expr.hash` happens to
@@ -99,7 +99,7 @@ def canonName (ids : Markers) (n : Name) : String :=
 
 end CanonPrivate
 
-/- C415 fail-closed self-check: canonical hashing is alpha-invariant
+/- Fail-closed self-check: canonical hashing is alpha-invariant
 (lam/forallE/letE binder renames collide) and still distinguishes
 non-alpha-equivalent bodies. Throws on violation; runs on every
 inventory invocation (i.e. every Freeze gate). -/
@@ -114,12 +114,12 @@ inventory invocation (i.e. every Freeze gate). -/
     let ca := CanonPrivate.alphaCanonical a
     let cb := CanonPrivate.alphaCanonical b
     unless ca == cb && ca.hash == cb.hash do
-      throwError "C415 self-check: alpha-equivalent pair split by canonical hash"
+      throwError "Hash self-check: alpha-equivalent pair split by canonical hash"
   let d1 : Expr := .forallE `x n (.bvar 0) .default
   let d2 : Expr := .forallE `x n (.app (.const `id [0]) (.bvar 0)) .default
   if CanonPrivate.alphaCanonical d1 == CanonPrivate.alphaCanonical d2
       || d1.hash == d2.hash then
-    throwError "C415 self-check: non-alpha-equivalent pair collided"
+    throwError "Hash self-check: non-alpha-equivalent pair collided"
 
 #eval show CoreM Unit from do
   let env ← getEnv

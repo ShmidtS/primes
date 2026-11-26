@@ -1,26 +1,54 @@
 # Алгоритмы архитектуры и обучения
 
-Цель — конечный, проверяемый по шагам рецепт: качество на заданных данных,
-явная цена представления и ресурсные ограничения. Это не универсальный
-рецепт оптимальной сети. Различаем три уровня: операция над моделью,
-конечный математический сертификат, измеряемая посылка внешнего цикла.
-Стоимость ниже всегда относится к указанной модели, а не к железу.
+Цель — конечный проверяемый по шагам рецепт: качество на заданных данных, явная
+цена представления и ресурсные ограничения. Это не универсальный рецепт
+оптимальной сети. Различаем три уровня: операция над моделью, конечный
+математический сертификат, измеряемая посылка внешнего цикла. Стоимость всегда
+относится к указанной модели, а не к железу.
+
+## Рецепт
+
+Один цикл обучения и раздел, который доказывает каждый шаг.
+
+| Шаг | Действие | Доказательство |
+| --- | --- | --- |
+| 0 | `W = C + R`: общее ядро + маршрутизируемые остатки; budgets и суммарная ошибка `‖W-S‖ ≤ e_shared+e_spectral+e_rank+e_quant+e_routing` | §1 |
+| 0 | разрядность и начальный HNet ratio — только внутри их declared models | §6, §7 |
+| 1 | выбрать batch; propensity `q_b ∝ abs(ℓ_b)` minimizes MSE unbiased estimator of `ḡ` | §4 |
+| 2 | `D̄ = -ḡ`, `Ā = ‖ḡ‖²`, `R'²` = range-based `batchLogitRangeSquare`, `η = 4Ā/R'²` | §3.2, §3.9 |
+| 3 | альтернативы при per-sample guard: `D̄=0` → hold; certified `D` или min-norm `segmentMinNorm`; QP: `safeqpEtaMax` | §3.2, §3.3 |
+| 4 | собрать proposed successor; измерить CE каждого sample, риск opRisk, цену opCost | §9 |
+| 5 | принять только если guard активен (`0 ≤ opCost ≤ budget`, samplewise CE не растёт, `0 ≤ opRisk`), иначе hold | §3.6, §9 |
+| 6 | строгий сертификат принятого шага (`StepCert`, drop `2Ā²/R'²`), BF16-гард `4·eps < 2Ā²/R'²` | §3.7, §12 |
+| 7 | записать шаг в каноническое ядро (`CertStep` / `HoldStep`, δ-ресурс, буферы оптимизатора); телескоп по траектории | §11 |
+| 8 | оптимизатор-обёртка только по доказанному контракту (sign/Lion/SAM/HeavyBall, EF21-Muon) | §5, §13 |
+| 9 | квантовать принятое представление (ternary/grid, per-block scale, residual VQ); сложить все error terms | §6, §15 |
+| 10 | выбирать архитектуру по `finiteSelection` (исполняемый) или `minimumResource` (контракт); оценивать на новых данных anytime-конфиденсом, не на том же CE-чеке | §8, §14 |
+| 11 | символьная голова (Венна/ANF) — точное исполнение и CE-выбор маски под гвардом | §17 |
+| 12 | конфликт переменных — energy-контур: осадить латент `z`, заморозить, жадный спуск по полю L_i под гвардом `2ε`, стоп по разделению валидности | §18–§26 |
+
+Граница результата — §10; карта теории — §27.
+
+Группы разделов: архитектура и представление (§1, §6–§8, §15); loss и
+сертифицированный шаг (§2, §3, §11, §12); данные и batch (§4, §14);
+оптимизаторы (§5, §13); квантование и память (§6, §15); исполнение и runtime
+(§9, §16); energy-based reasoning (§18–§26); теория (§27).
 
 ## 1. Архитектура: общее ядро и маршрутизируемые остатки
 
-Исходные объекты — конечное непустое семейство экспертов Wᵢ, общее ядро
-`C` и остатки Rᵢ. Сначала требуем точной декомпозиции `W = C + R`;
-тогда вызов [`factorizedEval`](Hagi/Architecture/FactorizedMerge.lean)
-возвращает исходного эксперта по [`routed_eval_exact`](Hagi/Architecture/FactorizedMerge.lean).
+Исходные объекты — конечное непустое семейство экспертов Wᵢ, общее ядро `C` и
+остатки Rᵢ. Требуем точной декомпозиции `W = C + R`; тогда вызов
+[`factorizedEval`](Hagi/Architecture/FactorizedMerge.lean) возвращает исходного
+эксперта по [`routed_eval_exact`](Hagi/Architecture/FactorizedMerge.lean).
 Храним один `C` и отдельные малые остатки, а не копию всей сети на route.
 
-Для усредненного [`fullMerge`](Hagi/Architecture/FactorizedMerge.lean)
-имеем `fullMerge W = C + meanResidual R`. Если остатки приближены с ошибкой
-`δ_i`, то ошибка merge не превосходит среднего `δ_i`; см.
-[`factorized_error_bound`](Hagi/Architecture/FactorizedMerge.lean).
-Не отождествляем усреднение параметров со средним логитов.
+Для усредненного [`fullMerge`](Hagi/Architecture/FactorizedMerge.lean) имеем
+`fullMerge W = C + meanResidual R`. Если остатки приближены с ошибкой `δ_i`,
+ошибка merge не превосходит среднего `δ_i`
+([`factorized_error_bound`](Hagi/Architecture/FactorizedMerge.lean)).
+Усреднение параметров не равно среднему логитов.
 
-Для logits zₐ при `N > 0` отдельно используем
+Для logits zₐ при `N > 0` —
 [`ensemble_ce_le_mean_general`](Hagi/Math/Info/InfoCore.lean):
 
 ```
@@ -28,43 +56,44 @@ CE(t, v ↦ (∑a z_a(v))/N) ≤ (∑a CE(t,z_a))/N.
 ```
 
 Это только pointwise CE-мажоранта среднего логита. Для смеси матриц при
-фиксированном router применяем [`merged_output_exact`](Hagi/Ensemble/MergePrice.lean);
-при смене `w` на `w'` добавляем явный drift-budget из
+фиксированном router — [`merged_output_exact`](Hagi/Ensemble/MergePrice.lean);
+при смене `w` на `w'` добавляется drift-budget из
 [`routing_drift_bound`](Hagi/Ensemble/MergePrice.lean).
 
-Перед spectral/rank/ternary сжатием суммируем не «экономию качества», а сумму
-ошибок из [`unified_error_budget`](Hagi/Architecture/FactorizedMerge.lean):
+Перед spectral/rank/ternary сжатием складываем ошибки, а не «экономию качества»
+([`unified_error_budget`](Hagi/Architecture/FactorizedMerge.lean)):
 
 ```
 ‖W-S‖ ≤ e_shared + e_spectral + e_rank + e_quant + e_routing.
 ```
 
 Если `0<R̄≤logitRange f`, берём `τ=logitRange f/R̄`:
-[`variance_gate_normalize`](Hagi/Runtime/ControllerGates.lean)
-даёт `logitRange(f/τ)=R̄`, а [`variance_gate_contract`](Hagi/Runtime/ControllerGates.lean)
-контрактует `R²/8`. Это масштабирование logits-контракта, а не доказанное
-снижение CE или доказанная температура физического router.
+[`variance_gate_normalize`](Hagi/Runtime/ControllerGates.lean) даёт
+`logitRange(f/τ)=R̄`, а
+[`variance_gate_contract`](Hagi/Runtime/ControllerGates.lean) контрактует
+`R²/8`. Это масштабирование logits-контракта, не доказанное снижение CE и не
+температура физического router.
 
-Выбираем форму по конкретным счётным условиям:
+Форму выбираем по счётным условиям:
 
-- shared core + residuals: если `2 ≤ N` и
-  `N(r(V+d)) ≤ (N-1)(Vd)`, [`factorized_budget`](Hagi/Architecture/FactorizedMerge.lean)
-  даёт `Vd + N(r(V+d)) ≤ N(Vd)`;
-- block-diagonal + rank-`r` mixer: если `h > 0`, `2 ≤ N` и
-  `3r < (N-1)h`, то структурированное представление меньше dense по
+- shared core + residuals: при `2 ≤ N` и `N(r(V+d)) ≤ (N-1)(Vd)`
+  [`factorized_budget`](Hagi/Architecture/FactorizedMerge.lean) даёт
+  `Vd + N(r(V+d)) ≤ N(Vd)`;
+- block-diagonal + rank-`r` mixer: при `h > 0`, `2 ≤ N`, `3r < (N-1)h`
+  структурированное представление меньше dense по
   [`block_lowrank_lt_dense_iff`](Hagi/Budget/JointCost.lean);
-- если активна одна конфигурация и `2 ≤ N`, `c+r ≤ d`, счётная модель multiply-add
-  имеет счёт `(c+r)d`; [`active_beats_dense_family`](Hagi/Budget/JointCost.lean)
-  сравнивает её с `N d²`. Это declared operation count, не wall-clock.
+- одна активная конфигурация, `2 ≤ N`, `c+r ≤ d`: счётная модель
+  multiply-add даёт `(c+r)d`, и
+  [`active_beats_dense_family`](Hagi/Budget/JointCost.lean) сравнивает её с
+  `N d²`. Это declared operation count, не wall-clock.
 
-Точность всех пяти error terms проверяем на модели; из неравенств параметров
-не следует равенство качества или ускорение обучения.
+Точность всех пяти error terms проверяем на модели; из неравенств параметров не
+следует равенство качества или ускорение обучения.
 
 ## 2. Предиктор и loss: конечная log-linear one-hot CE
 
-Берём непустой конечный vocabulary `V`, размерность `d`, матрицу
-`X : Matrix V (Fin d) ℝ` и `θ : EuclideanSpace ℝ (Fin d)`.
-По [`ceLogits`](Hagi/Model/CEDescent.lean) и
+Непустой конечный vocabulary `V`, размерность `d`, `X : Matrix V (Fin d) ℝ`, `θ
+: EuclideanSpace ℝ (Fin d)`. По [`ceLogits`](Hagi/Model/CEDescent.lean) и
 [`ceOneHot`](Hagi/Core/Concat.lean):
 
 ```
@@ -73,46 +102,42 @@ lse z = Real.log (∑v exp(z(v))),
 ℓ_t(θ) = ceOneHot t z = lse z - z(t).
 ```
 
-Остаток и raw gradient задаются [`ceResidual`](Hagi/Model/CEDescent.lean)
-и [`residualTranspose`](Hagi/Model/CEDescent.lean):
+Остаток и raw gradient ([`ceResidual`](Hagi/Model/CEDescent.lean),
+[`residualTranspose`](Hagi/Model/CEDescent.lean)):
 
 ```
 r(v) = softmax(z)(v) - (if v=t then 1 else 0),
 g_j = residualTranspose X θ t j = ∑v r(v) X(v,j).
 ```
 
-[`fderiv_ceOneHot_mulVec`](Hagi/Model/CEGradient.lean)
-доказывает directional Fréchet form именно этой log-linear CE. Это не
-лицензия подставлять тот же gradient в неуточненную нелинейную сеть:
-для другого logit map используется его настоящий Jacobian или другая модель.
+[`fderiv_ceOneHot_mulVec`](Hagi/Model/CEGradient.lean) доказывает directional
+Fréchet form именно этой log-linear CE. Для другого logit map нужен его
+настоящий Jacobian.
 
-Loss выбирается на supplied finite examples; held-out качества из этой
-формулы не следует. При усреднении параметров midpoint-CE снова оценивается
-только pointwise, как в [`ceOneHot_mean_ceLogits_le`](Hagi/Model/CEHeldout.lean).
+Loss выбирается на supplied finite examples; held-out качество из формулы не
+следует. При усреднении параметров midpoint-CE оценивается только pointwise
+([`ceOneHot_mean_ceLogits_le`](Hagi/Model/CEHeldout.lean)).
 
-Для `[Fintype V]`, `[Nonempty V]` и явного `[DecidableEq V]` имеем
-`p = Pi.single t 1`, `q = Hagi.Prelude.softDef z`.
-Связь с канонической информационной семантикой точная:
-[`ceOneHot_eq_ceDef_pi_single`](Hagi/Math/Info/InfoCore.lean),
-[`ceOneHot_eq_klDef_pi_single`](Hagi/Math/Info/InfoCore.lean):
+Для `[Fintype V]`, `[Nonempty V]` и явного `[DecidableEq V]` с `p = Pi.single t
+1`, `q = Hagi.Prelude.softDef z` связь с канонической информационной семантикой
+точная ([`ceOneHot_eq_ceDef_pi_single`](Hagi/Math/Info/InfoCore.lean),
+[`ceOneHot_eq_klDef_pi_single`](Hagi/Math/Info/InfoCore.lean)):
 
 ```
 ceOneHot t z = Hagi.Prelude.ceDef p q = Hagi.Prelude.klDef p q.
 ```
 
-Масса one-hot равна единице; softmax строго положителен и нормирован.
-[`KLSupported_pi_single_softDef`](Hagi/Math/Info/InfoCore.lean) доказывает условие
-поддержки `q v ≠ 0 ∨ p v = 0`: нули one-hot вне цели допускаются.
-Поэтому к этому случаю применимы существующие результаты о неотрицательности
-KL. Это точечное соответствие для one-hot, а не утверждение о произвольной
-дистилляции, оптимальности обучения, вычислениях или held-out качестве.
+[`KLSupported_pi_single_softDef`](Hagi/Math/Info/InfoCore.lean) доказывает
+условие поддержки `q v ≠ 0 ∨ p v = 0`: нули one-hot вне цели допускаются,
+поэтому применимы результаты о неотрицательности KL. Это точечное соответствие
+для one-hot, не утверждение о произвольной дистилляции, оптимальности обучения
+или held-out качестве.
 
 ## 3. Направление и сертифицированный размер шага
 
 ### 3.1 Базовый одношаговый safe CE update
 
-Для одного примера кладём направление `D = ceDirection X θ t = -g`
-и обозначения:
+Для одного примера `D = ceDirection X θ t = -g` и
 
 ```
 A = ceAlignment X θ t = ∑j g_j²,
@@ -127,17 +152,17 @@ eta = safeStepSize X θ t = if R=0 then 0 else 4A/R²,
 CE(θ') ≤ CE(θ) - eta A + (eta R)²/8.
 ```
 
-При `R>0` выбранный шаг минимизирует этот quadratic majorizer и
-[`ceOneHot_safeStep_le_residual`](Hagi/Model/CEDescent.lean)
-даёт `CE(θ') ≤ CE(θ) - 2A²/R²`; строгость —
-[`ceOneHot_safeStep_lt`](Hagi/Model/CEDescent.lean). При `R=0`
-центральная ветка равна нулю и сохраняет logits. Глобального минимизатора CE
-или сходимости параметров этот шаг не объявляет.
+При `R>0` выбранный шаг минимизирует этот quadratic majorizer;
+[`ceOneHot_safeStep_le_residual`](Hagi/Model/CEDescent.lean) даёт `CE(θ') ≤
+CE(θ) -2A²/R²`, строгость —
+[`ceOneHot_safeStep_lt`](Hagi/Model/CEDescent.lean). При `R=0` шаг равен нулю и
+сохраняет logits. Глобального минимизатора CE или сходимости параметров шаг не
+объявляет.
 
 ### 3.2 Общее направление для arithmetic-mean batch
 
-На `X : Fin B → Matrix V (Fin d) ℝ`, `y : Fin B → V`
-не усредняем отдельные `safeStepSize`. Вычисляем один вектор:
+На `X : Fin B → Matrix V (Fin d) ℝ`, `y : Fin B → V` не усредняем отдельные
+`safeStepSize`, а вычисляем один вектор:
 
 ```
 ḡ_j = meanResidualTranspose X θ y j = (∑b g_b,j)/B,
@@ -148,87 +173,81 @@ eta_b = batchSafeStep X θ y = if Q̄=0 then 0 else 4Ā/Q̄,
 θ' = batchNextParameters X θ y = θ + eta_b • D̄.
 ```
 
-[`batchLoss_alongNext_le_batchMajorizer`](Hagi/Model/BatchCEDescent.lean)
-даёт общий majorizer `L(θ) - eta Ā + eta² Q̄/8`.
-При `Q̄>0` [`batchLoss_safeStep_le_residual`](Hagi/Model/BatchCEDescent.lean)
-даёт `L(θ') ≤ L(θ) - 2Ā²/Q̄`, а [`batchLoss_safeStep_lt`](Hagi/Model/BatchCEDescent.lean)
-— strict mean-CE descent. Смешанные противоположные градиенты могут дать
-`D̄=0`; тогда корректен hold, а не шаг по одному target.
+[`batchLoss_alongNext_le_batchMajorizer`](Hagi/Model/BatchCEDescent.lean) даёт
+majorizer `L(θ) -eta Ā + eta² Q̄/8`; при `Q̄>0`
+[`batchLoss_safeStep_le_residual`](Hagi/Model/BatchCEDescent.lean) даёт `L(θ')
+≤ L(θ) -2Ā²/Q̄`, а [`batchLoss_safeStep_lt`](Hagi/Model/BatchCEDescent.lean) —
+строгий спуск mean-CE. Противоположные градиенты могут дать `D̄=0`; тогда
+корректен hold.
 
-Для supplied `D` дополнительно требуем непустой batch и
-`dirAction X_b θ y_b D < 0` для каждого `b`; лишь тогда
-[`batchDirectionSafeEta`](Hagi/Model/BatchCEDescent.lean)
-положителен. [`batchDirectionNextParameters`](Hagi/Model/BatchCEDescent.lean)
-иначе оставляет параметры без изменения. Локальный margin каждого примера
-фиксируется [`ceOneHot_batchDirectionNextParameters_le_margin`](Hagi/Model/BatchCEDescent.lean).
+Supplied направление `D`: непустой batch и `dirAction X_b θ y_b D < 0` для
+каждого `b`; лишь тогда
+[`batchDirectionSafeEta`](Hagi/Model/BatchCEDescent.lean) положителен.
+[`batchDirectionNextParameters`](Hagi/Model/BatchCEDescent.lean) иначе не
+меняет параметры. Локальный margin каждого примера фиксирует
+[`ceOneHot_batchDirectionNextParameters_le_margin`](Hagi/Model/BatchCEDescent.lean).
 
-Для фиксированных `X,y` и фактической guarded-траектории
-`θ_t = coreParameters (fixedBatchState X y S opCost opRisk write t)`
-при непустом `V` имеется конечный запас squared mean residuals.
-С `K = rangeCurvature X`, [`batchRangeSquare_le_rangeCurvature_mul_alignment`](Hagi/Contracts/BatchCEAlignmentBudget.lean)
-даёт `Q̄_t ≤ K·Ā_t`. Отсюда
-[`fixedBatch_sum_alignment_le_initial`](Hagi/Contracts/BatchCEAlignmentBudget.lean)
-ограничивает каждую конечную сумму, а
-[`fixedBatch_alignment_summable`](Hagi/Contracts/BatchCEAlignmentBudget.lean) и
-[`fixedBatch_tsum_alignment_le_initial`](Hagi/Contracts/BatchCEAlignmentBudget.lean) —
-суммируемость и полный запас:
+Запас на фиксированном batch. Для фактической guarded-траектории `θ_t =
+coreParameters (fixedBatchState X y S opCost opRisk write t)` при непустом `V`
+и `K = rangeCurvature X`
+([`batchRangeSquare_le_rangeCurvature_mul_alignment`](Hagi/Contracts/BatchCEAlignmentBudget.lean)):
+`Q̄_t ≤ K·Ā_t`. Отсюда
 
 ```
+[`fixedBatch_sum_alignment_le_initial`](Hagi/Contracts/BatchCEAlignmentBudget.lean)  — каждая конечная сумма,
+[`fixedBatch_alignment_summable`](Hagi/Contracts/BatchCEAlignmentBudget.lean)        — суммируемость,
+[`fixedBatch_tsum_alignment_le_initial`](Hagi/Contracts/BatchCEAlignmentBudget.lean):
 ∑t, Ā_t ≤ ((K + 1) / 2) * batchCEObjective X y S.
 ```
 
-Важно не ограничиваться средним за префикс или minimizer-observer.
 [`fixedBatch_meanGradient_tendsto_zero`](Hagi/Contracts/BatchCEAlignmentBudget.lean)
-доказывает, что `WithLp.toLp 2 (meanResidualTranspose X θ_t y)` стремится к нулю
-на последнем итерате; [`fixedBatch_meanDirection_tendsto_zero`](Hagi/Contracts/BatchCEAlignmentBudget.lean)
-даёт тот же предел для `batchMeanDirection X θ_t y = -ḡ_t`.
-Эти последние две теоремы допускают пустой batch, помещая непустоту
-`V` только в ветку `B+1`, где она следует из `y 0`; скрытого witness
-при `B=0` нет. Условия для конечного запаса и среднего Чезаро
-[`fixedAlignmentCesaro_le`](Hagi/Contracts/BatchCEAlignmentBudget.lean) сохраняются:
-это отдельная мажоранта при непустом `V`, не rate для отдельного `Ā_t`.
+и
+[`fixedBatch_meanDirection_tendsto_zero`](Hagi/Contracts/BatchCEAlignmentBudget.lean):
+`WithLp.toLp 2 (meanResidualTranspose X θ_t y)` и `batchMeanDirection X θ_t y`
+стремятся к нулю (непустота `V` нужна только в ветке `B+1`, где следует из `y
+0`; при `B=0` скрытого witness нет). Среднее Чезаро ограничено отдельной
+мажорантой
+[`fixedAlignmentCesaro_le`](Hagi/Contracts/BatchCEAlignmentBudget.lean) при
+непустом `V`; это не rate для отдельного `Ā_t`.
 
-Это доказанный предел только общего среднего градиента и направления
-на фиксированном batch. Отдельные residual gradients при смешанных
-целях могут оставаться ненулевыми; сходимость параметров,
-индивидуальных логитов, CE к оптимуму или held-out качества не утверждается.
+Доказан предел только общего среднего градиента на фиксированном batch.
+Отдельные residual gradients при смешанных целях могут оставаться ненулевыми;
+сходимость параметров, логитов, CE к оптимуму и held-out качество не
+утверждаются.
 
 ### 3.3 Min-norm/MGDA и SafeQP
 
-Если нужен per-sample guard, альтернатива — минимальная по норме точка
-convex hull raw gradients. [`batchGradientMinimizer`](Hagi/Model/BatchCEDescent.lean)
-корректен математически, но содержит Classical.choose: это не native solver.
-Для двух gradientов есть явный [`segmentMinNorm`](Hagi/Step/ProjectionDescent.lean):
-при `u=g1-g0≠0`, `τ=min 1 (max 0 (-⟪g0,u⟫/‖u‖²))`,
-`ω=g0+τu`; [`segmentMinNorm_norm_le`](Hagi/Step/ProjectionDescent.lean)
-подтверждает минимальность. [`batchGradientMinimizer_pair`](Hagi/Model/BatchCEDescent.lean)
-связывает её с общим случаем. Сводка исполняемый/spec — см. §16.
+Per-sample guard: минимальная по норме точка convex hull raw gradients.
+[`batchGradientMinimizer`](Hagi/Model/BatchCEDescent.lean) корректен, но
+содержит `Classical.choose` — не native solver. Для двух градиентов явный
+[`segmentMinNorm`](Hagi/Step/ProjectionDescent.lean): при `u=g1-g0≠0`, `τ=min 1
+(max 0 (-⟪g0,u⟫/‖u‖²))`, `ω=g0+τu`;
+[`segmentMinNorm_norm_le`](Hagi/Step/ProjectionDescent.lean) — минимальность,
+[`batchGradientMinimizer_pair`](Hagi/Model/BatchCEDescent.lean) — связь с общим
+случаем. Исполняемый/spec-статус — §16.
 
-На real inner-product пространстве `X` с `[FiniteDimensional ℝ X]` и конечном
-индексе nonempty `K` общий SafeQP выбирает ближайшую к `g0` точку из
-`{d | ∀i, ⟪g_i,d⟫ ≥ -eps_i}` при `eps_i≥0`;
-существование и единственность — [`safeQP_exists_unique`](Hagi/Step/SafeQP.lean),
-alignment — [`safeQP_descent`](Hagi/Step/ProjectionDescent.lean).
-Опять, существование проекции не называется исполняемым QP.
-
-Для заданной quadratic-модели изменений требуем
-`∀i, dL_i ≤ -eta*⟪g_i,d⟫ + L_i*eta^2*‖d‖²/2` и ограничиваем шаг
-[`safeqpEtaMax`](Hagi/Step/SafeQPStep.lean):
+SafeQP на real inner-product `X` с `[FiniteDimensional ℝ X]` и конечном
+непустом `K`: ближайшая к `g0` точка `{d | ∀i, ⟪g_i,d⟫ ≥ -eps_i}`, `eps_i≥0`.
+Существование и единственность —
+[`safeQP_exists_unique`](Hagi/Step/SafeQP.lean), alignment —
+[`safeQP_descent`](Hagi/Step/ProjectionDescent.lean); исполняемым QP это не
+называется. При quadratic-модели `∀i, dL_i ≤ -eta*⟪g_i,d⟫ + L_i*eta^2*‖d‖²/2`
+шаг ограничен [`safeqpEtaMax`](Hagi/Step/SafeQPStep.lean):
 
 ```
 eta ≤ min 1 (⨅i 2(eps_i+⟪g_i,d⟫)/(L_i‖d‖²)),
 ```
 
-при `d≠0`, `L_i>0`, `eps_i≥0` и `0≤eta`. Тогда
-[`safeqp_eta_max`](Hagi/Step/SafeQPStep.lean) даёт `dL_i≤eps_i`.
-Если имеется только норма шага, при `0<R≤‖x‖` используем точную проекцию
-`(R/‖x‖)•x` на ball из [`trust_region_nearest`](Hagi/Runtime/ControllerGates.lean),
-но не объявляем её заменой всех ограничений QP.
+при `d≠0`, `L_i>0`, `eps_i≥0`, `0≤eta`; тогда
+[`safeqp_eta_max`](Hagi/Step/SafeQPStep.lean) даёт `dL_i≤eps_i`. Если известна
+только норма шага, при `0<R≤‖x‖` — точная проекция `(R/‖x‖)•x`
+([`trust_region_nearest`](Hagi/Runtime/ControllerGates.lean)); замена всех
+ограничений QP не объявляется.
 
 ### 3.4 Конечная log-linear CE и joint potential
 
-Для состояния `S` на `EuclideanSpace ℝ (Fin d)`, конечного непустого `V`,
-матрицы `X : Matrix V (Fin d) ℝ` и цели `t` положим
+Для состояния `S` на `EuclideanSpace ℝ (Fin d)`, конечного непустого `V`, `X :
+Matrix V (Fin d) ℝ` и цели `t`:
 
 ```
 D = ceDirection X S.params t,
@@ -252,23 +271,16 @@ hCEnew : S.effects.jointEnergy =
   ceOneHot t (ceLogits X (joint S).params).
 ```
 
-В частности, hCEnew — явная идентификация measured post-energy, а не
-автоматическое следствие операции joint. Заключение для потенциала Φ:
+hCEnew — явная идентификация measured post-energy, не следствие операции
+joint. Заключение для потенциала Φ:
 
 ```
 Φ(joint S) - Φ S ≤ -gainJoint S + riskJoint S.
 ```
 
-Из hstep получается фактическое обновление параметров:
-
-```
-(joint S).params = S.params - S.sp.eta • S.stepDir
-  = ceNextParameters X S.params t S.sp.eta.
-```
-
-Вместе с hgrad это даёт
-`⟪S.grad,S.stepDir⟫ = ‖S.stepDir‖² = ceAlignment X S.params t`.
-Одношаговая CE-мажоранта и singleton range bound дают
+Из hstep: `(joint S).params = ceNextParameters X S.params t S.sp.eta = S.params
+-S.sp.eta • S.stepDir`; с hgrad `⟪S.grad,S.stepDir⟫ = ‖S.stepDir‖² =
+ceAlignment X S.params t`. Одношаговая CE-мажоранта и singleton range bound:
 
 ```
 CE(next) ≤ CE(old) - eta*ceAlignment + (eta*R)²/8,
@@ -276,14 +288,12 @@ R² ≤ 4*A²*‖D‖²,
 (eta*R)²/8 ≤ A²*eta²*‖D‖²/2.
 ```
 
-Так hLdef выбирает допустимую, но вообще говоря грубую кривизну `A²`,
-а существующая [`potential_joint`](Hagi/System/GrowthState.lean) завершает
-вывод. Деления на направление нет и посылки `D≠0` не требуется.
-Это не утверждение о глобальной или оптимальной smoothness/curvature,
-не новый результат о fderiv, PL или сходимости.
+Так hLdef выбирает допустимую, вообще говоря грубую кривизну `A²`, а
+[`potential_joint`](Hagi/System/GrowthState.lean) завершает вывод. Деления на
+направление нет, посылка `D≠0` не требуется. Это не утверждение о
+глобальной/оптимальной smoothness и не результат о сходимости или PL.
 
-Для identity witness с `X=I₂`, `t=0`, нулевыми параметрами, `eta=1/4`,
-`A=2`, `L=4` имеем
+Контроль: `X=I₂`, `t=0`, нулевые параметры, `eta=1/4`, `A=2`, `L=4`:
 
 ```
 D = [+1/2,-1/2],       stepDir = grad = [-1/2,+1/2],
@@ -292,69 +302,48 @@ D = [+1/2,-1/2],       stepDir = grad = [-1/2,+1/2],
 gainJoint = eta*‖stepDir‖²/2 = 1/16.
 ```
 
-Здесь старые logits равны `[0,0]`; после шага other-minus-target gap
-равен `-1/4`, а target-minus-other gap равен `+1/4`. Поэтому
-old CE = `softplus(0)`, new CE = `softplus(-1/4)`, и фактическое
-уменьшение CE равно `softplus(0)-softplus(-1/4) ≥ 1/16`.
-При `riskJoint=0` фактическое уменьшение потенциала также не меньше
-`1/16`; ни одно из этих уменьшений не объявляется равным `1/16`.
-Отдельный [`safeStepSize`](Hagi/Model/CEDescent.lean) здесь был бы `1/2`,
-но это другая формула, не удовлетворяющая окну `eta≤1/L=1/4`.
-
-При повторяющихся строках возможен `D=0` даже при тех же `A=2`, `L=4`,
-`eta=1/4`; тогда gain равен нулю. При нулевом риске заключение даёт лишь
-невозрастание потенциала. Universal strict progress, сходимость,
-generalization, held-out качество и выигрыш времени/FLOPs не утверждаются.
-
+Фактическое уменьшение CE равно `softplus(0)-softplus(-1/4) ≥ 1/16`; при
+`riskJoint=0` не менее `1/16` и уменьшение потенциала (ни одно из них не
+равно `1/16` в точности). Отдельный [`safeStepSize`](Hagi/Model/CEDescent.lean)
+здесь был бы `1/2`, но не удовлетворяет окну `eta≤1/L=1/4`. При
+повторяющихся строках возможен `D=0` при тех же `A`, `L`, eta — gain нулевой,
+при нулевом риске только невозрастание потенциала. Universal strict progress,
+сходимость, generalization, held-out качество и выигрыш времени/FLOPs не
+утверждаются.
 ### 3.5 Identity features: предел средней вероятности
 
-Для `X : Fin B → Matrix (Fin n) (Fin n) ℝ`, `y : Fin B → Fin n`, `0 < B`
-и условия `hX : ∀ b, X b = 1` возьмём прежнюю фактическую траекторию
-`θ_t = coreParameters (fixedBatchState X y S opCost opRisk write t)`.
-Непосредственно применяется
-[`Hagi.Contracts.BatchCEAlignmentBudget.fixedBatch_meanGradient_tendsto_zero`](Hagi/Contracts/BatchCEAlignmentBudget.lean),
-без добавления посылки предела.
-
-`meanPrediction X θ` усредняет именно вероятности
-`softDef (ceLogits (X b) θ)`, а не параметры или logits.
-`empiricalTarget y` — такое же среднее `(Pi.single (y b) 1 : Fin n → ℝ)`.
-Private helper доказывает строго с этим знаком:
+`X : Fin B → Matrix (Fin n) (Fin n) ℝ`, `y : Fin B → Fin n`, `0 < B`, `hX : ∀
+b, X b = 1`, траектория `θ_t` из §3.2. Непосредственно применяется
+[`Hagi.Contracts.BatchCEAlignmentBudget.fixedBatch_meanGradient_tendsto_zero`](Hagi/Contracts/BatchCEAlignmentBudget.lean).
+`meanPrediction X θ` усредняет вероятности `softDef (ceLogits (X b) θ)`, а
+`empiricalTarget y` — векторы `(Pi.single (y b) 1 : Fin n → ℝ)`; при
+identity-умножении
 
 ```
 meanPrediction X θ v − empiricalTarget y v = meanResidualTranspose X θ y v.
 ```
 
-Identity multiplication и `B ≠ 0` из `0 < B` доказывают равенство
-в каждой координате. Определения средних totalized и при `B=0`, но
-вероятностная интерпретация и публичные limit theorems требуют `0 < B`.
-
-Следствие
+Средние тотализированы и при `B=0`, но вероятностная интерпретация и public
+limit theorems требуют `0 < B`. Следствие
 [`Hagi.Contracts.IdentityMomentConvergence.fixedBatch_meanPrediction_tendsto_empiricalTarget`](Hagi/Contracts/IdentityMomentConvergence.lean):
-`meanPrediction X θ_t → empiricalTarget y` в finite-product topology.
-Непрерывность координатной оценки на PiLp переносит предельный нуль C205
-на разность, после чего добавляется постоянная empirical-координата.
-
-Для `B=1` отдельная теорема
-`fixedBatch_meanPrediction_tendsto_empiricalTarget_batch_one` даёт
+`meanPrediction X θ_t → empiricalTarget y` в finite-product topology. Для `B=1`
+теорема `fixedBatch_meanPrediction_tendsto_empiricalTarget_batch_one` даёт
 `softDef (ceLogits (X 0) θ_t) → Pi.single (y 0) 1`.
-Это утверждение только о предсказании для единственного supplied примера,
-а не о правильности каждого individual prediction в смешанном batch.
 
-Counterexample: два identity features и смешанные метки `[0,1]` при нулевых
-параметрах уже дают одинаковые mean prediction и empirical target
-`(1/2,1/2)` и нулевой mean residual, но оба individual `ceDirection`
-ненулевые. `mixed_batchLoss_before_eq_log_two` даёт CE=`log 2`.
-Следовательно, marginal matching не означает нулевую CE или правильность
-individual predictions. Произвольные affine/full-rank features, сходимость
-параметров, held-out качество и вычислительная оптимальность не доказаны.
+Counterexample: два identity features, смешанные метки `[0,1]`, нулевые
+параметры — mean prediction и empirical target равны `(1/2,1/2)`, mean residual
+нулевой, но оба individual `ceDirection` ненулевые;
+`mixed_batchLoss_before_eq_log_two` даёт CE=`log 2`. Marginal matching не
+означает нулевую CE или правильность individual predictions. Произвольные
+affine/full-rank features, сходимость параметров и held-out качество не
+доказаны.
 
 ### 3.6 Guarded Pareto CE: адаптер к StepContract
 
-Для конечного типа `V` положим
-`T = budgetedParetoBatchTrainStep X y S opCost opRisk write` и передадим
-только условие `0≤opRisk`. Адаптер
+`T = budgetedParetoBatchTrainStep X y S opCost opRisk write`, посылка
+`0≤opRisk`. Адаптер
 [`budgetedParetoStepContract`](Hagi/Contracts/BudgetedParetoStepContract.lean)
-возвращает обычный [`StepContract`](Hagi/Unified/StepContract.lean), где
+возвращает [`StepContract`](Hagi/Unified/StepContract.lean):
 
 ```
 decrease    = batchCEObjective X y S - batchCEObjective X y T,
@@ -362,783 +351,625 @@ riskCost    = T.saf.risk - S.saf.risk,
 budgetSpend = S.res.budget - T.res.budget.
 ```
 
-Это фактическая CE как функция параметров и данных, а не норма параметров,
-saved effects или телеметрия. Структура требует именно nonnegative
-`StepContract.decrease`, `StepContract.riskCost` и
-`StepContract.budgetSpend`; universal strict progress не требуется.
+Это фактическая CE как функция параметров и данных. Структура требует
+nonnegative `StepContract.decrease`, `StepContract.riskCost` и
+`StepContract.budgetSpend`; strict progress не требуется.
 
 При активном guard проверяем `0≤opCost≤S.res.budget` и samplewise CE
-non-regression на реально вычисленном batch successor. Тогда арифметическое
-среднее CE не возрастает, расход равен `opCost≥0`, а
-`StepContract.riskCost=opRisk≥0`.
-Общее условие `0≤opCost` не добавляем. Guard не проверяет риск, поэтому
-посылку `0≤opRisk` опускать нельзя: она необходима даже при `B=0` и `V=Empty`.
-При любом отказе guard возвращает целое `S`; все три дельты обнуляются,
-и hold остаётся допустимым шагом обычной структуры.
+non-regression на вычисленном successor: среднее CE не возрастает, расход равен
+`opCost≥0`, `StepContract.riskCost=opRisk≥0`. Guard риск не проверяет, поэтому
+`0≤opRisk` необходима даже при `B=0`, `V=Empty`. При отказе guard возвращается
+целое `S`, все три дельты обнуляются — hold остаётся допустимым шагом.
 
-Для положительного контроля используем прежний доказанный двухэлементный
-same-label mean-CE drop
-[`sameZeroInitialMeanDrop_pos`](Hagi/Contracts/BatchCETrajectory/FixedBatch.lean):
-соответствующий `StepContract.decrease` действительно положителен. При
-начальном бюджете `2`, `opCost=1/2` и `opRisk=1/4` получаем остаток бюджета
-`3/2`, `StepContract.budgetSpend=1/2`, новый риск `1/4` при нулевом старом и
-`StepContract.riskCost=1/4`. Это контроль одного commit, а не отдельный strict StepCert.
-При `opCost=-1` или недоступном `opCost=3` возникает hold. На смешанном batch
-не путаем нулевой mean residual с полным hold: настоящий asymmetric CE veto
-возвращает `S`, поэтому обе resource/risk дельты и CE delta равны нулю.
-
-`StepContract.budgetSpend≥0` — это не утверждение о nonnegative новом бюджете
-для произвольного `S`; следующий бюджет является отдельным инвариантом с его
-посылками. Адаптер не выбирает оптимальное действие и не доказывает
-индивидуальный mixed-batch CE descent, параметрическую или оптимальную
-сходимость, generalization, bounded последующий risk, экономию FLOP/time.
+Контроль: двухэлементный same-label mean-CE drop
+[`sameZeroInitialMeanDrop_pos`](Hagi/Contracts/BatchCETrajectory/FixedBatch.lean)
+даёт положительный `StepContract.decrease`; при бюджете `2`, `opCost=1/2`,
+`opRisk=1/4`: остаток `3/2`, `budgetSpend=1/2`, `riskCost=1/4`. При `opCost=-1`
+или `opCost=3` — hold. На смешанном batch асимметричный CE veto возвращает `S`,
+все дельты нулевые. `budgetSpend≥0` — не утверждение о nonnegative новом
+бюджете для произвольного `S` (отдельный инвариант). Адаптер не выбирает
+оптимальное действие и не доказывает индивидуальный mixed-batch CE descent,
+сходимость, generalization или экономию FLOP/time.
 
 ### 3.7 Accepted-only Pareto CE: строгий StepCert
 
-Для `T = budgetedParetoBatchTrainStep X y S opCost opRisk write` следующий
-адаптер не добавляет второй guard и не смягчает существующий. Требуются
-положительный [`batchRangeSquare`](Hagi/Model/BatchCEDescent.lean),
-`0≤opRisk`, ограничение opRisk значением riskLim сверху,
-исходный `FloorHeld S floor` и полная активность
-существующего guard: nonnegative affordable cost вместе с samplewise CE
-non-regression на каноническом `batchTrainStep`.
+Тот же `T`; второй guard не добавляется. Требуются положительный
+[`batchRangeSquare`](Hagi/Model/BatchCEDescent.lean), `0≤opRisk`, opRisk не
+выше riskLim, исходный `FloorHeld S floor` и полная активность guard:
+nonnegative affordable cost и samplewise CE non-regression на каноническом
+`batchTrainStep`.
 
-[`budgetedParetoStepCert`](Hagi/Contracts/BudgetedParetoStepCert.lean) вызывает
-уже доказанный `batchTrainStepCert` и через фактическое равенство активной
-ветки переносит его на действительный guarded successor `T`. Результатом
-является существующий [`StepCert`](Hagi/Unified/CertifiedLoop.lean):
+[`budgetedParetoStepCert`](Hagi/Contracts/BudgetedParetoStepCert.lean) через
+уже доказанный `batchTrainStepCert` и равенство активной ветки переносит его на
+guarded successor `T`. Результат —
+[`StepCert`](Hagi/Unified/CertifiedLoop.lean):
 
-- `StepCert.budgetSpend` равен заданной opCost, а
-  `StepCert.riskSpend` — заданной opRisk; positivity поля
-  `Hagi.Unified.HonestTransition.HonestTransition.objectiveDrop` принадлежит
-  переходу к `T`, а `Hagi.Unified.HonestTransition.HonestTransition.actualDescent`
-  даёт строгий спуск arithmetic-mean CE на supplied batch;
-- `Hagi.Unified.CertifiedLoop.StepCert.hdec` связывает действительный новый
-  бюджет с `S.res.budget` минус заданная opCost, а
-  `Hagi.Unified.HonestTransition.HonestTransition.budgetBound` даёт его nonnegativity;
-- исходный quality floor сохраняется на `T`, поскольку stored quality
-  не меняется. Это не новое измерение held-out качества.
+- `StepCert.budgetSpend = opCost`, `StepCert.riskSpend = opRisk`;
+  `Hagi.Unified.HonestTransition.HonestTransition.objectiveDrop > 0` и
+  `Hagi.Unified.HonestTransition.HonestTransition.actualDescent` — строгий
+  спуск arithmetic-mean CE на supplied batch;
+- `Hagi.Unified.CertifiedLoop.StepCert.hdec` связывает новый бюджет с
+  `S.res.budget − opCost`,
+  `Hagi.Unified.HonestTransition.HonestTransition.budgetBound` даёт его
+  неотрицательность;
+- quality floor сохраняется на `T` (stored quality не меняется; это не новое
+  измерение held-out качества).
 
-Отдельной посылки `Nonempty V` нет. Положительный range доказывает `0<B`,
-после чего поданная метка первого элемента `Fin B` строит локальный witness
-vocabulary nonempty. При `B=0` такое положительное range невозможно; фиктивный
-`y 0` не создаётся. Зависимые данные `Hagi.Unified.CertifiedLoop.StepCert.trans`,
-`Hagi.Unified.CertifiedLoop.StepCert.hdec` и
-`Hagi.Unified.CertifiedLoop.StepCert.quality` переносятся через
-canonical accepted equality, а не целое record через opaque cast.
+Посылки `Nonempty V` нет: положительный range доказывает `0<B`, метка первого
+элемента строит локальный witness. При `B=0` такой range невозможен, фиктивный
+`y 0` не создаётся. Поля `Hagi.Unified.CertifiedLoop.StepCert.trans`, hdec,
+quality переносятся через canonical accepted equality, а не через opaque
+cast.
 
-Для контроля берутся ровно два same-label примера `Fin 2`, не singleton:
-`Hagi.Unified.HonestTransition.HonestTransition.objectiveDrop > 0` у реального
-guarded successor, бюджет `2→3/2`,
-`StepCert.budgetSpend=1/2`, риск `0→1/4`, `StepCert.riskSpend=1/4`.
-При opCost=3 относительно такого бюджета affordability ложна, и получить
-strict certificate не удаётся. Поэтому hold из раздела 3.6 остаётся обычным
-nonnegative `StepContract`, а не источником строгого прогресса.
+Контроль: ровно два same-label примера `Fin 2` — `objectiveDrop > 0`, бюджет
+`2→3/2`, `budgetSpend=1/2`, риск `0→1/4`, `riskSpend=1/4`. При `opCost=3`
+affordability ложна; строгого сертификата нет — hold из §3.6 остаётся
+nonnegative `StepContract`.
 
-Strictness относится к среднему CE, а не к каждому sample: guard даёт лишь
-pointwise non-regression. riskLim ограничивает opRisk одного шага, но не
-накопленный риск. Не следуют также CE→0, параметрическая сходимость,
-generalization, оптимальное действие, гарантия для нелинейного backbone,
-новое качественное измерение или экономия FLOP/time.
+Strictness относится к среднему CE, не к каждому sample. riskLim ограничивает
+opRisk одного шага, не накопленный риск. CE→0, параметрическая сходимость,
+generalization, гарантия для нелинейного backbone и экономия FLOP/time не
+следуют.
 
 ### 3.8 Range-based safe step: диапазон смещения логитов вместо суммы по словарю
 
-Базовый сертификат раздела 3.1 мажорирует сдвиг CE квадратичной
-константой `ceStepRange` = `2∑|d v|` — суммой модулей directional logit
-displacement по всему словарю. Вторая, более острая константа CE engine:
-[`ceStepLogitRange`](Hagi/Model/CEDescent.lean) — диапазон того же
-смещения `d = ceDirection X θ t`,
+Базовый сертификат §3.1 мажорирует сдвиг CE через `ceStepRange = 2∑|d v|`.
+Вторая константа — [`ceStepLogitRange`](Hagi/Model/CEDescent.lean), диапазон
+того же смещения `d = ceDirection X θ t`:
 
 ```
 R' = sup_v d v − inf_v d v,
 ```
 
-записанный как `sup' d + sup' (−d)` над конечным словарём с общим
-Mathlib canonical `Finset.univ_nonempty` witness.
-[`ceStepLogitRange_nonneg`](Hagi/Model/CEDescent.lean) даёт
-неотрицательность;
-[`ceDirectionLogit_sub_le`](Hagi/Model/CEDescent.lean) фиксирует
-поточечную оценку разности логитов через две sup'-грани, а
-[`ce_logitDisplacement_range`](Hagi/Model/CEDescent.lean) переносит её
-на весь directional logit displacement.
-[`ceStepLogitRange_le_ceStepRange`](Hagi/Model/CEDescent.lean)
-доказывает `R' ≤ R = ceStepRange = 2∑|d|`: новая константа никогда не
-хуже старой, а на разреженных направлениях — существенно меньше
-(диапазон учитывает лишь крайние значения, а не всю сумму по словарю).
+через `sup' d + sup' (−d)` над конечным словарём. Леммы (все в
+Hagi/Model/CEDescent.lean):
 
-Ключевой шаг мажоранты —
-[`ceOneHot_next_le_rangeMajorizer`](Hagi/Model/CEDescent.lean): для
-любого `0 ≤ η`
+| Имя | Факт |
+| --- | --- |
+| [`ceStepLogitRange_nonneg`](Hagi/Model/CEDescent.lean) | `0 ≤ R'` |
+| [`ceDirectionLogit_sub_le`](Hagi/Model/CEDescent.lean) | поточечная оценка разности логитов через две sup'-грани |
+| [`ce_logitDisplacement_range`](Hagi/Model/CEDescent.lean) | перенос на весь directional logit displacement |
+| [`ceStepLogitRange_le_ceStepRange`](Hagi/Model/CEDescent.lean) | `R' ≤ R = 2∑|d|` |
+| [`ceAlignment_pos_of_logitRange_pos`](Hagi/Model/CEDescent.lean) | `R' > 0 ⟹ A > 0` |
+
+Главный шаг — [`ceOneHot_next_le_rangeMajorizer`](Hagi/Model/CEDescent.lean):
+для любого `0 ≤ η`
 
 ```
 CE(θ + η·dir) ≤ CE(θ) − η·A + (η·R')²/8,
 ```
 
-где `A = ceAlignment X θ t`. Острота квадратичного члена та же, что у
-базового сертификата (`r²/8` из `lse_shift_upper`, без изменения
-sharpness-константы), но аргумент использует диапазон смещения, а не
-сумму по словарю — весь вклад дальних от крайних классов сокращается
-до одной константы `R'`. Отсюда
-[`ceRangeMajorizer`](Hagi/Model/CEDescent.lean) — миноризирующая
-квадратичная мажоранта `CE − ηA + (ηR')²/8` — и certified step
-[`ceRangeSafeStep`](Hagi/Model/CEDescent.lean) = `4A/R'²` при
-`R' > 0` (иначе `0`)
+Острота квадратичного члена та же (`r²/8` из `lse_shift_upper`), но аргумент —
+диапазон, а не сумма по словарю.
+[`ceRangeMajorizer`](Hagi/Model/CEDescent.lean) — мажоранта `CE − ηA +
+(ηR')²/8`; certified step [`ceRangeSafeStep`](Hagi/Model/CEDescent.lean) =
+`4A/R'²` при `R' > 0`, иначе `0`
 ([`ceRangeSafeStep_nonneg`](Hagi/Model/CEDescent.lean),
-[`ceRangeSafeStep_pos_of_logitRange_pos`](Hagi/Model/CEDescent.lean)).
-[`ceRangeMajorizer_safeStep_eq`](Hagi/Model/CEDescent.lean) даёт
-точное значение мажоранты на этом шаге, а главный результат
-[`ceOneHot_rangeSafeStep_le_residual`](Hagi/Model/CEDescent.lean)
-переносит оценку на фактический CE:
+[`ceRangeSafeStep_pos_of_logitRange_pos`](Hagi/Model/CEDescent.lean));
+[`ceRangeMajorizer_safeStep_eq`](Hagi/Model/CEDescent.lean) — значение
+мажоранты на шаге. Итог
+([`ceOneHot_rangeSafeStep_le_residual`](Hagi/Model/CEDescent.lean)):
 
 ```
-CE(θ') ≤ CE(θ) − 2A²/R'².
+CE(θ') ≤ CE(θ) − 2A²/R'²,
 ```
 
-[`ceOneHot_rangeSafeStep_lt`](Hagi/Model/CEDescent.lean) усиливает до
-строгого спуска при `R' > 0` (строгость даёт
-[`ceAlignment_pos_of_logitRange_pos`](Hagi/Model/CEDescent.lean):
-`R' > 0 ⟹ A > 0`).
+строго при `R' > 0` ([`ceOneHot_rangeSafeStep_lt`](Hagi/Model/CEDescent.lean)).
 
-Соотношение со старым сертификатом — аддитивное сосуществование, не
-замена. [`ceRangeSafeStep_ge_safeStepSize`](Hagi/Model/CEDescent.lean)
-доказывает: при `0 < R'` новый certified step не меньше старого
-`safeStepSize` (равного `4A/R` при `R > 0`), а
-[`ceRange_residual_ge`](Hagi/Model/CEDescent.lean) — что сертифицированный
-residual `2A²/R'²` не меньше старого `2A²/R²`. Поскольку `R' ≤ R`,
-потенциальный выигрыш в размере шага — до `V²` (отношение `R/R'`
-ограничено суммой `V` членов против двух крайних). Старый сертификат
-(`ceMajorizer`, `ceOneHot_next_le`, `safeStepSize` и их леммы) сохранён
-без изменений: оба сертификата сосуществуют, движок не переключается
-принудительно.
+Соотношение со старым сертификатом — сосуществование, не замена:
+[`ceRangeSafeStep_ge_safeStepSize`](Hagi/Model/CEDescent.lean) — при `0 < R'`
+новый шаг не меньше старого; [`ceRange_residual_ge`](Hagi/Model/CEDescent.lean)
+— residual `2A²/R'²` не меньше `2A²/R²`. Так как `R' ≤ R`, выигрыш в размере
+шага — до `V²`. Вырождение:
+[`ceStepLogitRange_eq_zero_of_eq_zero`](Hagi/Model/CEDescent.lean) —
+тождественно нулевые directional logits влекут `R' = 0`; если `R' = 0`, то `d`
+константен, и из `Σ_v ceResidual v = 0` alignment `A` и старый шаг `4A/R` тоже
+нулевые. Итак `0 < R'` эквивалентно `0 < R`: ни один режим старого сертификата
+не теряется.
 
-Вырожденный случай обработан честно, без фиктивного шага.
-[`ceStepLogitRange_eq_zero_of_eq_zero`](Hagi/Model/CEDescent.lean)
-даёт: тождественно нулевые directional logits влекут `R' = 0`
-(`ceRangeSafeStep` тотальна и равна `0` при `R' = 0`). Режим `R' = 0`
-при ненулевом старом шаге в этом движке невозможен: `R' = 0` значит
-`d` константен, а поскольку `Σ_v ceResidual v = 0`, alignment `A`
-исчезает, и старый `safeStepSize = 4A/R` тоже равен нулю. Итак,
-`0 < R'` эквивалентно `0 < R`: новый сертификат не теряет ни один
-режим старого; вырождение даёт нулевой шаг в обоих сертификатах.
+Числовые контроли (identity two-class, `#eval`-равенства):
+[`identityTwoClass_logitRange_test`](Hagi/Model/CEDescent.lean) — `R = 2`
+против `R' = 1`;
+[`identityTwoClass_rangeSafeStep_test`](Hagi/Model/CEDescent.lean) — шаг `1/2`
+против `2`;
+[`identityTwoClass_step_comparison_test`](Hagi/Model/CEDescent.lean) — `1/2 <
+2`; [`identityTwoClass_residual_comparison_test`](Hagi/Model/CEDescent.lean) —
+residual `1/8` против `1/2`.
 
-Numeric controls (identity two-class example, measured as
-`#eval`-проверенные равенства в коде модуля):
-[`identityTwoClass_logitRange_test`](Hagi/Model/CEDescent.lean) —
-`R = 2` против `R' = 1`;
-[`identityTwoClass_rangeSafeStep_test`](Hagi/Model/CEDescent.lean) —
-шаг `1/2` против `2`;
-[`identityTwoClass_step_comparison_test`](Hagi/Model/CEDescent.lean) —
-строгое `1/2 < 2` (4×);
-[`identityTwoClass_residual_comparison_test`](Hagi/Model/CEDescent.lean)
-— сертифицированный residual `1/8` против `1/2` (4×).
-
-Область заявления — только certified-descent: одношаговая верхняя
-оценка CE и размер certified step. Не утверждаются wall-clock
-ускорение, скорость или факт сходимости итерации, CE→0,
-generalization, поведение при нелинейном backbone, преимущества вне
-семейства log-linear one-hot CE или оптимальность шага среди всех
-возможных.
+Область — только certified-descent: одношаговая верхняя оценка CE и размер
+шага. Wall-clock ускорение, сходимость итерации, CE→0, generalization,
+нелинейный backbone и оптимальность шага не утверждаются.
 
 ### 3.9 Batch mirror: range-based safe step для arithmetic-mean batch loss
 
-Сертификат раздела 3.2 мажорирует сдвиг arithmetic-mean batch loss через
-`batchRangeSquare` — среднее квадратов `dirRange` (сумма модулей логитов
-по словарю) общего направления `batchMeanDirection`. Batch-зеркало §3.8:
-вместо суммы по словарю берётся диапазон смещения логитов. Механизм и
-соотношения — §3.8 (sup−inf через `Finset.univ_nonempty`, мажоранта
-`r²/8`, шаг `4A/R'²`, аддитивное сосуществование со старым
-сертификатом, нулевой шаг при вырождении); ниже — только batch-специфика.
-
-Базовый блок — `dirLogitRange`: для произвольного направления `D`
+Сертификат §3.2 использует `batchRangeSquare` — среднее квадратов `dirRange`
+(словарная сумма модулей). Здесь — диапазон смещения логитов; механика §3.8 та
+же, ниже только batch-специфика (Hagi/Model/BatchCEDescentLogitRange.lean).
 
 ```
-R' = sup_v ceLogits X D v − inf_v ceLogits X D v
+R' = sup_v ceLogits X D v − inf_v ceLogits X D v          -- dirLogitRange, произвольное D
+CE(θ + η·D) ≤ CE(θ) + η·dirAction X θ t D + (η·R')²/8    -- ceOneHot_alongNext_le_logitRange
+L(θ + η·D) ≤ L(θ) − η·A + η²·R̄'²/8                       -- batchLogitMajorizer, A = batchAlignment
+eta = batchLogitSafeStep = if R̄'²=0 then 0 else 4A/R̄'²
+L(θ') ≤ L(θ) − 2·A²/R̄'²                                  -- batchLoss_logitSafeStep_le_residual
 ```
 
-зеркало `ce_logitDisplacement_range` — тройка
-`dirLogitRange_nonneg` / `dirLogit_sub_le` /
-`dir_logitDisplacement_logitRange` и неравенство
-`dirLogitRange_le_dirRange` (R' ≤ `dirRange`: острая константа никогда
-не хуже словарной). Per-example мажоранта —
-`ceOneHot_alongNext_le_logitRange` (та же сборка Böhning-типа, что у
-`ceOneHot_alongNext_le`, с острым диапазоном):
-
-```
-CE(θ + η·D) ≤ CE(θ) + η·dirAction X θ t D + (η·R')²/8.
-```
-
-Batch-агрегация: `batchLogitRangeSquare` = среднее квадратов
-`dirLogitRange`; `batchLogitRangeSquare_nonneg`,
+`R̄'² = batchLogitRangeSquare` — среднее квадратов `dirLogitRange`.
+Позитивность: `batchLogitRangeSquare_nonneg`,
 `batch_pos_of_logitRangeSquare_pos`,
-`batchAlignment_pos_of_logitRangeSquare_pos` (зеркало
-`batchAlignment_pos_of_rangeSquare_pos`). Итог — averaged majorizer
-`batchLogitMajorizer` = `L − η·A + η²·R'²/8` (A = `batchAlignment`),
-certified step `batchLogitSafeStep` = `4A/R'²` при `R'² > 0` (иначе `0`;
-`batchLogitSafeStep_nonneg`,
-`batchLogitSafeStep_pos_of_logitRangeSquare_pos`), update
-`batchLogitNextParameters`; фиксация
-`batchLoss_alongNext_le_batchLogitMajorizer`,
-`batchLogitMajorizer_logitSafeStep_eq` и главный результат
-`batchLoss_logitSafeStep_le_residual`:
-
-```
-L(θ') ≤ L(θ) − 2·A²/R'²
-```
-
-со строгим вариантом `batchLoss_logitSafeStep_lt` (спуск
-arithmetic-mean batch loss при `0 < R'²`).
+`batchAlignment_pos_of_logitRangeSquare_pos`; шаг —
+`batchLogitSafeStep_nonneg`, `batchLogitSafeStep_pos_of_logitRangeSquare_pos`;
+update — `batchLogitNextParameters`; значение мажоранты на шаге —
+`batchLogitMajorizer_logitSafeStep_eq`; строгий спуск —
+`batchLoss_logitSafeStep_lt`. Словарные аналоги: `dirLogitRange_nonneg`,
+`dirLogitRange_le_dirRange`, `dirLogit_sub_le`,
+`dir_logitDisplacement_logitRange`; сосуществование —
 `batchLogitRangeSquare_le_batchRangeSquare` и
-`batchLogitSafeStep_ge_batchSafeStep` дают сосуществование со старым
-сертификатом (`batchLoss_safeStep_le_residual`, `batchSafeStep`); при
-`R'² = 0` шаг тотально равен `0`
-(`dirLogitRange_eq_zero_of_forall_eq_zero`), фиктивного witness нет.
+`batchLogitSafeStep_ge_batchSafeStep`; при `R̄'² = 0` шаг тотально нулевой
+(`dirLogitRange_eq_zero_of_forall_eq_zero`).
 
-Numeric controls (V=2, matrix `!![1, 1; -1, 1]`, направление
-`single 0 1`; logits `(1, −1)`): `dirRange = 4`, `dirLogitRange = 2`
-(строгое `2 < 4`), т.е. словарная range-square `16` против острой `4` —
-certified step и residual выигрывают до `4×`.
+Контроль (V=2, `!![1, 1; -1, 1]`, направление `single 0 1`, logits `(1, −1)`):
+`dirRange = 4`, `dirLogitRange = 2`; range-square `16` против `4` — шаг и
+residual выигрывают до `4×`. Область — как в §3.8.
 
-Область заявления — как в §3.8 (только certified-descent; не
-утверждаются wall-clock, сходимость итерации, CE→0, generalization,
-samplewise-гарантии за пределами среднего, оптимальность шага).
-### 3.10 Gated CE: отождествление нормы градиента и траекторный запас
+### 3.10 Gated CE: норма градиента и траекторный запас
 
-Для гейтированного одноцелевого CE (tanh-гейтинг, `gatedForward`)
-градиент по параметрам — это в точности транспонированный остаток
-через sech²-якобиан: [`gatedGrad`](Hagi/Contracts/GatedCEGradientNorm.lean)
-= `-gatedDirection`, покоординатно `gatedResidualTranspose`
-([`gatedGrad_ofLp`](Hagi/Contracts/GatedCEGradientNorm.lean)); Fréchet-
-производная действует как скалярное произведение с `gatedGrad`
-([`fderiv_gatedCE_apply_inner`](Hagi/Contracts/GatedCEGradientNorm.lean)),
-и `‖gatedGrad‖² = gatedAlignment`
-([`norm_gatedGrad_sq`](Hagi/Contracts/GatedCEGradientNorm.lean)) —
-определительно, без предположений сверх `Fintype V`.
+Для одноцелевого CE с tanh-гейтингом (`gatedForward`) градиент —
+транспонированный остаток через sech²-якобиан
+([`gatedGrad`](Hagi/Contracts/GatedCEGradientNorm.lean) `= -gatedDirection`,
+покоординатно `gatedResidualTranspose`;
+[`gatedGrad_ofLp`](Hagi/Contracts/GatedCEGradientNorm.lean)); производная
+действует как скалярное произведение с `gatedGrad`
+([`fderiv_gatedCE_apply_inner`](Hagi/Contracts/GatedCEGradientNorm.lean)), и
+`‖gatedGrad‖² = gatedAlignment`
+([`norm_gatedGrad_sq`](Hagi/Contracts/GatedCEGradientNorm.lean)) — без
+предположений сверх `Fintype V`.
 
-Так как исполненный безопасный шаг `η = A/(2C)` с константой кривизны
-`C(X) = 1 + 2Q + (2U)²/8` имеет точное падение `A²/(4C)`,
-траекторный запас — четвёртая степень нормы градиента:
-[`gated_grad_sum_fourth_le_uniform`](Hagi/Contracts/GatedCEGradientNorm.lean)
+Безопасный шаг `η = A/(2C)` с `C(X) = 1 + 2Q + (2U)²/8` имеет точное падение
+`A²/(4C)`, поэтому траекторный запас — четвёртая степень нормы градиента
+([`gated_grad_sum_fourth_le_uniform`](Hagi/Contracts/GatedCEGradientNorm.lean)):
 
 ```
 ∑s∈[0,T) ‖∇L(θs)‖⁴ ≤ 4·C(X)·L₀.
 ```
 
-Квадратичная форма `∑‖∇L‖² ≤ const·L₀` этим НЕ доказана: она
-потребовала бы новой оценки `gatedCurvature ≤ κ(X)·gatedAlignment`
-(линейной по A падения), что — отдельная задача. Эмпирических
-посылок нет; цель `t` фиксированная one-hot.
+Квадратичная форма `∑‖∇L‖² ≤ const·L₀` этим не доказана: нужна новая оценка
+`gatedCurvature ≤ κ(X)·gatedAlignment`. Эмпирических посылок нет; цель `t` —
+фиксированная one-hot.
 
 ## 4. Выбор примеров: supported inverse-propensity MSE
 
-Для фиксированных `g_b : EuclideanSpace ℝ I` на непустом B выбираем PMF `q`
-только при
-условии `q_b ≠ 0 ∨ g_b = 0` для всех `b`. Один draw оценивает arithmetic mean
-как `(B q_b)⁻¹ • g_b`. [`pmfMean_selectedMean_batchResidualGradient`](Hagi/Model/BatchCEDescentResidualNorm.lean)
-доказывает coordinatewise unbiasedness; [`selectedMeanGradientMSE_eq_sum`](Hagi/Probability/MirrorHedgeMWU.lean)
-даёт точный squared-error объект, не covariance/independence claim.
+### 4.1 Supported inverse-propensity
 
-Если `0 < ∑b |ℓ_b|`, строим
-[`selectedLoss_optimalPropensity`](Hagi/Probability/MirrorHedgeMWU.lean)
-с `q_b = |ℓ_b|/∑i |ℓ_i|`.
-[`selectedLoss_optimalPropensity_mse`](Hagi/Probability/MirrorHedgeMWU.lean)
-фиксирует
+Для фиксированных `g_b : EuclideanSpace ℝ I` на непустом `B` выбираем PMF `q`
+только при `q_b ≠ 0 ∨ g_b = 0` для всех `b`. Один draw оценивает arithmetic
+mean как `(B q_b)⁻¹ • g_b`.
+[`pmfMean_selectedMean_batchResidualGradient`](Hagi/Model/BatchCEDescentResidualNorm.lean)
+— coordinatewise unbiasedness;
+[`selectedMeanGradientMSE_eq_sum`](Hagi/Probability/MirrorHedgeMWU.lean) —
+точный squared-error объект (не covariance/independence claim).
+
+Если `0 < ∑b |ℓ_b|`, строим `q_b = |ℓ_b|/∑i |ℓ_i|`
+([`selectedLoss_optimalPropensity`](Hagi/Probability/MirrorHedgeMWU.lean)).
+[`selectedLoss_optimalPropensity_mse`](Hagi/Probability/MirrorHedgeMWU.lean):
 
 ```
 MSE = (∑|ℓ|)² - ∑ℓ²,
 ```
 
-а [`selectedLoss_optimalPropensity_mse_le`](Hagi/Probability/MirrorHedgeMWU.lean)
-— минимум среди всех supported конкурентов. Для `ℓ_b=‖g_b‖`
-используем [`selectedGradientMSE_optimalPropensity_le`](Hagi/Probability/MirrorHedgeMWU.lean);
-arithmetic-mean масштаб добавляет ровно `B⁻²` через
-[`selectedMeanGradientMSE_optimalPropensity_le`](Hagi/Probability/MirrorHedgeMWU.lean).
+[`selectedLoss_optimalPropensity_mse_le`](Hagi/Probability/MirrorHedgeMWU.lean)
+— минимум среди всех supported конкурентов. Для `ℓ_b=‖g_b‖` —
+[`selectedGradientMSE_optimalPropensity_le`](Hagi/Probability/MirrorHedgeMWU.lean);
+масштаб arithmetic mean добавляет ровно `B⁻²`
+([`selectedMeanGradientMSE_optimalPropensity_le`](Hagi/Probability/MirrorHedgeMWU.lean)).
 
-Когда настоящие gradient norms не вычислены заранее, берём feature-only
-`F_b = featureNormSum X_b`, сумму Euclidean row norms матрицы.
+Если gradient norms не вычислены заранее — feature-only `F_b = featureNormSum
+X_b` (сумма Euclidean row norms):
 [`norm_batchResidualGradient_le_featureNormSum`](Hagi/Model/BatchCEDescentResidualNorm.lean)
-даёт `‖g_b‖≤F_b`. При `0<∑|F_b|` поддержка выполнена,
+даёт `‖g_b‖≤F_b`;
 [`pmfMean_featureNormSum_optimalPropensity`](Hagi/Model/BatchCEDescentResidualNorm.lean)
-сохраняет unbiasedness, а [`selectedMeanGradientMSE_featureNormSum_le`](Hagi/Model/BatchCEDescentResidualNorm.lean)
-даёт
+сохраняет unbiasedness;
+[`selectedMeanGradientMSE_featureNormSum_le`](Hagi/Model/BatchCEDescentResidualNorm.lean):
 
 ```
 MSE ≤ B⁻² ((∑F)² - ‖∑g‖²).
 ```
 
-Это upper envelope, не Neyman oracle по фактическим градиентам. Не обещаем
-RNG runtime, generalization, меньший FLOP count или улучшенный loss.
+Это upper envelope, не Neyman oracle по фактическим градиентам. RNG runtime,
+generalization, меньший FLOP count и улучшенный loss не обещаются.
+
+### 4.2 Стохастический minibatch R'-шаг
+
+Один обратный-propensity шаг по сырому CE residual-градиенту
+(Hagi/Model/BatchCEDescentStochastic.lean):
+
+```
+stochasticStepDraw X θ y q b   = (B·q b)⁻¹ • batchResidualGradient
+batchLoss_expectedStochasticStep_le:
+  E_q[L(θ − η·ĝ)] ≤ L(θ) − η·‖m‖² + (η²/8)·cfc·E_q[‖ĝ‖²]
+  (посылки: 0 < B, 0 ≤ η, покоординатная несмещённость)
+pmfMean_normSq_stochasticStepDraw_eq:
+  E[‖ĝ‖²] = selectedMeanGradientMSE q g + ‖m‖²              (точная bias-variance)
+batchLoss_expectedStochasticStep_featureNormSum_le:
+  E[L] ≤ L − η·‖m‖² + (η²/8)·cfc·(Σ|featureNormSum|)²/B²
+batchLoss_expectedStochasticStep_featureNormSum_lt:
+  0 < η ∧ η·cfc·V̂ < 8·‖m‖² ⇒ E[L] < L
+```
+
+Член спуска — несмещённость + линейность; кривизна — глобальный (все η ≥ 0)
+Böhning-мажоратор §3.9 без window-посылок; дисперсия — §4.1. Константа cfc —
+batch-сумма `4·∑ featureAbsSum²` (консервативно против поточечной суммы). Это
+одношаговый statement об ожидании; Ville и концентрация сюда не входят.
 
 ## 5. Оптимизатор: выбирать по доказанному контракту
 
-Основной путь — `batchNextParameters`; sign/Lion/SAM/HeavyBall не заменяют
-его доказанный CE-сертификат.
+Основной путь — `batchNextParameters`; sign/Lion/SAM/HeavyBall не заменяют его
+CE-сертификат.
 
-- Нормализованный sign: при `k` непустом полагаем
-  `s = signScale g = (∑|g_i|)/card k`, `D_i=s·sgn1(g_i)`.
-  Если `J : Objective` содержит `0<L` и descentLemma, то
+- Нормализованный sign: при непустом `k` полагаем
+  `s = signScale g = (∑|g_i|)/card k`, `D_i=s·sgn1(g_i)`. Если `J : Objective`
+  содержит `0<L` и descentLemma, то
   [`sign_scaled_aligned`](Hagi/Unified/SignDescent.lean) доказывает
   alignment; при `0<eta≤1/L` [`sign_descent`](Hagi/Unified/SignDescent.lean)
-  даёт `f(x-etaD) ≤ f(x)-eta(1-L eta/2)‖D‖²`. Без нормализации
-  такого вывода нет.
+  даёт `f(x-etaD) ≤ f(x)-eta(1-L eta/2)‖D‖²`. Без нормализации вывода нет.
 - Lion: [`lion_step_norm_bound`](Hagi/Optimization/OptimizerVariants.lean)
   ограничивает сырой `eta·sign(m)` лишь `eta²·d` в squared norm. Для спуска
-  дополнительно нужна coherence градиента с моментом; тогда используем
+  нужна coherence градиента с моментом; тогда
   [`lion_descent`](Hagi/Unified/SignDescent.lean) с той же `signScale`.
 - SAM: `samW` — sup loss на ρ-ball, не готовый update. При `ρ≥0` и
-  ограниченности сверху образов `J.f` на сдвинутых ρ-ball-семействах для `x` и `x'`
-  принимаем new point только при оценке локальной остроты sharp и
+  ограниченности сверху образов `J.f` на сдвинутых ρ-ball-семействах для `x`
+  и `x'` new point принимается только при оценке локальной остроты sharp и
   доказанном SAM-drop δ; [`sam_descent_bridge`](Hagi/Unified/SignDescent.lean)
-  даёт `f(x') ≤ f(x) - (delta-sharp)`. Отдельного adversarial optimizer здесь нет.
-- HeavyBall: используем только квадратичную модальную модель. Для
-  `0<μ≤L` полагаем
-  `β=((√L-√μ)/(√L+√μ))²`, `eta=4/(√L+√μ)²`.
+  даёт `f(x') ≤ f(x) -(delta-sharp)`. Отдельного adversarial optimizer нет.
+- HeavyBall — только квадратичная модальная модель. Для `0<μ≤L`:
+  `β=((√L-√μ)/(√L+√μ))²`, `eta=4/(√L+√μ)²`;
   [`hb_general_window`](Hagi/Optimization/MomentumHB.lean) покрывает
   `μ≤λ≤L`. Для характеристических корней и Jordan-оценки дополнительно
-  требуем `0<μ<L` (тогда `0<β<1`, `ρ=√β>0`) и соответствующие
-  root/recurrence посылки: [`hb_spectral_mode`](Hagi/Optimization/MomentumHB.lean)
-  даёт `|root|²=β` для заданного root-уравнения.
+  `0<μ<L` (тогда `0<β<1`, `ρ=√β>0`) и root/recurrence-посылки:
+  [`hb_spectral_mode`](Hagi/Optimization/MomentumHB.lean) даёт `|root|²=β`.
   Это не траекторный `Cβ^(t/2)` результат: при кратном корне есть
-  Jordan-фактор [`hb_critical_trajectory_bound`](Hagi/Optimization/MomentumHB.lean),
-  а у фактической пары HeavyBall второй коэффициент —
-  `β+eta(1-β)` по [`hb_pair_second_order`](Hagi/Optimization/MomentumHB.lean).
-- Percolation path optimizer (вероятностный путь): входы — цель `f : V → ℝ`,
-  ядро шага `K : V → PMF V`, старт `a`, горизонт `T`. Шаги: (1) проверить,
-  что `K` не ведёт вверх ([`descentOrStayKernel`](Hagi/Optimization/PercolationPath.lean)),
-  а всякое убывание поддержано
-  ([`descentKernelFullSupport`](Hagi/Optimization/PercolationPath.lean));
-  (2) задать траекторию спуска длины `T`
-  ([`descentPath`](Hagi/Optimization/PercolationPath.lean), для итерации
-  step-отображения — [`descentPath_of_iterate`](Hagi/Optimization/PercolationPath.lean));
-  (3) применить [`descentPath_apply_pos_of_full_support`](Hagi/Optimization/PercolationPath.lean).
-  Гарантия: `0 < historyLaw (PMF.pure a) (fun _ => K) T T ω` для поставленной
-  траектории `ω` и `f b < f a`
-  ([`descentPath_drop`](Hagi/Optimization/PercolationPath.lean)). Для решётки
-  открытых сайтов — [`crosses_pos`](Hagi/Optimization/PercolationPath.lean):
-  пересечение по открытым сайтам ⇒ положительная масса точной истории.
-  Это масса поставленной траектории, не вероятность попадания и не порог
-  перколяции; кода-потребителя в HAGI_v2 нет.
+  Jordan-фактор
+  [`hb_critical_trajectory_bound`](Hagi/Optimization/MomentumHB.lean),
+  а второй коэффициент фактической пары HeavyBall — `β+eta(1-β)`
+  ([`hb_pair_second_order`](Hagi/Optimization/MomentumHB.lean)).
+- Percolation path optimizer (вероятностный путь): цель `f : V → ℝ`, ядро
+  `K : V → PMF V`, старт `a`, горизонт `T`. Шаги: (1) `K` не ведёт вверх —
+  [`descentOrStayKernel`](Hagi/Optimization/PercolationPath.lean), всякое
+  убывание поддержано —
+  [`descentKernelFullSupport`](Hagi/Optimization/PercolationPath.lean);
+  (2) траектория спуска длины `T` —
+  [`descentPath`](Hagi/Optimization/PercolationPath.lean) (для итерации
+  step-отображения —
+  [`descentPath_of_iterate`](Hagi/Optimization/PercolationPath.lean));
+  (3)
+  [`descentPath_apply_pos_of_full_support`](Hagi/Optimization/PercolationPath.lean).
+  Гарантия: `0 < historyLaw (PMF.pure a) (fun _ => K) T T ω` для
+  поставленной траектории `ω` с `f b < f a`
+  ([`descentPath_drop`](Hagi/Optimization/PercolationPath.lean)). Для
+  решётки открытых сайтов —
+  [`crosses_pos`](Hagi/Optimization/PercolationPath.lean):
+  пересечение по открытым сайтам ⇒ положительная масса точной истории. Это
+  масса траектории, не вероятность попадания и не порог перколяции;
+  кода-потребителя в HAGI_v2 нет.
 
 ## 6. Квантование и распределение памяти/битов
 
 ### 6.1 Grid и ternary представление
 
-Для `Δ>0`, [`gridQ`](Hagi/Energy/Quantizer.lean) имеет вид
-`Δ round(x/Δ)` и pointwise error `≤Δ/2`. Применяя по координатам,
-[`gridQVec_norm_sq`](Hagi/Energy/Quantizer.lean) даёт
+Для `Δ>0` [`gridQ`](Hagi/Energy/Quantizer.lean) имеет вид `Δ round(x/Δ)` и
+pointwise error `≤Δ/2`; покоординатно
+[`gridQVec_norm_sq`](Hagi/Energy/Quantizer.lean):
 
 ```
 ∑i(w_i-gridQVec Δ w_i)² ≤ card(k)(Δ/2)².
 ```
 
-Для `s>0` и ternary `qTern s x = s roundTern(x/s)` обязательно учитываем saturation.
-[`ternary_split_le`](Hagi/Runtime/TernaryExact.lean) даёт
+Для `s>0` и ternary `qTern s x = s roundTern(x/s)` обязателен saturation
+([`ternary_split_le`](Hagi/Runtime/TernaryExact.lean)):
 
 ```
 Σ(w-qTern s w)² ≤ n(s/2)² + satTail s w.
 ```
 
-[`quant_energy_bridge_saturation`](Hagi/Runtime/TernaryExact.lean)
-переводит это в energy bound лишь при `0≤κ` и отдельной
-`h_emp_lip: dE ≤ κ*√(∑i(w_i-qTern s w_i)²)`.
-[`tritEncode_injective`](Hagi/Energy/Ternary.lean) и
-[`tritEncode_lt`](Hagi/Energy/Ternary.lean) подтверждают injective
-five-trits byte block; [`packedTernarySamples_decode_point`](Hagi/Runtime/TernaryExact.lean)
+[`quant_energy_bridge_saturation`](Hagi/Runtime/TernaryExact.lean) переводит
+это в energy bound лишь при `0≤κ` и отдельной `h_emp_lip: dE ≤ κ*√(∑i(w_i-qTern
+s w_i)²)`. [`tritEncode_injective`](Hagi/Energy/Ternary.lean) и
+[`tritEncode_lt`](Hagi/Energy/Ternary.lean) — injective five-trits byte block;
+[`packedTernarySamples_decode_point`](Hagi/Runtime/TernaryExact.lean)
 возвращает quantized, не raw values. Это формат, не гарантия ABI/heap size.
 
-При фиксированном pattern `q`, `0<∑q_i²`, выбираем
-`s₀=(∑q_i x_i)/(∑q_i²)`; [`lsScale_optimal`](Hagi/Energy/Ternary.lean)
-минимизирует squared reconstruction error среди всех real scales. Это не
-minimax-scale и не оптимизация самого pattern.
+При фиксированном pattern `q`, `0<∑q_i²`, оптимальный масштаб `s₀=(∑q_i
+x_i)/(∑q_i²)` ([`lsScale_optimal`](Hagi/Energy/Ternary.lean)) минимизирует
+squared reconstruction error среди real scales; это не minimax-scale и не
+оптимизация pattern.
 
 ### 6.2 Per-block scale и bit-reallocation
 
-Для блоков по пять весов вычисляем `blockPenalty` как минимум двух
-доказанных score, затем минимизируем его независимо в каждом блоке по 255
-codes. [`selectedGroupScales_total_le`](Hagi/Model/CEGroupedScale.lean)
-даёт exact minimum суммарного declared certificate, а
-[`ceOneHot_joint_le_blockPenalties`](Hagi/Model/CEGroupedScale.lean) —
+Блоки по пять весов: `blockPenalty` — минимум двух доказанных score;
+минимизируем по 255 codes в каждом блоке.
+[`selectedGroupScales_total_le`](Hagi/Model/CEGroupedScale.lean) — exact
+minimum суммарного declared certificate;
+[`ceOneHot_joint_le_blockPenalties`](Hagi/Model/CEGroupedScale.lean):
 
 ```
 CE(joint selected) ≤ CE(raw) + ∑g blockPenalty_g.
 ```
 
-При `G>0` [`localEvaluationCount_le_jointCandidateCount`](Hagi/Model/CEGroupedScale.lean)
-сравнивает `255G` logical score calls с 255^G assignments, а
-[`decodeStep_packedBlocks`](Hagi/Model/CEGroupedScale.lean) связывает
-payload с выбранными параметрами. Classical choose в exact selector не
-выдаём за native поиск; счёт также не является временем/FLOPs/памятью ABI.
-Разрешимость конечного поиска и стоимостная (не конструктивная) природа
-проблемы 255^G — см. §16.
+При `G>0`
+[`localEvaluationCount_le_jointCandidateCount`](Hagi/Model/CEGroupedScale.lean)
+сравнивает `255G` logical score calls с `255^G` assignments;
+[`decodeStep_packedBlocks`](Hagi/Model/CEGroupedScale.lean) связывает payload с
+выбранными параметрами. Счёт — не время/FLOPs/память ABI.
 
-Исполняемый селектор:
-[`selectedGroupScalesExec`](Hagi/Model/CEGroupedScale.lean) — явный
-foldl-argmin по `List.finRange 255` с seed `knownSampleScale` (тот же
-seed, что у choose-канона). Мост — COST EQUALITY
-`selectedGroupScalesExec_cost_eq : blockPenalty (exec g) =
-blockPenalty (selectedGroupScales g)` (штрафы равны, коды на тайсах
-могут различаться — паттерн finiteSelection); минимальность над всей
-255-семейёй — `selectedGroupScalesExec_score_le`, сурогатная сумма —
-`selectedGroupScalesExec_total_le`. Честная граница: сравнение на ℝ
-классическое, def остаётся noncomputable — исполняем АЛГОРИТМ
-(конечный fold по данным), не оператор выбора. Эмпирическая мотивация
-(A8 F5, Class-D): динамический пер-блочный скейлинг 2.64x лучше L2
-округления; в Lean — только форма, не цифры.
+Исполняемый селектор —
+[`selectedGroupScalesExec`](Hagi/Model/CEGroupedScale.lean): foldl-argmin по
+`List.finRange 255` с seed `knownSampleScale`. Мосты:
+`selectedGroupScalesExec_cost_eq` (`blockPenalty (exec g) = blockPenalty
+(selectedGroupScales g)`), `selectedGroupScalesExec_score_le` (минимальность
+над 255-семейством), `selectedGroupScalesExec_total_le` (суррогатная сумма).
+Сравнение на ℝ классическое, def noncomputable — исполняется алгоритм (конечный
+fold), не оператор выбора.
 
-При `e_l(b)=layerError c_l b=c_l/2^b` перенос одного бита из `k` в `j`
-меняет ошибку на `e_k-e_j/2` по [`transfer_exact`](Hagi/Budget/BitAlloc.lean).
-Делаем перенос, если `j≠k`, `2e_k<e_j` и `f_k>0`: тогда ошибка строго падает по
-[`imbalance_yields_gain`](Hagi/Budget/BitAlloc.lean).
-[`no_infinite_improving_chain`](Hagi/Budget/BitAllocTermination.lean)
-запрещает бесконечную такую цепь при фиксированном бюджете. При `∀i, 0≤c_i`
-и отсутствии строгого улучшения для всех `j≠k` с `0<f_k`
+Перенос бита. При `e_l(b)=layerError c_l b=c_l/2^b` перенос одного бита из `k`
+в `j` меняет ошибку на `e_k-e_j/2`
+([`transfer_exact`](Hagi/Budget/BitAlloc.lean)). Делаем перенос, если `j≠k`,
+`2e_k<e_j`, `f_k>0`: ошибка строго падает
+([`imbalance_yields_gain`](Hagi/Budget/BitAlloc.lean));
+[`no_infinite_improving_chain`](Hagi/Budget/BitAllocTermination.lean) запрещает
+бесконечную цепь при фиксированном бюджете. При `∀i, 0≤c_i` и отсутствии
+строгого улучшения для всех `j≠k` с `0<f_k`
 [`stable_factor_two`](Hagi/Budget/BitAlloc.lean) для donor `f_k≠0` даёт
-`layerError(c_j)(f_j) ≤ 2*layerError(c_k)(f_k)`.
-Полный continuous clamped n-layer алгоритм отсюда не выводим.
+`layerError(c_j)(f_j) ≤ 2*layerError(c_k)(f_k)`. Полный continuous clamped
+n-layer алгоритм отсюда не выводим.
 
-Дополнительный continuous certificate: если `c_i>0`, `∑f=∑g=B`,
-`n>0` и `c_i/2^{f_i}` одинаково для всех `i`, то
-[`water_filling_inner_optimum`](Hagi/Budget/BitAlloc.lean)
-доказывает `totalErrorCont c f ≤ totalErrorCont c g`.
-Применяем его только при уже найденном equalizing `f`, не как конструктор.
+Continuous certificate: если `c_i>0`, `∑f=∑g=B`, `n>0` и `c_i/2^{f_i}`
+одинаково для всех `i`, то
+[`water_filling_inner_optimum`](Hagi/Budget/BitAlloc.lean) даёт `totalErrorCont
+c f ≤ totalErrorCont c g`. Применяем только при уже найденном equalizing `f`.
 
-### 6.3 BF16: guarded delta-read с безопасным re-anchor
+### 6.3 BF16: логический носитель и guarded delta-read
 
-Логический носитель — [`Hagi.Runtime.BF16Delta.Code`](Hagi/Runtime/BF16Delta.lean):
-знак, raw exponent `0..254` и fraction описывают все конечные BF16-коды.
-`decode` отображает их точно в `ℚ`, включая signed zeros и subnormals.
-Это не упакованный 16-bit layout и не native-память.
+[`Hagi.Runtime.BF16Delta.Code`](Hagi/Runtime/BF16Delta.lean): знак, raw
+exponent `0..254` и fraction описывают все конечные BF16-коды; `decode`
+отображает их точно в `ℚ`, включая signed zeros и subnormals. Это не packed
+16-bit layout.
 
-Для guard `Hagi.Runtime.BF16Delta.SamePositiveNormalBinade` требуются
-неотрицательные знаки, равные raw exponents и ненулевой exponent.
-Порядок по величине не ограничен. Тогда
+Guard `Hagi.Runtime.BF16Delta.SamePositiveNormalBinade`: неотрицательные знаки,
+равные raw exponents, ненулевой exponent. Тогда
 [`Hagi.Runtime.BF16Delta.exists_sameBinade_difference`](Hagi/Runtime/BF16Delta.lean)
 строит точную разность в `Code`, включая zero, negative и subnormal cases.
+Посылки nearest нужны для самого бэкенда (`exists_IsNearest` не задаёт
+executable RNE или tie rule). Рецепт для исходного и нового кодов:
 
-Два таких кандидата должны иметь pointwise nearest-посылки для самого
-бэкенда; существование `exists_IsNearest` не задаёт executable RNE или tie rule.
-Для двух уже представленных кодов, исходного и нового, рецепт следующий:
-
-- получить delta с посылкой
-  `Hagi.Runtime.BF16Delta.IsNearest (decode new - decode anchor) delta`;
-- при guard получить readback с посылкой
+- delta с посылкой
+  `Hagi.Runtime.BF16Delta.IsNearest (decode new -decode anchor) delta`;
+- при guard readback с посылкой
   `Hagi.Runtime.BF16Delta.IsNearest (decode delta + decode anchor) readback`;
   вне guard использовать `decode new` независимо от readback;
-- применить
-  [`Hagi.Runtime.BF16Delta.guardedRead_nearest_returns_new`](Hagi/Runtime/BF16Delta.lean)
-  для возврата значения `decode new`.
+- [`Hagi.Runtime.BF16Delta.guardedRead_nearest_returns_new`](Hagi/Runtime/BF16Delta.lean)
+  возвращает `decode new`.
 
-FTZ при subnormal delta может нарушить ближайшую посылку. Вне guard
-[`Hagi.Runtime.BF16Delta.extreme_nearest_delta_loses_update`](Hagi/Runtime/BF16Delta.lean)
-показывает потерю ненулевого обновления: для anchor `2^127` и new `129/128`
-nearest delta равна `-anchor`, а nearest reconstruction имеет значение нуля.
-Поэтому идеальное `(new-anchor)+anchor` нельзя подставлять вместо fallback.
+FTZ при subnormal delta может нарушить nearest-посылку. Вне guard
+[`Hagi.Runtime.BF16Delta.extreme_nearest_delta_loses_update`](Hagi/Runtime/BF16Delta.lean):
+для anchor `2^127` и new `129/128` nearest delta равна `-anchor`, а
+reconstruction — нуль; `(new-anchor)+anchor` нельзя подставлять вместо
+fallback. Не доказаны packed storage, FTZ, физическая экономия памяти/времени,
+улучшение обучения и held-out CE. BF16-гард шага — §12.2.
 
-Пока не доказаны packed storage, GDN/runtime integration, поддержка FTZ,
-физическая экономия памяти/времени или улучшение обучения и held-out CE.
+### 6.4 Certified low-rank замена и градиентное горлышко
 
-### 6.4 Certified low-rank замена: Eckart-Young хвост и строгий ранг-признак
-
-Бюджетная строка e_rank из декомпозиции ошибок адресуется снизу:
-любая замена `B` с `rank B ≤ k` оставляет Frobenius-ошибку не меньше
+Любая замена `B` с `rank B ≤ k` оставляет Frobenius-ошибку не меньше
 квадратичного хвоста сингулярных чисел —
 [`eckart_young_lower_bound`](Hagi/External/Flywheel/EckartYoungLower.lean)
-(нижняя граница к оптимальности
-[`eckart_young_frobenius`](Hagi/External/Flywheel/FrobeniusNorm.lean)).
-Отсюда: усечение не может быть улучшено в Frobenius-норме, и бюджет
-e_rank для спектрального сжатия — фундаментальный предел, а не артефакт
-выбора алгоритма.
+(нижняя граница к
+[`eckart_young_frobenius`](Hagi/External/Flywheel/FrobeniusNorm.lean)). Бюджет
+e_rank — фундаментальный предел, а не артефакт алгоритма. Прямоугольная форма —
+§15.5.
 
-Для знаковых матриц обновлений (отрицательная диагональ,
-неотрицательная внедиагональ) признак полного столбцового ранга даёт
+Для знаковых матриц обновлений (отрицательная диагональ, неотрицательная
+внедиагональ)
 [`neg_diag_pos_off_diag_injective`](Hagi/External/Flywheel/NegDiagRank.lean):
-при СТРОГО отрицательных строчных суммах оператор инъективен. Слабая
-версия (суммы `≤ 0`) ложна — лапласиан на двух вершинах убивает
-константный вектор (пример в том же файле); строчные суммы ровно ноль
-(softmax минус эмпирические частоты) требуют отдельной лапласианной
-формулировки ранга и здесь не утверждаются.
+при строго отрицательных строчных суммах оператор инъективен. Слабая версия
+(суммы `≤ 0`) ложна — лапласиан на двух вершинах убивает константный вектор;
+строчные суммы ровно ноль (softmax минус эмпирические частоты) требуют
+лапласианной формулировки ранга и не утверждаются.
 
-### 6.5 Градиентный бутылочное горлышко: logitGrad и Eckart-Young сборка
+Носитель строки логит-градиента — softmax минус эмпирическое распределение
+следующего токена — [`logitGrad`](Hagi/Contracts/LogitGrad.lean): обобщение
+`ceResidual` с one-hot на суб-вероятностные `N`. Строчные факты: суммы ноль при
+вероятностных `N` (`logitGrad_row_sum_zero`), строго положительное смещение вне
+one-hot цели (`logitGrad_pos_off_target`), строго отрицательное в цели при
+нетривиальном словаре (`logitGrad_neg_at_target`; посылка `∃ w ≠ t c`),
+абсолютная строчная масса `≤ 2` для суб-вероятностных `N`
+(`abs_logitGrad_row_le_two`), `smax_lt_one`.
 
-Носитель строчки логит-градиента — softmax минус эмпирическое
-распределение следующего токена —
-[`logitGrad`](Hagi/Contracts/LogitGrad.lean): обобщает форму
-ceResidual с one-hot на произвольные суб-вероятностные `N`.
-Строчные факты: суммы ноль при вероятностных `N`
-(`logitGrad_row_sum_zero`), строго положительное смещение вне
-one-hot цели (`logitGrad_pos_off_target`), строго отрицательное в
-цели при нетривиальном словаре (`logitGrad_neg_at_target`, явная
-посылка `∃ w ≠ t c`: синглтон-случай даёт нулевую, не отрицательную
-запись), абсолютная строчная масса `≤ 2` для суб-вероятностных `N`
-(`abs_logitGrad_row_le_two`); новый строчный ингредиент —
-`smax_lt_one`.
-
-Сборка — [`gradient_bottleneck_bound`](Hagi/Contracts/
-GradientBottleneck.lean): всякое достижимое логит-обновление `Δ`
-посылкой `rank Δ ≤ k` оставляет Frobenius-остаток не меньше
-квадратичного хвоста сингулярных чисел `logitGradM` за `k`.
-Посылки (таблица):
+Сборка — [`gradient_bottleneck_bound`](Hagi/Contracts/GradientBottleneck.lean):
+всякое достижимое логит-обновление `Δ` с `rank Δ ≤ k` оставляет
+Frobenius-остаток не меньше квадратичного хвоста сингулярных чисел `logitGradM`
+за `k`. Посылки:
 
 | Посылка | Роль |
-|---|---|
+| --- | --- |
 | `hΔ : Δ.rank ≤ k` | достижимость: ранг обновления ограничен |
-| `∃ w ≠ t c` (только neg-at-target) | нетривиальный словарь (данные) |
+| `∃ w ≠ t c` (только neg-at-target) | нетривиальный словарь |
 | суб-вероятность `N` (0 ≤ N, ∑ ≤ 1) | только для |row| ≤ 2 |
 
-Честность формы-посылки: вывод «голова ранга D ⇒ достижимые
-обновления ранга ≤ 2D» (бумажная семантика §B5.4) и прямоугольный
-носитель C×V отложены — лендится квадратный n×n случай; при `k ≥ n`
-хвост пуст и оценка тривиальна (но верна).
+«Голова ранга D ⇒ достижимые обновления ранга ≤ 2D» — посылка, не вывод. При `k
+≥ n` хвост пуст и оценка тривиальна.
 
-### 6.6 Динамика маршрутизации: odds-ratchet, deadlock-свидетель и анти-лок-ин
+### 6.5 Динамика маршрутизации: odds-ratchet, deadlock, анти-лок-ин
 
-Механизм ratchet — точное обновление шансов softmax
-([`softDef_odds`](Hagi/Model/Routing.lean)):
-`a⁺j/a⁺k = (aj/ak)·exp(Δsj−Δsk)` без приближений. Его локальная
-эксплуатация — [`odds_ratchet`](Hagi/Model/Routing.lean): сдвиг
-скоров, пропорциональный самой строке внимания (Δs = c·a, c > 0),
-за один шаг строго увеличивает шансы более внимательного ключа
-(мультипликативный фактор exp(c(aj−ak)) > 1). На стороне значений —
-точное V-шаговое тождество `ratchet_advantage_step`:
-`A⁺j = Aj + η·aj·‖δ‖²` — каждый посещаемый ключ набирает
-преимущество (монотонная форма `ratchet_advantage_mono`).
-Утверждается ТОЛЬКО один шаг; глобальный/итерируемый
-экспоненциальный рост НЕ утверждается (честность по addendum A3).
+Ratchet — точное обновление шансов softmax
+([`softDef_odds`](Hagi/Model/Routing.lean)): `a⁺j/a⁺k = (aj/ak)·exp(Δsj−Δsk)`.
+Его локальная эксплуатация — [`odds_ratchet`](Hagi/Model/Routing.lean): сдвиг
+скоров, пропорциональный строке внимания (Δs = c·a, c > 0), за один шаг строго
+увеличивает шансы более внимательного ключа (фактор `exp(c(aj−ak)) > 1`). На
+стороне значений — точное V-шаговое тождество `ratchet_advantage_step`: `A⁺j =
+Aj + η·aj·‖δ‖²` (монотонная форма `ratchet_advantage_mono`). Утверждается
+только один шаг; итерируемый экспоненциальный рост — нет.
 
-Негативный pinned-challenge — deadlock-свидетель
-[`deadlock_witness`](Hagi/Model/Routing.lean): точнорациональный
-3-ключевой софтмакс (skоры = логарифмы рационального вектора
-внимания, `exp∘log` сокращается точно: `dw_att0` = 1/10,
-`dw_att1` = 9/20) даёт полезному ключу внимание ровно ε = 1/10;
-его вклад в градиент запроса (точный B2-член a·A•k) имеет норму
-≤ ε·M — полезный-но-игнорируемый ключ обучает запрос медленно.
+Deadlock-свидетель [`deadlock_witness`](Hagi/Model/Routing.lean): 3-ключевой
+softmax (скоры = логарифмы рационального вектора внимания, `exp∘log`
+сокращается точно) даёт полезному ключу внимание ровно ε = 1/10; его вклад в
+градиент запроса (член a·A•k) имеет норму ≤ ε·M.
 
-Анти-лок-ин гарантия — `ewNorm_survivor_lower`
-(Hagi/Optimization/MirrorHedge.lean): при неотрицательных потерях и
-η ≥ 0 нормированный вес любого ключа ≥ (1/K)·exp(−η·Σℓ) — вес
-убывает не быстрее экспоненциально по собственной накопленной
-потере, роутер не может навсегда shut out ключ с ограниченными
-потерями. Посылки слабее регрет-стороны (`hsurv_derived` требует
-ℓ ∈ [0,1]; здесь только ℓ ≥ 0, регрет при этом не утверждается).
+Анти-лок-ин `ewNorm_survivor_lower` (Hagi/Optimization/MirrorHedge.lean): при
+неотрицательных потерях и η ≥ 0 нормированный вес любого ключа ≥
+(1/K)·exp(−η·Σℓ) — роутер не может навсегда shut out ключ с ограниченными
+потерями. Посылки слабее регрет-стороны (`hsurv_derived` требует ℓ ∈ [0,1];
+регрет при ℓ ≥ 0 не утверждается).
 
-Отложено (не утверждается): скор-стороннее тождество
-Δs = η‖δ‖²·x_iᵀ(x_j−x_i) и первый порядок sign(Δa) = sign(a−Σa²)
-(нужна second-order подстановка + B2 fderiv-машинария); монитор
-эффективного ранга/энтропии роутера (addendum item 4, отдельная
-lane).
+Не утверждается: скор-стороннее тождество `Δs = η‖δ‖²·x_iᵀ(x_j−x_i)` и первый
+порядок `sign(Δa) = sign(a−Σa²)`; монитор эффективного ранга/энтропии роутера.
 
-### 6.7 Мост Хadamard-некогерентности ↔ тернарной квантизации
+### 6.6 Мост Хadamard-некогерентности ↔ тернарной квантизации
 
-Мотивация — QuIP# (Thm 4.1), формализована математика, а не статья.
-Ключевая честность: μ-некогерентность — всегда ПОСЫЛКА.
-Адамар НЕ подавляет ∞-норм универсально: контрпример
+Мотивация — QuIP# (Thm 4.1); μ-некогерентность — всегда ПОСЫЛКА. Адамар не
+подавляет ∞-норм универсально:
 [`hadamard_not_universally_incoherent`](Hagi/Contracts/HadamardTernaryBridge.lean)
-при `k = 1`, `x = (2, 2)` даёт `‖Hx‖∞ = ‖x‖₂ = 2√2`
-(эффективное μ = √d = √2 > 1), и координата `2√2 > 3/2`
+— при `k = 1`, `x = (2, 2)` `‖Hx‖∞ = ‖x‖₂ = 2√2`, координата `2√2 > 3/2`
 насыщает тернарную сетку при `s = 1`.
 
 - [`hadamard_satTail_zero_of_l2_bound`](Hagi/Contracts/HadamardTernaryBridge.lean):
-  при `‖x‖₂ ≤ s·√d` (d = 2^k, s > 0) и посылке μ-некогерентности
-  `‖Hx‖∞ ≤ μ·‖x‖₂/√d` с `0 ≤ μ ≤ 1` каждая координата `Hx` лежит в
-  тернарном диапазоне `|y| ≤ 3s/2`, и хвост насыщения `satTail`
-  зануляется.
+  при `‖x‖₂ ≤ s·√d` (d = 2^k, s > 0) и посылке `‖Hx‖∞ ≤ μ·‖x‖₂/√d` с
+  `0 ≤ μ ≤ 1` каждая координата `Hx` лежит в `|y| ≤ 3s/2`, хвост
+  насыщения `satTail` зануляется.
 - [`hadamard_quant_error_le_of_l2_bound`](Hagi/Contracts/HadamardTernaryBridge.lean):
-  тогда суммарная квадратичная ошибка квантователя не превосходит
-  `d·(s/2)²` — чистое полу-шаговое округление, без хвоста.
+  тогда суммарная квадратичная ошибка ≤ `d·(s/2)²` — чистое
+  полу-шаговое округление.
 - [`hadamard_logits_invariance_mulVec`](Hagi/Contracts/HadamardTernaryBridge.lean):
-  до квантования логиты в точности инвариантны:
-  `(W·Hᵀ) *ᵥ (H *ᵥ x) = W *ᵥ x` (ассоциативность + `Hᵀ·H = 1`);
-  после квантования тождество приближённое и управляется границей
-  ошибки теоремы 1.
+  до квантования логиты инвариантны точно:
+  `(W·Hᵀ) *ᵥ (H *ᵥ x) = W *ᵥ x`; после квантования тождество приближённое.
 - [`blockPenalty_le_of_all_ternInRange`](Hagi/Contracts/HadamardTernaryBridge.lean)
-  и [`hadamard_ce_blockPenalty_reduction`](Hagi/Contracts/HadamardTernaryBridge.lean):
-  если сырые веса блока — Адамар-образ некогерентного источника, все
-  веса в диапазоне, хвост в `groupStructuralPenalty` исчезает, и
-  сертифицированная локальная цель `blockPenalty` (реальный
-  потребитель из CEGroupedScale) оценивается чистым rounding-членом
-  `2·featureAbsSum·√5·lvl/2`.
+  и
+  [`hadamard_ce_blockPenalty_reduction`](Hagi/Contracts/HadamardTernaryBridge.lean):
+  если сырые веса блока — Адамар-образ некогерентного источника и все в
+  диапазоне, хвост в `groupStructuralPenalty` исчезает, и `blockPenalty`
+  (потребитель из CEGroupedScale) ≤ `2·featureAbsSum·√5·lvl/2`.
 
-Отложено (не утверждается): никаких утверждений о подавлении
-∞-норм самим Адамаром; никаких post-quantization логит-гарантий.
+Post-quantization логит-гарантий нет.
+
+### 6.7 MDL: счёт блоков состояния
+
+`Hagi/Step/MDLThreeCurrency.lean`: `cstateBlocks` — счёт 16-бит упакованных
+блоков (инстанс `DyadicTernary dyadicBlock`); учётная лемма
+`double_counting_identification_forced`: коллапс двойного учёта `cst = L_pred`
+возможен только при явном проверяемом равенстве «счёт блоков = функция потерь»
+(λ_M ≠ 0). Валюты разделены структурно: block count ≠ data code length.
 
 ## 7. HNet: стартовый ratio из continuous cost-модели
 
 Для `a,b,T,r>0` обозначим `C(r)=aTr+bT²/r²`: локальная pooling-цена плюс
-latent-attention price. [`hier_attn_saving`](Hagi/Model/HNet.lean)
-даёт только алгебраическое `c(T/r)²=cT²/r²`; физического FLOP-claim нет.
+latent-attention price. [`hier_attn_saving`](Hagi/Model/HNet.lean) даёт только
+алгебраическое `c(T/r)²=cT²/r²`; физического FLOP-claim нет.
 
-Выбираем [`hnetOptRatio`](Hagi/Model/HNet.lean)
-
-```
-s = (2bT/a)^((3:ℝ)⁻¹).
-```
-
-[`hnet_opt_ratio`](Hagi/Model/HNet.lean) доказывает
-`C(s)≤C(r)` для каждого `r>0`, а
-[`hnet_opt_ratio_unique`](Hagi/Model/HNet.lean) — что равенство
-цен возможно только при `r=s`. В доказательстве используются
-`s³=2bT/a`, `aTs³=2bT²` и точный gap
+Выбираем [`hnetOptRatio`](Hagi/Model/HNet.lean): `s = (2bT/a)^((3:ℝ)⁻¹)`.
+[`hnet_opt_ratio`](Hagi/Model/HNet.lean) доказывает `C(s)≤C(r)` для каждого
+`r>0`, [`hnet_opt_ratio_unique`](Hagi/Model/HNet.lean) — равенство цен возможно
+только при `r=s`. Доказательство: `s³=2bT/a`, `aTs³=2bT²` и
 
 ```
 C(r)-C(s) = bT²(r-s)²(2r+s)/(r²s³).
 ```
 
-Используем `s` как стартовое continuous соотношение для этой абстрактной
-cost-модели. Нет Nat rounding, learned chunking, runtime argmin,
-architectural/neuron-level optimality или гарантии training quality.
+`s` — стартовое continuous соотношение для этой cost-модели; нет Nat rounding,
+learned chunking, runtime argmin и гарантии training quality.
 
 ### 7.1 Finite capped lossless chunks
 
-Для конечного `xs : List α` выбираем `capacity width : ℕ` с natural fit
+Для конечного `xs : List α` выбираем `capacity width : ℕ` с fit
 `xs.length ≤ capacity * width` и вызываем
-[`cappedChunks`](Hagi/Model/AdaptiveChunking.lean), либо берём точную
-Nat-ёмкость `⌊L / r⌋₊` в `floorCappedChunks L r width xs`. Это не native
-floating-point, expected или average ratio. Успешный existential outcome
-фиксируем равенством `hsuccess : cappedChunks capacity width xs = some chunks`
-(или его `floorCappedChunks`-аналогом): именно оно нужно и для границ, и для
-сохранения, и для стоимости. Тогда `length_cappedChunks_le` даёт
-`chunks.length ≤ capacity`, а `flatten_cappedChunks` — `chunks.flatten = xs`;
-`ne_nil_of_mem_cappedChunks` исключает пустые члены результата.
+[`cappedChunks`](Hagi/Model/AdaptiveChunking.lean), либо берём Nat-ёмкость
+`⌊L / r⌋₊` в `floorCappedChunks L r width xs`. Успешный outcome фиксируем
+равенством `hsuccess : cappedChunks capacity width xs = some chunks` (или его
+floor-аналогом) — оно нужно для границ, сохранения и стоимости.
 
-Определение применяет `List.splitLengths` к `List.replicate capacity width`,
-затем удаляет только пустые padding-чанки. Последний непустой chunk может
-быть короче width. При нарушении fit получаем none: нулевые capacity или
-width не принимают непустой вход, а пустой вход законно даёт `some []`.
-Отказ не является успешным zero-cost разбиением; для непустого `xs`
-равенство flatten не позволяет незаметно вернуть `chunks = []`.
-
-При `0 ≤ L`, `0 < r` тот же `hsuccess` даёт
-`floorCappedChunks_length_le : (chunks.length : ℝ) ≤ L / r` и
-`floorCappedChunks_flatten : chunks.flatten = xs`. Для конечного `k`,
-`c : k → ℝ` с `∀ l, 0 ≤ c l` подставляем в обе cost-теоремы одну и ту же
-константу `M := fun _ => (chunks.length : ℝ)`:
+- `List.splitLengths` применяется к `List.replicate capacity width`, удаляются
+  только пустые padding-чанки; последний chunk может быть короче width.
+- При нарушении fit — none; пустой вход даёт `some []`; для непустого `xs`
+  равенство flatten исключает `chunks = []` (отказ — не zero-cost разбиение).
+- [`length_cappedChunks_le`](Hagi/Model/AdaptiveChunking.lean):
+  `chunks.length ≤ capacity`;
+  [`flatten_cappedChunks`](Hagi/Model/AdaptiveChunking.lean):
+  `chunks.flatten = xs`;
+  [`ne_nil_of_mem_cappedChunks`](Hagi/Model/AdaptiveChunking.lean): пустых
+  членов нет.
+- При `0 ≤ L`, `0 < r`: `floorCappedChunks_length_le`:
+  `(chunks.length : ℝ) ≤ L / r`; `floorCappedChunks_flatten`:
+  `chunks.flatten = xs`.
+- Стоимость (конечное `k`, `c : k → ℝ`, `∀ l, 0 ≤ c l`, одна константа
+  `M := fun _ => (chunks.length : ℝ)` на всех уровнях):
 
 ```
-adaptiveCost c M ≤ ∑ l, c l * (⌊L / r⌋₊ : ℝ) ^ 2,
-adaptiveCost c M ≤ ∑ l, c l * (L / r) ^ 2.
+adaptiveCost c M ≤ ∑ l, c l * (⌊L / r⌋₊ : ℝ) ^ 2,   -- floorCappedChunks_cost_le_floor
+adaptiveCost c M ≤ ∑ l, c l * (L / r) ^ 2.          -- floorCappedChunks_adaptive_le_static
 ```
 
-Первая оценка — `floorCappedChunks_cost_le_floor`, вторая —
-`floorCappedChunks_adaptive_le_static`, прямо использующая прежнюю
-`adaptive_le_static`. Это не оценка произвольного per-level router.
+Это детерминированное fixed-width разбиение, не learned/adaptive per-level
+router; из неравенств `adaptiveCost` не следуют FLOPs, RAM, wall-time,
+training/held-out CE или оптимальная архитектура.
 
-Семантически здесь одно детерминированное fixed-width разбиение входного списка, а не learned/adaptive per-level H-Net routing, causal-поведение,
-дифференцируемые границы, физическое хранение или runtime-engineering
-adapter. Формальные неравенства относятся к `adaptiveCost` при указанных
-nonnegativity/cap hypotheses: не следуют FLOPs, physical RAM, wall-time,
-training quality, held-out CE, IEEE/RNE/BF16, оптимальная end-to-end
-архитектура или глобальный HAGI. Throughput, sparsity, compression и
-качество router также не доказываются.
+### 7.2 Boundary-driven lossless chunks
 
-### 7.2 Finite boundary-driven lossless chunks
-
-Для конечной последовательности xs и выбранной функции boundary : α → Bool
-конструктор [`boundaryChunks`](Hagi/Model/AdaptiveChunking.lean) задаёт
+Для `boundary : α → Bool` конструктор
+[`boundaryChunks`](Hagi/Model/AdaptiveChunking.lean):
 
 ```
 boundaryChunks boundary xs = xs.splitBy (fun _ next => !boundary next)
 ```
 
-Значение true на следующем токене next начинает новый chunk перед этим
-токеном; false продолжает прежний chunk. Первый токен сам создаёт первый
-непустой chunk без запроса его флага. Поэтому даже true на первом токене не
-создаёт пустой префикс или дополнительный chunk: singleton с первым true
-остаётся одним singleton-chunk. [`length_boundaryChunks`](Hagi/Model/AdaptiveChunking.lean)
-даёт точный счёт, включая хвост без первого токена:
+`true` на следующем токене начинает новый chunk перед ним; `false`
+продолжает прежний. Первый токен сам создаёт первый непустой chunk без
+запроса флага. Примеры: пустой вход → `[]`, счёт 0; `fun _ => false` на
+`[0,1,2]` → `[[0,1,2]]`; `fun _ => true` на `[0,1,2]` → `[[0],[1],[2]]`;
+`n % 2 == 1` на `[0,1,2,3,4]` → `[[0],[1,2],[3,4]]`; `n == 0` на `[0,1,2]` →
+`[[0,1,2]]`; `fun _ => true` на `[0]` → `[[0]]`.
+
+- [`length_boundaryChunks`](Hagi/Model/AdaptiveChunking.lean):
 
 ```
 (boundaryChunks boundary xs).length =
-  match xs with
-  | [] => 0
-  | _ :: tail => tail.countP boundary + 1
+  match xs with | [] => 0 | _ :: tail => tail.countP boundary + 1
 ```
 
-[`flatten_boundaryChunks`](Hagi/Model/AdaptiveChunking.lean) сохраняет
-исходную последовательность,
-[`ne_nil_of_mem_boundaryChunks`](Hagi/Model/AdaptiveChunking.lean) исключает
-пустые возвращённые группы, а
-[`length_boundaryChunks_le`](Hagi/Model/AdaptiveChunking.lean) ограничивает
-число групп длиной входа.
-
-Проверяемые конечные примеры:
-
-- пустой вход даёт [], счёт 0;
-- sparse-флаги fun _ => false на [0,1,2] дают [[0,1,2]], счёт 1;
-- dense-флаги fun _ => true на [0,1,2] дают [[0],[1],[2]], счёт 3;
-- alternating boundary n := n % 2 == 1 на [0,1,2,3,4] даёт
-  [[0],[1,2],[3,4]], счёт 3;
-- boundary n := n == 0 на [0,1,2] игнорирует true первого токена и даёт
-  [[0,1,2]], а fun _ => true на [0] даёт [[0]], не два chunk.
-
-Capacity guard у [`cappedBoundaryChunks`](Hagi/Model/AdaptiveChunking.lean)
-проверяет именно фактический счёт вычисленного разбиения:
-
-```
-if (boundaryChunks boundary xs).length ≤ capacity then
-  some (boundaryChunks boundary xs)
-else
-  none
-```
-
-[`cappedBoundaryChunks_eq_some_iff`](Hagi/Model/AdaptiveChunking.lean)
-эквивалентно связывает успех с тем же разбиением и его bound:
+- [`flatten_boundaryChunks`](Hagi/Model/AdaptiveChunking.lean): `xs`
+  сохраняется;
+  [`ne_nil_of_mem_boundaryChunks`](Hagi/Model/AdaptiveChunking.lean): пустых
+  групп нет;
+  [`length_boundaryChunks_le`](Hagi/Model/AdaptiveChunking.lean): число групп
+  ≤ длина входа.
+- Capacity guard [`cappedBoundaryChunks`](Hagi/Model/AdaptiveChunking.lean):
+  `some (boundaryChunks boundary xs)`, если счёт ≤ capacity, иначе none.
+  [`cappedBoundaryChunks_eq_some_iff`](Hagi/Model/AdaptiveChunking.lean):
 
 ```
 cappedBoundaryChunks capacity boundary xs = some chunks ↔
   chunks = boundaryChunks boundary xs ∧ chunks.length ≤ capacity
 ```
 
-Нельзя подменить успешный результат другим разбиением или превратить отказ в
-пустой успех через getD. Пустой вход законно даёт some [] даже при capacity 0.
-Непустой вход имеет хотя бы одну группу и при capacity 0 отвергается; равенство
-flatten также исключает some [] для непустого входа.
+  Подменить результат другим разбиением или превратить отказ в пустой успех
+  нельзя. Пустой вход даёт `some []` даже при capacity 0; непустой при
+  capacity 0 отвергается.
+- [`floorBoundaryChunks`](Hagi/Model/AdaptiveChunking.lean) использует
+  `⌊L / r⌋₊`. Из hSuccess, `0 ≤ L`, `0 < r`:
+  [`floorBoundaryChunks_length_le`](Hagi/Model/AdaptiveChunking.lean) даёт
+  `(chunks.length : ℝ) ≤ L / r`;
+  [`floorBoundaryChunks_flatten`](Hagi/Model/AdaptiveChunking.lean) сохраняет
+  вход;
+  [`floorBoundaryChunks_adaptive_le_static`](Hagi/Model/AdaptiveChunking.lean):
+  `adaptiveCost c (fun _ => (chunks.length : ℝ)) ≤ ∑ l, c l * (L / r) ^ 2`;
+  [`floorBoundaryChunks_adaptive_lt_of_strict`](Hagi/Model/AdaptiveChunking.lean):
+  `<` лишь при выбранном `c l₀ > 0` и фактическом
+  `hstrict : (chunks.length : ℝ) < L / r`. Пример: `Fin 1`, `c 0 = 1`, `L = 4`,
+  `r = 1`, `floorBoundaryChunks 4 1 (fun _ => false) [0,1,2] = some [[0,1,2]]`:
+  счёт 1 даёт `1 < 16`.
 
-[`floorBoundaryChunks`](Hagi/Model/AdaptiveChunking.lean) использует точный
-Nat floor ёмкости ⌊L / r⌋₊, без floating-point или физического rate. Из
-фактического hSuccess, условий 0 ≤ L и 0 < r теорема
-[`floorBoundaryChunks_length_le`](Hagi/Model/AdaptiveChunking.lean) получает
+Здесь детерминированный конечный token-functor, не learned/causal/online/
+дифференцируемый router; capacity — предел числа групп, не байтовая ёмкость.
 
-```
-(chunks.length : ℝ) ≤ L / r
-```
+### 7.3 Previous/current tags с проекцией стирания
 
-а [`floorBoundaryChunks_flatten`](Hagi/Model/AdaptiveChunking.lean) сохраняет
-тот же вход. Прежние adaptive_le_static и adaptive_lt_of_strict не меняются.
-Cost-специализации — паттерн §7.1 (один и тот же фактический
-chunks.length на всех уровнях):
-[`floorBoundaryChunks_adaptive_le_static`](Hagi/Model/AdaptiveChunking.lean)
-даёт
-
-```
-adaptiveCost c (fun _ => (chunks.length : ℝ)) ≤
-  ∑ l, c l * (L / r) ^ 2
-```
-
-[`floorBoundaryChunks_adaptive_lt_of_strict`](Hagi/Model/AdaptiveChunking.lean)
-заменяет ≤ на < только при выбранном положительном c l₀ и фактическом
-hstrict : (chunks.length : ℝ) < L / r; hSuccess здесь поставляет hdom.
-
-Конкретный strict-пример для Fin 1: l₀ = 0, c 0 = 1 > 0, L = 4, r = 1. Sparse
-route выше действительно успешен:
-
-```
-floorBoundaryChunks 4 1 (fun _ => false) [0,1,2] = some [[0,1,2]]
-```
-
-Его фактический счёт 1 даёт 1 < 4, поэтому строгая специализация имеет вид
-1 < 16; нестрогая при том же успешном результате даёт 1 ≤ 16. Это одна
-конкретная условная специализация, а не строгое улучшение для всех входов.
-
-Здесь детерминированный конечный token-functor, не learned, causal, online,
-дифференцируемый или произвольный per-level H-Net router. Capacity — абстрактный
-предел числа групп, не байтовая ёмкость или native memory footprint. Не
-следуют measured model quality, RAM, FLOPs, latency/native runtime,
-training/held-out CE, BF16/RNE/FTZ, глобально оптимальная архитектура HAGI или
-worst-case bound из expected/average ratio.
-
-### 7.3 Previous/current tags with plain-erasure projection
-
-Для конечного `xs : List α` зададим supplied Boolean-предикат на парах
-θ : α × α → Bool и сначала применим
+Предикат на парах θ : α × α → Bool и
 [`adjacentPairs`](Hagi/Model/AdaptiveChunking.lean):
 
 ```
@@ -1146,252 +977,156 @@ adjacentPairs [] = []
 adjacentPairs (a :: rest) = (a,a) :: (a :: rest).zip rest
 ```
 
-В каждой паре после первой поля означают именно `(previous,current)`.
-Восстановление исходного значения всегда использует `Prod.snd`:
-[`map_snd_adjacentPairs`](Hagi/Model/AdaptiveChunking.lean) доказывает
-`(adjacentPairs xs).map Prod.snd = xs`, а
-[`length_adjacentPairs`](Hagi/Model/AdaptiveChunking.lean) — равенство длин.
-Первый `(a,a)` — детерминированный dummy seed для сохранения одного тега на
-значение. Его флаг §7.2 игнорирует; это не learned prior и не forced first
-flag H-Net. Равномерный `Prod.fst` здесь неверен: уже на `[0,1]` он даёт
-`[0,0]`.
+- После первой пары поля означают `(previous,current)`; восстановление —
+  `Prod.snd`: [`map_snd_adjacentPairs`](Hagi/Model/AdaptiveChunking.lean) даёт
+  `(adjacentPairs xs).map Prod.snd = xs`;
+  [`length_adjacentPairs`](Hagi/Model/AdaptiveChunking.lean) — равенство
+  длин. Первый `(a,a)` — dummy seed для одного тега на значение; его флаг
+  компаратором не вызывается (`Prod.fst` неверен: на `[0,1]` даёт `[0,0]`).
+- Маршрут — §7.2 `boundaryChunks θ (adjacentPairs xs)`;
+  [`length_adjacentBoundary_projection_exact`](Hagi/Model/AdaptiveChunking.lean)
+  переносит точный счёт.
+- Проекция `chunks.map (List.map Prod.snd)`:
+  [`flatten_map_snd_adjacentBoundary`](Hagi/Model/AdaptiveChunking.lean) — все
+  значения в порядке;
+  [`ne_nil_of_mem_adjacentBoundary_projection`](Hagi/Model/AdaptiveChunking.lean)
+  — члены непусты;
+  [`length_adjacentBoundary_projection`](Hagi/Model/AdaptiveChunking.lean) —
+  проекция сохраняет route count.
+- Capacity `cappedBoundaryChunks capacity θ (adjacentPairs xs)`; из
+  `hSuccess : … = some chunks`:
+  [`flatten_cappedAdjacent_projection`](Hagi/Model/AdaptiveChunking.lean),
+  [`length_cappedAdjacent_projection_le`](Hagi/Model/AdaptiveChunking.lean)
+  (count ≤ capacity),
+  [`ne_nil_of_mem_cappedAdjacent_projection`](Hagi/Model/AdaptiveChunking.lean).
+  При отказе — none.
+- Floor `floorBoundaryChunks L r θ (adjacentPairs xs)`:
+  [`floorAdjacent_projection_flatten`](Hagi/Model/AdaptiveChunking.lean);
+  [`floorAdjacent_projection_length_le`](Hagi/Model/AdaptiveChunking.lean)
+  (`0 ≤ L`, `0 < r`) даёт
+  `((chunks.map (List.map Prod.snd)).length : ℝ) ≤ L / r`;
+  [`floorAdjacent_projection_adaptive_le_static`](Hagi/Model/AdaptiveChunking.lean)
+  — стоимость `≤ ∑ l, c l * (L / r) ^ 2`;
+  [`floorAdjacent_projection_adaptive_lt_of_strict`](Hagi/Model/AdaptiveChunking.lean)
+  — `<` при `l₀ : k`, `0 < c l₀` и фактическом `< L / r`;
+  [`ne_nil_of_mem_floorAdjacent_projection`](Hagi/Model/AdaptiveChunking.lean).
 
-Дальше используем маршрут §7.2
-`boundaryChunks θ (adjacentPairs xs)`, а не второй partition algorithm.
-Его `List.splitBy`-компаратор видит флаг следующей пары: `true` начинает новый
-chunk **перед current**, `false` продолжает прежний chunk. На dummy seed
-компаратор не вызывается, поэтому seed не добавляет счёт.
-[`length_adjacentBoundary_projection_exact`](Hagi/Model/AdaptiveChunking.lean)
-переносит точный счёт §7.2: `0` для пустого входа и `tail.countP θ + 1` для
-непустого paired tail.
+Проверочная θ: `θ p = !(p.1 + 1 == p.2)`. На `[0,1,3,4,10]` даёт
+`[[0,1],[3,4],[10]]`; на `[0,1,1,2,10,11,11]` — `[[0,1],[1,2],[10,11],[11]]`
+(решение зависит от пары). θ — supplied predicate; через параметры модели он
+не обучается.
 
-Проецируем каждый фактически полученный paired chunk операцией
-`chunks.map (List.map Prod.snd)`.
-[`flatten_map_snd_adjacentBoundary`](Hagi/Model/AdaptiveChunking.lean)
-доказывает, что flatten полного projected route возвращает все исходные
-значения с сохранением порядка;
-[`ne_nil_of_mem_adjacentBoundary_projection`](Hagi/Model/AdaptiveChunking.lean)
-сохраняет непустоту каждого возвращённого chunk. Главное для capacity и cost
-— **проекция сохраняет фактический route count**: это
-[`length_adjacentBoundary_projection`](Hagi/Model/AdaptiveChunking.lean).
-
-Capacity применяется уже к raw pair chunks через существующий
-`cappedBoundaryChunks capacity θ (adjacentPairs xs)`. Из фактического успеха
-
-```
-hSuccess : cappedBoundaryChunks capacity θ (adjacentPairs xs) = some chunks
-```
-
-следуют
-[`flatten_cappedAdjacent_projection`](Hagi/Model/AdaptiveChunking.lean),
-[`length_cappedAdjacent_projection_le`](Hagi/Model/AdaptiveChunking.lean) и
-[`ne_nil_of_mem_cappedAdjacent_projection`](Hagi/Model/AdaptiveChunking.lean):
-все значения восстанавливаются, projected count ≤ capacity и каждый член
-projected route непуст. При отказе Option возвращает none; не появляется
-успешный empty fallback или caller-chosen count. Пустой вход может законно
-дать `some []`, а непустой не может успешно потерять значения.
-
-`floorBoundaryChunks L r θ (adjacentPairs xs)` использует точную ёмкость
-Nat floor `⌊L / r⌋₊`. Его фактический hSuccess обеспечивает
-[`floorAdjacent_projection_flatten`](Hagi/Model/AdaptiveChunking.lean);
-[`floorAdjacent_projection_length_le`](Hagi/Model/AdaptiveChunking.lean)
-дополнительно требует `0 ≤ L`, `0 < r` и даёт
-`((chunks.map (List.map Prod.snd)).length : ℝ) ≤ L / r`. Это не caller-chosen
-M, default empty list, expected ratio или average count.
-
-Cost-теоремы — паттерн §7.1 (один и тот же фактический projected
-route count на всех уровнях). При указанных hSuccess, `0 ≤ L` и `0 < r`
-[`floorAdjacent_projection_adaptive_le_static`](Hagi/Model/AdaptiveChunking.lean)
-даёт
-
-```
-adaptiveCost c (fun _ => ((chunks.map (List.map Prod.snd)).length : ℝ)) ≤
-  ∑ l, c l * (L / r) ^ 2.
-```
-
-Строгая [`floorAdjacent_projection_adaptive_lt_of_strict`](Hagi/Model/AdaptiveChunking.lean)
-сохраняет те же посылки и дополнительно требует выбранный `l₀ : k`,
-`0 < c l₀` и фактическое
-`((chunks.map (List.map Prod.snd)).length : ℝ) < L / r`; лишь тогда знак
-сменяется на `<`. Непустоту членов успешного floor route отдельно доказывает
-[`ne_nil_of_mem_floorAdjacent_projection`](Hagi/Model/AdaptiveChunking.lean).
-Это неравенства объявленной модели `adaptiveCost`, а не доказательство
-физической эффективности.
-
-Проверочная локальная θ для полярности имеет вид
-`θ p = !(p.1 + 1 == p.2)`. На `[0,1,3,4,10]` она даёт
-`[[0,1],[3,4],[10]]`, тогда как ошибочное прямое использование successor
-как cut flag даёт другое разбиение `[[0],[1,3],[4,10]]`. На повторяющихся
-значениях `[0,1,1,2,10,11,11]` та же локальная θ даёт
-`[[0,1],[1,2],[10,11],[11]]`: current `1` продолжает после `0`, но режет
-после `1`; current `11` продолжает после `10`, но режет после `11`.
-Поэтому решение зависит от пары, а не только от current. Здесь θ — supplied
-local test predicate; production не объявляет отдельную per-symbol функцию
-nonSuccessorCut. Фиксированный параметр θ может зависеть от данных, но не
-обучается через параметры модели в этой формализации.
-
-Отношение к первичным H-Net источникам ограничено формой adjacency.
-[Paper v2, equation (4)](https://arxiv.org/html/2507.07955v2#S2.E4)
-использует `Q(current)/K(previous)`, `p₁ = 1` и нестрогий порог `≥ 0.5`.
-[Pinned code main 3673fe...](https://github.com/goombalab/hnet/blob/3673fe1217ebeb0d1438c7c71d58d32bdd190ec2/hnet/modules/dc.py)
-использует `Q(previous)/K(current)`, строгий step-порог `> 0.5` и
-normalization epsilon. Эти семантики намеренно не усредняются и не
-подменяются generic θ; dummy seed также не является доказательством forced
-first flag.
-
-Lossless здесь означает только erasure значений из paired chunks. H-Net
-head selection отдельно отбрасывает non-head представления и не является
-этим lossless восстановлением. Для будущей head-mask equivalence первый флаг
-нужно рассматривать отдельно. Не доказаны learned/differentiable/causal/
-online/per-level router, encoder, Q/K projection, cosine, zero-norm, tie,
-causal stability уже supplied representations, stateful packed-mask
-эквивалентность, BF16/Float-семантика, runtime, минимальная память,
-training/held-out качество или глобальная оптимальность HAGI. Target ratio и
-ratio loss не задают actual cap; логический count сам по себе не является
+Отношение к H-Net: [paper v2, equation (4)](https://arxiv.org/html/2507.07955v2#S2.E4)
+использует `Q(current)/K(previous)`, `p₁ = 1`, нестрогий порог `≥ 0.5`;
+[pinned code](https://github.com/goombalab/hnet/blob/3673fe1217ebeb0d1438c7c71d58d32bdd190ec2/hnet/modules/dc.py)
+— `Q(previous)/K(current)`, строгий `> 0.5`, normalization epsilon. Эти
+семантики не подменяются generic θ. Lossless здесь — только стирание значений
+из paired chunks; head selection H-Net этим восстановлением не является. Не
+доказаны learned/differentiable/causal router, encoder, Q/K projection,
+BF16-семантика, runtime, training/held-out качество; логический count — не
 physical cost.
 
-### 7.4 Head-position recovery over the boundary route
+### 7.4 Head-position recovery над boundary route
 
-Зададим для supplied Boolean-предиката границ boundary : α → Bool и
-конечного `xs : List α` recovery-функцию
 [`boundaryHeads`](Hagi/Model/AdaptiveChunking.lean):
 
 ```
 boundaryHeads boundary xs = (boundaryChunks boundary xs).map List.head?
 ```
 
-Она возвращает носитель `List (Option α)`: head-токен каждого фактически
-полученного chunk маршрута §7.2. Все утверждения ниже относятся к этому
-фактическому маршруту; отдельного supplied θ-маршрута здесь не строится,
-а capacity/floor варианты §7.2 в этой секции не переносятся.
+Head-токен каждого chunk маршрута §7.2 (capacity/floor-варианты не
+переносятся).
 
-Сохранение счёта даёт
-[`length_boundaryHeads`](Hagi/Model/AdaptiveChunking.lean): число heads
-равно точному числу chunks `boundaryChunks`, включая `0` для пустого входа
-и `1 + tail.countP boundary` для непустого. Каждый head — реальный токен:
-[`isSome_of_mem_boundaryHeads`](Hagi/Model/AdaptiveChunking.lean)
-доказывает `isSome = true` для каждого члена результата, опираясь на
-непустоту `ne_nil_of_mem_boundaryChunks`; пустой head невозможен.
-[`mem_of_mem_boundaryHeads`](Hagi/Model/AdaptiveChunking.lean)
-доказывает, что каждый head-токен лежит в исходном входе: heads
-восстанавливают позиции входных значений, а не порождают новые.
+- [`length_boundaryHeads`](Hagi/Model/AdaptiveChunking.lean): число heads =
+  числу chunks (`0` для пустого, `1 + tail.countP boundary` иначе).
+- [`isSome_of_mem_boundaryHeads`](Hagi/Model/AdaptiveChunking.lean): каждый
+  head — реальный токен;
+  [`mem_of_mem_boundaryHeads`](Hagi/Model/AdaptiveChunking.lean): head лежит во
+  входе.
+- [`boundaryHeads_head?_cons`](Hagi/Model/AdaptiveChunking.lean): для
+  `a :: rest` `head? = some (some a)` — первый head всегда первый токен
+  независимо от `boundary a`.
+- [`boundary_of_mem_boundaryHeads_tail`](Hagi/Model/AdaptiveChunking.lean):
+  каждый не-первый head лежит на границе (`boundary x = true`). Chunk-start
+  mask восстанавливается из heads; других стартов маршрут не создаёт. Это
+  структурный аналог forced first head H-Net (`p₁ = 1`), следствие
+  `List.splitBy`, не learned prior.
+- На paired route §7.3:
+  [`boundaryHeads_adjacent_first`](Hagi/Model/AdaptiveChunking.lean) — первый
+  head это dummy seed `(a,a)`;
+  [`theta_of_mem_adjacentHeads_tail`](Hagi/Model/AdaptiveChunking.lean) —
+  каждый не-первый head удовлетворяет `θ p = true`.
 
-Первый head структурно принуждён:
-[`boundaryHeads_head?_cons`](Hagi/Model/AdaptiveChunking.lean) даёт
-`head? = some (some a)` для входа `a :: rest` — первый head обязан быть
-первым токеном входа независимо от флага `boundary a`. Каждый не-первый
-head лежит точно на границе:
-[`boundary_of_mem_boundaryHeads_tail`](Hagi/Model/AdaptiveChunking.lean)
-доказывает `boundary x = true` для всякого `some x` из tail результата
-(служебная private-лемма `head_boundary_of_mem_tail` проходит по цепочке
-`List.splitBy`). Поэтому chunk-start mask восстанавливается из самих
-heads: первый head — всегда старт (принуждён), каждый следующий head —
-токен с истинным boundary-флагом, и других стартов маршрут не создаёт.
+Пример: `boundary = (· == 1)`, `[0,1,2]` → chunks `[[0],[1,2]]`, heads
+`[some 0, some 1]`. Nodup не заявляется: `[1,1]` → heads `[some 1, some 1]`.
+Private-помощник `head_boundary_of_mem_tail` в API не входит. Полная
+head-mask equivalence, Nodup, learned sparsity, runtime и качество не
+доказаны.
 
-Это структурный аналог forced first head H-Net v2: [paper v2, equation
-(4)](https://arxiv.org/html/2507.07955v2#S2.E4) фиксирует `p₁ = 1` —
-первый токен всегда head. Здесь принуждение — следствие фактического
-первого непустого chunk `List.splitBy`, а не learned prior и не routing-решение;
-gate-механика Q/K, cosine, порога `≥ 0.5` и normalization epsilon не
-моделируется. На paired route §7.3 (`adjacentPairs` с dummy seed `(a,a)`)
-той же теоремой переносится
-[`boundaryHeads_adjacent_first`](Hagi/Model/AdaptiveChunking.lean):
-первым head paired маршрута оказывается ровно dummy seed `(a,a)`. Тем
-самым seed на paired route структурно играет роль forced first head; его
-θ-флаг, как и в §7.3, в разбиение не входит. Для θ-пар то же свойство
-границ даёт [`theta_of_mem_adjacentHeads_tail`](Hagi/Model/AdaptiveChunking.lean):
-каждый не-первой head paired маршрута удовлетворяет `θ p = true`.
-
-Проверочный пример. При `boundary = (· == 1)` вход `[0,1,2]` даёт chunks
-`[[0],[1,2]]` и heads `[some 0, some 1]`: первый head `0` принуждён,
-хотя `boundary 0 = false`; не-первой head `1` лежит на границе.
-
-Nodup честно не заявляется. Повторяющиеся граничные токены дают
-повторяющиеся heads: при `boundary = (· == 1)` вход `[1,1]` даёт chunks
-`[[1],[1]]` и heads `[some 1, some 1]`. Heads — позиции первых токенов
-chunks фактического маршрута, а не множество уникальных значений.
-
-Итого здесь одна публичная функция и семь публичных теорем:
-`boundaryHeads`, `length_boundaryHeads`, `isSome_of_mem_boundaryHeads`,
-`mem_of_mem_boundaryHeads`, `boundaryHeads_head?_cons`,
-`boundary_of_mem_boundaryHeads_tail`, `boundaryHeads_adjacent_first` и
-`theta_of_mem_adjacentHeads_tail`; private-помощник `head_boundary_of_mem_tail`
-в публичный API не входит.
-
-Это структурные свойства детерминированного фактического маршрута, а не
-learned/differentiable/causal/online router и не утверждение о качестве
-routing. Forced first head здесь — структурное следствие `List.splitBy`, а не
-H-Net gate `p₁ = 1`; head selection H-Net отдельно отбрасывает non-head
-представления, что не является этим восстановлением. Не доказаны полная
-head-mask equivalence, Nodup heads, learned sparsity, encoder, Q/K
-projection, cosine, zero-norm/tie, causal stability supplied
-representations, stateful packed mask, BF16/Float-семантика, runtime,
-минимальная память, training/held-out качество или глобальная
-оптимальность HAGI. Логический счёт heads сам по себе не является
-physical cost.
 ## 8. Конечный выбор архитектуры и качества оценки
 
 Кандидат — действие с настоящим `step`, model safety, памятью и числом
-операций; это контур выбора, а не дополнительный neural layer.
+операций; это контур выбора, не neural layer.
 
-Основной вариант — минимизация ресурсов при quality floor.
+Минимизация ресурсов при quality floor.
 [`minimumResource`](Hagi/Unified/ParetoExecution/Controller.lean) выбирает
-`(memory,operations)` в memory-first Lex только внутри eligible finite
-семейства; [`minimumResource_next_quality_ge`](Hagi/Unified/ParetoExecution/Controller.lean)
-проверяет floor на фактическом successor. Пустое семейство не имеет
-такого witness. Оба Lean-selectorа используют Classical.choose: это
-noncomputable finite selection contracts, не native optimizer или runner.
-Сводка исполняемый/spec — см. §16.
+`(memory,operations)` memory-first Lex внутри eligible finite семейства;
+[`minimumResource_next_quality_ge`](Hagi/Unified/ParetoExecution/Controller.lean)
+проверяет floor на successor. Пустое семейство witness не имеет. Оба селектора
+используют `Classical.choose`.
 
-Для реализации дискретного guard используем
-[`finiteSelection`](Hagi/Unified/ParetoExecution/Controller.lean):
-фильтр supplied action list по Bool admission и List.argmin resourceCost.
-[`finiteSelection_none_iff`](Hagi/Unified/ParetoExecution/Controller.lean)
-не выбирает ничего, только если все входные guards false;
+Исполняемый guard —
+[`finiteSelection`](Hagi/Unified/ParetoExecution/Controller.lean): фильтр
+action list по Bool admission и `List.argmin resourceCost`.
+[`finiteSelection_none_iff`](Hagi/Unified/ParetoExecution/Controller.lean) —
+ничего не выбирает только если все guards false;
 [`selectionReport_guardCalls`](Hagi/Unified/ParetoExecution/Controller.lean)
-считает лишь logical guard calls. Если list покрывает все действия,
+считает logical guard calls;
 [`finiteSelection_cost_eq_minimumResource`](Hagi/Unified/ParetoExecution/Controller.lean)
-сравнивает стоимость с mathematical minimum в integer-cast модели.
-Это исполняемый discrete selection, не вычисление raw CE на ℝ.
+— при полном списке стоимость равна математическому минимуму в integer-cast
+модели. Это не вычисление raw CE на ℝ.
 
-При оценке значения с абсолютной ошибкой не более eps на всех successors
-используем conservative floor, равный истинному floor плюс eps, и
+При ошибке оценки ≤ eps на всех successors — conservative floor `floor + eps` и
 [`robustMinimumResource`](Hagi/Unified/ParetoExecution/Controller.lean):
 [`robustMinimumResource_actual_quality_ge`](Hagi/Unified/ParetoExecution/Controller.lean)
-даёт истинный floor, но cost-min только среди certified family. На конечном `I`
-для [`argmax_select_certified`](Hagi/Cert/CertifiedArgmax.lean) требуем
-`0≤eps`, `∀k, |GammaHat k-Gamma k|≤eps`, estimated argmax
-`∀k, GammaHat k≤GammaHat sel` и gap `2eps<GammaHat sel-GammaHat k`
-для всех `sel≠k`; без разрыва не объявляем истинный argmax.
-При ratio `Gamma/K` ещё требуем `K>0`, budget-feasibility
-`∑a alloc_a*K(idx_a)≤B`;
+даёт истинный floor, cost-min — только среди certified family. Для
+[`argmax_select_certified`](Hagi/Cert/CertifiedArgmax.lean) на конечном `I`
+требуем `0≤eps`, `∀k, |GammaHat k-Gamma k|≤eps`, `∀k, GammaHat k≤GammaHat sel`
+и gap `2eps<GammaHat sel-GammaHat k` для всех `sel≠k`; без разрыва истинный
+argmax не объявляется. Для ratio `Gamma/K` — ещё `K>0` и `∑a
+alloc_a*K(idx_a)≤B`;
 [`budget_allocation_dominance`](Hagi/Dynamics/ProductiveTransition.lean)
-действует лишь при доказанном максимуме ratio, `Gamma≥0` и nonnegative allocations.
+действует при доказанном максимуме ratio, `Gamma≥0` и nonnegative allocations.
 
-Структурный graph filter опционален:
-[`withStructuralConstraint`](Hagi/Research/SchellingCandidateSelection.lean)
-добавляет local compatible quota и top-to-bottom reachability к уже
-существующим safe/caps. Это finite Schelling admission, не percolation,
-динамика сходимости или доказательство качества сети.
+Graph filter (опционально):
+[`withStructuralConstraint`](Hagi/Research/SchellingCandidateSelection.lean) —
+local compatible quota и top-to-bottom reachability; finite Schelling
+admission, не динамика сходимости.
 
-Для decoded finite codebook фиксируем `e`, decoder и `X`, конечный nonempty `V`,
-`IsProbSys p`, `0<n`, `0<eps`, после чего оцениваем выбранные
-baseline/candidate на новых categorical samples.
+Decoded finite codebook: фиксируем `e`, decoder, `X`, конечный nonempty `V`,
+`IsProbSys p`, `0<n`, `0<eps`.
 [`codebook_raw_selected_population_mean_gap_lower_confidence`](Hagi/Model/CEHeldout.lean)
-даёт числовой lower confidence для raw-CE gap с множителем `61965^G` и
-радиусом `eps/ceBound X`. Это fixed-family finite-product вероятностная
-оценка, не representative-IID/deployment guarantee. Для отдельного
-subgaussian risk gate на конечном nonempty `V` требуем `∀v, 0<q v`,
-`∑v qv=1`, `T>0`, `0<σ²` и `0<α<1`, а также subgaussian CGF для centering
-значений при всех `t` и всех `c>0`. [`anytime_safe_threshold`](Hagi/Probability/CertifiedEstimator.lean)
-использует порог `μ+sqrt(2σ²log(T/α))`: вероятность того, что хотя бы
-одно из T значений достигает порога, не превосходит α.
+— lower confidence для raw-CE gap с множителем `61965^G` и радиусом
+`eps/ceBound X`. Это fixed-family finite-product оценка, не
+representative-IID/deployment guarantee. Множитель `61965^G` вакуозен при
+умеренных G: [`unionConfFactor`](Hagi/Model/CEHeldout.lean),
+[`union_confidence_vacuous`](Hagi/Model/CEHeldout.lean); любая
+anytime-конфиденс `1−δ ∈ [0,1)` доминирует
+([`anytime_confidence_dominates_vacuous`](Hagi/Model/CEHeldout.lean)). G-free
+замена — time-uniform машина §14 (`anytime_catoni`,
+`stitching_eprocess_anytime`); супермартингалность Hoeffding-процесса на
+normalized-CE — отдельный мост.
+
+Subgaussian risk gate на конечном nonempty `V`: `∀v, 0<q v`, `∑v qv=1`, `T>0`,
+`0<σ²`, `0<α<1` и subgaussian CGF для centering-значений при всех `t` и всех
+`c>0`; [`anytime_safe_threshold`](Hagi/Probability/CertifiedEstimator.lean) —
+порог `μ+sqrt(2σ²log(T/α))`: вероятность хотя бы одного достижения порога в T
+значениях ≤ α.
 
 ### 8.1 Префиксная Freedman-confidence для банка raw CE
 
-Фиксируем конечный банк кодов `i : Fin m`, codebook equivalence `e`,
-матрицу признаков `X` и горизонт `T`. Для состояния `a`, следующего
-состояния `b` и заданного марковского ядра `K` полагаем
+Конечный банк кодов `i : Fin m`, codebook equivalence `e`, матрица `X`,
+горизонт `T`. Для `a`, `b` и ядра `K`:
 
 ```
 F_i(k,a,b) = CE(b.2, ceLogits X (decodeJoint e (a.1 i))),
@@ -1400,229 +1135,141 @@ g_i        = F_i − μ_i,
 v_i(k,a)   = E_(b∼K(k,a)) (g_i(k,a,b))².
 ```
 
-Это исходная, не нормированная CE. Из `0 ≤ F_i ≤ ceBound X` получаем
-`|g_i| ≤ ceBound X`; центрирование `E g_i = 0` является определением,
-а не дополнительным статистическим допущением. Выбираем `r > 0`, `V ≥ 0`
-и используем один `historyLaw initial K T T` для всего банка.
+Из `0 ≤ F_i ≤ ceBound X` получаем `|g_i| ≤ ceBound X`; центрирование `E g_i =
+0` — определение. При `r > 0`, `V ≥ 0` и одном `historyLaw initial K T T` на
+весь банк
 [`raw_bank_freedman_maximal_confidence`](Hagi/Model/CEMarkovConfidence.lean)
-даёт нижнюю границу математического ожидания индикатора
+даёт нижнюю границу `1 − 2*m*(T+1)*exp(−r²/(4*(V + ceBound X*r)))` для
 
 ```
-∀ i, ∀ j ≤ T, historyCounter v_i T j ≤ V →
-  |historyAdditive g_i T j| < r,
+∀ i, ∀ j ≤ T, historyCounter v_i T j ≤ V → |historyAdditive g_i T j| < r.
 ```
 
-равную `1 − 2*m*(T+1)*exp(−r²/(4*(V + ceBound X*r)))`.
-Это одновременная оценка всех ограниченных префиксов, а не только
-последнего времени. Она следует из per-member Freedman и union bound:
-коэффициент не объявляется оптимальным, а при величине нижней границы,
-не обещающей положительную вероятность, результат просто неинформативен.
-При `m=0` событие вакуумно и индикатор равен единице; искусственный член
-банка не создаётся. При ненулевом counter `V=0` ничего хорошего автоматически
-не обещается. Это вероятностный аудит на заданном ядре, не утверждение
-о произвольном времени остановки, попутном selection, обобщении
-установленной производительности, CE-обучении или strict `StepCert`. Для детерминированного accepted CE-шага
-по-прежнему нужны весь его guard и его отдельные предпосылки.
+Это одновременная оценка всех префиксов (per-member Freedman + union bound);
+коэффициент не оптимален, при неположительной границе результат неинформативен.
+При `m=0` событие вакуумно. Это вероятностный аудит на заданном ядре, не
+arbitrary stopping time и не strict `StepCert`.
 
-
-На уже зафиксированной истории можно задать baseline `b`, селектор `σ ω`
-и bounded prefix `τ ω ≤ T`. Здесь `σ` и `τ` — снабжённые функции всей
-history, включая последующее состояние; одна эта проверка не делает их
-адаптированной или causal политикой. Обозначим сумму raw CE до `τ ω` через
-A_i, сумму её conditional PMF mean через M_i, а residual через g_i.
-Если одновременное prefix confidence-событие выполнено, обе границы
-`historyCounter v T (τ ω) ω ≤ V` для `b` и `σ ω` выполнены и
+На зафиксированной истории — baseline `b`, селектор `σ ω`, prefix `τ ω ≤ T`
+(`σ`, `τ` — функции всей history; адаптированность/causality не следуют). A_i,
+M_i, g_i — суммы raw CE, conditional PMF mean и residual до `τ ω`. Если prefix
+confidence-событие выполнено, обе границы counter для `b` и `σ ω` выполнены и
 `2*r < A_b − A_(σ ω)`, то
 [`raw_bank_selected_prefix_conditional_ce_gap_pos_of_good`](Hagi/Model/CEMarkovConfidence.lean)
-доказывает `0 < M_b − M_(σ ω)`. Разложение `A_i = historyAdditive g_i + M_i`
-и `|historyAdditive g_i| < r` делают conditional gap не меньше raw gap
-минус суммарный radius `2r`; условие hobs остаётся посылкой.
+даёт `0 < M_b − M_(σ ω)`. Одно центрирование сохраняет весь observed gap,
+поэтому слабого радиуса нет. При `τ ω = 0` premise `2r < 0` несовместима с `0 <
+r`: нулевой prefix — не улучшение. Безусловной границы ожидаемого риска и
+оптимальности селектора нет.
 
-Это сравнение на guarded realization, а не безусловная граница
-ожидаемого риска или обещание оптимального селектора. Одно центрирование
-`g = F − μ` сохраняет весь observed gap, поэтому здесь не возникает слабого
-радиуса `r` или потерянного raw residual. При `τ ω = 0` premise `2r < 0`
-несовместим с получаемым из good `0 < r`: нулевой prefix не является
-наблюдаемым улучшением. Результат не создаёт CE-training, causal stopping,
-произвольное stopping time, held-out качество, `StepCert` или ускорение;
-для детерминированного commit по-прежнему необходимы полные guards.
+
 ## 9. Исполнение: guards, router и охлаждение
 
-Для произвольного `inputFor(S)` сначала вычисляем proposed successor и
-лишь потом commit. [`guardedBatchTrainStep`](Hagi/Contracts/BatchCEBudgetGuard.lean)
-принимает его только если `0≤opCost≤budget` и CE каждого supplied sample
-не увеличивается; иначе возвращает `S`.
-[`batchSampleCE_guardedBatchTrainStep_le`](Hagi/Contracts/BatchCEBudgetGuard.lean)
-подтверждает samplewise non-regression. Не принимаем post-energy автоматически:
-оно проверяется на настоящем successor.
+Для `inputFor(S)` сначала вычисляем proposed successor, затем commit.
+[`guardedBatchTrainStep`](Hagi/Contracts/BatchCEBudgetGuard.lean) принимает его
+только при `0≤opCost≤budget` и неувеличении CE каждого supplied sample; иначе
+возвращает `S`
+([`batchSampleCE_guardedBatchTrainStep_le`](Hagi/Contracts/BatchCEBudgetGuard.lean)).
+Post-energy не принимается автоматически: оно проверяется на настоящем
+successor.
 
-В более общем состоянии [`joint`](Hagi/System/GrowthState.lean)
-действительно обновляет `params := params - sp.eta • stepDir`.
-Но [`potential_joint`](Hagi/System/GrowthState.lean) требует
-`0<L`, `0≤eta≤1/L`, alignment, явной `h_emp_smooth` и measured
-`effects.jointEnergy`; только тогда
+В общем состоянии [`joint`](Hagi/System/GrowthState.lean) обновляет `params :=
+params -sp.eta • stepDir`; [`potential_joint`](Hagi/System/GrowthState.lean)
+требует `0<L`, `0≤eta≤1/L`, alignment, явной `h_emp_smooth` и measured
+`effects.jointEnergy`; только тогда `Φ(joint S)-Φ(S) ≤ -gainJoint S + riskJoint
+S`. `gainJoint=eta‖stepDir‖²/2`, `riskJoint=effects.jointRisk`; protected risk
+не заменяется gain. Для длинного цикла — commit/hold
+[`gate_never_increases`](Hagi/Unified/CertifiedLoop.lean) с доказанным
+implication для принятого successor.
 
-```
-Φ(joint S)-Φ(S) ≤ -gainJoint S + riskJoint S.
-```
-
-`gainJoint=eta‖stepDir‖²/2`, `riskJoint=effects.jointRisk`; protected risk
-не заменяется gain. Для длинного цикла используем высокоуровневый commit/hold
-[`gate_never_increases`](Hagi/Unified/CertifiedLoop.lean) лишь с
-доказанным implication для принятого successor, а не с желаемым результатом.
-
-Для router экспертов отдельно допустимый bounded-loss Hedge:
-[`ewWeight`](Hagi/Optimization/MirrorHedge.lean) обновляет
-`w_{t+1,i}=w_{t,i}exp(-eta l_{t,i})`, [`ewNorm`](Hagi/Optimization/MirrorHedge.lean)
-нормализует веса. Если `0<eta≤1` и `0≤l_{t,i}≤1`, то
-[`router_regret_bound`](Hagi/Optimization/MirrorHedge.lean) даёт для любого эксперта
+Router: bounded-loss Hedge — [`ewWeight`](Hagi/Optimization/MirrorHedge.lean)
+(`w_{t+1,i}=w_{t,i}exp(-eta l_{t,i})`),
+[`ewNorm`](Hagi/Optimization/MirrorHedge.lean). При `0<eta≤1`, `0≤l_{t,i}≤1`
+[`router_regret_bound`](Hagi/Optimization/MirrorHedge.lean): для любого
+эксперта
 
 ```
 A_T-L_T(i) ≤ log(card ι)/eta + eta T/2.
 ```
 
-Это regret bounded-router, не снижение CE backbone и не runtime-optimality.
+Это regret bounded-router, не снижение CE backbone.
 
-Когда router задан как Gibbs `softDef(-L/T)`, положительные `T` дают
-[`gibbs_mixture_quality`](Hagi/Probability/GibbsCore.lean):
-`∑w_iL_i ≤ m + T log(card ι)` для достигнутого finite minimum `m`.
-Можно охлаждать по `T_t=T0 α^t`, `0<α<1`; для `0<T0,δ`, `0<θ<1`
-точной stop bound относительно `exp(-δ/T_t)` даёт
-[`thermostat_stop`](Hagi/Growth/Thermostat.lean).
-Используем этот закон только на конечном energy family. Адаптивную
-piecewise dynamics и универсальный analytic entropy limit сюда не подставляем.
+Gibbs router `softDef(-L/T)` при `T>0`:
+[`gibbs_mixture_quality`](Hagi/Probability/GibbsCore.lean): `∑w_iL_i ≤ m + T
+log(card ι)` для finite minimum `m`. Охлаждение `T_t=T0 α^t`, `0<α<1`; для
+`0<T0,δ`, `0<θ<1` stop bound относительно `exp(-δ/T_t)` —
+[`thermostat_stop`](Hagi/Growth/Thermostat.lean). Только на конечной energy
+family.
 
-### Сертифицированный перенос спуска через residual-блоки
+### 9.1 Перенос спуска через стек FastArch3
 
-Спуск головы (посылка hdrop) переносится через residual-блок `x + f x`
-(`resStep`, `Hagi/Model/BackboneTransfer.lean`) с явной утечкой —
-паттерн каскадной границы §19, применённый к пути обновления. Если `f`
-`μ`-липшицева, а loss `Lc`-липшицев, то
-[`residual_transfer_descent`](Hagi/Model/BackboneTransfer.lean):
-`L(x+dx+f(x+dx)) ≤ L(x+f x) − δ + Lc·μ·‖dx‖`; при `Lc·μ·‖dx‖ < δ`
-— строгое убывание (`residual_transfer_descent_strict`). Для стека
-из B блоков утечка компонуется мультипликативно в паттерне
-`cascadeGain` (механика `Hagi/Core/ErrorProp.lean`):
-`‖G(x+dx) − G x − dx‖ ≤ (∏(1+μᵢ) − 1)·‖dx‖`
-(`resStack_leak_le`) и
-`L(G(x+dx)) ≤ L(G x) − δ + Lc·(∏(1+μᵢ)−1)·‖dx‖`
-(`resStack_transfer_descent`). Никакой дифференцируемости не
-требуется (premise-form LipschitzWith). Честная граница:
-внутренности FastArch3 (attention-якобианы, RoPE-точность, GDN
-RAM-звено, RMSNorm-константы) НЕ заявлены — их переносят следующие
-подразделы (attention, RoPE, RMSNorm, GDN, FastArch3-сборка).
+Спуск головы (посылка hdrop) переносится через стек с явной утечкой
+(механика каскада §15.3). Общая форма: при Lc-липшицевой потере головы
+`L(x+dx) ≤ L(x) − δ + Lc·λ·‖dx‖`, строго при `Lc·λ·‖dx‖ < δ`.
 
-### Композиция attention-блока в переносе спуска
+- **Residual-блок** `x + f x` ([`resStep`](Hagi/Model/BackboneTransfer.lean)):
+  f μ-липшицева ⇒ `residual_transfer_descent`, `residual_transfer_descent_strict`.
+- **Стек residual-блоков** (`Hagi/Core/ErrorProp.lean`): λ = `∏(1+μᵢ) − 1`;
+  `resStack_leak_le`, `resStack_transfer_descent`. Дифференцируемость не
+  требуется.
+- **Attention-блок** (Hagi/Model/AttentionTransfer.lean): `attnBranch`
+  p v x = ∑ i, p i • v i x (веса — фиксированное распределение вероятностей,
+  посылка для QKᵀ); `attn_branch_damped` (демпфирование ошибок softmax
+  `Hagi.Core.attention_error_damped`); `attn_branch_lipschitz` (равномерное
+  μatt value-карт); pre-norm μn ⇒ λ = `μn·μatt`: `attention_block_transfer`;
+  `attention_stack_transfer_descent` (якорь μ_att=0.3, μ_res=0.2:
+  (1.3)(1.2)−1 = 0.56).
+- **RoPE** ([`rope_pair_inner`](Hagi/Model/RoPETransfer.lean)): вращение —
+  изометрия (`rot_norm`, транспорт `toEuc` с `‖toEuc x‖² = pairInner x x`,
+  `rope_isometry`: `‖R a − R b‖ = ‖a − b‖`); λ не меняется:
+  `rope_block_transfer`, `attnRopeGain_eq`,
+  `attention_rope_stack_transfer_descent`. Якорь d=2, θ≡π/3 на (3,4)|(0,0):
+  норма 5 сохранена. Матричная ортогональность (RᵀR=I) и операторная норма
+  не заявлены.
+- **RMSNorm** (Hagi/Model/RMSNormTransfer.lean): носитель `rnVec` (без
+  ε-пола, без веса g); чистый носитель не липшицев глобально
+  (`rnEuc_not_lipschitz_with`, n ≥ 2); на `r ≤ ‖z‖` — `rn_lipschitz_region` с
+  μn(r) = 2√n/r; ε-полный вариант глобально (2/√ε)-липшицев
+  (`rnEpsEuc_lipschitz`); `attention_block_transfer_rmsnorm`,
+  `attention_stack_transfer_rmsnorm_eps`. Якорь (n=4): ‖rnEuc (3,4,0,0)‖ = 2.
+- **GDN** (Hagi/Model/GDNTransfer.lean): mHC state mixing `x ↦ M *ᵥ x`, M
+  дважды стохастическая ⇒ `gdnMix_lipschitz` (LipschitzWith 1); гейт —
+  посылка μg: `gdn_block_transfer`, `gdn_stack_transfer_descent` (+ `_strict`);
+  `hybrid_stack_transfer_descent` (+ `_strict`) — стек attention- и
+  GDN-блоков (`HybBlock`, att | gdn) с λ = `∏(1+μᵢ) − 1` (якорь att 3/10,
+  gdn 2/10 ⇒ утечка 14/25). Sinkhorn, GDN2 memory update и RAM state-сжатия
+  не заявлены.
+- **FastArch3-сборка** (Hagi/Model/FastArch3Transfer.lean): SoftmaxHead поверх
+  гибридного стека (attention + RoPE + RMSNorm + GDN); `FA3Block`
+  (att a R | gdn g), `FastArch3Spec` (blocks + `HeadConfig`),
+  `fa3BlockList`/`fa3Stack`/`fa3Gain`, `fa3BlockList_lipschitz`, `fa3Objective`,
+  `fastarch3_transfer_descent` (+ `_strict`): спуск головы δ + Lc-липшицева
+  потеря головы (P7) + гард `Lc·(∏(1+μᵢ)−1)·‖dx‖ < δ` ⇒ end-to-end objective
+  строго убывает. Посылки P1–P9 — таблица в docstring модуля. P5 и P7
+  разряжены per-instance: `gdnGateTanh_lipschitz` (tanh-гейт, μg = 1,
+  `1/cosh² ≤ 1`) и `fastarch3_head_Lc` (ident-logit headCE, Lc = 2, транспорт
+  sup-норма → евклидова через `euclid_coord_abs_sub_le`). Якорь: att 1.4·0.4 =
+  0.56, gdn 0.2 ⇒ утечка 0.872; drop 0.5 > 0.5·0.872·1.
 
-Attention-звено лестницы E4
-(`Hagi/Model/AttentionTransfer.lean`): существующий сертификат
-демпфирования ошибок softmax (`Hagi.Core.attention_error_damped`)
-подключён к стеку C300. Ветвь
-[`attnBranch`](Hagi/Model/AttentionTransfer.lean) p v x =
-∑ i, p i • v i x (веса — фиксированное распределение
-вероятностей, premise-форма для QK^T-структуры);
-`attn_branch_damped` — отклонение ветви ≤ max_i ‖v i (x+dx) −
-v i x‖ (инстанция демпфирования с e i = отклик value-карты);
-`attn_branch_lipschitz` — LipschitzWith μatt ветви при
-равномерном μatt-демпфировании value-карт; pre-norm посылка μn
-компонирует в LipschitzWith (μn·μatt) — блочная гипотеза
-(`attention_block_transfer`: утечка Lc·(μn·μatt)·‖dx‖).
-Стек attention-блоков наследует мультипликативную границу
-(`attention_stack_transfer_descent`: утечка
-Lc·(∏(1+μnᵢ·μattᵢ)−1)·‖dx‖; якорь μ_att=0.3, μ_res=0.2:
-(1.3)(1.2)−1 = 0.56). Честная граница: softmax-карта весов —
-premise-форма; Lipschitz RMSNorm — посылка (звено 4); изометрия
-RoPE на нормированном носителе — следующее звено; полный
-FastArch3 certificate НЕ заявлен.
+Граница: certified descent для FastArch3-SHAPED модели под premises — не
+утверждение об обученных весах или Python runtime; softmax-map не разряжен
+(P1); полный forward/backward certificate не заявлен.
 
-### Изометрия RoPE в переносе спуска
+### 9.2 RAM-протокол и выравнивание lag-1
 
-RoPE-звено лестницы E4
-(`Hagi/Model/RoPETransfer.lean`): вращение — изометрия
-нормированного носителя. Полная билинейная сохранность
-`pairInner` ([`rope_pair_inner`](Hagi/Model/RoPETransfer.lean),
-`rot_norm` — диагональный случай) + транспорт `toEuc` в
-`EuclideanSpace ℝ (Fin d ⊕ Fin d)` с точной нормой
-(`‖toEuc x‖² = pairInner x x`) дают `rope_isometry`
-(`‖R a − R b‖ = ‖a − b‖`). Следствие для стека: пре-/пост-
-композиция с вращением сохраняет константу Липшица
-(`rope_block_transfer`), RoPE-обёрнутые attention-блоки
-удовлетворяют той же C300-границе утечки при НЕИМЕННОМ
-демпфировании, фактор утечки стека не меняется
-(`attnRopeGain_eq`), и `attention_rope_stack_transfer_descent`
-применяет ту же теорему дословно. Якорь: d=2, θ≡π/3 на
-(3,4)|(0,0) — норма 5 сохранена. Честная граница: матричная
-ортогональность (RᵀR=I) и операторная норма НЕ заявлены;
-softmax/RMSNorm — premise-форма; полный FastArch3 certificate НЕ
-заявлен.
+Мотивация (не Lean-посылка): рассинхрон ключа GDN ~50% против ~99.6%.
 
-### Разрядка константы Липшица RMSNorm
+- GDN lag-1 (`Hagi/Model/GDNBridge.lean`): контракт `k_{t−1}→v_t` —
+  `gdn_lag1_read_miss` (чтение по другому адресу возвращает старую строку),
+  `gdn_lag1_alignment` (hit = записанное значение через `gdn_ram_roundtrip`).
+- RAM store/load (`Hagi/Model/RamProtocol.lean`): `ramStore`/`ramLoad` на
+  GDNRAM-носителе — `ram_store_load_roundtrip` и `ram_store_isolation`
+  (запись в один слот не трогает другие). `stutterNorm` — схлопывание
+  подряд идущих дубликатов: идемпотентность, длина не растёт, первый/последний
+  сохраняются; `ram_load_stutter_head` — первое чтение заикающегося потока
+  равно первому чтению нормализованного. Полная эквивалентность потоков
+  чанкинга не заявлена.
 
-RMSNorm-звено лестницы E4
-(`Hagi/Model/RMSNormTransfer.lean`): предпосылка `μn` блока attention
-разряжена в явные честные константы, согласованные с точным
-носителем `rnVec` (чистая форма: без ε-пола, без веса g).
-Чистый носитель НЕ липшицев глобально — закреплено отрицанием
-`rnEuc_not_lipschitz_with` (n ≥ 2, свидетели у нуля); на области
-`r ≤ ‖z‖` — `rn_lipschitz_region` с μn(r) = 2√n/r; ε-полный
-вариант глобально (2/√ε)-липшицев (`rnEpsEuc_lipschitz`).
-Wiring: `attention_block_transfer_rmsnorm` — блок attention с
-разряженной μn(r)·μatt; `attention_stack_transfer_rmsnorm_eps` —
-стек-инстанс с μn(ε) = 2/√ε. Якорь (n=4): ‖rnEuc (3,4,0,0)‖ = 2.
-Честная граница: глобальный липшиц чистого носителя НЕ заявлен
-(отрицание); веса g в носителе нет; softmax — premise-форма;
-полный FastArch3 certificate НЕ заявлен.
-
-### GDN block transfer + гибридный стек
-
-GDN-звено лестницы E4
-(`Hagi/Model/GDNTransfer.lean`): GDN-сторона гибридного
-attention+GDN backbone встроена в C300 transfer stack, посажена
-HYBRID-теорема. Вердикт по форме: блок GDN — mHC state mixing
-`x ↦ M *ᵥ x` с M дважды стохастической, GDN-гейт —
-premise-форма μg (зеркально пре-норм C307; GDN2 memory update и
-GDNBridge RAM-семантика честно НЕ заявлены как state-сжатия).
-ГЛАВНАЯ лемма `gdnMix_lipschitz`: IsDoublyStochastic M ⇒
-LipschitzWith 1 (gdnMix M) — сжатие C231 в форме гипотезы блока
-C300. Wiring: `gdn_block_transfer` (утечка Lc·μg·‖dx‖),
-`gdn_stack_transfer_descent` (+ `_strict`), HYBRID:
-`hybrid_stack_transfer_descent` (+ `_strict`) — стек из attention-
-и GDN-блоков (`HybBlock`, конструкторы att | gdn), каждый со своим μᵢ
-(attention μn·μatt, GDN μg), спускается с произведением gain
-`∏ (1+μᵢ)`. Якоря: единичная матрица дважды стохастическая;
-гибридная μ-композиция (att 3/10, gdn 2/10 ⇒ утечка 14/25).
-Честная граница: гейт premise-форма; Sinkhorn не заявлен; полный
-FastArch3 certificate не заявлен.
-
-### FastArch3 end-to-end transfer assembly
-
-Финальное звено лестницы E4
-(`Hagi/Model/FastArch3Transfer.lean`): end-to-end FastArch3-SHAPED
-certified-descent теорема — параметрический SoftmaxHead
-поверх гибридного стека (attention + RoPE + RMSNorm + GDN —
-предыдущие звенья), собранная как композиция уложенных носителей, с
-явным PREMISE LEDGER (P1–P9 — таблица в docstring модуля).
-Форма: `FA3Block` (att a R | gdn g), `FastArch3Spec` (blocks +
-`HeadConfig`), `fa3BlockList`/`fa3Stack`/`fa3Gain` (∏(1+μᵢ);
-attention μn·μatt — RoPE-обёртка константу не меняет; GDN μg),
-`fa3BlockList_lipschitz` (dispatch посылок: attention-адаптер ∘
-RoPE-изометрия; GDN-адаптер), `fa3Objective`, ГЛАВНАЯ теорема
-`fastarch3_transfer_descent` (+ `_strict`): сертифицированный
-спуск головы δ (форма посылки C291) + Lc-липшицева потеря головы
-(P7) + гард `Lc·(∏(1+μᵢ)−1)·‖dx‖ < δ` ⇒ end-to-end objective
-строго убывает. Якоря: rotEuc — изометрия (P4); 2-блочный инстанс
-(att 1.4·0.4 = 0.56, gdn 0.2 ⇒ утечка 0.872; drop 0.5 >
-0.5·0.872·1). Честная граница: certified descent для
-FastArch3-SHAPED модели ПОД ledgered premises — НЕ утверждение о
-обученных весах или Python runtime; softmax-map не разряжен (P1);
-полный forward/backward certificate не заявлен.
-P5 и P7 разряжены per-instance — `gdnGateTanh_lipschitz`
-(тanh-семейство гейта, μg = 1, MVT-маршрут `1/cosh² ≤ 1`) и
-`fastarch3_head_Lc` (ident-logit headCE, Lc = 2, транспорт
-sup-norm → евклидов носитель через `euclid_coord_abs_sub_le`);
-другие семейства
-гейтов/не-ident logit maps несут собственные per-instance
-константы (без отмывания).
+Рецепт: для GDN-RAM — lag-1 выравнивание ключа.
 
 ## 10. Сборка рецепта и граница результата
 
@@ -1631,313 +1278,114 @@ sup-norm → евклидов носитель через `euclid_coord_abs_sub_
 1. задать experts/core/residual, проверить parameter и routing budgets;
 2. выбрать initial HNet ratio и разрядность только в их declared models;
 3. вычислить current residual gradients и supported propensity;
-4. взять общий `D̄`, вычислить `Ā,Q̄,eta_b`, иначе certified `D` или
-   явный min-norm;
+4. взять общий `D̄`, вычислить `Ā,Q̄,eta_b`, иначе certified `D` или явный
+   min-norm;
 5. сформировать proposed successor, измерить каждую sample CE, риск и цену;
 6. принять только guarded/resource-certified successor, иначе hold;
-7. упаковать принятое представление, сложить все error terms, затем
-   оценивать выбор на новых данных fixed codebook, не на том же CE-чеке.
+7. упаковать принятое представление, сложить все error terms, затем оценивать
+   выбор на новых данных fixed codebook, не на том же CE-чеке.
 
-Минимизируются отдельно: supplied-batch CE, selected-estimator MSE,
-quantization/certification error, declared resources, HNet cost.
-Доказанной совместной или глобально оптимальной архитектуры/тренировки,
-held-out преимущества, physical FLOP/time saving нет. Это ограниченный
-research-model recipe: исполняемые определения, finite certificates и
-явные измеряемые предпосылки не смешиваются.
+Карта «действие → раздел» — таблица в начале документа. Минимизируются
+отдельно: supplied-batch CE, selected-estimator MSE, quantization/certification
+error, declared resources, HNet cost. Доказанной совместной или глобально
+оптимальной архитектуры/тренировки, held-out преимущества, physical FLOP/time
+saving нет: исполняемые определения, finite certificates и явные измеряемые
+предпосылки не смешиваются.
 
 ## 11. Каноническое ядро сертификации (Hagi/Cert/Core.lean)
 
-Тонкий интерфейс сертифицированных переходов (master plan v3, Track
-S1+S2), без зависимостей от остальной библиотеки:
+Источник — `Hagi/Cert/Core.lean`, `Hagi/Cert/StepGen.lean`,
+`Hagi/Cert/Empirical.lean`, `Hagi/Cert/Adapters.lean`, `Hagi/State/Views.lean`,
+`Hagi/Training/StepProvider.lean`; ядро не зависит от остальной библиотеки.
+
+### 11.1 CertStep, HoldStep и телескоп
 
 - `SystemMetrics S TaskId` — objective, risk, budget (S → ℝ) и task-тег;
-- `StepObligations TaskId` — отдельная структура obligations с floor;
+- `StepObligations TaskId` — obligations с floor;
 - `FloorsKept` — `∀ t, obl.floor t ≤ M.objective s`;
-- `CertStep` — прогресс: `0 < drop`, `objective s' ≤ objective s − drop`,
-точные законы потребления `budget s' = budget s − budgetSpend`,
-`risk s' = risk s − riskSpend` с `0 ≤ budget s'`, `0 ≤ risk s'`,
-плюс floorsKept; производные оценки `CertStep.budgetBound` /
-`CertStep.riskBound`;
+- `CertStep` — прогресс: `0 < drop`,
+  `objective s' ≤ objective s − drop`, точные законы потребления
+  `budget s' = budget s − budgetSpend`, `risk s' = risk s − riskSpend` с
+  `0 ≤ budget s'`, `0 ≤ risk s'`, плюс floorsKept; производные оценки
+  `CertStep.budgetBound` и `CertStep.riskBound`;
 - `HoldStep` (`s' = s`, floors kept) всегда доступен через `HoldStep.id`;
   `TransitionStep` = progress | hold.
 
-Законы композиции и телескопа:
+Композиция и телескоп:
 
 ```
 CertStep.trans h₁ h₂        -- тот же obl: drop'ы и spend'ы складываются
-CertStep.trans' h₁ h₂ h_fl  -- obl₂ ⊵ obl₁ поточечно: композиция против obl₁
+CertStep.trans' h₁ h₂ h_fl  -- obl₂ ⊵ obl₁ поточечно
 trajectory_telescope n t steps :
   M.objective (t n) ≤ M.objective (t 0) − ∑ j ∈ Finset.range n, (steps j).drop
 ```
 
-`FloorsKept` — независимое поле, не выводится из descent (descent
-связывает objective одного состояния с другим, floors — разные
-обязательства); держится посылкой каждого шага и переносится
-композицией. Дублирование имени `CertStep` с
-`Hagi.Unified.HonestTransition.CertStep` — транзиторный долг:
-поглощение старой структуры — Track S3 (словарь имён — README).
+`FloorsKept` — независимое поле: descent связывает objective одного состояния с
+другим, floors — отдельные обязательства; держится посылкой каждого шага и
+переносится композицией.
 
-Обобщение ядра: `Hagi/Cert/StepGen.lean` вводит
-ОБЩЕЕ ядро `Hagi.Cert.CertStepGen` — произвольный индекс задач
-TaskId (жёсткий `Fin 5` цикла становится инстанциацией), остаток
-риска как ПОЛЕ с законом расщепления и свёрнутый δ-канал на
-явном носителе. Замороженное `CertStep` вкладывается
-(`Hagi.Cert.certStep_to_gen`). Все 13 строк носителей scoreboard
-адаптированы к общему ядру; интерфейсный слой —
-`Hagi/Training/StepProvider.lean`.
-Итоги фаз — раздел «История фаз».
+Обобщение — `Hagi.Cert.CertStepGen`: произвольный индекс задач TaskId,
+остаток риска как поле с законом расщепления и свёрнутый δ-канал. Ядро
+`CertStep` вкладывается (`Hagi.Cert.certStep_to_gen`); интерфейсный слой —
+`Hagi/Training/StepProvider.lean`. Мост `HonestTransition` в полное ядро:
+toKernelCertStep (остаток риска 0) и обобщённый
+`Hagi.Unified.HonestTransition.HonestTransition.toCertStepGen` (остаток риска —
+свободный параметр). Адаптеры над `Cert.Core`: `descentCertStep`,
+`holdTransition`, `protectedRisk_le_of_riskRem`. Дублирование имени `CertStep`
+с `Hagi.Unified.HonestTransition.CertStep` — известный долг.
 
-## 12. BF16-гард для batch-шага и переход в Cert/Core
+### 11.2 Четвёртый ресурс δ и эмпирические посылки
 
-Срез двухступенчатого gate (addendum A5): стадия 3a (pre-screen)
-теперь формально заземлена. Сертифицированный спуск — точное
-выражение C223 `2·batchAlignment²/batchLogitRangeSquare`
-(`batchLoss_logitSafeStep_le_residual`), НЕ сокращение «2A²/R̄'²».
-
-BF16-гард — посылка, а не вывод: если логитный апдейт проходит через
-BF16-представление с равномерной по-логитной ошибкой
+`CertStepDelta` (Hagi/Cert/Core.lean) — пошаговый бюджет вероятности ложного
+коммита списывается равенством `deltaLevel s' = deltaLevel s − delta` с
+неотрицательным остатком:
 
 ```
-|ceLogits (X b) θbf v − ceLogits (X b) (batchLogitNextParameters X θ y) v| ≤ eps
+CertStepDelta.deltaBound h   : h.delta ≤ deltaLevel s
+CertStepDelta.trans h₁ h₂    : drop'ы, spend'ы и δ складываются
+delta_telescope n t L h0 steps :
+  ∑ j ∈ Finset.range n, (steps j).delta ≤ L (t 0)
 ```
 
-и строгий gate `4·eps < 2·A²/R'` выполнен, то реальный bf16-следующий
-параметр строго уменьшает истинный batchCEObjective на
-`Δ = 2·A²/R' − 2·eps > 0`:
+Посылка `h0 : 0 ≤ deltaLevel (t 0)` явная. Перенос поля внутрь `CertStep` не
+сделан.
+
+`Empirical P` (Hagi/Cert/Empirical.lean) — типизированная обёртка эмпирических
+посылок: measuredLaw, tolerance (+ `0 ≤ tolerance`), modelRef, premise.
+Конструкция требует предъявить `P`; `Empirical.out` возвращает ровно
+предъявленное. Заместительного пути для голых `h_emp_*` нет.
+
+### 11.3 Состояние с буферами оптимизатора
+
+Hold, восстанавливающий веса, но не откатывающий буферы оптимизатора (m, v, t),
+держит stale momentum. Носитель `StateWithOptimizer S O` = core + opt
+(Hagi/Cert/Core.lean):
 
 ```
-batchLoss_le_of_logitPerturbation : per-logit eps → потеря сдвигается ≤ 2·eps
-bf16_guarded_ceRange_descent_le   : gate → batchLoss θbf ≤ batchLoss θ − (drop − 2·eps)
-bf16_guarded_ceRange_descent      : gate → ∃ Δ > 0, batchLoss θbf ≤ batchLoss θ − Δ
+StateWithOptimizer.ext_iff        : p = q ↔ core = core ∧ opt = opt
+HoldStep.optimizer_state_fixed h  : hold ⇒ q.opt = p.opt (точно)
+HoldStep.project_core o₀ hobj h   : lift на core-метрики при
+                                    оптимизатор-независимом objective
 ```
 
-Средний штраф возмущения равен `2·eps` (2-липшицевость one-hot CE,
-`CEQuantized.ceOneHot_le_of_abs_sub_le`); gate держит 2× запас.
-Режим `eps = 0` (`bf16_exact_binade_ceRange_descent`) — точный logit-
-readback; на уровне кодов это сертифицировано
-`BF16Delta.exists_sameBinade_difference` (одинаковый положительный
-нормальный binade ⇒ разность представима точно), но перенос ℚ→ℝ не
-мостится автоматически, поэтому eps=0-теорема берёт точное равенство
-логитов посылкой. Универсального утверждения о bf16-округлении НЕТ
-(контрпример: θbf=(1,2) на identity-признаках строго УВЕЛИЧИВАЕТ
-потерю).
+`HoldStep.hold : s' = s` на этом носителе покрывает буферы ровно: шаг,
+сохраняющий веса, но прокатывающий momentum, `HoldStep` здесь построить нельзя.
+Посылка hobj (objective может зависеть от буферов) явная.
 
-Переход в Cert/Core: `batchCEMetrics` (objective = истинный batchLoss
-на EuclideanSpace-носителе параметров, risk/budget = константные
-остатки; R1-полярность «риск-остаток = лимит − защищённый риск»
-даётся вызывающей стороной — носитель GrowthState в карантине
-Legacy), `batchCE_bf16_transitionStep_progress` (progress-ветка:
-gate активен, разность «риск-остаток − операционный риск»
-неотрицательна, drop = 2·A²/R' − 2·eps),
-`batchCE_transitionStep_hold` (hold-ветка через `HoldStep.id`).
-Генерические адаптеры — `Hagi/Cert/Adapters.lean` (слой 2, импортирует
-только Cert.Core): `descentCertStep`, `holdTransition`,
-`protectedRisk_le_of_riskRem` (остаток риска ядра ⇒ защищённый риск
-под лимитом). Операционный риск остаётся символическим до появления
-медленного consumer'а. Rewiring BatchCEAlignmentBudget
-(`rangeCurvature` против более точного `batchLogitRangeSquare`) —
-отложен (R2: см. §15 — SKIP для BudgetedParetoStepContract/Cert).
+### 11.4 View TrainState
 
-## 13. Средне-скоростной optimizer-стек: EF21-Muon
+`toSystemMetrics` (Hagi/State/Views.lean) подаёт канонический `TrainState` в
+ядро: objective = energy, risk = riskOf, budget = budgetOf, `TaskId = Unit`;
+спецификации — rfl. Телескоп единственного потребителя —
+`Hagi/Training/Ctv2Telescope.lean`. Структурная конверсия носителей остаётся
+открытой.
 
-Средняя петля обучения по addendum A5 — coherence curriculum
-с EF21-Muon телом и тернарной проекцией через EF21 Markov feedback.
-Формальный слой:
+## 12. Острый range-шаг в потребителях и BF16-гард
 
-```
-IsContractive C α                    : ‖C u − u‖₂ ≤ (1−α)‖u‖₂ (контракт)
-ef21_update_norm_le                  : ‖v + C(g−v) − g‖ ≤ (1−α)‖g−v‖ (точный перенос)
-ef21_lyapunov_descent                : η ≤ 1/(2L) → f' ≤ f − (η/2)(1−2Lη)‖g‖² + (η/2)(1+2Lη)δ²
-ef21_pl_linear_rate                  : gate c₂cδ < 2μc₁, cap → ρ = 1−2μc₁+c₂cδ ∈ [0,1)
-doublyStochastic_sq_le               : DS M → ‖Mx‖₂ ≤ ‖x‖₂ (Jensen/Коши, построчно)
-rowStochastic_opNorm_le_one          : ‖M‖_op ≤ 1 (ℓ∞-инстанс ErrorProp)
-mhc_stack_no_growth                  : DS-стек + нулевой residual → ‖propagate L δ₀‖ ≤ ‖δ₀‖
-one_sub_nsStep                       : 1 − t(3−t²)/2 = (1−t)²(t+2)/2 (скалярный NS)
-nsIter_dist_sq                       : 1 − φ(iter) ≤ (3/2)(1−iter)² (квадратичная скорость)
-```
+### 12.1 Сертифицированный drop и curvature-мосты
 
-Доказанные инстансы контракта: identity (α=1), zero (α=0),
-scaling `u ↦ c•u` (α=c ∈ [0,1]). Сжатия-инстансы
-(`Hagi/Optimization/EF21Quantizer.lean`): TopK (fixed-support) и
-тернарный лифт `qTernVec` — доказанные α=0-инстансы
-(`topK_contractive`, `qTernVec_contractive_zero`); для α ∈ (0,1]
-контрактивность ОПРОВЕРГНУТА явными свидетелями
-(`topK_not_contractive_pos`, `qTernVec_not_contractive` —
-полушаговый свидетель u=s/2 округляется в 0, ‖Q u−u‖=‖u‖).
-Аддитивный контракт `IsInexactCompressor C α ε` (‖C u−u‖₂ ≤
-(1−α)‖u‖₂+ε) переносится через Markov-обновление
-(`ef21_update_norm_le_inexact`) и даёт одношаговый спуск Ляпунова
-`ef21_inexact_descent` (дефекты выравнивания/нормы выведены
-Коши–Шварцем, константы точные); инстансы: `topK_inexact`,
-`qTernVec_inexact` (ε=0), полушаговый бюджет `‖Q u−u‖₂ ≤ √n·s/2`
-при in-range (`qTernVec_error_inrange`). Остаются premise-only:
-относительная контрактивность c<1 (пер-векторный скейлинг
-литературы EF21) и saturation-tail инстанс (в energy-форме —
-`ternary_split_le`, Hagi/Runtime/TernaryExact.lean). Связь Muon/Newton-Schulz: скалярный сертификат
-`one_sub_nsStep`/`nsIter_dist_sq` относится к сингулярным
-значениям в (0,√3); `Hagi/Step/NewtonSchulzMatrix.lean` снимает
-матричную часть на диагональном подпространстве
-(`nsMatrixStep_diagonal_contraction`, sup-норма) + ортогональная
-эквивариантность итерата (`nsMatrixStep_orth`) — транспортный
-ингредиент; тот же модуль снимает
-спектрально-нормовую контракцию при SVD-посылке
-(`ns_contraction_svd`, `muon_step_bound_ns_svd`): scoped
-`Matrix.Norms.L2Operator` API закреплённого Mathlib + C*-тождество
-дают `nsSpectralNorm_orth_inv` (ортогональную инвариантность
-‖·‖₂). Без SVD-посылки `hP` в `Hagi/Step/Muon.lean` остаётся
-гипотезой. mHC: Sinkhorn не требуется — M дважды
-стохастическая посылкой; оценка точная на перестановках.
-
-## 14. Anytime stitching + прямоугольный bottleneck + space decoupling
-
-Три моста addendum A5 §C232:
-
-```
-stitching_master_supermartingale   : Σ wᵏ•Eᵏ — супермартингал (Finset-индукция)
-stitching_master_initial_mass      : μ[M₀] = Σ wᵏ·μ[Eᵏ₀]
-stitching_eprocess_anytime         : Σw ≤ 1, μ[Eᵏ₀] ≤ 1 → Pr[∃t≤n, Mₜ ≥ 1/δ] ≤ δ
-                                     (равномерно по n; через ville_anytime_false_alarm)
-coSelQ_mul_selP / emb_rank_eq      : row-embedding — изометрия ранга
-frobenius_selP_eq                  : ‖selP·C‖_F = ‖C‖_F (изометрия Фробениуса)
-eckart_young_lower_bound_rect      : rank B ≤ k → tail_rect(A,k) ≤ ‖A−B‖²_F
-gradient_bottleneck_bound_rect     : прямоугольный (Ctxt×Voc) градиентный bottleneck
-factor_update_rank_le              : rank(A·Bᵀ) ≤ r (близнец block_rank_le, ориентация A·Bᵀ)
-projI_add_projR / projI_idem / projR_idem : P_I = UUᵀ, P_R = I−UUᵀ, P_I+P_R = 1
-spaceDecoupling_zero_drift         : UᵀΔ = 0 → I-координаты нетронуты точно
-exists_orth_direction              : c < d → ∃ v ≠ 0, Uᵀv = 0 (finrank-противоречие)
-spaceDecoupling_capacity           : P_R·v = v ≠ 0 — ёмкость R-направлений реальна
-```
-
-Честные границы: (1) счётное сшивание отложено — consumer 3b-gate
-работает с конечным числом e-процессов; нормировка μ[E i 0] ≤ 1
-каждого эксперта — посылка hE0 (premise-form). (2) Хвост прямоугольного EY — хвост
-ВСТРОЕННОЙ квадратной матрицы (Flywheel truncated-SVD квадратный;
-аудит-заметка «уже прямоугольный» — ошибочна, см. §выше);
-идентификация со спектром прямоугольных `singularValues` была
-отложена на момент C232 и замкнута позже в §E2 (C281);
-при k = 0 bound вырождается в честное `‖A‖² ≤ ‖A−B‖²`. (3) вывод
-rank(Δ) ≤ 2D из ранга головы — посылка, как и в квадратной версии.
-Slow-loop gate 3b теперь формально замкнут на stitching: конечный
-набор anytime-сертификатов с priors Σ ≤ 1 даёт один anytime-гейт.
-
-Эмпирическая дисперсия Фридмана: при бюджетe
-предсказуемой дисперсии `V ≤ c²` эмпирический экспонент
-`exp(−r²/(4(V+B·r)))` (форма `raw_bank_freedman_maximal_confidence`,
-V — накопленная предсказуемая дисперсия, B — потолок диапазона)
-не превосходит фиксированный c²-экспонент
-(`freedman_exp_empirical_le_fixed`, положительность знаменателей —
-явные посылки hd1/hd2: при c=0, B=0 оба вырождаются); аддитивная
-форма доверия `freedman_empirical_confidence_ge_fixed` (рамка
-`1 − 2m(T+1)·exp`); поточечная монотонность master'а
-`stitching_master_mono` (w ≥ 0) и superset-алармов
-`stitching_alarm_superset`: эмпирический master при том же пороге
-фиксирует каждый аларм фиксированного — statement мощности
-drift-детекции (A8: 6% → 63% при ≤5% FPR, Class-D мотивация, в Lean
-только одно-направленное неравенство). Ville-механика не
-дублируется — это аддитивное расширение C232.
-
-Счётное сшивание (C295, P4 E3 — закрытие отложенного пункта C232):
-
-```
-stitchedMasterCountable        : M t = ∑' k, w k · E k t (tsum на ℕ)
-stitching_countable_initial_mass : μ[M₀] = ∑' w k · μ[E k 0]
-stitching_countable_ville      : Summable w, ∑'w ≤ 1, точечная суммируемость
-                                  смеси, μ[E k 0] ≤ 1 →
-                                  Pr[∃t ≤ n, Mₜ ≥ 1/δ] ≤ δ равномерно по n
-stitching_countable_geometric_weights : ∑' (1/2)^(k+1) = 1 (якорь)
-```
-
-Маршрут редукции (аудит C295): конечный носитель C232 смешивает все
-компоненты во все моменты времени — activation-schedule нет, поэтому
-«в момент t активны конечное число весей» НЕ применяется; честный
-маршрут — монотонные конечные префиксы + непрерывность меры снизу:
-строгий level-c аларм ⊆ возрастающее объединение конечных префиксных
-алармов (каждый ограничен конечной теоремой stitching_eprocess_anytime
-на Fin (K+1)), μ⋃ = ⨆ μ — и архимедово сжатие до порога δ. Посылка
-`Summable w` load-bearing (junk-tsum-контрпример задокументирован),
-точечная суммируемость смеси — явная посылка. Счётный
-супермартингальный closure не утверждается (не нужен для
-Ville-переноса); новые concentration-утверждения не добавляются —
-конечный движок переиспользован дословно.
-
-### 14a. Gate pipeline: гейт как он реально используется
-
-Формальная опора Python-гейта — весь конвейер
-«измерение → Hoeffding-граница → δ-расписание → этажи → решение»
-одним Lean-модулем `Hagi/Contracts/GatePipeline.lean`:
-
-```
-hoeffding_pm1_two_sided      : [−1,1]·X, допуск η → P(|ΣX−Σμ| ≥ nη) ≤ 2e^{−nη²/2}
-                               (rescale Y=(X+1)/2 — радиус УДВАИВАЕТСЯ)
-gate_delta_schedule_sum_le   : K ≤ шести → Σ_{k<K} 6/(π²k²) ≤ 1 (S₆, π>3; Базеля в Mathlib нет)
-gate_pipeline_false_commit   : P(Bad k) ≤ β k, Σβ ≤ δ → P(ни одного ложного commit) ≥ 1 − δ
-gate_pipeline_budget         : β k = δ·6/(π²(k+1)²)/(1+m) по (1+m) этажам — Σ ≤ δ точно
-gate_anytime_valid           : (∀t, F t ⊆ {δ⁻¹ ≤ M_t}) → μ.real{∃t≤n, F t} ≤ δ ∀n сразу (C232)
-gate_fixed_radius_unusable   : n=512, δ=1/20, k=10, m=8: любой r с 2e^{−256r²} ≤ β — r > 0.14
-```
-
-Посылки честные: свежесть потока = `IsProbSys p`; вложение
-anytime-события — явная посылка. ПРОДАКШН-РЕКОМЕНДАЦИЯ: anytime-гейт
-(`gate_anytime_valid`) с адаптивным n и эмпирической дисперсией
-Freedman (C248 `freedman_exp_empirical_le_fixed`/`stitching_alarm_superset`)
-вместо фиксированного n — негативный свидетель показывает, что
-фиксированный радиус на n = 512 несовместим с допуском 1/20
-(качественно совпадает с непригодностью радиуса из аудита A10).
-
-### 14b. Audit ledger: HoeffdingAudit как машина состояний
-
-Lean-мост Python HoeffdingAudit-протокола — `Hagi/Contracts/AuditLedger.lean`:
-реестр аудита (машина состояний над срезами тестов) + связка его
-инвариантов с уже доказанными границами C264/CertifiedEstimator
-(новой концентрационной математики нет — мост есть суть E7):
-
-```
-AuditStream                  : полуинтервал [lo,hi) на ℕ с курсором
-                               (disjoint cursors / proposal-independent
-                               slices: срез = только интервал индексов)
-AuditLedger (σ,ι)            : δtotal, streams, floors (repeat-task
-                               floors: taskId → floor), spent (α per
-                               task), rejected, finalTest/Lo/Hi +
-                               поля-инварианты: streamsDisjoint,
-                               spentNonneg, spentTotal (Σ spent ≤ δ),
-                               finalIsolated (flag=false → потоки вне
-                               финального интервала)
-audit_consume_alpha_exact    : трата α уменьшает remaining РОВНО на α
-audit_consume_alpha_valid    : Σ spent' = Σ spent + α ≤ δtotal,
-                               остаток ≥ 0 (nonneg remainder)
-audit_streams_disjoint       : продвижение курсора НЕ ломает попарное
-                               непересечение (lo/hi нетронуты)
-audit_rejected_consumed      : индекс ниже продвинутого курсора
-                               отклонённого потока НЕ входит в свежий
-                               срез НИКАКОГО потока (пост-состояние;
-                               курсоры только вперёд)
-audit_false_harm_bounded     : MASTER: P(Bad t) ≤ spent t ⟹ P(ни
-                               одного ложного вреда старым задачам) ≥
-                               1 − δtotal — ПРЯМОЕ применение C264
-                               gate_pipeline_false_commit (β := spent,
-                               δ := δtotal; поле spentTotal = посылка
-                               Σ β ≤ δ гейта)
-audit_alpha_spends_radius    : 2e^{−2nε²} (hoeffding_two_sided) ≤
-                               spent t ⟹ хвост покрыт бюджетом —
-                               радиус ОПРАВДЫВАЕТ расход α
-final_test_untouched         : flag=false ⟹ ни один поток не покрывает
-                               индекс финального теста (held-out
-                               инвариант)
-audit_touch_final_flips /
-audit_touch_final_breaks     : касание финального теста переключает
-                               флаг; валидность аудита требует flag=false
-```
-
-Честные границы: floors/current gain — поля и docstring-мосты (теорема
-о «выигрыше» потребовала бы полной семантики гейта — вне E7; вред
-старым задачам входит через Bad t в мастер-теореме); семантика метрик —
-на стороне измерения (как в CertifiedEstimator).
-
-## 15. Подключение острых range-констант к consumer'ам
-
-Константы `ceStepLogitRange` (§3.8) и `batchLogitRangeSquare` (§3.9)
-подключаются к существующим consumer'ам
-additive-мостами, без правки старых утверждений:
+Константы `ceStepLogitRange` (§3.8) и `batchLogitRangeSquare` (§3.9) подключены
+к потребителям аддитивными мостами; старые утверждения не меняются:
 
 ```
 batchLogitCertifiedDrop                        : if R'=0 then 0 else 2·A²/R'
@@ -1950,374 +1398,268 @@ ceStepLogitQuad_le_engine                      : (η·R'ᵢ)²/8 ≤ (Σ|X|)²·
 jointEnergy_le_ceLinear_logitRange             : jointEnergy ≤ E − η·⟪g,d⟫ + (η·R'ᵢ)²/8
 ```
 
-Провода (R2-статус по файлам):
-- `BatchCEBudgetGuard.lean` (ex-BatchCEStepCertificate) — WIRED: острый сертифицированный
-  residual `batchLogitCertifiedDrop` + мост «старый ≤ новый».
-- `BatchCEAlignmentBudget.lean` — WIRED (закрывает деферрал C230):
-  тот же curvature-констант K контролирует и острую R' (безусловно), а
-  бюджетная константа `2/(K+1)` сертифицирует острый drop (при
-  `0 < R'`) — именно выражение C230 bf16-gate теперь связано с
-  бюджетом. Сама константа `(K+1)/2` телескопа НЕ сужается — честно:
-  из `R' ≤ R` более острая curvature-константа не выводится.
-- `Unified/DerivAlong.lean` — WIRED: острая по-примерная квадратура и
-  заострённая точечная majorant для jointEnergy (C216-мажоризатор),
-  с relation-леммой к engine-члену.
-- `BudgetedParetoStepContract/Cert.lean` — SKIP (честный анализ):
-  дельты контракта привязаны к `budgetedParetoBatchTrainStep`, чей η
-  идёт от `batchSafeStep` внутри машины состояний TrainState; rewiring =
-  новая пара train-step + репликация guard-веток (dependent-type
-  surgery, не additive). Аддитивного моста нет: спуск исполненного
-  старого шага НЕ доминирует residual острого шага (разные шаги);
-  мост drop ≤ drop' требует `0 < R'`, что не транспортируется на
-  исполненный шаг.
+Провода:
 
-Посылка `0 < batchLogitRangeSquare` в мостах несущая: мосты
-`drop ≤ drop'` доказаны только при ней (вырождение `R' = 0` — §3.8).
-Batch-зеркало вырождения: `batchAlignment_pos_of_logitRangeSquare_pos`
-(`Hagi/Model/BatchCEDescentLogitRange.lean`) — `0 < R' ⇒ 0 < A`
-без посылок; случай «`R' = 0` при `A > 0`» теоремой не выделен и
-мостами не используется.
+- `Hagi/Contracts/BatchCEBudgetGuard.lean` — острый residual
+  `batchLogitCertifiedDrop` и мост «старый ≤ новый»;
+- `Hagi/Contracts/BatchCEAlignmentBudget.lean` — та же константа `K`
+  контролирует и острую `R'` (безусловно), а `2/(K+1)` сертифицирует острый
+  drop при `0 < R'`. Константа `(K+1)/2` телескопа §3.2 не сужается: из
+  `R' ≤ R` более острая curvature-константа не выводится;
+- `Hagi/Unified/DerivAlong.lean` — острая по-примерная квадратура и
+  точечная мажоранта для jointEnergy с relation-леммой к engine-члену;
+- `Hagi/Contracts/BudgetedParetoStepContract.lean` и
+  `Hagi/Contracts/BudgetedParetoStepCert.lean` — не переключены: их дельты
+  привязаны к `budgetedParetoBatchTrainStep`, чей η идёт от `batchSafeStep`;
+  переключение — новая пара train-step и репликация guard-веток. Моста
+  `drop ≤ drop'` между разными исполненными шагами нет.
 
-## 16. Исполняемый путь против spec-селекторов
+Посылка `0 < batchLogitRangeSquare` в мостах несущая. Вырождение:
+`batchAlignment_pos_of_logitRangeSquare_pos`
+(Hagi/Model/BatchCEDescentLogitRange.lean) — `0 < R' ⇒ 0 < A` без посылок.
 
-Неконструктивные селекторы изолированы от исполняемого
-пути обучения. Критерий изоляции — Classical.choose/existence-witness
-в `def`, а НЕ lean-флаг noncomputable: над ℝ почти каждая замкнутая
-формула (`batchLogitSafeStep`, `segmentMinNorm`) помечена
-noncomputable лишь потому, что ℝ классический; choose-селекторы —
-математические selection contracts, потребляемые только теоремами.
+### 12.2 BF16-гард для batch-шага
 
-Исполняемый путь (компьютабельные примитивы, на которых стоит обучение):
-
-- шаг: [`batchLogitSafeStep`](Hagi/Model/BatchCEDescentLogitRange.lean) —
-  замкнутая формула if R'=0 then 0 else 4A/R'²;
-- направление (B=2): [`segmentMinNorm`](Hagi/Step/ProjectionDescent.lean)
-  — замкнутая формула `g0+τ(g1−g0)`; связь с общим случаем —
-  [`batchGradientMinimizer_pair`](Hagi/Model/BatchCEDescent.lean);
-- bound шага QP: [`safeqpEtaMax`](Hagi/Step/SafeQPStep.lean);
-- дискретный выбор: [`finiteSelection`](Hagi/Unified/ParetoExecution/Controller.lean)
-  — истинно компьютабелен (Bool `admissionGuard` + List.argmin),
-  стоимостный мост —
-  [`finiteSelection_cost_eq_minimumResource`](Hagi/Unified/ParetoExecution/Controller.lean);
-- кодек: `dyadicPayload`/`dyadicBlock` (BitVec 16) и packed-decode
-  теоремы.
-
-Spec-only селекторы (Classical.choose; только теоремы-потребители,
-исполняемых потребителей нет и не было):
-
-- [`batchGradientMinimizer`](Hagi/Model/BatchCEDescent.lean) —
-  existence-witness минимальной нормы над convex hull;
-- [`safeQP_exists_unique`](Hagi/Step/SafeQP.lean) — сам теорема
-  (premise-form), choose-def не поставляется;
-- [`minimumResource`](Hagi/Unified/ParetoExecution/Controller.lean) и
-  [`robustMinimumResource`](Hagi/Unified/ParetoExecution/Controller.lean) —
-  noncomputable selection contracts; компьютабельная альтернатива
-  `finiteSelection` уже подключена (§8); robust-вариант исполняется
-  как `finiteSelection` с консервативным floor `qfloor+eps`;
-- [`selectedGroupScales`](Hagi/Model/CEGroupedScale.lean) и
-  [`selectedCoupledScales`](Hagi/Model/CEJointScale.lean) — точные
-  конечные селекторы над dyadic-кодами.
-
-Честная запись про 255^G: оба scale-селектора — разрешимо-конечный
-поиск (255 кодов/блок; Fin 255), не выбор по неразрешимому
-предикату; Classical.choose здесь — презентационная форма
-`Finset.exists_min_image`. Проблема joint-селектора
-`selectedCoupledScales` (всё пространство 255^G присваиваний,
-`jointCandidateCount`) — СТОИМОСТЬ, а не конструктивность;
-исполняемая форма — поблочный суррогат: `selectedGroupScalesExec`
-(§6.2; foldl-argmin по образцу `finiteSelection`, мост стоимости
-`selectedGroupScalesExec_cost_eq`), 255·G logical score calls,
-`localEvaluationCount_le_jointCandidateCount`.
-
-## 17. Нейро-символьный точный слой: булева голова Венна
-
-Мастер-план v3 addendum A4. Все 16 булевых функций двух переменных —
-маски `Fin 4 → Bool` на решётке Венна (4 атома-конъюнкции); слой
-реализуется 4 ReLU-нейронами + линейной головой с {0,1}-весами.
-
-- [`Hagi/Data/BoolVenn.lean`](Hagi/Data/BoolVenn.lean) — булев
-  носитель: `venn_universal` (каждая `Bool → Bool → Bool` функция есть
-  маска, 64 случая), `rank_histogram` (ранги `1-4-6-4-1`, decide),
-  `de_morgan`/`de_morgan_involution` (инволюция дополнения маски на ТЕХ
-  ЖЕ входах; вариант с отрицанием входов ЛОЖЕН и опровергнут decide),
-  `hasse_edges` (ровно 32 ориентированных ребра Хассе).
-- [`Hagi/Model/Logic/VennHead.lean`](Hagi/Model/Logic/VennHead.lean) —
-  точность end-to-end: атомы ровно one-hot на {−1,+1}-входах
-  (`vAtoms_sum_one`); `vennHead_exact` — 64-случайный мост
-  голова↔таблица истинности; `venn_certified` — композиция с
-  `Hagi.Cert.CertifiedArgmax.certified_argmax_strict`: логит-пара
-  `![f, 1−f]` с eps-зазором ровно 1, сертифицированный argmax-индекс
-  равен значению истинности при любом ε с `2ε < 1`;
-  `venn_mask_ternary` — реальный квантователь `Hagi.Runtime.qTern`
-  (масштаб 1) тождественен на {0,1}: штраф квантования весов головы
-  ровно 0 (сильнее, чем in-range оценка `Hagi.Energy.roundTern_error`).
-
-Граница результата, честно: это точность для логики ДВУХ переменных
-(16-функциональная решётка Венна), а не «решение логики вообще»;
-честный масштаб mask-линейных голов — `n ≤ 4-5` входов. bf16-точность
-малых целых отложена (не композится с `Hagi/Runtime/BF16Delta.lean`
-без нового API).
-
-### CE-обученный выбор маски под сертифицированным гвардом
-
-[`Hagi/Contracts/LogicChoiceCert.lean`](Hagi/Contracts/LogicChoiceCert.lean)
-(Track B7 item 3 addendum A4) — первый гибридный нейро-символьный
-сертификат: выбор маски как CE-задача. 16 масок решётки — классы
-(`Fintype (Fin 4 → Bool)`); лог-линейная голова по атомным признакам
-`choiceFeatures v j = vAtoms·maskReal`: при единичных параметрах логит
-класса v РОВНО выходу `vennHead (cand v)` (мост
-`choiceFeatures_logit_ones`). Спуск — СУЩЕСТВУЮЩАЯ C223-машина
-(`batchLoss_logitSafeStep_le_residual`) на choice-batch; канонический
-TransitionStep (`choiceCEMetrics` + `choiceCE_transitionStep_progress`):
-CertStep-objective — спуск choice-CE с certified drop `2·A²/R'`, floor'ы
-тривиальны (`batchLoss_nonneg`), исполнение точно (`vennHead_exact`).
-Витнес `choice_certified_behavior`: батч из двух кандидатов
-(const-false, AND), `R' = 1/4` посчитан точно, строгий спуск ∧ точное
-исполнение каждого кандидата.
-
-ГРАНИЦА (qwenbend 'exact ≠ true'), явно: сертификат покрывает СПУСК
-CHOICE-CE (прогресс обучения к размеченной маске) и ТОЧНОЕ ИСПОЛНЕНИЕ
-выбранной маски. Он НЕ сертифицирует, что выбранная функция —
-правильная: голова может верно спускать CE и выбрать неверную маску,
-а точная голова верно вычисляет маску, которая может быть ложной о
-мире. Пункт 3 addendum A4 закрыт; из B7 остался testbed роста решётки
-Хассе (пункт 4).
-
-### Спецификации процессора Венна
-
-Addendum A8 F4 — точные спецификации упаковки, роли H₄, CE-пола и
-композиции Хассе, все на фактических определениях кодека/головы.
-
-- **Упаковка** ([`Hagi/Runtime/VennPacking.lean`](Hagi/Runtime/VennPacking.lean)):
-  16×4 {0,1}-матрица решётки = 64 трита (`vennTrits_count`,
-  `vennTritRow` — фактический `ternaryValueEncode` на уровне 1).
-  Таблица вариантов: flat 5-тритные блоки `ternaryByteBlock` →
-  `tritsBytes 64 = 13` байт (`flatVennBytes`), плотно снизу —
-  12 байт невозможно (`flatVenn_twelve_byte_impossible`, 3^64 > 2^96);
-  построчно — 4 трита на строку, инстанцировано на всех 16 масках:
-  `rowByte_injective`, `rowBytes_card = 16` различных байт;
-  dyadic с масштабом на блок (`dyadicBlock : BitVec 16`) → 26 байт
-  (`dyadicVennBytes`); общий масштаб — 13 payload + 1 байт масштаба
-  (`scaleCode_byte`, `sharedScaleVennBytes`) = 14 байт. Flat/dyadic
-  счёты — абстрактная формула ⌈n/5⌉ на конкретном размере, потоковый
-  кодировщик 64 символов не инстанцирован (задокументировано).
-- **Коррекция роли H₄** ([`Hagi/Data/BoolVenn.lean`](Hagi/Data/BoolVenn.lean)):
-  отождествление маска↔таблица истинности на 4 атомах — ТОЖДЕСТВО
-  (`mask_truth_table_identity`, `atomIdx_atomBools`), а Уолша–Адамар
-  `vennWalsh` (= `Core.sylvester` порядка 4 в атомной индексации) —
-  преобразование спектра: `vennWalsh_sq` (H·H = 4•1, decide),
-  `vennWalsh_mul_transpose`, `(1/2)•vennWalshReal` ортонормален
-  (`vennWalshOrthonormal` через Core `smul_orthonormal`).
-- **CE-пол 16 классов на single-atom батчах** (там же): A8-число
-  log 8 ПРОВЕРЕНО как поточечный (сильнее worst-case) пол
-  лог-линейной головы: softmax-вероятность любой маски ≤ 1/8
-  (`qAtom_le` — 8 масок делят сторону атома), значит средний CE ≥
-  log 8 при любых θ и m (`singleAtomCE_floor`), инфимум ровно log 8
-  (`singleAtomCE_align` замкнутая форма log 8 + log(1+e^{-t}),
-  `singleAtomCE_tight`). КОРРЕКЦИЯ worst-case прочтения A8: против
-  adversary-маски (холодной где θ горячий) любая параметризация
-  платит ≥ log 16 (`singleAtomCE_minimax`, `qAtom_worst_le ≤ 1/16`)
-  — minimax равен log 16 (равномерная θ), log 8 — это пол на маску,
-  не minimax. Вопреки полу: sign(θ>0) восстанавливает все 16 масок
-  (`sign_recover`). Скоуп: только лог-линейная single-atom голова
-  (C243 `choiceFeatures`), не произвольные предикторы.
-- **Композиция Хассе ADD4/SUB4**
-  ([`Hagi/Model/Logic/VennHead.lean`](Hagi/Model/Logic/VennHead.lean)):
-  двухканальная голова `venn2Head` из двух 1-слойных: sum = XOR
-  (`xorMask`, ранг 2), carry = AND (`andMask`, ранг 1, двухвходовое
-  большинство), borrow = ¬x∧y (`borrowMask`, ранг 1);
-  `venn2_adder_correct` ((2·AND+XOR) % 4 = (x+y) % 4),
-  `venn2_suber_correct` (мод-4 вычитание), `venn2_adder_real`
-  (точное 2·carry+sum = x+y), мосты каналов через C242
-  `vennHead_exact`. Грунт эмпирических ADD4/SUB4 100% на
-  decide/norm_num уровне; трёхвходовой полный сумматор вне
-  двухпеременной решётки (заявлений нет).
-- **ANF/Möbius ядро (E5 seed)** ([`Hagi/Data/AnfTransform.lean`](Hagi/Data/AnfTransform.lean)):
-  преобразование Жегалкина `anfTransform` (рекурсивная бабочка на
-  носителе таблиц истинности `(Fin n → Bool) → Bool`) — ИНВОЛЮЦИЯ
-  (`anf_inversion`, обращение Мёбиуса на булевой решётке);
-  коэффициент = чётность по подкубу (`anf_subcube`,
-  `c_S = ⊕_{x ⊆ S} f(x)` в ZMod 2); roundtrip компилятора ANF:
-  синтез + вычисление возвращает исходную функцию (`anf_eval_eq`,
-  все n); якоря Fin 2 XOR/AND (`anfFin2_xor/and`,
-  `anfFin2_xor_coeffs`).
-- **ANF-композиция compose3 (E5 rung 1)** ([`Hagi/Data/AnfTransform.lean`](Hagi/Data/AnfTransform.lean)):
-  `anfCompose` (Python compose3(f,g,h)=f(g(x),h(x)) на носителе
-  таблиц истинности); `anfCompose_coeff` (коэффициенты = transform
-  составной таблицы, подкуб-форма) и `anfCompose_eval` (roundtrip
-  компиляции композиции) — инстансы ядра C301, упакованные как
-  compose3 API; `stencil_guard_sound` — опорная зависимость
-  (context-guard) композиционна: S-опорные g,h дают S-опорную
-  композицию для любого внешнего f (направление no-false-coverage
-  контекст-сигнатурной абстенции); якорь Fin 2 OR∘(AND,XOR)
-  (`anfFin2_compose`, `anfFin2_compose_spot`, decide). Степенная
-  оценка — docstring-заметка; collision abstention/диапазоны — не
-  заявлены (лестница TD E5-C302).
-- **ANF-dispatch с collision abstention (E5 rung 3)**
-  ([`Hagi/Data/AnfTransform.lean`](Hagi/Data/AnfTransform.lean)):
-  `dispatchOrAbstain` — сертифицированный двухкандидатный
-  dispatch Python V3: применим ровно один → его значение; ни
-  одного → default; оба → проверка согласия, разногласие →
-  `Option.none`-абстенция. `inRange` (точное совпадение множества
-  позиций контекста и `AnfCand.argRanges` кандидата; чтение-подмножество
-  отвергнуто — пустые диапазоны дают ложную коллизию),
-  `dispatch_sound`/`dispatch_sound_default` (корректность
-  приёма/default), `abstain_sound` (коллизия ⇒ абстенция, нет
-  ложного покрытия), `guard_disjoint_no_collision`
-  (непересекающиеся непустые диапазоны никогда не коллизуют —
-  композиция с `stencil_guard_sound` C302, без гипотезы
-  опорности); якоря Fin 2 decide (`anfFin2_dispatch_abstain/ok`).
-  Мульти-кандидатная ступень: `dispatchPriority` — значение ПЕРВОГО
-  применимого по порядку приоритета (`Option.none`, если никто не
-  применим); `dispatchPriority_sound` (расщепление списка),
-  `dispatchPriority_shadow` (поздний кандидат не определяет
-  результат), `dispatchPriority_agree_sound` (при попарном согласии —
-  общее значение); якоря Fin 2 `anfFin2_priority_shadow`,
-  `anfFin2_priority_agree`. Обе семантики — абстенция и приоритет —
-  сосуществуют намеренно (мост `dispatch_two_eq_priority`). Списки
-  статические (re-ranking не заявлен); сквозная эквивалентность
-  Python V3 — не заявлена.
-
-## 18. Phase 1 contract kernel: Empirical-тип и δ-ресурс
-
-Два аддитивных контракта addendum A7 (Freeze: только additions,
-старые statements байт-идентичны):
-
-**`Hagi/Cert/Empirical.lean` — `Empirical P`.** Типизированная
-обёртка эмпирических посылок (класс D по A7): measuredLaw, tolerance
-(+ `0 ≤ tolerance`), modelRef, premise. Конструкция требует
-предъявить `P` — контрабанда посылок невозможна; `Empirical.out`
-возвращает ровно предъявленное. Заместительный путь для голых
-`h_emp_*` (миграции нет; AssumptionScan остаётся).
-
-**`Hagi/Cert/Core.lean` — `CertStepDelta` (четвёртый ресурс).**
-Пошаговый бюджет вероятности ложного коммита delta списывается
-равенством `deltaLevel s' = deltaLevel s − delta` из явного носителя
-`deltaLevel : S → ℝ` с неотрицательным остатком — та же
-телескопируемая форма, что у budget/risk:
+Сертифицированный спуск — `2·batchAlignment²/batchLogitRangeSquare`
+(`batchLoss_logitSafeStep_le_residual`). BF16-гард — посылка, не вывод: если
+логитный апдейт проходит через BF16 с равномерной ошибкой
 
 ```
-CertStepDelta.deltaBound h   : h.delta ≤ deltaLevel s
-CertStepDelta.trans h₁ h₂    : drop'ы, spend'ы и δ складываются
-delta_telescope n t L h0 steps :
-  ∑ j ∈ Finset.range n, (steps j).delta ≤ L (t 0)   -- Σ δ_k ≤ δ
+|ceLogits (X b) θbf v − ceLogits (X b) (batchLogitNextParameters X θ y) v| ≤ eps
 ```
 
-Посылка `h0 : 0 ≤ deltaLevel (t 0)` честно явная (не выводима).
-Перенос поля внутрь `CertStep` — Phase-2 merger cert carriers
-(statement change под Freeze-дисциплиной).
-
-**`Hagi/Cert/Core.lean` — `StateWithOptimizer` (носитель с
-оптимизаторным состоянием).** Эмпирическое обоснование
-(A8, Class-D): hold, восстанавливающий веса, но НЕ откатывающий
-буферы оптимизатора (m, v, t), держит stale momentum — сертифицированный
-bias разворачивается (+0.040 против честного −0.117). Carrier-level
-фикс — аддитивная пара core-состояния и буферов:
+и `4·eps < 2·A²/R'`, то θbf строго уменьшает истинный `batchCEObjective` на `Δ
+= 2·A²/R' − 2·eps > 0`:
 
 ```
-StateWithOptimizer S O            : core + opt (m, v, t)
-StateWithOptimizer.ext_iff        : p = q ↔ core = core ∧ opt = opt
-HoldStep.optimizer_state_fixed h  : hold ⇒ q.opt = p.opt (точно)
-HoldStep.project_core o₀ hobj h   : lift на core-метрики при
-                                    оптимизатор-независимом objective
+batchLoss_le_of_logitPerturbation : per-logit eps → потеря сдвигается ≤ 2·eps
+bf16_guarded_ceRange_descent_le   : gate → batchLoss θbf ≤ batchLoss θ − (drop − 2·eps)
+bf16_guarded_ceRange_descent      : gate → ∃ Δ > 0, batchLoss θbf ≤ batchLoss θ − Δ
 ```
 
-`HoldStep.hold : s' = s` на этом носителе покрывает буферы ровно:
-шаг, сохраняющий веса, но прокатывающий momentum вперёд, НЕ может
-построить HoldStep здесь. Посылка hobj (objective может законно
-зависеть от буферов) — явная, без контрабанды. Базовое ядро
-CertStep/HoldStep не меняется.
+Средний штраф `2·eps` — 2-липшиевость one-hot CE
+(`CEQuantized.ceOneHot_le_of_abs_sub_le`); gate держит 2× запас. Режим `eps =
+0` (`bf16_exact_binade_ceRange_descent`) требует точного равенства логитов
+посылкой: на уровне кодов разность представима точно
+(`BF16Delta.exists_sameBinade_difference`), но перенос ℚ→ℝ автоматически не
+мостится. Универсального утверждения о bf16-округлении нет (контрпример:
+θbf=(1,2) на identity-признаках строго увеличивает потерю).
 
-**`Hagi/State/Views.lean` — view-паттерн для TrainState.**
-`toSystemMetrics` подаёт канонический TrainState в сертификационное
-ядро (objective = energy, risk = riskOf, budget = budgetOf,
-TaskId = Unit); спецификации — rfl. Унификация носителей:
-адаптер-уровень завершён в C278–C290 (все 13 строк scoreboard
-переведены на CertStepGen); структурная view-конверсия носителей
-остаётся открытой (Freeze-deferred).
-
-**Слияние CertUnify.** Файл `Hagi/Unified/CertUnify.lean` удалён:
-контент слит в единственного потребителя
-`Hagi/Training/Ctv2Telescope.lean`, namespace `Hagi.Unified.CertUnify`
-и statements сохранены байт-идентично (Freeze PASS без aliases).
-
-
-**`Hagi/Model/BatchCEDescent.lean` — стохастический minibatch
-R'-шаг.** Один обратный-propensity шаг по сырому CE
-residual-градиенту с честной теоремой ожидаемого спуска:
-
-```
-stochasticStepDraw X θ y q b   = (B·q b)⁻¹ • batchResidualGradient
-batchLoss_expectedStochasticStep_le:
-  E_q[L(θ − η·ĝ)] ≤ L(θ) − η·‖m‖² + (η²/8)·cfc·E_q[‖ĝ‖²]
-  (посылки: 0 < B, 0 ≤ η, покоординатная несмещённость)
-pmfMean_normSq_stochasticStepDraw_eq:
-  E[‖ĝ‖²] = selectedMeanGradientMSE q g + ‖m‖²   (точная bias-variance)
-batchLoss_expectedStochasticStep_featureNormSum_le:
-  E[L] ≤ L − η·‖m‖² + (η²/8)·cfc·(Σ|featureNormSum|)²/B²
-batchLoss_expectedStochasticStep_featureNormSum_lt:
-  0 < η ∧ η·cfc·V̂ < 8·‖m‖² ⇒ E[L] < L   (демпфированный шаг,
-  несовместимо с m = 0 — пустых веток нет)
-```
-
-Член спуска — из несмещённости + линейности (A8 verdict 5:
-featureNormSum-пропенсити как условие сходимости), кривизна — из
-глобального (все η ≥ 0) бёнинг-мажоратора C216 без window-посылок,
-дисперсия — из C200 selectedMeanGradientMSE_featureNormSum_le.
-Константа cfc — batch-сумма 4·Σ featureAbsSum² (консервативно против
-поточечной суммы, задокументировано). Ville/концентрация не
-дублируются — это одношаговый statement об ожидании.
-
-**`Hagi/Runtime/BF16Delta.lean` + `Hagi/Contracts/BatchRangeBF16Cert.lean`
-— ℚ→ℝ BF16 мост с производным eps.** Относительная
-ошибка nearest-кода над рациональным носителем:
+ℚ→ℝ мост с производным eps (Hagi/Runtime/BF16Delta.lean,
+Hagi/Contracts/BatchRangeBF16Cert.lean):
 
 ```
 abs_sub_le_of_isNearest_normal (BF16Delta):
-  x ≠ 0, 2⁻¹²⁶ ≤ |x| ≤ 2¹²⁷, IsNearest x c
-    ⇒ |decode c − x| ≤ 2⁻⁸·|x|
+  x ≠ 0, 2⁻¹²⁶ ≤ |x| ≤ 2¹²⁷, IsNearest x c ⇒ |decode c − x| ≤ 2⁻⁸·|x|
 bf16_logitPerturbation_of_nearestNormalCodes (Cert):
-  рациональные логиты в нормальном диапазоне, прочитанные через
-  nearest-коды ⇒ пертурбация ≤ (2⁻⁸:ℝ)·M
+  рациональные логиты в нормальном диапазоне через nearest-коды
+  ⇒ пертурбация ≤ (2⁻⁸:ℝ)·M
 bf16_guarded_ceRange_descent_of_nearestNormalCodes (Cert):
-  гейт 4·(2⁻⁸·M) < certified drop ⇒ строгий спуск (∃ Δ > 0)
+  4·(2⁻⁸·M) < certified drop ⇒ строгий спуск
 bf16_nearestRoundTrip_relativeError_gt (BF16Delta):
-  якорный round-trip теряет весь малый апдейт —
-  2⁻⁸·|129/128| < |0 − 129/128| (FP32-мастер необходим, цитирует
-  extreme_nearest_delta_loses_update)
+  2⁻⁸·|129/128| < |0 − 129/128| — round-trip теряет весь малый апдейт
 ```
 
-Константа 2⁻⁸ выведена из носителя (fraction : Fin 128 + неявная
-единица ⇒ 8 значащих бит ⇒ ulp/бинада-пол = 2⁻⁷, пол-ulp = 2⁻⁸),
-не постулирована. Посылка рациональности целевых логитов явная
-(A8 verdict 1: PURE bf16 stalls, worst_CE 0.735 против 0.081 —
-FP32-мастер; формализовано как документированный corollary, не
-перепроверка).
+`2⁻⁸` выведена из носителя (fraction : Fin 128 ⇒ 8 значащих бит ⇒ ulp-пол
+`2⁻⁷`, пол-ulp `2⁻⁸`). Рациональность целевых логитов — явная посылка; нужен
+FP32-мастер весов.
+
+### 12.3 Переход в Cert/Core
+
+`batchCEMetrics`: objective = истинный batchLoss на EuclideanSpace-носителе
+параметров, risk/budget = остатки с полярностью «риск-остаток = лимит −
+защищённый риск» (задаётся вызывающей стороной).
+`batchCE_bf16_transitionStep_progress` — progress-ветка (gate активен,
+«риск-остаток − операционный риск» ≥ 0, drop = `2·A²/R' − 2·eps`);
+`batchCE_transitionStep_hold` — hold-ветка через `HoldStep.id`. Операционный
+риск остаётся символическим до появления consumer'а.
 
 
-## 19. Cascade leak bound для projected adapters
+## 13. Средне-скоростной optimizer-стек: EF21-Muon
 
-**`Hagi/Core/ErrorProp.lean` + `Hagi/Architecture/CascadeLeak.lean`
-— композиционая граница утечки через каскад.** На
-абстрактном линейно-каскадном носителе `propagate` (никакой новой
-модели сети):
+Coherence curriculum с EF21-Muon телом и тернарной проекцией через EF21 Markov
+feedback. Формальный слой:
+
+```
+IsContractive C α                    : ‖C u − u‖₂ ≤ (1−α)‖u‖₂
+ef21_update_norm_le                  : ‖v + C(g−v) − g‖ ≤ (1−α)‖g−v‖
+ef21_lyapunov_descent                : η ≤ 1/(2L) → f' ≤ f − (η/2)(1−2Lη)‖g‖² + (η/2)(1+2Lη)δ²
+ef21_pl_linear_rate                  : gate c₂cδ < 2μc₁, cap → ρ = 1−2μc₁+c₂cδ ∈ [0,1)
+doublyStochastic_sq_le               : DS M → ‖Mx‖₂ ≤ ‖x‖₂
+rowStochastic_opNorm_le_one          : ‖M‖_op ≤ 1 (ℓ∞-инстанс ErrorProp)
+mhc_stack_no_growth                  : DS-стек + нулевой residual → ‖propagate L δ₀‖ ≤ ‖δ₀‖
+one_sub_nsStep                       : 1 − t(3−t²)/2 = (1−t)²(t+2)/2
+nsIter_dist_sq                       : 1 − φ(iter) ≤ (3/2)(1−iter)²
+```
+
+Инстансы контракта: identity (α=1), zero (α=0), scaling `u ↦ c•u` (α=c ∈
+[0,1]). `Hagi/Optimization/EF21Quantizer.lean`: TopK (fixed-support) и
+тернарный лифт `qTernVec` — α=0-инстансы (`topK_contractive`,
+`qTernVec_contractive_zero`); для α ∈ (0,1] контрактивность опровергнута явными
+свидетелями (`topK_not_contractive_pos`, `qTernVec_not_contractive`: u=s/2
+округляется в 0, ‖Q u−u‖=‖u‖). Аддитивный контракт `IsInexactCompressor C α ε`
+(‖C u−u‖₂ ≤ (1−α)‖u‖₂+ε) переносится через Markov-обновление
+(`ef21_update_norm_le_inexact`) и даёт одношаговый спуск Ляпунова
+`ef21_inexact_descent`; инстансы `topK_inexact`, `qTernVec_inexact` (ε=0),
+полушаговый бюджет `‖Q u−u‖₂ ≤ √n·s/2` при in-range (`qTernVec_error_inrange`).
+Premise-only: относительная контрактивность c<1 и saturation-tail инстанс (в
+energy-форме — `ternary_split_le`, §6.1).
+
+Newton-Schulz/Muon: скалярный сертификат `one_sub_nsStep`/`nsIter_dist_sq`
+относится к сингулярным значениям в (0,√3);
+`Hagi/Step/NewtonSchulzMatrix.lean`: `nsMatrixStep_diagonal_contraction`
+(диагональное подпространство, sup-норма), `nsMatrixStep_orth` (ортогональная
+эквивариантность), `ns_contraction_svd`, `muon_step_bound_ns_svd`
+(спектрально-нормовая контракция при SVD-посылке), `nsSpectralNorm_orth_inv`.
+Без SVD-посылки `hP` в `Hagi/Step/Muon.lean` остаётся гипотезой. mHC: Sinkhorn
+не требуется — M дважды стохастическая посылкой.
+
+## 14. Anytime-сшивание e-процессов, гейт-конвейер и аудит-леджер
+
+### 14.1 Сшивание e-процессов
+
+`Hagi/Unified/StitchingEProcess.lean`:
+
+```
+stitching_master_supermartingale   : Σ wᵏ•Eᵏ — супермартингал (Finset-индукция)
+stitching_master_initial_mass      : μ[M₀] = Σ wᵏ·μ[Eᵏ₀]
+stitching_eprocess_anytime         : Σw ≤ 1, μ[Eᵏ₀] ≤ 1 → Pr[∃t≤n, Mₜ ≥ 1/δ] ≤ δ
+                                     (равномерно по n; через ville_anytime_false_alarm)
+stitching_master_mono              : поточечная монотонность master'а (w ≥ 0)
+```
+
+Посылка hE0 — нормировка `μ[E i 0] ≤ 1` каждого эксперта.
+`stitching_alarm_superset` — statement мощности drift-детекции (в одну сторону;
+мотивация: 6% → 63% при ≤5% FPR).
+
+Счётное сшивание `Hagi/Unified/CountableStitching.lean`:
+
+```
+stitchedMasterCountable        : M t = ∑' k, w k · E k t (tsum на ℕ)
+stitching_countable_initial_mass : μ[M₀] = ∑' w k · μ[E k 0]
+stitching_countable_ville      : Summable w, ∑'w ≤ 1, точечная суммируемость смеси,
+                                  μ[E k 0] ≤ 1 → Pr[∃t ≤ n, Mₜ ≥ 1/δ] ≤ δ ∀n
+stitching_countable_geometric_weights : ∑' (1/2)^(k+1) = 1
+```
+
+Маршрут: монотонные конечные префиксы + непрерывность меры снизу; строгий
+level-c аларм ⊆ возрастающее объединение конечных префиксных алармов. Посылка
+`Summable w` load-bearing. Счётный супермартингальный closure и новые
+concentration-утверждения не добавляются.
+
+Эмпирическая дисперсия Фридмана: при бюджете предсказуемой дисперсии `V ≤ c²`
+эмпирический экспонент `exp(−r²/(4(V+B·r)))` (форма §8.1) не превосходит
+фиксированный c²-экспонент (`freedman_exp_empirical_le_fixed`; положительность
+знаменателей — явные посылки hd1/hd2); аддитивная форма
+`freedman_empirical_confidence_ge_fixed` (рамка `1 − 2m(T+1)·exp`).
+
+### 14.2 Gate pipeline
+
+`Hagi/Contracts/GatePipeline.lean` — конвейер «измерение → Hoeffding-граница →
+δ-расписание → этажи → решение»:
+
+```
+hoeffding_pm1_two_sided      : [−1,1]·X, допуск η → P(|ΣX−Σμ| ≥ nη) ≤ 2e^{−nη²/2}
+gate_delta_schedule_sum_le   : K ≤ шести → Σ_{k<K} 6/(π²k²) ≤ 1
+gate_pipeline_false_commit   : P(Bad k) ≤ β k, Σβ ≤ δ → P(нет ложного commit) ≥ 1 − δ
+gate_pipeline_budget         : β k = δ·6/(π²(k+1)²)/(1+m) по (1+m) этажам — Σ ≤ δ
+gate_anytime_valid           : (∀t, F t ⊆ {δ⁻¹ ≤ M_t}) → μ.real{∃t≤n, F t} ≤ δ ∀n
+gate_fixed_radius_unusable   : n=512, δ=1/20, k=10, m=8: 2e^{−256r²} ≤ β ⇒ r > 0.14
+```
+
+Свежесть потока = `IsProbSys p`; вложение anytime-события — явная посылка.
+Рекомендация: anytime-гейт (`gate_anytime_valid`) с адаптивным n и эмпирической
+дисперсией Фридмана вместо фиксированного n — фиксированный радиус на n = 512
+несовместим с допуском 1/20.
+
+### 14.3 Audit ledger
+
+`Hagi/Contracts/AuditLedger.lean` — мост протокола HoeffdingAudit: реестр
+аудита как машина состояний над срезами тестов; концентрационная математика не
+новая.
+
+```
+AuditStream                  : полуинтервал [lo,hi) на ℕ с курсором
+AuditLedger (σ,ι)            : δtotal, streams, floors (taskId → floor), spent (α per task),
+                               rejected, finalTest/Lo/Hi + инварианты streamsDisjoint,
+                               spentNonneg, spentTotal (Σ spent ≤ δtotal), finalIsolated
+audit_consume_alpha_exact    : трата α уменьшает remaining ровно на α
+audit_consume_alpha_valid    : Σ spent' = Σ spent + α ≤ δtotal, остаток ≥ 0
+audit_streams_disjoint       : продвижение курсора не ломает непересечение
+audit_rejected_consumed      : индекс ниже курсора отвергнутого потока не входит
+                               в свежий срез никакого потока
+audit_false_harm_bounded     : P(Bad t) ≤ spent t ⇒ P(нет ложного вреда старым задачам) ≥ 1 − δtotal
+audit_alpha_spends_radius    : 2e^{−2nε²} ≤ spent t ⇒ хвост покрыт бюджетом
+final_test_untouched         : flag=false ⇒ ни один поток не покрывает индекс финального теста
+audit_touch_final_flips / audit_touch_final_breaks : касание финального теста переключает флаг
+```
+
+Границы: floors/current gain — поля (теорема о «выигрыше» потребовала бы полной
+семантики гейта); семантика метрик — на стороне измерения.
+
+## 15. Каскадные границы ошибки и ранговые бюджеты
+
+### 15.1 Прямоугольный bottleneck и space decoupling
+
+Мосты Hagi/Contracts/GradientBottleneck.lean и
+Hagi/Architecture/FactorRank.lean:
+
+```
+coSelQ_mul_selP / emb_rank_eq      : row-embedding — изометрия ранга
+frobenius_selP_eq                  : ‖selP·C‖_F = ‖C‖_F
+eckart_young_lower_bound_rect      : rank B ≤ k → tail_rect(A,k) ≤ ‖A−B‖²_F
+gradient_bottleneck_bound_rect     : прямоугольный (Ctxt×Voc) градиентный bottleneck
+factor_update_rank_le              : rank(A·Bᵀ) ≤ r
+projI_add_projR / projI_idem / projR_idem : P_I = UUᵀ, P_R = I−UUᵀ, P_I+P_R = 1
+spaceDecoupling_zero_drift         : UᵀΔ = 0 → I-координаты нетронуты точно
+exists_orth_direction              : c < d → ∃ v ≠ 0, Uᵀv = 0
+spaceDecoupling_capacity           : P_R·v = v ≠ 0 — ёмкость R-направлений реальна
+```
+
+При `k = 0` bound вырождается в `‖A‖² ≤ ‖A−B‖²`; rank(Δ) ≤ 2D из ранга головы —
+посылка.
+
+### 15.2 Прямоугольная спектральная идентификация Eckart–Young
+
+`Hagi/Contracts/GradientBottleneckIdentification.lean` — хвост встроенной
+квадратной матрицы равен спектру прямоугольных `singularValues`:
+
+```
+selP_conjTranspose_mul_selP        : inj injective → (selP inj)ᴴ·selP inj = 1
+embedded_gram_eq                   : (selP inj·A)ᴴ·(selP inj·A) = Aᴴ·A
+embedded_eigenvalues₀_eq           : eigenvalues₀ встроенного Gram = eigenvalues₀ Aᴴ·A
+embedded_singularValues_eq_rect    : singularValues₀ (selP inj·A) = Rectangular.singularValues A
+                                     на Fin(min #m #n)
+singularValues_pos_of_lt_rank_rect : k < rank A → σₖ > 0
+rectangularTail / tail_sum_sq_truncatedSingularValues_tail_eq
+                                   : хвост-сумма §15.1 = Σ (истинный прямоугольный хвост)²
+eckart_young_lower_bound_rect_true_tail : rank B ≤ k → Σ tail_rect(A,k)² ≤ ‖A−B‖²_F
+gradient_bottleneck_bound_rect_true_tail : consumer для logitGradRectM
+```
+
+Носитель — матричный/`eigenvalues₀`; мост к `LinearMap.singularValues` Mathlib
+не закреплён.
+
+### 15.3 Cascade leak bound для projected adapters
+
+`Hagi/Core/ErrorProp.lean` + `Hagi/Architecture/CascadeLeak.lean`, носитель
+`propagate`:
 
 ```
 propagate_sub (ErrorProp, additive):
   propagate L a − propagate L b = propagateLin L (a − b)
-  (резидуалы гасятся МЕЖДУ двумя проходами — разница чисто линейна)
-cascadeGain L = ∏_m ‖J_m‖          (честный L_stack, острее α^L)
+cascadeGain L = ∏_m ‖J_m‖
 propagateLin_norm_le: ‖propagateLin L δ‖ ≤ cascadeGain L · ‖δ‖
 cascadeGain_le_one:   (∀ p ∈ L, ‖p.1‖ ≤ 1) → cascadeGain L ≤ 1
 
-cascade_leak_bound (CascadeLeak):
+cascade_leak_bound:
   ‖propagate S (x + w • ε) − propagate S x‖ ≤ |w| · cascadeGain S · ‖ε‖
 cascade_leak_bound_op:
   ε = ΔR *ᵥ (projR U *ᵥ x) ⇒
   ‖net(W + w·Δ_R, x) − net(W, x)‖ ≤ |w| · L_stack · ‖ΔR‖ · ‖P_R x‖
 cascade_leak_bound_contractive: (∀ ‖p.1‖ ≤ 1) ⇒ gain выпадает
 cascade_leak_router_linear: leak(w) = w • leak(1)  (ТОЧНО)
-cascade_leak_eq_empty: S = [] ⇒ равенство (граница достигается)
+cascade_leak_eq_empty: S = [] ⇒ равенство
 tailDiag_mulVec_norm_le:
   ‖tailDiag m r s *ᵥ y‖ ≤ sqrt(rhoTail m s r · ∑ s j²) · ‖y‖
 cascade_leak_bound_rhoTail:
@@ -2325,957 +1667,676 @@ cascade_leak_bound_rhoTail:
 readback_noise_witness (0 < c ⇒ ∃ n ≠ 0, Uᵀ *ᵥ n ≠ 0)
 ```
 
-Эмпирическая сверка (A8 verdict 4, качественно): router-вес даёт
-ТОЧНУЮ линейность утечки в каскадной модели (w = 0.1 — ровно 1/10
-утечки при w = 1, `cascade_leak_router_linear`); P_R-проекция сама
-по себе НИКОГДА не обнуляет границу (выживают ‖P_R x‖ и gain) —
-убивают утечку только router (w → 0) или rank-capture
-(rhoTail → 0), что соответствует «router is load-bearing»
-(измерено: P_R alone ForgettingCE +1.710 при w = 1 против +0.002 с
-router). Нелинейная часть вердикта — вне линейного среза,
-задокументирована как граница модели, не контрабанда premises.
+Утечка линейна по router-весу `w`; проекция P_R сама по себе границу не
+обнуляет — убивают утечку только router (`w → 0`) или rank-capture (`rhoTail →
+0`). Isolation в одну сторону: `Uᵀ * A_orth = 0` (`fiberSplitOrtho`) защищает
+инъекцию (`fiber_injection_preserves_cortex`), но не readback `Uᵀ h`
+(`readback_noise_witness`); защита readback требует гейтинга или посылки `Uᵀ *ᵥ
+Δ = 0` из `spaceDecoupling_zero_drift`.
 
-One-sided isolation caveat: `Uᵀ * A_orth = 0` (`fiberSplitOrtho`)
-защищает ИНЪЕКЦИЮ (`fiber_injection_preserves_cortex`), но не
-readback `Uᵀ h`: `readback_noise_witness` даёт явный witness
-шума с ненулевым cortex-readback; защита readback требует гейтинга
-(w → 0) или посылки `Uᵀ *ᵥ Δ = 0` из `spaceDecoupling_zero_drift`.
+### 15.4 Isotropic-Frobenius sensitivities и SafeQP drift
 
-## 20. Isotropic-Frobenius cascade sensitivities
-
-**`Hagi/Architecture/IsoFrobCascade.lean` +
-`Hagi/Budget/IsoFrobAlloc.lean` + `Hagi/Step/SafeQPStep.lean`
-(аддитивно) — калибровка чувствительностей RankBudget каскадом
-(изотропный Фробениус), SafeQP quadratic drift.**
+`Hagi/Architecture/IsoFrobCascade.lean` + `Hagi/Budget/IsoFrobAlloc.lean` +
+`Hagi/Step/SafeQPStep.lean`:
 
 ```
-columnEnergy_basis (мат. ядро, ТОЧНО, без вероятности):
-  ∑ i ‖J *ᵥ e_i‖² = frobSq J   (по ортонормальному базису —
-  алгебраический суррогат E[‖Jx‖²] = ‖J‖_F²/d на сфере)
-isoFrobEnergy J = frobSq J / d          (константа A8)
+columnEnergy_basis (ТОЧНО, без вероятности):
+  ∑ i ‖J *ᵥ e_i‖² = frobSq J
+isoFrobEnergy J = frobSq J / d
 isoFrobEnergy_eq_basis_avg:  iso = базисное среднее
 isoFrobEnergy_le_opNorm_sq:  frobSq J / d ≤ ‖J‖²
-  (изотропное среднее НЕ ПРЕВЫШАЕТ worst-case усиление, которое
-  платит cascadeGain — честное направление: для linfty-op-нормы
-  обратное frobSq ≥ d‖J‖² ЛОЖНО; спектральный продукт
-  ЗАНИЖАЕТ поздние слои / ЗАВЫШАЕТ ранние — A8 мотивация)
 propagateLin_frobEnergy_le:
   ‖propagateLin S δ‖₂² ≤ (∏ frobSq J_l) · ‖δ‖₂²
-  (per-layer frobSubord + индукция, переиспользован C250 carrier)
 propagateLin_isoEnergy_le:
-  ≤ d^|S| · ∏(frobSq_l / d) · ‖δ‖²    (iso-нормировка)
+  ≤ d^|S| · ∏(frobSq_l / d) · ‖δ‖²
 isoCascadeEnergy_le_cascadeGain_sq:
-  isoCascadeEnergy S ≤ cascadeGain S²  (сравнение F7)
+  isoCascadeEnergy S ≤ cascadeGain S²
 
-SafeQP bilinear drift (SafeQPStep, аддитивно):
-frobSq_add_smul:  frobSq (M + η•W) = frobSq M + 2η·frobInner M W
-                  + η² · frobSq W   (ТОЧНО, L = 2 достигает
-                  квадратичный член (L/2)η²‖d‖² — не оценка сверху)
-frobSq_smul:      frobSq (η•W) = η² frobSq W (нулевой линейный член)
+frobSq_add_smul:  frobSq (M + η•W) = frobSq M + 2η·frobInner M W + η² · frobSq W  (ТОЧНО)
+frobSq_smul:      frobSq (η•W) = η² frobSq W
 safeqp_linear_test_insufficient:
   ∀ tol ∃ η: линейный тест (g = 0 ⇒ ⟪g,d⟫ = 0 ≥ −tol) проходит,
-  а ТОЧНЫЙ drift η²·frobSq W > tol — линейного приёмного теста
-  недостаточно для билинейных шагов
+  а точный drift η²·frobSq W > tol
 safeqp_second_order_acceptance:
   (L/2)·η²·‖d‖² − eps ≤ η·⟪g,d⟫ ∧ descent-лемма ⇒ dL ≤ eps
-  (честная second-order-aware посылка)
 safeqp_precond_conflict_free:
-  d = (QᵀQ) *ᵥ g ⇒ ⟪g,d⟫ = ‖Q*gᵥg‖² ≥ 0 (premise-form метрики
-  (I + γΣ_old)⁻¹: PSD-предобусловленное направление бесконфликтно)
+  d = (QᵀQ) *ᵥ g ⇒ ⟪g,d⟫ = ‖Q*gᵥg‖² ≥ 0
 
-RankBudget adapter (IsoFrobAlloc):
 isoFrobSensitivity Jtail hScale j = isoFrobEnergy (Jtail j) * hScale j
 weightedExpAllocation_isoFrob_optimal:
-  c := isoFrobSensitivity ⇒ closed-form экспоненциальная аллокация
-  оптимальна среди бюджетно-допустимых (транспорт
-  weightedExpAllocation_optimal) — аддитивная модель становится
-  честной deep-net специализацией с каскадными весами
+  c := isoFrobSensitivity ⇒ closed-form экспоненциальная аллокация оптимальна
+  (транспорт weightedExpAllocation_optimal)
 ```
 
-Эмпирика (только мотивация, не Lean-посылки): спектральные
-произведения `∏‖J_k‖` переоценивают ранние слои и голодают
-поздние (хуже uniform); изотропно-фробениусова калибровка
-`‖J_{>j}‖_F²/d · ‖h_j‖²` дала MSE 2.2e-5 против 2.5e-5 uniform.
-SafeQP билинейные адаптеры требуют квадратичного члена
-(L_i/2)η²‖d‖² + предобусловливающей метрики (I + γΣ_old)⁻¹ —
-формализовано как точное разложение, witness недостаточности
-линейного теста и premise-form PSD-лемма.
+Изотропное среднее не превышает worst-case усиление `cascadeGain`; для
+linfty-op-нормы обратное `frobSq ≥ d‖J‖²` ложно. Мотивация (не Lean-посылка):
+спектральные произведения `∏‖J_k‖` переоценивают ранние слои и голодают
+поздние; изотропно-фробениусова калибровка дала MSE 2.2e-5 против 2.5e-5
+uniform. Линейного приёмного теста для билинейных шагов недостаточно.
 
-## 21. Product-of-quantized-factors error: ResidualVQ law
+### 15.5 Product-of-quantized-factors: ResidualVQ
 
-Эмпирика A8: одностадийное 3.2-бит q(A)·q(B) роняет нелинейные
-адаптеры до ~50%; двухстадийный ResidualVQ (6.4b body + BF16
-head) возвращает 94%+. Формальный срез (`Hagi/Budget/ResidualVQ.lean`):
+Мотивация (не Lean-посылка): одностадийное 3.2-бит `q(A)·q(B)` роняет
+нелинейные адаптеры до ~50%; двухстадийный ResidualVQ возвращает 94%+.
+`Hagi/Budget/ResidualVQ.lean`:
 
-- Точное разложение произведения квантованных факторов:
-  (A+EA)(B+EB) − AB = EA·B + A·EB + EA·EB (`quantProd_decompose`).
-- Прямоугольная фробениусова субмультипликативность
-  frobSq(A·B) ≤ frobSq A · frobSq B (`frobSq_mul_le`) — закрыт
-  hbridge-кандидат из ElementQuant (per-entry
-  Cauchy–Schwarz, носитель Hagi.Core.frobSq).
-- Одностадийная граница `quantProd_frob_bound` и её
-  относительная форма: при пофакторных относительных ошибках
-  e, f ошибка произведения подчиняется закону
-  (e + f + e·f)² (`quantProd_relError`, `_sq`);
-  `quantProd_crossTerm_amplifies`: при равных e экспонента
-  ≥ 2e — перекрёстный член EA·EB строго положителен при e > 0.
-  Отсюда: произведение НИКОГДА не квантуется «дешевле» суммы
-  ошибок факторов — формальная причина провала one-stage 3.2b.
-- Двухстадийная резидуальная композиция (ResidualVQ):
-  W − (R1+R2) = (W−R1) − R2 точно (`residualTwoStage_exact`);
-  ошибка после второй стадии ≤ ε2 (острая форма
-  `residualTwoStage_error_le`) и аддитивный сертификат
-  ≤ ε1 + ε2 (`residualTwoStage_error_le_add`); BF16-head мост
-  на сетке 2⁻⁸: итог ≤ ε1 + 2⁻⁸·ε1 (`residualHeadBudget`,
-  premise-form композиция с Q→R мостом C249).
+- Точное разложение
+  `(A+EA)(B+EB) − AB = EA·B + A·EB + EA·EB` (`quantProd_decompose`).
+- `frobSq_mul_le`: `frobSq(A·B) ≤ frobSq A · frobSq B` (прямоугольная
+  субмультипликативность, носитель `Hagi.Core.frobSq`).
+- `quantProd_frob_bound`; относительная форма `quantProd_relError` и
+  `_sq`: при пофакторных относительных ошибках e, f ошибка произведения
+  подчиняется `(e + f + e·f)²`; `quantProd_crossTerm_amplifies`: при равных e
+  экспонента ≥ 2e. Произведение никогда не квантуется «дешевле» суммы
+  ошибок факторов.
+- Двухстадийная композиция: `W − (R1+R2) = (W−R1) − R2` точно
+  (`residualTwoStage_exact`); ошибка после второй стадии ≤ ε2
+  (`residualTwoStage_error_le`) и аддитивный сертификат ≤ ε1 + ε2
+  (`residualTwoStage_error_le_add`); BF16-head мост на сетке 2⁻⁸: итог
+  ≤ ε1 + 2⁻⁸·ε1 (`residualHeadBudget`).
 
-Prescription: биты на фактор — по закону (e+f+ef)²; на
-произведении — только через резидуальную вторую стадию
-(аддитивная, а не мультипликативная композиция ошибки).
+Рецепт: биты на фактор — по закону `(e+f+ef)²`; произведение — только через
+резидуальную вторую стадию (аддитивная, не мультипликативная композиция
+ошибки).
 
-## 22. Remaining bridges: heldout anytime, GDN lag-1, kernel adapter, MDL C_state
+## 16. Исполняемый путь против spec-селекторов
 
-Эмпирика A8 (только мотивация, не Lean-посылки): юнион-баунд
-61965^G по словарю вакуозен при умеренных G (anytime-граница
-0.1465 достижима там, где юнион требует n ≥ 1.13M); lag-1
-выравнивание ключа GDN критично (рассинхрон ~50% против ~99.6%);
-стоимость состояния — упакованные блоки, а не длина кода данных.
+Критерий изоляции — `Classical.choose`/existence-witness в `def`, а не флаг
+noncomputable: над ℝ почти каждая замкнутая формула помечена noncomputable лишь
+потому, что ℝ классический. Choose-селекторы — математические selection
+contracts, потребляемые только теоремами.
 
-- Heldout (`Hagi/Model/CEHeldout.lean`): именованный юнион-фактор
-  `unionConfFactor`; вакуозность `union_confidence_vacuous`;
-  доминирование любой anytime-конфиденс 1−δ ∈ [0,1)
-  (`anytime_confidence_dominates_vacuous`). G-free замена —
-  существующая time-uniform машина (anytime_catoni,
-  stitching_eprocess_anytime); мост к ней (супермартингалность
-  Hoeffding-процесса на normalized-CE) — отдельный будущий бит.
-- GDN lag-1 (`Hagi/Model/GDNBridge.lean`): контракт выравнивания
-  k_{t−1}→v_t — `gdn_lag1_read_miss` (чтение по другому адресу
-  возвращает старую строку) и сводная `gdn_lag1_alignment`
-  (hit = записанное значение через `gdn_ram_roundtrip`).
-- RAM store/load протокол + stutter norm, E6
-  (`Hagi/Model/RamProtocol.lean`): протокольный API
-  `ramStore`/`ramLoad` на GDNRAM-носителе —
-  `ram_store_load_roundtrip` (store→load roundtrip) и
-  `ram_store_isolation` (запись в один слот не трогает другие);
-  `stutterNorm` — ядро Python stutter-чанкинера (схлопывание
-  подряд идущих дубликатов): идемпотентность, длина не растёт,
-  первый/последний сохраняются; мост `ram_load_stutter_head` —
-  первое чтение заикающегося адресного потока = первому чтению
-  нормализованного (без промежуточных записей). Полная
-  эквивалентность потоков чанкинга — не заявлена (ступень E6).
-- Kernel adapter (`Hagi/Unified/HonestTransition.lean`):
-  `HonestTransition.toKernelCertStep` — честный переход в ПОЛНОЕ
-  каноническое ядро Hagi.Cert.CertStep (бюджет/риск-учёт из
-  реальных полей перехода, premise-form метрики; риск-остаток 0 —
-  интерпретация remaining-risk, задокументирована). С C278
-  используется обобщённый адаптер
-  `Hagi.Unified.HonestTransition.HonestTransition.toCertStepGen`
-  (остаток риска — свободный параметр, дефект «тратить риск может
-  только последний шаг» снят); C290 поднял переходной канал на
-  CertStepGen.
-- MDL C_state (`Hagi/Step/MDLThreeCurrency.lean`):
-  `cstateBlocks` — счёт 16-бит упакованных блоков (инстанс
-  DyadicTernary dyadicBlock; прямой импорт запрещён layer-слоем);
-  учётная лемма `double_counting_identification_forced`: коллапс
-  двойного учёта cst = L_pred возможен только при явном
-  проверяемом равенстве «счёт блоков = функция потерь» (λ_M ≠ 0).
+Исполняемый путь:
 
-Prescription: для heldout-конфиденса в широких словарях — anytime
-(e-process) вместо юниона по словарю; для GDN-RAM — lag-1
-выравнивание ключа; для MDL — валюты разделены структурно
-(block count ≠ data code length), подмена опознаётся леммой.
+- шаг: [`batchLogitSafeStep`](Hagi/Model/BatchCEDescentLogitRange.lean) —
+  `if R'=0 then 0 else 4A/R'²`;
+- направление (B=2): [`segmentMinNorm`](Hagi/Step/ProjectionDescent.lean) —
+  `g0+τ(g1−g0)`; связь с общим случаем —
+  [`batchGradientMinimizer_pair`](Hagi/Model/BatchCEDescent.lean);
+- bound шага QP: [`safeqpEtaMax`](Hagi/Step/SafeQPStep.lean);
+- дискретный выбор:
+  [`finiteSelection`](Hagi/Unified/ParetoExecution/Controller.lean)
+  (Bool `admissionGuard` + `List.argmin`), мост
+  [`finiteSelection_cost_eq_minimumResource`](Hagi/Unified/ParetoExecution/Controller.lean);
+- кодек: `dyadicPayload`/`dyadicBlock` (BitVec 16) и packed-decode теоремы;
+- поблочный scale-селектор `selectedGroupScalesExec` (§6.2).
 
-## 23. E-track: energy-based reasoning (E1, addendum A9 / CRAM 2611.17309)
+Spec-only селекторы (исполняемых потребителей нет):
+
+- [`batchGradientMinimizer`](Hagi/Model/BatchCEDescent.lean) —
+  existence-witness минимальной нормы над convex hull;
+- [`safeQP_exists_unique`](Hagi/Step/SafeQP.lean) — теорема (premise-form);
+- [`minimumResource`](Hagi/Unified/ParetoExecution/Controller.lean) и
+  [`robustMinimumResource`](Hagi/Unified/ParetoExecution/Controller.lean) —
+  noncomputable selection contracts; robust-вариант исполняется как
+  `finiteSelection` с консервативным floor `qfloor+eps`;
+- [`selectedGroupScales`](Hagi/Model/CEGroupedScale.lean) и
+  [`selectedCoupledScales`](Hagi/Model/CEJointScale.lean) — точные конечные
+  селекторы над dyadic-кодами.
+
+Оба scale-селектора — разрешимо-конечный поиск (255 кодов/блок, `Fin 255`), а
+не выбор по неразрешимому предикату. Проблема joint-селектора
+`selectedCoupledScales` (255^G присваиваний, `jointCandidateCount`) —
+стоимость, а не конструктивность; исполняемая форма — поблочный суррогат
+`selectedGroupScalesExec` с мостом `selectedGroupScalesExec_cost_eq`, 255·G
+logical score calls, `localEvaluationCount_le_jointCandidateCount`.
+
+## 17. Нейро-символьный точный слой: булева голова Венна и ANF
+
+Все 16 булевых функций двух переменных — маски `Fin 4 → Bool` на решётке Венна
+(4 атома-конъюнкции); слой реализуется 4 ReLU-нейронами + линейной головой с
+{0,1}-весами.
+
+- [`Hagi/Data/BoolVenn.lean`](Hagi/Data/BoolVenn.lean): `venn_universal`
+  (каждая `Bool → Bool → Bool` — маска, 64 случая), `rank_histogram` (ранги
+  `1-4-6-4-1`), `de_morgan`/`de_morgan_involution` (инволюция дополнения
+  маски на тех же входах; вариант с отрицанием входов ложен), `hasse_edges`
+  (ровно 32 ориентированных ребра).
+- [`Hagi/Model/Logic/VennHead.lean`](Hagi/Model/Logic/VennHead.lean):
+  `vAtoms_sum_one` (атомы one-hot на {−1,+1}-входах); `vennHead_exact` —
+  64-случайный мост голова↔таблица истинности; `venn_certified` —
+  композиция с `Hagi.Cert.CertifiedArgmax.certified_argmax_strict`: логит-пара
+  `![f, 1−f]` с eps-зазором ровно 1, сертифицированный argmax-индекс равен
+  значению истинности при `2ε < 1`; `venn_mask_ternary` — `Hagi.Runtime.qTern`
+  (масштаб 1) тождественен на {0,1}: штраф квантования весов головы ровно 0.
+
+Граница: точность для логики двух переменных, а не «решение логики вообще»;
+реальный масштаб mask-линейных голов — `n ≤ 4-5` входов; bf16-точность малых
+целых не композится с `Hagi/Runtime/BF16Delta.lean` без нового API.
+
+### 17.1 CE-обученный выбор маски под сертифицированным гвардом
+
+[`Hagi/Contracts/LogicChoiceCert.lean`](Hagi/Contracts/LogicChoiceCert.lean):
+выбор маски как CE-задача. 16 масок — классы (`Fintype (Fin 4 → Bool)`);
+лог-линейная голова по атомным признакам `choiceFeatures v j =
+vAtoms·maskReal`; при единичных параметрах логит класса v равен выходу
+`vennHead (cand v)` (`choiceFeatures_logit_ones`). Спуск — машина §3.9
+(`batchLoss_logitSafeStep_le_residual`) на choice-batch; `choiceCEMetrics` +
+`choiceCE_transitionStep_progress`: спуск choice-CE с certified drop `2·A²/R'`,
+floors тривиальны (`batchLoss_nonneg`), исполнение точно (`vennHead_exact`).
+Витнес `choice_certified_behavior`: батч из двух кандидатов (const-false, AND),
+`R' = 1/4` точно.
+
+Сертификат покрывает спуск CHOICE-CE и точное исполнение выбранной маски. Он не
+сертифицирует, что выбранная функция правильная: голова может верно спускать CE
+и выбрать неверную маску («exact ≠ true»).
+
+### 17.2 Спецификации процессора Венна
+
+- **Упаковка**
+  ([`Hagi/Runtime/VennPacking.lean`](Hagi/Runtime/VennPacking.lean)):
+  16×4 {0,1}-матрица = 64 трита (`vennTrits_count`, `vennTritRow` —
+  `ternaryValueEncode` на уровне 1). Flat 5-тритные блоки `ternaryByteBlock`
+  → `tritsBytes 64 = 13` байт (`flatVennBytes`); 12 байт невозможно
+  (`flatVenn_twelve_byte_impossible`, 3^64 > 2^96). Построчно — 4 трита на
+  строку: `rowByte_injective`, `rowBytes_card = 16`. Dyadic с масштабом на
+  блок (`dyadicBlock : BitVec 16`) → 26 байт (`dyadicVennBytes`); общий
+  масштаб — 13 payload + 1 байт масштаба (`scaleCode_byte`,
+  `sharedScaleVennBytes`) = 14 байт. Счёты — формула ⌈n/5⌉ на конкретном
+  размере; потоковый кодировщик не инстанцирован.
+- **Роль H₄** ([`Hagi/Data/BoolVenn.lean`](Hagi/Data/BoolVenn.lean)):
+  маска↔таблица
+  истинности на 4 атомах — тождество (`mask_truth_table_identity`,
+  `atomIdx_atomBools`); `vennWalsh` (= `Core.sylvester` порядка 4) —
+  преобразование спектра: `vennWalsh_sq` (H·H = 4•1),
+  `vennWalsh_mul_transpose`,
+  `(1/2)•vennWalshReal` ортонормален (`vennWalshOrthonormal`).
+- **CE-пол 16 классов на single-atom батчах** (там же): softmax-вероятность
+  любой маски ≤ 1/8 (`qAtom_le` — 8 масок делят сторону атома), значит
+  средний CE ≥ log 8 при любых θ и m (`singleAtomCE_floor`), инфимум ровно
+  log 8 (`singleAtomCE_align`: log 8 + log(1+e^{-t}), `singleAtomCE_tight`).
+  Против adversary-маски любая параметризация платит ≥ log 16
+  (`singleAtomCE_minimax`, `qAtom_worst_le ≤ 1/16`): minimax равен log 16,
+  log 8 — пол на маску. Вопреки полу `sign(θ>0)` восстанавливает все 16
+  масок (`sign_recover`). Скоуп — только лог-линейная single-atom голова.
+- **Композиция Хассе ADD4/SUB4**
+  ([`Hagi/Model/Logic/VennHead.lean`](Hagi/Model/Logic/VennHead.lean)):
+  двухканальная голова `venn2Head`: sum = XOR (`xorMask`, ранг 2), carry = AND
+  (`andMask`, ранг 1), borrow = ¬x∧y (`borrowMask`, ранг 1);
+  `venn2_adder_correct` ((2·AND+XOR) % 4 = (x+y) % 4), `venn2_suber_correct`
+  (мод-4 вычитание), `venn2_adder_real` (2·carry+sum = x+y). Трёхвходовой
+  полный сумматор вне двухпеременной решётки.
+- **ANF/Möbius ядро**
+  ([`Hagi/Data/AnfTransform.lean`](Hagi/Data/AnfTransform.lean)):
+  `anfTransform` (бабочка на `(Fin n → Bool) → Bool`) — инволюция
+  (`anf_inversion`); коэффициент = чётность по подкубу (`anf_subcube`,
+  `c_S = ⊕_{x ⊆ S} f(x)` в ZMod 2); roundtrip `anf_eval_eq` (все n); якоря
+  Fin 2 XOR/AND (`anfFin2_xor/and`, `anfFin2_xor_coeffs`).
+- **Композиция compose3** (там же): `anfCompose`
+  (f(g(x),h(x))); `anfCompose_coeff`, `anfCompose_eval`; `stencil_guard_sound`
+  — S-опорные g,h дают S-опорную композицию для любого f (no-false-coverage
+  контекст-абстенции); якорь Fin 2 OR∘(AND,XOR) (`anfFin2_compose`,
+  `anfFin2_compose_spot`). Collision abstention и диапазоны здесь не заявлены.
+- **Dispatch с collision abstention** (там же): `dispatchOrAbstain` —
+  применим ровно один → его значение; ни одного → default; оба → при
+  разногласии `Option.none`. `inRange` (точное совпадение множества позиций
+  контекста и `AnfCand.argRanges`; чтение-подмножество отвергнуто),
+  `dispatch_sound`/`dispatch_sound_default`, `abstain_sound` (коллизия ⇒
+  абстенция), `guard_disjoint_no_collision` (непересекающиеся непустые
+  диапазоны не коллизуют); якоря `anfFin2_dispatch_abstain/ok`.
+  `dispatchPriority` — значение первого применимого по приоритету:
+  `dispatchPriority_sound`, `dispatchPriority_shadow` (поздний кандидат не
+  определяет результат), `dispatchPriority_agree_sound`; якоря
+  `anfFin2_priority_shadow`, `anfFin2_priority_agree`. Обе семантики
+  сосуществуют (`dispatch_two_eq_priority`). Списки статические; сквозная
+  эквивалентность Python V3 не заявлена.
+
+
+## 18. Энергетический контур: парная энергия, mean-field свободная энергия и PL
 
 Третий вычислительный контур HAGI (нейро-стек | символьная Венн/ANF-голова |
-ENERGY-движок, разрешающий конфликты переменных минимизацией свободной
-энергии). Первый бит E1 — дискретная категорная парная энергия и её
-псевдоправдоподобие:
+energy-движок, разрешающий конфликты переменных минимизацией свободной
+энергии). Взаимодействие — ordered-pair сумма `Σ_i Σ_{j≠i} K i j (x i) (x j)`,
+фактор 1/2 снаружи; симметрия K не предполагается. Одна конвенция в H и F,
+поэтому вершинное тождество
+([`pairwise_energy_onehot`](Hagi/Energy/PairwiseCategorical.lean)) не требует
+диагональной поправки: `F(δ_x) = H(x)` точно при любом β.
 
-- КОНВЕНЦИЯ (пин 1): взаимодействие — ordered-pair сумма
-  `Σ_i Σ_{j≠i} K i j (x i) (x j)`, фактор 1/2 вынесен наружу; симметрия K
-  не предполагается. Одна конвенция в H и F, поэтому тождество
-  вершин ([`pairwise_energy_onehot`](Hagi/Energy/PairwiseCategorical.lean))
-  не требует диагональной поправки: `F(δ_x) = H(x)` точно, при любом β
-  (энтропийный член 1·log 1 = 0).
+Знаковая конвенция: CRAM использует exp(−E/T) (низкая энергия = высокий логит:
+`conditionalLogit … = −H(y^{i←a})`); классический Hopfield — exp(β·E) с H = −E.
+Мост только через явный sign-адаптер; не утверждается.
+
 - Точная декомпозиция
   ([`meanfield_decomposition`](Hagi/Energy/PairwiseCategorical.lean)):
-  `F(p) = E_{∏p_i}[H] + (1/β)ΣΣ p log p` — свободная энергия есть
-  ожидание энергии на продукт-маргиналах плюс энтропийная надбавка
-  (в шенноновской форме `F = E[H] − (1/β)Σ H(p_i)`).
-- ЗНАКОВАЯ КОНВЕНЦИЯ (пин 2): CRAM использует exp(−E/T) (низкая энергия =
-  высокий логит: `conditionalLogit ... = −H(y^{i←a})`); классический
-  Hopfield-файл — exp(β·E) с H = −E. Мост только через явный sign-адаптер;
-  в E1 мост не утверждается.
+  `F(p) = E_{∏p_i}[H] + (1/β)ΣΣ p log p` — свободная энергия есть ожидание
+  энергии на продукт-маргиналах плюс энтропийная надбавка.
 - Псевдоправдоподобие
   ([`pseudolikelihood_eq_conditional_ce`](Hagi/Model/EnergyReasoning/Pseudolikelihood/Core.lean)):
-  `J = (1/|ι|)Σ_i −log q_i(y_i)` ПОЧЛЕННО равна средней условной CE
+  `J = (1/|ι|)Σ_i −log q_i(y_i)` почленно равна средней условной CE
   `ceDef (Pi.single (y i) 1) (softDef z_i)` на каноническом Prelude-стержне
-  (C235) — к PL-обучению применим весь CEDescent/CEGradient инструментарий
-  по построению; `pseudolikelihood_nonneg` — J ≥ 0.
+  — к PL применим инструментарий CEDescent/CEGradient по построению;
+  `pseudolikelihood_nonneg` — J ≥ 0.
+- Mean-field мост
+  ([`meanField_coordinate_update_eq_singleCell`](Hagi/Energy/EnergyCoordinateStep.lean)):
+  обновление ровно одной координаты i продукта-веря p меняет полную
+  `meanFieldFreeEnergy` ровно на одно-клеточную разность
+  `SC(hz, 0, q) − SC(hz, 0, p i)` — чистая линейность, без вероятностных
+  посылок. Локальное поле:
+  `meanFieldField B K p i a = B i a + (1/2)·Σ_{j≠i} Σ_b (K i j a b + K j i b
+  a)·p j b`
+  (1/2 снаружи ordered-двойного счёта; при симметричной K — классическое
+  `L_i(a)`). Числовой якорь Fin 2 × Bool с асимметричной K: hz true = 6,
+  hz false = 3/2, дельта полной энергии = дельте одно-клеточной = 4.5.
+- Следствия: `meanField_coordinate_gibbs_nonincreasing` — при β > 0 гиббсовское
+  обновление не увеличивает полную энергию (дельта = (1/β)·KL ≥ 0 по
+  `coordinate_kl_nonneg`); `meanField_coordinate_strict_drop_of_ne` — при
+  `p i ≠ q_i` строгое убывание через `kl_pos_of_ne` (q ≥ 0, p > 0, q ≠ p ⟹
+  klDef q p > 0).
 
-### E2: CRAM-динамика — дискретное ядро + непрерывная Ляпунова идентичность
+Граница: фон заморожен (hz на до-обновлённом p); только одно-координатный шаг;
+сходимость не утверждается.
 
-E2 разбита по A9-supplement на три части (приоритет — дискретной):
+## 19. CRAM-динамика: дискретное ядро и непрерывная функция Ляпунова
 
-- ДИСКРЕТНОЕ ЯДРО (самое практичное,
-  [`single_cell_move_energy_delta`](Hagi/Energy/SingleCellDescent.lean)):
-  точная дельта переноса одной клетки на носителе C260 — общая форма
-  (БЕЗ симметрии K) есть разность СИММЕТРИЗОВАННЫХ полей; при
-  симметричной K (W = sym(K)) она сворачивается в формула A9-supplement
-  `L_i(a) − L_i(b)`, L_i(a) = B_i(a) + Σ_{j≠i} K_ij(a, y_j) — все
-  партиционные члены без клетки i сокращаются точно (конвенция C260:
-  ordered-pair сумма, 1/2 снаружи). Жадность
-  (`greedy_single_cell_nonincreasing`, `strict_drop_of_positive_margin`)
-  не увеличивает энергию; ТРИ различных определения
-  IsCoordinateMinimum / IsGlobalMinimum / IsValidSolution никогда не
-  смешиваются (единственная импликация global → coordinate доказана,
-  обратные зазоры запинены witness'ом на Fin 2 × Bool).
-- КООРДИНАТНЫЙ KL-СЕРТИФИКАТ
-  ([`coordinate_kl_identity`](Hagi/Energy/EnergyCoordinateStep.lean)):
-  F_i(p) − F_i(q_i) = (1/β)·KL(p‖q_i), q_i = softDef(−β·h_i) — ТОЧНЫЙ
-  монотонный сертификат мягких координатных обновлений; безопасная
-  дискретная альтернатива Эйлеровым шагам.
-- НЕПРЕРЫВНАЯ ЛЯПУНОВА ИДЕНТИЧНОСТЬ, supplied-trajectory форма
-  ([`cram_energy_hasDerivAt`](Hagi/Energy/EnergyFlow.lean)): алгебраический
-  слой (softmax-Legendre, градиент logsumexp = p, дисперсионная форма
-  гессиана uᵀ(diag p − ppᵀ)u = Σ p u² − (Σ p u)² без матричной машинерии,
-  калибровочное нулевое направление H1 = 0) + теорема: при
-  ПОСТАВЛЕННОЙ дифференцируемой кривой v(t), удовлетворяющей CRAM ODE
-  u = −(1/τ)(v + localMeanField p) поточечно, производная энергии равна
-  −τβ·Σᵢ Var_{pᵢ}(uᵢ) ≤ 0 (`cram_continuous_energy_nonincreasing`).
-  Имя — невозрастание, НЕ сходимость; ODE-существование не утверждается;
-  дискретные Эйлеровы шаги НЕ покрываются.
+### 19.1 Одноклеточное дискретное ядро
 
-Честные границы (A9 §'not to adopt'): CRAM ≠ замена LLM; спуск по энергии
-≠ корректность (нужен отдельный верификатор/CertReason); PL ≠ полная
-likelihood; утверждения о скорости — task-specific; пороговая остановка —
-эмпирическая (нужно условие разделения, E4). Латентная энергия — E3;
-Gibbs-поиск и сертифицированная остановка — E4.
+[`single_cell_move_energy_delta`](Hagi/Energy/SingleCellDescent.lean): точная
+дельта переноса одной клетки. Общая форма (без симметрии K) — разность
+симметризованных полей; при симметричной K сворачивается в `L_i(a) − L_i(b)` с
+`L_i(a) = B_i(a) + Σ_{j≠i} K_ij(a, y_j)` — все партиционные члены без клетки i
+сокращаются точно. Жадность (`greedy_single_cell_nonincreasing`,
+`strict_drop_of_positive_margin`) не увеличивает энергию. Три определения —
+IsCoordinateMinimum / IsGlobalMinimum / IsValidSolution — не смешиваются
+(доказана только импликация global → coordinate; обратные зазоры — witness на
+Fin 2 × Bool).
 
-### E3: латентное энергетическое поле — строгая выпуклость + ℓ∞-сжатие + двухфазный протокол
+Координатный KL-сертификат
+([`coordinate_kl_identity`](Hagi/Energy/EnergyCoordinateStep.lean)): `F_i(p) −
+F_i(q_i) = (1/β)·KL(p‖q_i)`, `q_i = softDef(−β·h_i)` — точный монотонный
+сертификат мягких координатных обновлений; безопасная дискретная альтернатива
+шагам Эйлера.
+
+### 19.2 Непрерывная функция Ляпунова
+
+[`cram_energy_hasDerivAt`](Hagi/Energy/EnergyFlow.lean): алгебраический слой
+(softmax-Legendre, градиент logsumexp = p, дисперсионная форма гессиана
+`uᵀ(diag p − ppᵀ)u = Σ p u² − (Σ p u)²`, калибровочное направление H1 = 0) и
+теорема: при поставленной дифференцируемой кривой v(t), удовлетворяющей CRAM
+ODE `u = −(1/τ)(v + localMeanField p)` поточечно, производная энергии равна
+`−τβ·Σᵢ Var_{pᵢ}(uᵢ) ≤ 0` (`cram_continuous_energy_nonincreasing`). Имя —
+невозрастание, не сходимость; существование ODE-решения и дискретные шаги
+Эйлера не покрываются.
+
+### 19.3 Sparse local field
+
+([Hagi/Model/EnergyReasoning/Pseudolikelihood.lean, SparseField]) Соседство
+`N : ι → Finset ι`; носитель связи `couplingSupportedOn N K` (j ∉ N i → K i j a
+b = 0); `sparseLocalField N B K y i a = B i a + ∑_{j ∈ N i} K i j a (y j)`.
+
+- `sparse_neighbours_subset`: без само-соседств `N i ⊆ univ \ {i}`
+  (посылка load-bearing).
+- `sparse_localField_eq_dense`: при носителе связи и без само-соседств
+  sparse-поле равно плотному `localField`.
+- `sparse_update_energy_delta_eq`: при симметричном K дельта одноклеточного
+  хода плотной `pairwiseEnergy` равна разности sparse-полей.
+- Счёт: `localField_dense_work` / `localField_sparse_work`
+  (`card·(card α)²` и `Σ_{j∈N i} card α²`; work-model определения);
+  `localField_op_count_le`; `localField_op_count_lt` (строго при собственном
+  подмножестве соседей и `0 < card α` — посылка необходима);
+  `neighbour_card_le`.
+- `sparse_support_of_symmetric`: симметричный K + носитель ⇒ транспонированная
+  сторона тоже нулевая.
+
+Якорь: Fin 4, клетка 0 с соседями {1,3}: sparse = dense; работа `2·4 = 8 < 12 =
+3·4`. Счёт — ℕ-произведения без O-нотаций; что произвольный K допускает малое N
+— не теорема.
+
+### 19.4 Числовая устойчивость: гварды под шумом полей
+
+([Hagi/Model/EnergyReasoning/Pseudolikelihood.lean, NumericalRobustness])
+
+- `guarded_energy_delta_error`: из `|L̂_i(a) − L_i(a)| ≤ ε` следует
+  `|Δ̂ − Δ| ≤ 2ε`, где `Δ = E(y^{i←a}) − E(y) = L_i(a) − L_i(y_i)` при
+  симметричной K. 2ε точна (две оценки поля); без симметрии дельта есть
+  разность симметризованного поля, и посылки только на localField мало.
+- `guarded_energy_delta`: `2ε < L̂(y_i) − L̂(a)` ⇒ истинная энергия строго
+  убывает. Отвержение информации не несёт (истинная маржа 2, вычисленная 0,
+  ε = 1); stall ниже пола 2ε возможен.
+- `guarded_greedy_strict_drop`: композиция с
+  `strict_drop_of_positive_margin` в two-phase frozen-z постановке (шов
+  `localField_visibleBiasWithZ`).
+- `latent_update_degree_zero_exact_after_one`,
+  `latent_update_degree_zero_one_step_is_fixed`: при пустых окрестностях
+  обновление константно и точное за один шаг (случай Δ = 0 не скрыт —
+  `latent_iterate_err_bound` требует `0 < Δ`).
+- BF16-инстанциация ε: `Hagi.Runtime.BF16Delta.abs_sub_le_of_isNearest_normal`
+  даёт ε = 2⁻⁸·max_b |L i b|; гвард принимает при марже > 2⁻⁷·max_b|L i b|.
+  Ниже нормального диапазона посылка не заявляется.
+
+### 19.5 Терминация жадного поиска и фокусная политика
+
+([Hagi/Model/EnergyReasoning/Pseudolikelihood.lean, GreedyTermination])
+
+- `greedy_strict_search_terminates`: на конечном пространстве строго
+  улучшающаяся траектория имеет длину ≤ `Fintype.card (Set.image H univ)`
+  (значения вдоль траектории попарно различны). Бесконечной строго убывающей
+  цепи нет; rate/сложность не заявляются.
+- `greedy_search_terminal_is_coordinate_minimum`: состояние без строго
+  положительной локально-полевой маржи любого хода — координатный минимум.
+  Координатный минимум ≠ глобальный ≠ валидное решение (§23).
+- Негативный аудит: `focusedDisagreementWeight` (вес ячейки = её несогласие
+  `Σ_a max 0 (L_i(y_i) − L_i(a))`) нарушает посылку INVARIANCE §22:
+  `concrete_focus_policy_violates_invariance` — на фикстуре Fin 2 × Bool
+  после жадного хода ячейки 0 вес ячейки 0 падает 3 → 0. Стационарность
+  практического фокусного сэмплера не сертифицирована.
+
+## 20. Латентное энергетическое поле: выпуклость, сжатие и неподвижная точка
 
 Латентная квадратичная энергия Maze-Hard на конечном графе-носителе
-([`latent_hessian_diag_dominant`](Hagi/Model/EnergyReasoning/Pseudolikelihood/Core.lean)):
+([`latent_hessian_diag_dominant`](Hagi/Model/EnergyReasoning/Pseudolikelihood/Core.lean)).
 
-- КОНВЕНЦИЯ (пин 1): сосед-суммовая форма `E_z = (m/2)·Σz² −
-  (1/2)·Σ_i z_i·(Σ_{j∈N i} z_j) − z_G`; при симметричной смежности
-  равна реберной форме (каждое ребро входит в двойную сумму дважды,
-  1/2 схлопывает) — конвенция ОДНА, зафиксирована и pinned числовым
-  якорем на path-фикстуре Fin 4 (m = 3, G = 0: неподвижная точка
-  z* = 21/55-решётка решает уравнение z*_i = (Σ_{j∈N i} z*_j +
-  1[i=G])/m точно).
-- ДИАГОНАЛЬНОЕ ДОМИНИРОВАНИЕ (E3 MAIN,
-  [`latent_hessian_diag_dominant`](Hagi/Model/EnergyReasoning/Pseudolikelihood/Core.lean)):
-  `((m−Δ)/2)·Σw² ≤ Q(w)` — диагональ m строго доминирует off-diagonal
-  row-sum Δ симметризованной формы; честный вывод через 2|w_i||w_j| ≤
-  w_i²+w_j², причём колононная часть двойной суммы ограничена Δ ТОЛЬКО
-  через симметрию графа (`{i | j ∈ N i} = N j`) — симметрия
-  load-bearing, не декоративна. Свидетели необходимости зазора:
-  m = Δ — форма всего лишь полуопределена (witness Fin 2 loop-граф),
-  m < Δ — принимает отрицательные значения.
-- СТРОГАЯ ВЫПУКЛОСТЬ + УНИКАЛЬНОСТЬ ([`latent_strict_convex`]
-  (Hagi/Model/EnergyReasoning/Pseudolikelihood.lean), [`latent_unique_min`]):
-  Bregman-chord тождество `Q(λa+(1−λ)b) = λQ(a)+(1−λ)Q(b) −
-  λ(1−λ)Q(a−b)` (add-remainder форма `E(z+w) = E(z)+⟨∇E(z),w⟩+Q(w)`)
-  даёт строгую выпуклость при m > Δ и единственность минимизатора
-  (midpoint-аргумент); неподвижная точка обновления ⟺ нулевой градиент
-  ([`latent_fixed_iff_grad`]).
-- ℓ∞-СЖАТИЕ (E3 MAIN, [`latent_update_contraction`]): дискретное
-  обновление z^{t+1}_i = (Σ_{j∈N i} z^t_j + 1[i=G])/m ЕСТЬ карта
-  неподвижной точки и сжатие с фактором Δ/m < 1 в ℓ∞ (Pi sup-норма);
-  существование минимизатора — Банах
-  ([`latent_update_fixed_exists`]).
-- ГЕОМЕТРИЧЕСКАЯ ОЦЕНКА ИТЕРАЦИЙ ([`latent_iterate_err_bound`]):
-  `‖z^k − z*‖ ≤ (Δ/m)^k·‖z^0 − z*‖` — РЕЮЗ
+Конвенция: сосед-суммовая форма `E_z = (m/2)·Σz² − (1/2)·Σ_i z_i·(Σ_{j∈N i}
+z_j) − z_G`; при симметричной смежности равна реберной. Якорь path-фикстура Fin
+4 (m = 3, G = 0): `z* = 21/55`-решётка.
+
+- Диагональное доминирование: `((m−Δ)/2)·Σw² ≤ Q(w)` — через
+  `2|w_i||w_j| ≤ w_i²+w_j²`; колонная часть ограничена Δ только через
+  симметрию графа. При `m = Δ` форма полуопределена (Fin 2 loop-граф), при
+  `m < Δ` принимает отрицательные значения.
+- Строгая выпуклость и единственность
+  ([`latent_strict_convex`](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean),
+  `latent_unique_min`): Bregman-chord тождество
+  `Q(λa+(1−λ)b) = λQ(a)+(1−λ)Q(b) − λ(1−λ)Q(a−b)`; неподвижная точка
+  обновления ⟺ нулевой градиент (`latent_fixed_iff_grad`).
+- ℓ∞-сжатие: обновление `z^{t+1}_i = (Σ_{j∈N i} z^t_j + 1[i=G])/m` —
+  сжатие с фактором Δ/m < 1 (`latent_update_contraction`); существование
+  минимизатора — Банах (`latent_update_fixed_exists`).
+- Геометрическая оценка `‖z^k − z*‖ ≤ (Δ/m)^k·‖z^0 − z*‖`
+  (`latent_iterate_err_bound`; реюз
   [`inexact_contraction_bound`](Hagi/Optimization/InexactContraction.lean)
-  при ε = 0 (геометрическая индукция не дублируется); premise 0 < Δ
-  честна: реюзуемая лемма требует фактор в (0,1), вырожденный случай
-  Δ = 0 вне области следствия (задокументирован). Толерансная форма
+  при ε = 0; `0 < Δ` — явная посылка). Толерансная форма
   `latent_settle_tolerance` задаёт горизонт осаждения ε_z фазы 1.
-- ДВУХФАЗНЫЙ ПРОТОКОЛ (E3 MAIN, [`visible_descent_frozen_z`], thin by
-  design): фаза 1 — осадить z до допуска ε_z; фаза 2 — ЗАМОРОЗИТЬ z в
-  константный bias `visibleBiasWithZ B zc` (zc НЕ функция видимого
-  состояния y — премиза структурна) и запустить видимый CRAM-спуск
-  C261 дословно (`greedy_single_cell_nonincreasing` на замороженном
-  bias). СОВМЕСТНЫЕ (z, p)-обновления ЗАПРЕЩЕНЫ этой теорией: z-ход
-  меняет bias посреди спуска, дельта-тождество C261 перестаёт
-  ограничивать полное изменение энергии, аргумент Ляпунова рушится;
-  совместной теоремы спуска НЕ существует (RootApi-пин: имя
-  visible_descent_joint_z отсутствует).
+- Двухфазный протокол `visible_descent_frozen_z`: фаза 1 — осадить z до
+  ε_z; фаза 2 — заморозить z в константный bias `visibleBiasWithZ B zc` и
+  запустить видимый CRAM-спуск §19.1 дословно. Совместные (z, p)-обновления
+  запрещены: z-ход меняет bias посреди спуска, дельта-тождество перестаёт
+  ограничивать полное изменение энергии.
 
-### E4: heat-bath ядро Гиббс-поиска — обратимость, стационарность смеси, сертифицированная остановка
+### 20.1 Носитель и достижимость неподвижной точки z*
 
-Heat-bath политика и её сохранение меры
-([`heatbath_detailed_balance`](Hagi/Model/EnergyReasoning/Pseudolikelihood/Core.lean)):
+([Hagi/Model/EnergyReasoning/Pseudolikelihood.lean, LatentSupport];
+переносчик [LatentEnergy](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean), m
+> Δ, симметричная смежность.) Инъекция цели положительна (`1[i = G]`, знак +).
 
-- HEAT-BATH ЯДРО: вес значения a в ячейке i — РЕЮЗ softmax
-  `heatbathWeight B K T y i a = softDef (fun c => −L_i(c)/T) a`
-  (нового softmax нет); ядро `heatbathKernel B K T i y z` равно весу
-  `z i`, если z отличается от y только в ячейке i, иначе 0. Ядро НЕ
-  зажимает клампы само: сохранение — теорема с премизой.
-- ОБРАТИМОСТЬ (E4 MAIN, [`heatbath_detailed_balance`]): при
-  симметричном K (K_ij(a,b) = K_ji(b,a)) и T ≠ 0 ядро обратимо
-  относительно ненормированной плотности Больцмана
-  `exp(−E(y)/T)`: доказательство — в точности дельта-тождество C261
-  `single_cell_move_energy_delta_symm` + инвариантность localField вне
-  движимой ячейки; нормализатор softmax сокращается (оба веса — на
-  полях ОДНОГО состояния). Числовой якорь Fin 2 × Bool: вес хода в
-  худшее значение = exp(−3)/(1+exp(−3)).
-- СТАЦИОНАРНОСТЬ ([`heatbath_stationary`]): строки суммы 1 без премиз
-  (`a ↦ y^{i←a}` — биекция на носитель строки,
-  [`heatbathKernel_rowsum`]); обратимость + стохастичность ⇒
-  стационарность ([`reversible_stationary`]). СТАЦИОНАРНОСТЬ ≠
-  МОНОТОННОСТЬ: при T > 0 вес худшего значения строго положителен —
-  ядро МОЖЕТ поднять энергию; спуска не обещано.
-- ФОКУСНАЯ СМЕСЬ (E4 MAIN, [`focused_mixture_stationary`]):
-  `Q = Σ_i w(y)_i·Q_i` сохраняет меру при ДВУХ load-bearing премизах —
-  SUPPORT (каждое Q_i двигает только свою ячейку) и INVARIANCE
-  (`w(y^{i←a})_i = w(y)_i`: вес выбора ячейки инвариантен к ходам самой
-  ячейки; зависимость от ДРУГИХ ячеек/замороженных латентов — можно).
-  Фраза дополнения «state-dependent mixture preserves stationarity» как
-  безусловная — ЛОЖНА (контрпример flip-vs-stay на двух состояниях);
-  INVARIANCE — ровно то, что контрпример нарушает (RootApi-пин: имя
-  focused_mixture_stationarity_without_invariance отсутствует).
-  Следствие [`focused_heatbath_mixture_stationary`]: для family heat-bath
-  SUPPORT структурен — остаются hK, T ≠ 0, INVARIANCE, Σ_i w(y)_i = 1.
-- КЛАМПЫ (premise-form, [`focused_mixture_preserves_givens`]): если веса
-  выбора обнулены на данных ячейках (free-cells-only), ненулевой переход
-  смеси сохраняет каждое данное значение точно.
+- `latent_fixed_nonneg`: любая неподвижная точка неотрицательна — выводится
+  (в аргмин-индексе `m·z i = Σ_{N i} z j + 1[i=G] ≥ card(N i)·z i`).
+- `latent_fixed_goal_pos`: `1/m ≤ z* G`; `latent_fixed_ge_of_neighbour`:
+  `i ∈ N j ⇒ z* j / m ≤ z* i`.
+- `latent_fixed_pos_of_reachable`: `LatentPath N G i k` ⇒
+  `(1/m)^(k+1) ≤ z* i > 0`.
+- `latent_fixed_upper_bound`: `z* i ≤ 1/(m − Δ)`. Per-distance decay-оценка не
+  заявляется (требует структуры графа сверх ограниченности степени).
+- `latent_fixed_zero_off_closed`: на C', замкнутом по соседям и без цели,
+  `z* = 0` (заплатка снова неподвижная точка; `latent_fixed_unique` возвращает
+  её на z*).
+- Якоря: `zstar4 = ![21/55, 8/55, 3/55, 1/55]` (Fin 4, m=3, G=0):
+  `(1/3)^4 = 1/81 ≤ 1/55`, `21/55 ≤ 1 = 1/(3−2)`; `emptyN2/zstar2` (Fin 2):
+  `z* = ![1/3, 0]`, нуль на C' = {1}.
 
-Сертифицированная остановка
-([`stopping_sound_of_separation`](Hagi/Model/EnergyReasoning/Pseudolikelihood/Core.lean)):
+## 21. PL → локально-полевая CE с β и свободными клетками
 
-- ДВА РАЗЛИЧНЫХ сертификата: `EnergyStop` (y, E(y) ≤ τ) — событие
-  ЭФФЕКТИВНОСТИ (порог — эвристика, не корректность);
-  `ValidityCertificate` (y, preserves_givens + satisfies_constraints) —
-  ПРОДАКШН-сертификат (AcceptedSolution из cert-kernel дополнения).
-- ПЕРЕНОС РАЗДЕЛЕНИЯ (E4 MAIN): премиза «∀ y', E(y') ≤ τ ⇒ валиден»
-  переносит EnergyStop в ValidityCertificate — вся нагрузка на премизе
-  (форма certified-gate, как 2ε-зазоры certified-argmax). Свидетель
-  провала без разделения: нуль-энергетическая невалидная доска (Fin 2 ×
-  Bool, фикстура); валидность об энергии ничего не говорит.
+[`conditionalLogit_eq_neg_localField_add_const`](Hagi/Model/EnergyReasoning/Pseudolikelihood/CRAM.lean):
+PL обучает ровно CE на −β·L_i по свободным клеткам.
 
-### B1 (дополнение A11): мост ко ПОЛНОЙ mean-field свободной энергии
+- Носитель: `CRAMProblem` (allowed / givens / hgiven / hnonempty; поле названо
+  givens); `freeCells = {i : givens i = none}`.
+- Сокращение: при симметричной K дельта-тождество §19.1 читается как
+  константа `−H(y^{i←a}) = −L_i(a) + C_i(y)`, `C_i(y) = L_i(y_i) − H(y)`.
+  Якорь Fin 2 × Bool: LF_0(t)=3, LF_0(f)=0, H(t,t)=5, H(f,t)=2.
+- Shift-инвариантность: приватные `softDef_add_const` / `ceOneHot_add_const`.
+  `conditionalDist_eq_localField_softmax` —
+  `softDef(−β·H-варианта) = softDef(−β·L_i)` для любого β;
+  `pseudolikelihood_eq_local_CE_beta` — J_PL = среднее по свободным клеткам
+  `ceOneHot (y i)(−β·L_i)`.
+- Градиент (premise-form + chain rule): `pseudolikelihood_local_field_gradient`
+  — при `HasFDerivAt Lmap Lmap' θ` производная локальной CE =
+  `Σ_v (q_v − 1[v=t])·(−β·Lmap' h v)` (существующий
+  `CEGradient.fderiv_ceOneHot_comp_apply` на (−β)•Lmap);
+  `pseudolikelihood_freeCell_B_gradient` — B входит в L_i аффинно, fderiv
+  J_PL по B в направлении h =
+  `(1/|F|)·Σ_{i∈F}Σ_a (q_i(a) − 1[a=y_i])·(−β·h i a)`.
+- Параметризация: `symmetrizeCoupling` `(K̃+K̃ᵀ)/2` удовлетворяет hK
+  (`symmetric_parameterization_preserves_hK`).
 
-Мост
-([`meanField_coordinate_update_eq_singleCell`](Hagi/Energy/EnergyCoordinateStep.lean))
-от одно-клеточного KL-сертификата C261 к ПОЛНОЙ `meanFieldFreeEnergy`
-C260 — сертификат перестаёт быть периферийным:
+Граница: K-градиент не утверждается (K входит в L_i через литералы соседей
+y_j); сходимости/десцента нет — формула, не сертификат обучения; идентичности
+свободных клеток — беспремизная алгебра; hK — реальная посылка.
 
-- ЛОКАЛЬНОЕ ПОЛЕ (пин конвенции C260): `meanFieldField B K p i a =
-  B i a + (1/2)·Σ_{j≠i} Σ_b (K i j a b + K j i b a)·p j b` — 1/2 стоит
-  СНАРУЖИ ordered-двойного-счёта, поэтому в поле входят ОБА
-  упорядоченных направления с весом 1/2; при симметричной K это
-  классическое `L_i(a)` (маргинальный аналог пары localField /
-  transposeLocalField из SingleCellDescent). Числовой якорь Fin 2 ×
-  Bool с АСИММЕТРИЧНОЙ K (симметричная не различает конвенций):
-  hz true = 6, hz false = 3/2, дельта полной энергии = дельте
-  одно-клеточной = 4.5 (probe C265).
-- ТОЖДЕСТВО (B1 MAIN): обновление ровно ОДНОЙ координаты i
-  продукта-веры p меняет ПОЛНУЮ энергию РОВНО на одно-клеточную
-  разность `SC(hz, 0, q) − SC(hz, 0, p i)` — чистая линейность, БЕЗ
-  вероятностных премиз. Несущий шаг — инвариантность всех членов без
-  клетки i (энтропия j≠i, поля j≠i, пары взаимодействия с обоими
-  индексами вне i) + линейность перекрёстных членов по p i.
-- СЛЕДСТВИЯ: `meanField_coordinate_gibbs_nonincreasing` — при β > 0
-  гиббсовское обновление не увеличивает ПОЛНУЮ энергию (дельта =
-  (1/β)·KL ≥ 0 по C261 coordinate_kl_nonneg — переиспользование, не
-  перепруф); `meanField_coordinate_strict_drop_of_ne` — при p i ≠ q_i
-  СТРОГОЕ убывание через новую лемму `kl_pos_of_ne` (строгая
-  KL-положительность: q ≥ 0, p > 0, q ≠ p ⟹ klDef q p > 0;
-  проб-проверенный маршрут t·log t − t + 1 > 0 при t ≠ 1 через
-  log(1/t) < 1/t − 1; случай q a = 0 строго из полной семантики log).
-- Честные границы: фон ЗАМОРОЖЕН (hz вычислен на до-обновлённом p);
-  сертифицируется ТОЛЬКО одно-координатный шаг — мульти-координатные
-  обновления не покрываются (hz сдвигается), сходимость НЕ утверждается
-  (RootApi-пины: meanField_coordinate_joint_update_eq_singleCell,
-  meanField_coordinate_convergence отсутствуют).
+## 22. Heat-bath ядро Гиббс-поиска: обратимость, стационарность, смешивание
 
-### B2 (дополнение A11): PL → локально-полевая CE с β и свободными клетками
+([Hagi/Model/EnergyReasoning/Pseudolikelihood/Core.lean])
 
-Мост
-([`conditionalLogit_eq_neg_localField_add_const`](Hagi/Model/EnergyReasoning/Pseudolikelihood/CRAM.lean))
-от псевдоправдоподобия C259 к ЛОКАЛЬНОМУ ПОЛЮ C261: off-i энергия —
-константа кандидата, PL обучает ровно CE на −β·L_i по СВОБОДНЫМ
-клеткам:
+### 22.1 Ядро и обратимость
 
-- НОСИТЕЛЬ: `CRAMProblem` (allowed / givens / hgiven / hnonempty;
-  поле названо givens (идентификатор given запрещён парсером Lean в
-  терм-позиции)); freeCells = {i : givens i = none} — маска
-  свободных клеток, по которой усредняется цель.
-- СОКРАЩЕНИЕ (B2 MAIN): при симметричной K дельта-тождество C261
-  (`single_cell_move_energy_delta_symm`, переиспользовано дословно)
-  читается как константа: −H(y^{i←a}) = −L_i(a) + C_i(y), C_i(y) =
-  L_i(y_i) − H(y) не зависит от a. Числовой якорь Fin 2 × Bool:
-  LF_0(t)=3, LF_0(f)=0, H(t,t)=5, H(f,t)=2 — обе ветви (probe C266).
-- SHIFT-ИНВАРИАНТНОСТЬ (аудит-пин): лемма «softmax от константного
-  сдвига» в Prelude/Concat/Numerics ОТСУТСТВУЕТ (проверено rg) —
-  добавлены минимальные приватные `softDef_add_const` /
-  `ceOneHot_add_const` в новом файле (additive; Prelude не тронут).
-  Следствия: `conditionalDist_eq_localField_softmax` —
-  softDef(−β·H-варианта) = softDef(−β·L_i) для ЛЮБОГО β (сдвиг
-  сокращается безусловно, без знаковых премиз на β);
-  `pseudolikelihood_eq_local_CE_beta` — J_PL (энергетическая форма) =
-  среднее по свободным клеткам ceOneHot (y i)(−β·L_i) — константы
-  сокращаются и в CE.
-- ГРАДИЕНТ (premise-form + chain rule):
-  `pseudolikelihood_local_field_gradient` — при HasFDerivAt Lmap Lmap' θ
-  производная локальной CE = Σ_v (q_v − 1[v=t])·(−β·Lmap' h v) —
-  СУЩЕСТВУЮЩИЙ CEGradient.fderiv_ceOneHot_comp_apply instantiated на
-  (−β)•Lmap (const_smul), новой CE-теории нет;
-  `pseudolikelihood_freeCell_B_gradient` — B входит в L_i аффинно
-  (производная proj i), поэтому fderiv J_PL по B в направлении h =
-  (1/|F|)·Σ_{i∈F}Σ_a (q_i(a) − 1[a=y_i])·(−β·h i a); носитель значений
-  α : Type — стержень CEGradient вселенной-0, универсальность α
-  сохранена на уровне идентичностей (Type*), градиент фиксирует Type.
-- ПАРАМЕТРИЗАЦИЯ: `symmetrizeCoupling` (K̃+K̃ᵀ)/2 удовлетворяет hK по
-  построению (`symmetric_parameterization_preserves_hK`, ring).
-- Честные границы: K-градиент НЕ утверждается (K входит в L_i через
-  литералы соседей y_j — rank-1 оператор на параметр, отложен);
-  сходимости/десцента нет (формула, не сертификат обучения);
-  идентичности свободных клеток — беспремизная алгебра (пустое F даёт
-  равные пустые средние); hK — реальная премиза сокращения
-  (RootApi-пины: pseudolikelihood_K_gradient,
-  freeCellPseudolikelihood_descent отсутствуют).
+Вес значения a в ячейке i — softmax `heatbathWeight B K T y i a = softDef (fun
+c => −L_i(c)/T) a`; ядро `heatbathKernel B K T i y z` равно весу `z i`, если z
+отличается от y только в ячейке i, иначе 0. Ядро не зажимает клампы само.
 
-### B3 (дополнение A11): типизированные CRAM-переходы → каноническое Cert-ядро
+- `heatbath_detailed_balance`: при симметричном K и T ≠ 0 ядро обратимо
+  относительно плотности Больцмана `exp(−E(y)/T)` (дельта-тождество §19.1 +
+  инвариантность localField вне движимой клетки). Якорь Fin 2 × Bool: вес
+  хода в худшее значение `exp(−3)/(1+exp(−3))`.
+- `heatbathKernel_rowsum` — строки суммы 1 без посылок;
+  `heatbath_stationary` — обратимость + стохастичность ⇒ стационарность
+  (`reversible_stationary`). Стационарность ≠ монотонность: при T > 0 вес
+  худшего значения строго положителен, ядро может поднять энергию.
+- `focused_mixture_stationary`: `Q = Σ_i w(y)_i·Q_i` сохраняет меру при двух
+  посылках — SUPPORT (каждое Q_i двигает только свою ячейку) и INVARIANCE
+  (`w(y^{i←a})_i = w(y)_i`; зависимость от других ячеек можно).
+  Безусловная «state-dependent mixture preserves stationarity» ложна
+  (контрпример flip-vs-stay на двух состояниях). Следствие
+  `focused_heatbath_mixture_stationary`: для heat-bath family остаются hK,
+  T ≠ 0, INVARIANCE, `Σ_i w(y)_i = 1`.
+- `focused_mixture_preserves_givens`: веса выбора, обнулённые на данных
+  ячейках, ⇒ ненулевой переход смеси сохраняет каждое данное значение.
 
-CRAM-переходы
-([CramContracts](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean))
-становятся типизированными premise-form контрактами над носителем
-CRAMState с точными ресурсными законами (budget' = budget − cost,
-неотрицательный остаток) и мостом в каноническое ядро Hagi.Cert:
+### 22.2 Doeblin-миноризация и геометрическое смешивание
 
-- ПОЛЯРНОСТЬ (typed): `MetricDirection` (UtilityFloor | LossCeiling)
-  с match-предикатами kept / improves; мост-фикс полярности
-  `MetricDirection.kept_lossCeiling_neg`: потолок потерь c ⇔ пол полезности −c для
-  НЕГАТИРОВАННОЙ цели — ядерная FloorsKept (форма пола) читает
-  потери negацией — типизированно и явно (энергодесцент = LossCeiling).
-  Прямой мост kept_floor_forwards безусловен; обратный
-  kept_floor_iff требует Nonempty TaskId (пустое пространство задач
-  даёт вакуумную FloorsKept — премиза нагружена, не декоративна).
-- НОСИТЕЛЬ: `CRAMState` (problem : CRAMProblem C266, board, latent
-  Option, searchBudget ℕ, computeBudget ℝ, riskRem, deltaRem) +
-  компонентная ext_iff.
-- ОБУЧЕНИЕ: `CRAMTrainStep` — measured-drop премиза на цели
-  freeCellPseudolikelihood (J(newB) ≤ J(oldB) − drop, drop ≥ 0;
-  градиентного доказательства НЕТ — premise-form) + точные
-  ресурсные законы; majorizer-вход measured_of_majorizer (суррогат
-  заякорен равенством на старых параметрах, новая цель бьёт
-  суррогат на drop) — классическая majorize-minimize форма.
-- ЭНЕРГОДЕСЦЕНТ: `CRAMEnergyDescentStep` — строго положительная
-  локально-полевая маржа C261 (margin_pos в форме L_i(y_i) −
-  L_i(move) > 0), строгое падение strictDrop переиспользует
-  strict_drop_of_positive_margin ДОСЛОВНО (board_next = update);
-  MarginBudget-учёт: маржа списывается из riskRem (risk_next =
-  riskRem − margin, остаток ≥ 0); toLossCeilingDrop упаковывает
-  дроп как типизированный LossCeiling improves.
-- ЭКСПЛОРАЦИЯ: `CRAMExplorationStep` — легальный переход
-  (положительная масса ядра), row-stochastic премиза ядра (форма
-  C263 mixture_rowsum), клампы (givens) сохранены, поиск
-  потребляется строго. ДЕСЦЕНТ НЕ УТВЕРЖДАЕТСЯ: поле энергии
-  отсутствует, стационарность ≠ монотонность (ядро может поднять
-  энергию; RootApi-пин: CRAMExplorationStep.descent отсутствует).
-- ПРОДУКЦИЯ: `CRAMAcceptedSolution` — ValidityCertificate C263
-  (givens сохранены + ограничения удовлетворены) согласован с
-  доской; энерго-граница опциональна (validity ничего не говорит
-  об энергии — E4 сепарация).
-- МОСТ В ЯДРО: `CRAMEnergyDescentStep.toKernelCertStep` (паттерн
-  HonestTransition.toKernelCertStep C254): при явных премизах
-  чтения метрик (objective = энергия доски, budget =
-  computeBudget, risk = riskRem) десцент-шаг ЕСТЬ канонический
-  Hagi.Cert.CertStep — телескоп ядра применим к сертифицированным
-  CRAM-траекториям. Hold = полное равенство состояния:
-  HoldStep.cram_state_components фиксирует все 7 компонент
-  (problem/board/latent/budgets/risk/delta), ядро HoldStep
-  переиспользовано без изменений.
-- Честные границы: measured/majorizer — премизы (градиентная
-  формула B2 не сворачивается в сертификат здесь); десксент
-  эксплорации не утверждается; адаптер не постулирует ambient
-  SystemMetrics — все чтения явные премизы.
+([Hagi/Model/EnergyReasoning/Pseudolikelihood.lean, HeatBathMixing])
+`doeblinMinorized K c := 0 < c ∧ ∀ x y, c ≤ K x y`; `vecMul`/`hbChain` —
+pushforward и n-шаговая цепь.
 
-### P1-остаток (дополнение A11): конечная терминация жадного поиска + аудит инвариантности фокусной политики
+- `tv_pair_contraction`: row-stochastic ядро с entrywise-полом c сжимает
+  любую пару равномассовых векторов: `TV(μK, νK) ≤ (1 − |S|·c)·TV(μ, ν)`
+  (стационарность не нужна; константа острая; слабые следствия
+  `tv_contraction_stationary_sharp`, `tv_contraction_stationary`).
+- `heatbathWeight_floor`: при разбросе полей `|L_i(a) − L_i(b)| ≤ M`, T > 0
+  каждый вес ≥ `exp(−M/T)/card α`.
+- `heatbath_doeblin_floor`: при разбросе полей и носителе (каждая цель —
+  одноячеечный ход) ядро миноризовано с `c = exp(−M/T)/card α`;
+  `heatbath_doeblin_floor_subsingleton` — носитель-посылка бесплатна при
+  `card ι ≤ 1`.
+- `stationaryDensity` — нормированная Болцмановская; `heatbath_tv_contraction`:
+  `TV(μK, π̂) ≤ (1 − c)·TV(μ, π̂)` (острая — `heatbath_tv_contraction_sharp`).
+- `heatbath_mixing`: `TV(μKⁿ, π̂) ≤ (1 − c)ⁿ`; `heatbath_mixing_time`: n ≥
+  `log e / log(1 − c)` шагов достаточно для TV ≤ e.
 
-Два честных замыкания истории жадного одноячеечного поиска
-([GreedyTermination](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
+Границы: entrywise-пол для `card ι ≥ 2` без посылки носителя ложен;
+ирредуцибильность/апериодичность не заявлены; фокусная смесь вне области
+(нарушение INVARIANCE, §19.5); spectral gap / cutoff не заявлены.
 
-- A6 ТЕРМИНАЦИЯ: `Hagi.Model.EnergyReasoning.greedy_strict_search_
-  terminates` — на КОНЕЧНОМ пространстве конфигураций строго
-  улучшающаяся траектория (список, вдоль которого энергия H строго
-  убывает по каждой паре — транзитивное замыкание пошагового
-  строгого дропа) имеет длину ≤ числа РАЗЛИЧНЫХ значений энергии
-  `Fintype.card (Set.image H univ)`: значения вдоль траектории
-  попарно различны (строгое убывание ⇒ Nodup образа), вложены в
-  образ H, инъективный подсписок в конечном типе. Бесконечной
-  строго убывающей цепи не существует. Никаких rate/сложностных
-  заявлений; форма — List на конечном типе, без measure-упаковки.
-- A6 ТЕРМИНАЛ: `Hagi.Model.EnergyReasoning.
-  greedy_search_terminal_is_coordinate_minimum` — состояние, в
-  котором НИ у одного одноячеечного хода нет строго положительной
-  локально-полевой маржи C261 (строгое улучшение недоступно), ЕСТЬ
-  координатный минимум (переиспользование IsCoordinateMinimum
-  дословно; дельта-тождество + not_lt). Честно: координатный
-  минимум ≠ глобальный (свидетель в SingleCellDescent) ≠ валидное
-  решение (E4 сепарация в EnergyStopping).
-- A7 АУДИТ (НЕГАТИВНЫЙ): `Hagi.Model.EnergyReasoning.
-  focusedDisagreementWeight` — практическое правило фокусного
-  выбора (вес ячейки = её собственное несогласие
-  Σ_a max 0 (L_i(y_i) − L_i(a))); `Hagi.Model.EnergyReasoning.
-  concrete_focus_policy_violates_invariance` — СВИДЕТЕЛЬСТВО
-  НАРУШЕНИЯ премизы INVARIANCE `w(y^{i←a})_i = w(y)_i` теоремы
-  C263 focused_mixture_stationary: на фикстуре Fin 2 × Bool
-  (Bex/Kex/xtt) после жадного хода ячейки 0 (t→f, её
-  локально-полевой минимизатор) вес ячейки 0 падает 3 → 0.
-  Вес зависит от y_i самого через L_i(y_i) — ровно то, что премиза
-  запрещает. Итог честно: стационарность практического фокусного
-  сэмплера НЕ сертифицирована — C263 применим только в
-  premise-form; SUPPORT структурна для heat-bath ядер, INVARIANCE
-  ЛОЖНА для этой политики. Альтернативная y_{−i}-измеримая
-  политика не определяется (это дизайн политики, не аудит).
+## 23. Сертифицированная остановка и разделение валидности
 
-### A5 (дополнение A11): concrete validity separation для penalty-энергий
+([Hagi/Model/EnergyReasoning/Pseudolikelihood/Core.lean])
 
-Инстанциация премизы сепарации E4 «H(y) ≤ τ ⇒ valid(y)» для
-КОНКРЕТНЫХ penalty-энергий — доказанная, не аксиоматическая
-([ValiditySeparation](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)).
-Первичный инстанс — раскраска графов (adjacency-agnostic: рёбра —
-Finset упорядоченных пар, граф — симметрическая оболочка):
+- Два сертификата: `EnergyStop` (y, E(y) ≤ τ) — событие эффективности
+  (порог — эвристика); `ValidityCertificate` (y, preserves_givens +
+  satisfies_constraints) — продакшн-сертификат.
+- `stopping_sound_of_separation`: посылка «∀ y', E(y') ≤ τ ⇒ валиден»
+  переносит `EnergyStop` в `ValidityCertificate` — вся нагрузка на посылке
+  (форма certified-gate, как 2ε-зазоры certified-argmax). Свидетель провала:
+  нуль-энергетическая невалидная доска (Fin 2 × Bool).
 
-- ЯДРО (premise-form): `Hagi.Model.EnergyReasoning.
-  energy_threshold_lt_min_penalty_implies_valid` — если энергия есть
-  конечная сумма неотрицательных штрафов, каждый ненулевой штраф ≥
-  pmin > 0, а нулевые штрафы дают валидность, то энергия < pmin ⇒
-  валидность. Переиспользуемое ядро для целочисленных
-  штрафных семейств (раскраска здесь; судоку/n-ферзей покрываются
-  абстрактно в premise-form — отдельные инстанциации не делаются).
-- РЕАЛИЗАЦИЯ: `Hagi.Model.EnergyReasoning.coloringCoupling` —
-  попарное ядро K_ij(a,b) = 1[(i,j) ∈ edges ∧ a = b], 0 вне рёбер;
-  энергия конфликтов ЕСТЬ pairwiseEnergy с этим K (конвенция E1:
-  упорядоченная сумма × ½): H — счётчик конфликтов по построению,
-  никакая отдельная функция счёта не приравнивается.
-  `Hagi.Model.EnergyReasoning.coloringField` — унарный штраф
-  нарушения прецветки (givens).
-- ZERO-IFF: `Hagi.Model.EnergyReasoning.
-  graph_coloring_zero_energy_iff_valid` — энергия конфликтов
-  (B = 0) равна нулю ⇔ раскраска правильная (посылка hnodiag:
-  без диагональных рёбер).
-- СЕПАРАЦИЯ (τ < 1): `Hagi.Model.EnergyReasoning.
-  graph_coloring_separation` — конфигурация с энергией ≤ τ < 1
-  сохраняет givens (унарная часть ЧЕРЕЗ ядро A5, pmin = 1) и
-  правильна (попарная часть: каждое нарушенное неориентированное
-  ребро даёт ОБА упорядоченных индикатора — стоит ровно 1;
-  family-optimal порог). `Hagi.Model.EnergyReasoning.
-  graph_coloring_stop_sep_valid` — EnergyStop при τ < 1 производит
-  ValidityCertificate через stopping_sound_of_separation с
-  ДОКАЗАННОЙ премизой (инстанс, не аксиома); бинарное
-  условие правильности — спутник `Hagi.Model.EnergyReasoning.
-  graph_coloring_stop_proper` (унарный слот C сертификата не
-  выражает бинарные рёберные ограничения — записано честно).
-- ЧЕСТНЫЕ ГРАНИЦЫ: выученные (learned) энергии ТАКОЙ сепарации НЕ
-  имеют — низкая выученная энергия ≠ валидность (свидетель E4
-  нулевого поля); приём вывода learned-сэмплера только через
-  независимый валидатор (маршрут CRAMAcceptedSolution). τ < 1
-  требует симметрии hsym упорядоченного множества рёбер (без неё
-  одиночный направленный конфликт стоит лишь ½). Фикстуры
-  Fin 3 (треугольник): 2 цветов нет, 3 — энергия 0, монохром —
-  энергия ≠ 0.
+### 23.1 Разделение для penalty-энергий: раскраска графов
 
-### P3 (дополнение A11): числовые мосты ошибок — гвардированный спуск под шумом полей
+([Hagi/Model/EnergyReasoning/Pseudolikelihood.lean, ValiditySeparation])
 
-Мост от числовой премизы «вычисленные локальные поля ошибаются на ε»
-к точной арифметике C261
-([NumericalRobustness](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
+- Ядро `energy_threshold_lt_min_penalty_implies_valid`: если энергия —
+  конечная сумма неотрицательных штрафов, каждый ненулевой ≥ pmin > 0, а
+  нулевые дают валидность, то `энергия < pmin ⇒ валидность`. Судоку/n-ферзей
+  покрываются абстрактно в premise-form.
+- Реализация: `coloringCoupling` — `K_ij(a,b) = 1[(i,j) ∈ edges ∧ a = b]`;
+  энергия конфликтов есть `pairwiseEnergy` с этим K; `coloringField` — унарный
+  штраф нарушения прецветки (givens).
+- `graph_coloring_zero_energy_iff_valid`: нулевая энергия (B = 0) ⇔
+  правильная раскраска (hnodiag: без диагональных рёбер).
+- `graph_coloring_separation`: энергия ≤ τ < 1 ⇒ givens сохранены (pmin = 1)
+  и раскраска правильная (каждое нарушенное ребро даёт оба упорядоченных
+  индикатора — ровно 1; family-optimal порог). `graph_coloring_stop_sep_valid`:
+  `EnergyStop` при τ < 1 производит `ValidityCertificate` через
+  `stopping_sound_of_separation` с доказанной посылкой;
+  `graph_coloring_stop_proper` — бинарный спутник (унарный слот C
+  сертификата не выражает рёберные ограничения).
 
-- ОШИБКА DELTA = 2ε: `Hagi.Model.EnergyReasoning.
-  guarded_energy_delta_error` — из |L̂_i(a) − L_i(a)| ≤ ε следует
-  |Δ̂ − Δ| ≤ 2ε, где Δ = E(y^{i←a}) − E(y) = L_i(a) − L_i(y_i)
-  (симметричная K). Аудит константы: delta содержит ДВЕ оценки поля
-  (L̂ a, L̂ (y_i)), каждая ±ε; 2ε ТОЧНАЯ (обе ошибки в одну сторону
-  дают ровно 2ε), ε-only — fallacy одного оценивания. Без симметрии
-  delta есть разность СИММЕТРИЗОВАННОГО поля — премиза только на
-  localField её НЕ возвращает (честно в docstring, негативный пин
-  RootApi).
-- ЗВУЧНОСТЬ ГВАРДА: `Hagi.Model.EnergyReasoning.guarded_energy_delta`
-  — вычисленная маржа 2ε < L̂(y_i) − L̂(a) ⇒ ИСТИННАЯ энергия строго
-  убывает. Обе стороны честны: отвержение (маржа ≤ 2ε) информации НЕ
-  несёт — свидетель (истинная маржа 2, вычисленная 0, ε = 1):
-  консервативный гвард отвергает истинный спуск; stall ниже пола 2ε
-  возможен — цена звучности, записана, не спрятана.
-- АПГРЕЙД C261: `Hagi.Model.EnergyReasoning.
-  guarded_greedy_strict_drop` — композиция с
-  strict_drop_of_positive_margin в two-phase frozen-z постановке
-  (шов `localField_visibleBiasWithZ`: замороженный сдвиг добавляет
-  константу zc i к полю): точная арифметика C261 становится
-  noise-robust спуском; совместные (z, y)-ходы по-прежнему запрещены
-  (E3: z-ход меняет bias среди спуска и рушит delta-тождество).
-- Δ = 0 ВЫРОЖДЕННЫЙ СЛУЧАЙ (B1-low):
-  `Hagi.Model.EnergyReasoning.latent_update_degree_zero_exact_after_
-  one` и `latent_update_degree_zero_one_step_is_fixed` — при пустых
-  окрестностях обновление константно (1[i=G]/m), ТОЧНОЕ за один шаг;
-  любая точка достигает неподвижной за один шаг. Отдельные теоремы:
-  переиспользованный `latent_iterate_err_bound` / пол ε_round/(1−q)
-  требуют 0 < Δ (настоящее сжатие) — случай Δ = 0 не спрятан.
-- BF16-ИНСТАНЦИАЦИЯ ε: mapping (не перепруф) на СУЩЕСТВУЮЩУЮ модель
-  `Hagi.Runtime.BF16Delta.abs_sub_le_of_isNearest_normal`
-  (|decode c − x| ≤ 2⁻⁸·|x|, нормальный диапазон, точный ℚ-носитель):
-  абсолютная премиза ε = 2⁻⁸·max_b |L i b| через Rat.cast_le; гвард
-  принимает при марже > 2⁻⁷·max_b|L i b|. Ниже нормального диапазона
-  относительная оценка ломается (свидетель BF16 anchor round-trip) —
-  премиза там НЕ заявляется (reuse, не redefine).
+Выученные энергии такой сепарации не имеют; приём вывода learned-сэмплера
+только через независимый валидатор (маршрут `CRAMAcceptedSolution`). τ < 1
+требует симметрии hsym множества рёбер. Фикстура Fin 3 (треугольник): 3 цвета —
+энергия 0, 2 — нет, монохром — энергия ≠ 0.
 
-### B3 (дополнение A11): attention-связь L_ij(z) — мост CRAM+Z в ядро
+## 24. Типизированные CRAM-переходы в каноническое Cert-ядро
 
-Настоящая связь latent→visible ЧЕРЕЗ ВНИМАНИЕ, а не только
-аддитивный bias (аддитивный маршрут — visibleBiasWithZ, E3-шов;
-оба существуют)
-([AttentionCoupling](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
+([CramContracts](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)) —
+premise-form контракты над `CRAMState` с точными ресурсными законами (budget' =
+budget − cost, неотрицательный остаток).
 
-- КОНСТРУКЦИЯ: L_ij(a,b) = κ_ij·w_ij·f(a,b) + κ_ji·w_ji·f(b,a),
-  где w = attentionWeights s — softmax-веса α_ij = exp(s_ij)/Σ_k
-  exp(s_ik) при ЗАМОРОЖЕННОМ z в скорах s (z дискретен/заморожен,
-  дифференцируемость по z НЕ заявляется); факты softmax-симплекса:
-  неотрицательность, ≤ 1, сумма по строке = 1 (премиза
-  [Nonempty ι] — на пустом типе softmax нет).
-- СИММЕТРИЯ ПО ПОСТРОЕНИЮ (B3 MAIN):
-  `Hagi.Model.EnergyReasoning.attention_coupling_symmetric` —
-  L_ij(a,b) = L_ji(b,a): два направленных вклада меняются местами
-  ТОЧНО (add_comm, НИКАКОЙ премизы симметрии на κ или w) — приём
-  «верхнего треугольника» A9: оба направленных ребра встроены в
-  каждый L_ij, поэтому ядро K(z) удовлетворяет премизе hK из C261
-  по построению. Fin 3 числовой якорь — с НАМЕРЕННО асимметричным
-  κ (κa3 i j = (i+2j)/4+1): якорь ловит любую путаницу ролей
-  индексов.
-- ОГРАНИЧЕННОСТЬ:
-  `Hagi.Model.EnergyReasoning.attention_coupling_bounded` —
-  0 ≤ κ ≤ κmax, w ∈ [0,1], |f| ≤ fmax ⇒ |L_ij(a,b)| ≤ 2·κmax·fmax;
-  константа 2 ТОЧНАЯ (два направленных вклада, каждый ≤ κmax·fmax;
-  свидетель — f ≡ ±fmax).
-- ПОДКЛЮЧЕНИЕ К ПАРНОЙ ЭНЕРГИИ: `Hagi.Model.EnergyReasoning.
-  attentionK` — ядро K(z) при замороженном z;
-  `attention_K_symmetric` — hK-премиза C261 дословно;
-  `frozen_z_field_with_attention` — локальное поле для K(z)
-  определено и машина C261 применяется при замороженном z: ход в
-  минимизатор локального поля не увеличивает
-  pairwiseEnergy B (attentionK κ (attentionWeights s) f). Честно:
-  premise-form для спуска, совместной (z,y)-теоремы НЕТ (E3
-  two-phase протокол неизменен).
-- СВЯЗЬ LATENT-ОШИБКИ:
-  `Hagi.Model.EnergyReasoning.attention_coupling_field_diff` —
-  дрейф весов |w1 − w2| ≤ δ ⇒ возмущение локального поля ≤
-  |S_i|·2κmax·fmax·δ (S_i = univ \ {i}); каждый вклад diff =
-  κ·|Δw|·|f| в каждом из двух направленных слагаемых (треугольник +
-  sum_abs + sum_const).
-- КОМПОЗИРОВАННЫЙ КОНТРАКТ (B3 MAIN, premise-form, честно):
-  `Hagi.Model.EnergyReasoning.latent_error_couples_field` —
-  ‖z − z*‖ ≤ η + softmax-Липшиц ПРЕМИЗА |w(z) − w(z*)| ≤ L_sm·η
-  (лемма для этого носителя НЕ заявляется) ⇒ поле K(z) внутри
-  |S_i|·2κmax·fmax·L_sm·η от поля K(z*).
-- ГВАРД ПОГЛОЩАЕТ LATENT-ОШИБКУ:
-  `Hagi.Model.EnergyReasoning.latent_attention_guarded_drop` — при
-  ε := |S_i|·2κmax·fmax·L_sm·η вычисленная маржа 2ε < L̂(y_i) − L̂(a)
-  на полях K(z) ⇒ СТРОГИЙ спуск ИСТИННОЙ энергии
-  pairwiseEnergy B (attentionK κ w2 f) — рецепт 2ε-гварда C270
-  (guarded_energy_delta), инстанцированный на границу coupling.
-  Отвержение информации не несёт (честность C270 сохранена).
-- Честные границы (docstring): это СТРУКТУРНЫЙ мост CRAM+Z; полная
-  семантика Maze-Hard (носитель z*, достижимость, совместные
-  (z,y)-обновления) остаётся ОТКРЫТОЙ; softmax-Липшиц по z —
-  премиза, не теорема.
+- Полярность: `MetricDirection` (UtilityFloor | LossCeiling) с kept /
+  improves; `MetricDirection.kept_lossCeiling_neg` — потолок потерь c ⇔ пол
+  полезности −c для NEGATированной цели; kept_floor_forwards безусловен,
+  kept_floor_iff требует `Nonempty TaskId`.
+- Носитель `CRAMState`: problem, board, latent Option, searchBudget ℕ,
+  computeBudget ℝ, riskRem, deltaRem; компонентная ext_iff.
+- Обучение `CRAMTrainStep`: measured-drop на цели freeCellPseudolikelihood
+  (`J(newB) ≤ J(oldB) − drop`, drop ≥ 0; градиентного доказательства нет) +
+  ресурсные законы; majorizer-вход measured_of_majorizer.
+- Энергодесцент `CRAMEnergyDescentStep`: строго положительная локально-полевая
+  маржа (margin_pos), strictDrop переиспользует
+  `strict_drop_of_positive_margin`; маржа списывается из riskRem;
+  toLossCeilingDrop.
+- Эксплорация `CRAMExplorationStep`: легальный переход (положительная масса
+  ядра), row-stochastic премиза, клампы сохранены, поиск потребляется
+  строго. Десцент не утверждается.
+- Продукция `CRAMAcceptedSolution`: `ValidityCertificate` согласован с доской;
+  энерго-граница опциональна.
+- Мост в ядро `CRAMEnergyDescentStep.toKernelCertStep`: при явных премизах
+  чтения метрик (objective = энергия доски, budget = computeBudget, risk =
+  riskRem) десцент-шаг есть канонический `Hagi.Cert.CertStep`; телескоп §11.1
+  применим к CRAM-траекториям. Hold — полное равенство состояния
+  (cram_state_components фиксирует все 7 компонент).
 
-### B4 (дополнение A11): alternating (z,y)-раунд — дизайн R1 и первый честный раундовый шаг
+## 25. Attention-связь латента с видимым полем
 
-Joint latent-visible спуск организован как ЧЕРЕДУЮЩИЕСЯ РАУНДЫ с
-потолками на раунд (дизайн-решение записано в docstring; выбор
-маршрута: R1 alternating rounds, R2 small-gain деградирует в
-неравенство слэка R1 — z* НЕ зависит от y (носитель latentUpdate
-без y), движущейся латентной цели нет, поэтому асимптотический пол
-ε_round/(1−q) не возникает и его заявлять было бы пусто; R3
-(Lyapunov E_vis + c·‖z−z*‖²) требует запрещённой
-дифференцируемости по z):
+([AttentionCoupling](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)) Связь
+latent→visible через внимание (аддитивный маршрут `visibleBiasWithZ` — §20, оба
+существуют).
 
-- РАУНД-ТЕОРЕМА (B4 MAIN): `Hagi.Model.EnergyReasoning.
-  alternating_round_nonincreasing` — один полный раунд z-фаза →
-  y-фаза с НЕТочным латентом: премиза z-фазы (составной контракт
-  hsoft : |w(z_t) − w(z*)| ≤ L_sm·η, поставка η — потолок
-  оседания latent_settle_tolerance) + числовая ошибка полей ε
-  (C270) + составной гвард 2·(ε + |S_i|·2κmax·fmax·L_sm·η) <
-  вычисленная маржа ⇒ СТРОГИЙ спуск видимой энергии на ИСТИННОМ
-  ядре замороженного z*: pairwiseEnergy B (attentionK κ w2 f).
-  Композиция guarded_energy_delta с latent_error_couples_field
-  (треугольник); замороженные формулировки C270/C271 используются,
-  не переизлагаются. Аддитивно к C271: ОТДЕЛЬНАЯ числовая ε поверх
-  coupling-η и раундовая упаковка.
-- η-БУХГАЛТЕРИЯ: `Hagi.Model.EnergyReasoning.
-  alternating_zphase_one_step_error` — один шаг z-фазы сжимает
-  латентную ошибку к (статическому) фикспойнту: ‖latentUpdate z −
-  z*‖ ≤ (Δ/m)·‖z − z*‖; потолки раундов η_t ≤ q·η_{t−1} без
-  перезапуска (вход суммируемости дизайна R1). Сама суммируемость
-  НЕ доказывается (честная граница; следующее заявленное — N1
-  цепочка раундов, N2 суммируемость η_t, N3 ограниченные снизу
-  убывания).
-- Честные границы (docstring): premise-form по всей длине — неточность
-  z-фазы (η, hsoft) и числовая ошибка (ε) суть ГИПОТЕЗЫ, не
-  выводы; отвержение ниже слэка информации не несёт (честность
-  C270 унаследована). БЕЗУСЛОВНОЙ совместной (z,y)-теоремы НЕТ и
-  не заявляется: имена alternating_round_converges /
-  visible_descent_joint_z НЕ существуют (RootApi-негатив-пины).
-  Числовой якорь Fin 2/Bool — ПРИКЛАДНОЙ (энергия 0 → −2 через
-  саму теорему раунда).
+- `L_ij(a,b) = κ_ij·w_ij·f(a,b) + κ_ji·w_ji·f(b,a)`, где w =
+  `attentionWeights s` — softmax-веса `α_ij = exp(s_ij)/Σ_k exp(s_ik)` при
+  замороженном z в скорах s (дифференцируемость по z не заявляется);
+  неотрицательность, ≤ 1, сумма по строке = 1 при `[Nonempty ι]`.
+- Симметрия по построению `attention_coupling_symmetric`: `L_ij(a,b) =
+  L_ji(b,a)`
+  без посылки симметрии на κ или w (приём «верхнего треугольника»: оба
+  направленных ребра в каждом L_ij). Якорь Fin 3 с намеренно асимметричным κ
+  (`κa3 i j = (i+2j)/4+1`).
+- `attention_coupling_bounded`: `0 ≤ κ ≤ κmax`, `w ∈ [0,1]`, `|f| ≤ fmax` ⇒
+  `|L_ij(a,b)| ≤ 2·κmax·fmax`; константа 2 точная.
+- Подключение: `attentionK` — ядро K(z) при замороженном z;
+  `attention_K_symmetric` — hK-посылка §19.1 дословно;
+  `frozen_z_field_with_attention` — локальное поле для K(z) определено, и ход
+  в минимизатор локального поля не увеличивает `pairwiseEnergy B (attentionK κ
+  (attentionWeights s) f`.
+  Совместной (z,y)-теоремы нет.
+- `attention_coupling_field_diff`: `|w1 − w2| ≤ δ` ⇒ возмущение локального
+  поля ≤ `|S_i|·2κmax·fmax·δ` (S_i = univ \ {i}).
+- `latent_error_couples_field` (premise-form): `‖z − z*‖ ≤ η` + softmax-Липшиц
+  `|w(z) − w(z*)| ≤ L_sm·η` ⇒ поле K(z) внутри `|S_i|·2κmax·fmax·L_sm·η` от
+  поля K(z*). Лемма Липшица для этого носителя не заявляется.
+- `latent_attention_guarded_drop`: при `ε := |S_i|·2κmax·fmax·L_sm·η`
+  вычисленная маржа `2ε < L̂(y_i) − L̂(a)` на полях K(z) ⇒ строгий спуск
+  истинной энергии `pairwiseEnergy B (attentionK κ w2 f)` — рецепт 2ε-гварда
+  §19.4.
 
-#### сходимостный подъём N1–N3 (суммируемый слэк,
-  телескопирование траекторий, конечная терминация)
+Полная семантика Maze-Hard (носитель z*, достижимость, совместные
+(z,y)-обновления) остаётся открытой.
 
-- N1 СУММИРУЕМОСТЬ СЛЭКА РАУНДА:
-  `Hagi.Model.EnergyReasoning.alternating_round_slack_summable` —
-  слэк раунда с геометрическим затуханием (премиза-форма
-  `slack (t+1) ≤ (Δ/m)·slack t`; поставка для части C·η_t —
-  `alternating_zphase_one_step_error`) имеет ВСЕ частичные суммы
-  ≤ геометрического бюджета `slack 0 · m/(m−Δ)`. Затухание —
-  ГИПОТЕЗА, не вывод (цепочка от сжатия латентной ошибки
-  документирована, не заявлена).
-- N2 ТЕЛЕСКОПИРОВАНИЕ ТРАЕКТОРИЙ:
-  `Hagi.Model.EnergyReasoning.alternating_trajectory_bound` —
-  раунды с пошаговым спадом `d t` (премиза-форма) телескопируют:
-  `E (y N) ≤ E (y 0) − Σ_{t<N} d t`. Следствие пола
-  `alternating_trajectory_descent_budget`: с премизой
-  `Emin ≤ E (y t)` (пол — ГИПОТЕЗА, не вывод) суммарный спад
-  ≤ `E (y 0) − Emin`; совместный бюджет с N1 — комментарий в
-  docstring, не теорема.
-- N3 ТЕРМИНАЛЬНАЯ КОНЕЧНАЯ ФОРМА:
-  `Hagi.Model.EnergyReasoning.alternating_rounds_converge` — на
-  КОНЕЧНОМ пространстве конфигураций строго убывающие раунды
-  терминистируют (длина ≤ мощности образа энергии) — аргумент
-  ранжирования C268 переиспользован (`greedy_strict_search_
-  terminates` процитирован, не переизложен). ТОЛЬКО конечная/
-  строгая версия: безусловная аналитическая сходимость
-  alternating_round_converges остаётся ОТКРЫТОЙ (негатив-пин
-  неизменен; множественное `alternating_rounds_converge` —
-  терминация, НЕ сходимость к минимуму).
-- Числовые якоря (C294, через сами новые теоремы): частичная
-  сумма (1/2)^t ≤ 2; телескоп 10−t: финал 7 ≤ 10−3.
+## 26. Чередующиеся (z,y)-раунды
 
-### D3 (дополнение A11): sparse local field — эквивалентность и счёт операций
+([Hagi/Model/EnergyReasoning/Pseudolikelihood.lean])
 
-Заявленное FLOP-преимущество ЛОКАЛЬНЫХ (sparse) связей — как ТЕОРЕМЫ
-([SparseField](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
+Joint latent-visible спуск — чередующиеся раунды z-фаза → y-фаза с потолками на
+раунд. Альтернативы отклонены: small-gain деградирует в неравенство слэка
+(z* не зависит от y, движущейся латентной цели нет); Lyapunov
+`E_vis + c·‖z−z*‖²` требует запрещённой дифференцируемости по z.
 
-- НОСИТЕЛЬ: соседство `N : ι → Finset ι`; премиза-форма носителя
-  связи `couplingSupportedOn N K` (j ∉ N i → K i j a b = 0,
-  пофункционально); `sparseLocalField N B K y i a = B i a +
-  ∑_{j ∈ N i} K i j a (y j)` — сумма ТОЛЬКО по соседям.
-- КОНВЕНЦИЯ (C260, challenge-pin): плотное поле C261 суммирует по
-  `univ \ {i}` (упорядоченные пары, 1/2 СНАРУЖИ в энергии);
-  `sparse_neighbours_subset`: без само-соседей (∀ i, i ∉ N i)
-  `N i ⊆ univ \ {i}` ДОСЛОВНО — сплит не создаёт и не разрушает
-  диагональных вкладов; премиза hN load-bearing.
-- ЭКВИВАЛЕННОСТЬ (D3 MAIN):
-  `Hagi.Model.EnergyReasoning.sparse_localField_eq_dense` — при
-  носителе связи и без само-соседей sparse-поле РАВНО плотному
-  `localField` (нулевые связи не вносят ничего; Finset.sum_subset).
-- ДЕЛЬТА (D3 MAIN):
-  `Hagi.Model.EnergyReasoning.sparse_update_energy_delta_eq` — при
-  симметричном K точная дельта одно-клеточного хода плотной
-  pairwiseEnergy равна разности SPARSE-полей — тождество C261
-  `single_cell_move_energy_delta_symm` СЦИТИРОВАНО (rw), не
-  перепроверено.
-- СЧЁТ ОПЕРАЦИЙ (D3 MAIN): `localField_dense_work` /
-  `localField_sparse_work` (ℕ-произведения card·(card α)²,
-  Σ_{j∈N i} card α² одной формулой; work-model ОПРЕДЕЛЕНИЯ, не
-  асимптотика); `localField_op_count_le` (N i ⊆ univ \ {i} ⇒
-  sparse ≤ dense, Finset.card_le_card под общим множителем (card α)²);
-  `localField_op_count_lt` (СТРОГО при собственном подмножестве
-  соседей и 0 < card α — премиза НЕОБХОДИМА: пустой α обнуляет оба
-  произведения); `neighbour_card_le` ((N i).card ≤ card ι,
-  subset_univ).
-- СИММЕТРИЧНОЕ ХРАНЕНИЕ: `sparse_support_of_symmetric` —
-  симметричный K + носитель ⇒ транспонированная сторона тоже нулевая
-  (i ∉ N j → K i j a b = 0): симметричное хранение не протаскивает
-  ненулевую связь мимо соседних множеств.
-- Числовые якоря: Fin 4, клетка 0 с 2 из 3 соседей {1,3};
-  sparse = dense (все клетки/значения); работа 2·4 = 8 < 12 = 3·4
-  (decide).
-- Честные границы (docstring): счёт — ℕ-произведения (без
-  арифметической модели и O-нотаций); носитель — премиза (что
-  произвольный K допускает малое N — НЕ теорема); для конструктивно
-  симметризованного ядра (рецепт C271 attentionCoupling) носитель
-  даёт N i ∪ N j-формы — замечание-документация, не теорема.
+- `alternating_round_nonincreasing`: премиза z-фазы
+  (`hsoft : |w(z_t) − w(z*)| ≤ L_sm·η`, η — потолок оседания
+  `latent_settle_tolerance`) + числовая ошибка полей ε (§19.4) + составной
+  гвард `2·(ε + |S_i|·2κmax·fmax·L_sm·η) < вычисленная маржа` ⇒ строгий спуск
+  видимой энергии на истинном ядре замороженного z*:
+  `pairwiseEnergy B (attentionK κ w2 f)`. Композиция `guarded_energy_delta` с
+  `latent_error_couples_field`.
+- `alternating_zphase_one_step_error`: `‖latentUpdate z − z*‖ ≤ (Δ/m)·‖z −
+  z*‖`;
+  потолки раундов `η_t ≤ q·η_{t−1}`. Суммируемость η_t сама не доказывается.
+- `alternating_round_slack_summable`: слэк с геометрическим затуханием
+  (посылка `slack (t+1) ≤ (Δ/m)·slack t`) имеет все частичные суммы ≤
+  `slack 0 · m/(m−Δ)`. Затухание — гипотеза.
+- `alternating_trajectory_bound`: `E (y N) ≤ E (y 0) − Σ_{t<N} d t`;
+  `alternating_trajectory_descent_budget`: при `Emin ≤ E (y t)` суммарный
+  спад ≤ `E (y 0) − Emin` (пол — гипотеза).
+- `alternating_rounds_converge`: на конечном пространстве строго убывающие
+  раунды терминистируют (длина ≤ мощности образа энергии; аргумент
+  ранжирования §19.5). Только конечная/строгая версия: аналитическая
+  сходимость остаётся открытой.
 
-### B2 (дополнение A11): latent fixed point — носитель и достижимость
-
-Семантика носителя СКРЫТОЙ фиксированной точки z* уравнения
-`z* i = (Σ_{j ∈ N i} z* j + 1[i = G])/m` (m > Δ, симметричная
-смежность; переносчик C272 [LatentEnergy](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)) —
-как ТЕОРЕМЫ ([LatentSupport](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
-
-- ЗНАКОПРЕОБРАЗОВАНИЕ (challenge-pin): инъекция цели ПОЛОЖИТЕЛЬНА
-  (1[i = G], знак +), соседние члены со знаком + — «мин-аргумент»
-  применяется без переворота знаков (в файле НЕТ пина z = −H).
-- НЕОТРИЦАТЕЛЬНОСТЬ (B2 MAIN):
-  `Hagi.Model.EnergyReasoning.latent_fixed_nonneg` — любая
-  неподвижная точка неотрицательна: в аргмин-индексе
-  m·z i = Σ_{N i} z j + 1[i=G] ≥ card(N i)·z i ⇒ (m − card)·z i ≥ 0,
-  m > Δ ≥ card ⇒ z i ≥ 0 (премиза неотрицательности НЕ
-  предполагается — ВЫВОДИТСЯ).
-- ЦЕЛЕВОЙ ИСТОЧНИК: `latent_fixed_goal_pos` — 1/m ≤ z* G;
-  РАСПРОСТРАНЕНИЕ ПО РЕБРУ: `latent_fixed_ge_of_neighbour` —
-  i ∈ N j ⇒ z* j / m ≤ z* i (симметрия load-bearing: j попадает в
-  N i; неотрицательность закрывает остальные члены).
-- ДОСТИЖИМОСТЬ (B2 MAIN): `LatentPath N G i k` (индуктивная,
-  длина = число рёбер);
-  `Hagi.Model.EnergyReasoning.latent_fixed_pos_of_reachable` —
-  LatentPath N G i k ⇒ (1/m)^(k+1) ≤ z* i > 0: положительность
-  распространяется от цели вдоль КАЖДОГО пути (индукция по выводу:
-  цель через goal_pos, шаг через ge_of_neighbour).
-- ВЕРХНЯЯ ГРАНИЦА: `latent_fixed_upper_bound` — z* i ≤ 1/(m − Δ)
-  (максимум-зеркало мин-аргумента: m·z_max = Σ + 1 ≤ Δ·z_max + 1).
-  Per-distance DECAY-оценка (z i ≤ z_G/m^k·c) НЕ заявляется —
-  требует структуры графа сверх ограниченности степени (вне-путевые
-  рёбра ломают чистую оценку); имя latent_fixed_decay_upper
-  несуществующее (RootApi negative pin). Честность важнее полноты.
-- НУЛЬ НА ЗАМКНУТОМ (B2 MAIN):
-  `Hagi.Model.EnergyReasoning.latent_fixed_zero_off_closed` — на
-  C', замкнутом по соседям (∀ i ∈ C', N i ⊆ C') и без цели
-  (∀ i ∈ C', i ≠ G), z* = 0: 0-на-C'-заплатка z* снова неподвижная
-  точка (замкнутость для i ∈ C'; СИММЕТРИЯ для i ∉ C' — сосед из C'
-  втянул бы i в C'), `latent_fixed_unique` (Δ/m-контракция C272)
-  возвращает её на z*.
-- Якорь: zstar4 = ![21/55, 8/55, 3/55, 1/55] (Fin 4, m=3, G=0):
-  все > 0; (1/3)^4 = 1/81 ≤ 1/55; 21/55 ≤ 1 = 1/(3−2);
-  emptyN2/zstar2 (Fin 2): z* = ![1/3, 0], нуль на C' = {1}.
-- Честные границы: всё — о НЕПОДВИЖНОЙ ТОЧКЕ (итеративные оценки —
-  C272 latent_iterate_err_bound, не дублируются); decay-upper —
-  честный DEFER.
-
-### A8 (E-track аудит, addendum A11 контекст): Doeblin-миноризация heat-bath ядра — контракция и геометрическое смешивание
-
-Перенос Doeblin-контракции из карантина ([Research/PPT](Hagi/Research/PPT.lean),
-namespace `Hagi.Discovery`, НЕ импортируется) на CRAM heat-bath ядро —
-математика пере-выведена в main с нуля на generic-носителе
-([HeatBathMixing](Hagi/Model/EnergyReasoning/Pseudolikelihood.lean)):
-- УСТРОЙСТВО: `doeblinMinorized K c := 0 < c ∧ ∀ x y, c ≤ K x y`;
-  `vecMul`/`hbChain` — одношаговый pushforward и n-шаговая цепь.
-- ПАРНАЯ КОНТРАКЦИЯ (A8 MAIN, из первых принципов):
-  `Hagi.Model.EnergyReasoning.tv_pair_contraction` — row-stochastic ядро
-  с entrywise-полом `c` сжимает ЛЮБУЮ пару равномассовых векторов:
-  TV(μK, νK) ≤ (1 − |S|·c)·TV(μ, ν); разложение знаковой разности на
-  положительную/отрицательную части, тождество
-  |P − Q| = P + Q − 2·min(P,Q); стационарность НЕ нужна (входит только
-  в следствия `tv_contraction_stationary_sharp` /
-  `tv_contraction_stationary` — слабая форма `(1 − c)` из текста
-  аудита); константа 1 − |S|·c — острая (аудит-текст 1 − c — слабое
-  следствие).
-- ПОЛ ВЕСОВ: `heatbathWeight_floor` — премиза разброса локальных полей
-  |L_i(a) − L_i(b)| ≤ M при T > 0 ⇒ каждый heat-bath вес ≥
-  exp(−M/T)/card α.
-- ДОЕБЛИН-ПОЛ (A8 MAIN, премиза-форма):
-  `Hagi.Model.EnergyReasoning.heatbath_doeblin_floor` — при разбросе
-  полей И премизе носителя (каждая цель — одноячеечный ход) ядро
-  Doeblin-миноризовано с c = exp(−M/T)/card α;
-  `heatbath_doeblin_floor_subsingleton` — носитель-премиза бесплатна
-  при card ι ≤ 1 (одноклеточное пространство).
-- СТАЦИОНАРНАЯ ПЛОТНОСТЬ: `stationaryDensity` — нормированная
-  Болцмановская; стационарность переносится из `heatbath_stationary`
-  линейностью.
-- КОНТРАКЦИЯ К π̂ (A8 MAIN): `heatbath_tv_contraction` —
-  Doeblin-премиза на ядре ⇒ TV(μK, π̂) ≤ (1 − c)·TV(μ, π̂) (острая
-  константа — `heatbath_tv_contraction_sharp`).
-- СМЕШИВАНИЕ (A8 MAIN): `heatbath_mixing` — TV(μKⁿ, π̂) ≤ (1 − c)ⁿ;
-  `heatbath_mixing_time` — n ≥ log e / log(1 − c) шагов достаточно
-  для TV ≤ e (маршрут exp·nat-mul, без rpow).
-- Якорь: Bex/Kex/xtt, разброс 3 при T = 1: голые числа
-  exp(−3)/2 ≤ 1/(1 + exp(−3)) и тот же пол через
-  `heatbathWeight_floor`; Fin 2 × Bool uniform-якорь парной
-  контракции — в зонде C277 (точное равенство 0 = 0 на константе
-  1 − |Bool|·(1/2)).
-- Честные границы: entrywise-пол для card ι ≥ 2 БЕЗ премизы носителя
-  ЛОЖЕН (вне-носительные переходы нулевые); ирредуцибельность /
-  апериодичность безусловного ядра НЕ заявлены (пол их поглощает;
-  RootApi negative pins heatbath_irreducible / heatbath_aperiodic);
-  фокусная смесь вне области (C268 — нарушение INVARIANCE);
-  spectral gap / cutoff не заявлены.
-
-### E2 (дополнение A10): прямоугольная спектральная идентификация — Eckart-Young true-tail мост
-
-Замыкание отложенной идентификации C232 (хвост встроенной
-квадратной матрицы ↔ спектр прямоугольных singularValues).
-Модуль `Hagi/Contracts/GradientBottleneckIdentification.lean`:
-
-```
-selP_conjTranspose_mul_selP        : inj injective → (selP inj)ᴴ·selP inj = 1
-                                     (ортонормированные столбцы селектора)
-embedded_gram_eq                   : (selP inj·A)ᴴ·(selP inj·A) = Aᴴ·A
-                                     (Gram-матрицы совпадают — мост)
-embedded_eigenvalues₀_eq           : eigenvalues₀ встроенного Gram = eigenvalues₀ Aᴴ·A
-                                     (через charpoly: sort_roots_charpoly_eq_eigenvalues₀)
-embedded_singularValues_eq_rect    : singularValues₀ (selP inj·A) = Rectangular.singularValues A
-                                     на Fin(min #m #n) — сама идентификация
-singularValues_pos_of_lt_rank_rect : k < rank A → σₖ > 0
-                                     (rank-head импликация: premise-form → теорема;
-                                     антонность + rank = #{σ ≠ 0})
-rectangularTail / tail_sum_sq_truncatedSingularValues_tail_eq
-                                   : хвост-сумма C232 = Σ (истинный прямоугольный хвост)²
-eckart_young_lower_bound_rect_true_tail : rank B ≤ k → Σ tail_rect(A,k)² ≤ ‖A−B‖²_F
-gradient_bottleneck_bound_rect_true_tail : consumer для logitGradRectM
-```
-
-Честные границы: вывод rank(Δ) ≤ 2D из ранга головы остаётся
-premise-form (как в C232); Mathlib
-`LinearMap.singularValues` (Analysis.InnerProductSpace.SingularValues)
-содержит аналогичный API, но мост matrix↔LinearMap в репозитории
-не закреплён — работаем в матричном/`eigenvalues₀`-носителе.
-Симметричный перенос C232-«dedup» не требуется: квадратные
-tail-формы не дублируют общую форму (общей прямоугольной формы до
-C281 не существовало).
-
-## История фаз
-
-Итоги фаз C263–C331 (ядро сертификации и parametric CE, хвосты
-E4–E6 и Python-зеркало, compute-сертификация) вынесены из этого
-файла: события — `git log`, разбор эр C591–C667 —
-[era-index](.omc/analysis/era-index.md); формулировки — карточки
-STATUS.md, каноны — §27.
+Якоря: частичная сумма `(1/2)^t ≤ 2`; телескоп `10−t`: финал `7 ≤ 10−3`. Всё —
+premise-form: неточность z-фазы и числовая ошибка — гипотезы; безусловной
+совместной (z,y)-теоремы нет. Числовой якорь Fin 2/Bool — энергия `0 → −2`
+через теорему раунда.
 
 ## 27. Каноны Theory
 
-Семейные теории живут в канон-модулях: одно понятие описано ровно один
-раз, исторические пространства имён сохранены внутри одного файла.
-Отдельные файлы — либо теорема-мост, либо bench-носитель.
+Семейные теории живут в канон-модулях: одно понятие описано ровно один раз,
+исторические пространства имён сохранены внутри одного файла. Отдельные файлы —
+либо теорема-мост, либо bench-носитель.
 
 | Канон-модуль | Семейство (что доказывает) |
 | --- | --- |
-| [`Hagi/Theory/Continual.lean`](Hagi/Theory/Continual.lean) | GPM continual: exact zero forgetting, multi-task accumulation, rank-trunc/A-GEM trade-off, hybrid selection (C485→C510). |
-| [`Hagi/Theory/Statistics.lean`](Hagi/Theory/Statistics.lean) | Holdout/anytime: honest finite-population holdout, anytime e-process (Catoni×Ville), two-domain transport, without-replacement kernel (W3, C435–C487). |
-| [`Hagi/Theory/SelfEdit.lean`](Hagi/Theory/SelfEdit.lean) | Adopt-gate (strict monotone + finiteness ⇒ termination) и momentum-knob над тем же гейтом (C457→C515). |
-| [`Hagi/Theory/Compression.lean`](Hagi/Theory/Compression.lean) | EF-телескоп, EF21 in-step quantized loop, certified ternary jump (C434→C515). |
-| [`Hagi/Theory/MergeQuant.lean`](Hagi/Theory/MergeQuant.lean) | Fisher-квантование (water-filling, anisotropy) + измеряемый merge-гейт (C472, C476). |
-| [`Hagi/Theory/Softmax.lean`](Hagi/Theory/Softmax.lean) | Рациональный exp-сэндвич, certified softmax/CE, monotonicity + certified prediction, band tightening (C486→C516). |
-| [`Hagi/Theory/SafeStep.lean`](Hagi/Theory/SafeStep.lean) | Центральный стохастический safe step с Freedman-радиусом: accept/refuse-дихотомия (C388). |
-| [`Hagi/Theory/MasterTheorem.lean`](Hagi/Theory/MasterTheorem.lean) | Сборная траекторная теорема certified-or-refuse + бюджет/whp-каналы (C392, v4 T6). |
-| [`Hagi/Theory/FullPipeline.lean`](Hagi/Theory/FullPipeline.lean) | Единый шестифазный certified-цикл на одной цели (C479). |
-| [`Hagi/Theory/BlockLipschitz.lean`](Hagi/Theory/BlockLipschitz.lean) | Выведенные lip/causal константы реальных атомов (RMSNorm, MLP, attention; C465). |
+| [`Hagi/Theory/Continual.lean`](Hagi/Theory/Continual.lean) | GPM continual: exact zero forgetting, multi-task accumulation, rank-trunc/A-GEM trade-off, hybrid selection. |
+| [`Hagi/Theory/Statistics.lean`](Hagi/Theory/Statistics.lean) | Holdout/anytime: honest finite-population holdout, anytime e-process (Catoni×Ville), two-domain transport, without-replacement kernel. |
+| [`Hagi/Theory/SelfEdit.lean`](Hagi/Theory/SelfEdit.lean) | Adopt-gate (strict monotone + finiteness ⇒ termination) и momentum-knob над тем же гейтом. |
+| [`Hagi/Theory/Compression.lean`](Hagi/Theory/Compression.lean) | EF-телескоп, EF21 in-step quantized loop, certified ternary jump. |
+| [`Hagi/Theory/MergeQuant.lean`](Hagi/Theory/MergeQuant.lean) | Fisher-квантование (water-filling, anisotropy) + измеряемый merge-гейт. |
+| [`Hagi/Theory/Softmax.lean`](Hagi/Theory/Softmax.lean) | Рациональный exp-сэндвич, certified softmax/CE, monotonicity + certified prediction, band tightening. |
+| [`Hagi/Theory/SafeStep.lean`](Hagi/Theory/SafeStep.lean) | Центральный стохастический safe step с Freedman-радиусом: accept/refuse-дихотомия. |
+| [`Hagi/Theory/MasterTheorem.lean`](Hagi/Theory/MasterTheorem.lean) | Сборная траекторная теорема certified-or-refuse + бюджет/whp-каналы. |
+| [`Hagi/Theory/FullPipeline.lean`](Hagi/Theory/FullPipeline.lean) | Единый шестифазный certified-цикл на одной цели. |
+| [`Hagi/Theory/BlockLipschitz.lean`](Hagi/Theory/BlockLipschitz.lean) | Выведенные lip/causal константы реальных атомов (RMSNorm, MLP, attention). |
 
 Statement-канон результатов с карточками (оптимальный шаг γ* = 1/L,
 иерархические окна, reading floor, growth gate) —
 [docs/PALOMAR-CARDS.md](docs/PALOMAR-CARDS.md), карточки 9–14; Lean-носители —
 [`CoverageReading`](Hagi/Theory/CoverageReading.lean),
-[`growthGate`](Hagi/Theory/NegativeTransfer.lean) (namespace `Hagi.Theory.GrowthGate`).
+[`growthGate`](Hagi/Theory/NegativeTransfer.lean) (namespace
+`Hagi.Theory.GrowthGate`).
 
 Отдельные мосты: [`MasterEF`](Hagi/Theory/MasterEF.lean) (endpoint-only
-EF-штраф), [`CEChain`](Hagi/Theory/CEChain.lean) (унифицированная
-CE-цепочка), [`BlockAdmission`](Hagi/Theory/BlockAdmission.lean) /
+EF-штраф), [`CEChain`](Hagi/Theory/CEChain.lean) (унифицированная CE-цепочка),
+[`BlockAdmission`](Hagi/Theory/BlockAdmission.lean) /
 [`FunctionPreservingGrowth`](Hagi/Theory/FunctionPreservingGrowth.lean) /
-[`GrowTrunkBlock`](Hagi/Theory/GrowTrunkBlock.lean) / [`ProvenTrunk`](Hagi/Theory/ProvenTrunk.lean)
-(рост ствола), [`HadamardIncoherence`](Hagi/Theory/HadamardIncoherence.lean),
+[`GrowTrunkBlock`](Hagi/Theory/GrowTrunkBlock.lean) /
+[`ProvenTrunk`](Hagi/Theory/ProvenTrunk.lean) (рост ствола),
+[`HadamardIncoherence`](Hagi/Theory/HadamardIncoherence.lean),
 [`AdaptiveMajorizer`](Hagi/Theory/AdaptiveMajorizer.lean),
 [`AnytimeHoldoutStop`](Hagi/Theory/AnytimeHoldoutStop.lean),
 [`CertifyThenCommit`](Hagi/Theory/CertifyThenCommit.lean),
-[`OnlinePL`](Hagi/Theory/OnlinePL.lean), [`MDLPrune`](Hagi/Theory/MDLPrune.lean),
+[`OnlinePL`](Hagi/Theory/OnlinePL.lean),
+[`MDLPrune`](Hagi/Theory/MDLPrune.lean),
 [`FlowMatching`](Hagi/Theory/FlowMatching.lean),
 [`Interpretability`](Hagi/Theory/Interpretability.lean),
 [`GaugeQuotient`](Hagi/Theory/GaugeQuotient.lean),
-[`LogitGrowth`](Hagi/Theory/LogitGrowth.lean).
-Bench-мосты: [`CertCEHoldout`](Hagi/Theory/CertCEHoldout.lean),
+[`LogitGrowth`](Hagi/Theory/LogitGrowth.lean). Bench-мосты:
+[`CertCEHoldout`](Hagi/Theory/CertCEHoldout.lean),
 [`CertSandwichBench`](Hagi/Theory/CertSandwichBench.lean),
 [`MiniHagi`](Hagi/Theory/MiniHagi.lean),
 [`MiniHagi2`](Hagi/Theory/MiniHagi2.lean),
@@ -3283,38 +2344,34 @@ Bench-мосты: [`CertCEHoldout`](Hagi/Theory/CertCEHoldout.lean),
 
 ### 27a. Мосты HAGI_v2 и bench-режимы
 
-Мосты HAGI_v2 (детали и witness-ссылки — карточки STATUS.md):
+| Мост | Суть (одно описание — ровно один раз) |
+| --- | --- |
+| [`GrowSnap`](Hagi/Theory/GrowSnap.lean) | snap-политика grow: сброс знаменателей на границе уровня. |
+| [`RollbackGate`](Hagi/Theory/RollbackGate.lean) | exact pre-step rollback: no-commit probe на копии. |
+| [`WeightDecayLeak`](Hagi/Theory/WeightDecayLeak.lean) | projected decay сохраняет GPM-память точно, naive — строгая утечка теоремой. |
+| [`EmpiricalBernstein`](Hagi/Probability/EmpiricalBernstein.lean) | EB-радиус: σ̂-подстановка + аддитивный член поверх Freedman. |
+| [`OEComplete`](Hagi/Theory/OEComplete.lean) | OE-дедупликация поиска не теряет решение (полнота относительно проб). |
+| [`ExactBypass`](Hagi/Theory/ExactBypass.lean) | p = 1 ⇒ CE-вклад покрытия 0 ровно; гейт отвергает p = 0. |
+| [`MiniHagiLoop`](Hagi/Theory/MiniHagiLoop.lean) | full_loop_sound — композиционная обёртка certified-цикла; итеративная версия — только coverage-монотонность. |
+| [`AdapterGrowth`](Hagi/Theory/AdapterGrowth.lean) | механика роста адаптеров (snap-цикл, rank-adaptive, SVD-merge, self-compress, distill); карта секций — module docstring. |
+| [`AdapterBank`](Hagi/Theory/AdapterBank.lean) | изоляция слотов банка точно; warm-transfer = копия + forgetA=0. |
+| [`NegativeTransfer`](Hagi/Theory/NegativeTransfer.lean) | точная iff-граница warm хуже cold (квадратичный мир); бюджет не размывает. |
+| [`Softmax` (Softmax.lean)](Hagi/Theory/Softmax.lean) | суммарная p̂-анти-монотонность: держится ровно при фиксированном числителе одной банки; контрпример-теорема при смешении. |
+| [`TritCodec`](Hagi/Theory/TritCodec.lean) | биекция 5 тритов ↔ байт (3^5 = 243 ≤ 2^8), roundtrip + инъективность. |
+| [`MasterTheoremV3`](Hagi/Theory/MasterTheoremV3.lean) | лестница v3 → v3.5 одним файлом: конъюнкция делегатов; v3.5 = + контракт `OptimizerPremises` и оптимизаторный блок. |
+| [`AutoTransferGate`](Hagi/Theory/AutoTransferGate.lean) | probe-A/B гейт warm/cold = точная граница NegativeTransfer в H-метрике. |
+| [`FactLedger`](Hagi/Theory/FactLedger.lean) | append-only факт-леджер: preserves + monotone; dedup опущен. |
+| [`RangeWrap`](Hagi/Theory/RangeWrap.lean) | замкнутость mod-wrap в [lo, lo+m) (Int.emod). |
+| [`AdaptiveContext`](Hagi/Theory/AdaptiveContext.lean) | self-CE elbow: наименьший W с CE ≤ best·(1+tol). |
+| [`KnowledgeConsolidation`](Hagi/Theory/KnowledgeConsolidation.lean) | remember/consolidate: append-only память, graceful degradation. |
 
-| Мост | Волна/C | Суть (одно описание — ровно один раз) |
-| --- | --- | --- |
-| [`GrowSnap`](Hagi/Theory/GrowSnap.lean) | C521 | snap-политика grow: сброс знаменателей на границе уровня. |
-| [`RollbackGate`](Hagi/Theory/RollbackGate.lean) | C530 | exact pre-step rollback: no-commit probe на копии. |
-| [`WeightDecayLeak`](Hagi/Theory/WeightDecayLeak.lean) | C538 | projected decay сохраняет GPM-память ТОЧНО, naive — строгая утечка теоремой. |
-| [`EmpiricalBernstein`](Hagi/Probability/EmpiricalBernstein.lean) | C539 | EB-радиус: σ̂-подстановка + аддитивный член поверх Freedman. |
-| [`OEComplete`](Hagi/Theory/OEComplete.lean) | C540 | OE-дедупликация поиска НЕ теряет решение (полнота относительно проб). |
-| [`ExactBypass`](Hagi/Theory/ExactBypass.lean) | C541 | p = 1 ⇒ CE-вклад покрытия 0 РОВНО; honest-гейт отвергает p = 0. |
-| [`MiniHagiLoop`](Hagi/Theory/MiniHagiLoop.lean) | C547/C549 | full_loop_sound — композиционная обёртка certified-цикла; итеративная версия — только coverage-монотонность как новый факт. |
-| [`AdapterGrowth`](Hagi/Theory/AdapterGrowth.lean) | C532–C560 | механика роста адаптеров (snap-цикл, rank-adaptive, SVD-merge, self-compress, distill, v3-сборка); карта секций — module docstring (C587). |
-| [`AdapterBank`](Hagi/Theory/AdapterBank.lean) | C567 | изоляция слотов банка ТОЧНО; warm-transfer = копия + forgetA=0. |
-| [`NegativeTransfer`](Hagi/Theory/NegativeTransfer.lean) | C572 | точная iff-граница warm хуже cold (квадратичный мир); бюджет не размывает. |
-| [`Softmax` (C569)](Hagi/Theory/Softmax.lean) | C569 | суммарная p̂-анти-монотонность: держится ровно при фиксированном числителе одной банки; контрпример-теорема при смешении. |
-| [`TritCodec`](Hagi/Theory/TritCodec.lean) | C574 | биекция 5 тритов ↔ байт (3^5 = 243 ≤ 2^8), roundtrip + инъективность. |
-| [`MasterTheoremV3`](Hagi/Theory/MasterTheoremV3.lean) | C576 | лестница v3 → v3.5 одним файлом: 5/8/10/11/14/14+6 клозов (конъюнкция делегатов; C600, C614, C622, C662; v3.5 = + контракт `OptimizerPremises` (O7) и оптимизаторный блок O1–O6, C687). |
-| [`AutoTransferGate`](Hagi/Theory/AutoTransferGate.lean) | C577 | probe-A/B гейт warm/cold = точная граница C572 в H-метрике. |
-| [`FactLedger`](Hagi/Theory/FactLedger.lean) | C579 | append-only факт-леджер: preserves + monotone; dedup честно опущен. |
-| [`RangeWrap`](Hagi/Theory/RangeWrap.lean) | C581 | замкнутость mod-wrap в [lo, lo+m) (Int.emod). |
-| [`AdaptiveContext`](Hagi/Theory/AdaptiveContext.lean) | C582 | self-CE elbow: наименьший W с CE ≤ best·(1+tol). |
-| [`KnowledgeConsolidation`](Hagi/Theory/KnowledgeConsolidation.lean) | C584 | remember/consolidate: append-only память, graceful degradation. |
+Канон bench-паттерна (режимы `scripts/bench_bridge.py`, единый скелет:
+append-блок + choice + dispatch, certified snap-GD с drop>0 COMMIT / HOLD,
+forgetA=0 bit-exact asserts, drift-детект на замороженной копии корпуса,
+EB-телеметрия, негативы wrong-const/HOLD, witness-lean, аксиомы только
+propext/Quot.sound/Classical.choice): mini-hagi-loop, mini-hagi-loop2,
+universal-loop, universal-loop-nl, self-compress-loop, distill, mini-hagi-v3,
+adapter-transfer, adapter-transfer-auto, band-check, adapter-snap-grow,
+adapter-rank-adaptive, adapter-merge. Измеренные вердикты и witness-пути —
+карточки STATUS.md.
 
-Канон bench-паттерна (все режимы `scripts/bench_bridge.py`,
-единый скелет: append-блок + choice + dispatch,
-certified snap-GD с drop>0 COMMIT / HOLD, forgetA=0 bit-exact
-asserts, drift-детект на замороженной копии корпуса, EB-телеметрия,
-негативы wrong-const/HOLD, witness-lean, аксиомы только
-propext/Quot.sound/Classical.choice): режимы mini-hagi-loop,
-mini-hagi-loop2, universal-loop, universal-loop-nl,
-self-compress-loop, distill, mini-hagi-v3,
-adapter-transfer, adapter-transfer-auto, band-check,
-adapter-snap-grow, adapter-rank-adaptive, adapter-merge.
-Измеренные вердикты — карточки STATUS.md (C547–C577), там же
-witness-пути и freeze-дельты.

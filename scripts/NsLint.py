@@ -1,12 +1,8 @@
 #!/usr/bin/env python3
-"""NsLint: file namespace must match its folder .
-
-Rule: every Hagi/<Folder>/**.lean must declare a namespace
-`Hagi.<Folder>` (or a child of it). Known exceptions are tracked as a
-SHRINKING baseline (like DupLint): verify fails only if the violation
-count exceeds nslint_baseline.txt.
-
-`--update` rewrites the baseline. Print NSLINT: PASS/FAIL.
+"""NsLint: every Hagi/<Folder>/**.lean must declare a namespace `Hagi.<Folder>`
+(or a child of it). Run `python scripts/NsLint.py`: NSLINT: PASS while the violation
+count does not exceed the shrinking nslint_baseline.txt, else FAIL; `--update`
+rewrites the baseline.
 """
 import os
 import re
@@ -20,7 +16,7 @@ ROOT = Path(__file__).resolve().parent.parent / "Hagi"
 BASELINE = os.path.join(os.path.dirname(__file__), "nslint_baseline.txt")
 NS_RE = re.compile(r"^namespace\s+([\w.]+)", re.M)
 
-# C217/C239/C240 quarantine: files under the shared quarantine prefixes
+# Quarantine: files under the shared quarantine prefixes
 # (see scripts/_shared.py) keep their original namespaces (avoids
 # declaration-name churn); exempt from the namespace-matches-folder rule.
 

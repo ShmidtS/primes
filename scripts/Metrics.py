@@ -1,19 +1,9 @@
 #!/usr/bin/env python3
-"""Metrics (audit v4 Phase 0 / Phase 6): structural health
-indicators for the Hagi corpus. Informational (exit 0) —
-gating comes later (Phase 6).
-
-Reports:
-- M1 namespace != directory (files whose top-level namespace
-  does not match their folder path), External excluded;
-- M2 duplicate declaration names across modules;
-- M3 import graph: island modules (no Hagi imports), and
-  theorem reachability from the Master roots (MasterHAGI*,
-  GrandSynthesis, ArchitectureTheorem, TopLevel). Those roots
-  are archived under Hagi/Research/Legacy and outside the root
-  import closure, so on the current tree M3 reports 0 reachable;
-- M4 h_emp_* premise count (audit: premise-driven vs
-  model-derived theory).
+"""Metrics: structural health indicators for the Hagi corpus (informational,
+exit 0): M1 namespace != directory, M2 duplicate declaration names, M3 island
+modules and theorem reachability from the Master roots (archived under
+Hagi/Research/Legacy, so 0 reachable on the current tree), M4 h_emp_* premise
+count. Run `python scripts/Metrics.py` (also scripts/report.sh).
 """
 import os
 import re

@@ -1,16 +1,9 @@
 #!/usr/bin/env python3
-"""Merge one ordinary-source Hagi provider into one receiver, byte-safely.
-
-The supported import grammar is deliberately limited to the plain import
-form documented at
-https://lean-lang.org/doc/reference/latest/Source-Files-and-Modules/.
-Module/prelude headers are recognized for graph discovery, never mutated.
-
-Usage (from the source root containing Hagi/ and Hagi.lean):
-  python scripts/merge_module.py CHILD PARENT [--append]
-      [--retarget FILE ... | --retarget-all]
-
-Rollback covers handled process errors only; it is not crash/power atomicity.
+"""Merge one ordinary-source Hagi provider module into one receiver, byte-safely
+(plain `import` grammar only; module/prelude headers are recognized, never mutated).
+Run `python scripts/merge_module.py CHILD PARENT [--append] [--retarget FILE ... |
+--retarget-all]` from the source root containing Hagi/ and Hagi.lean. Rollback covers
+handled process errors only, not crash/power atomicity.
 """
 from __future__ import annotations
 

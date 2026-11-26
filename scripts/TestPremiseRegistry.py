@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for the typed premise registry (C361 step 2.2)."""
+"""Regression tests for the typed premise registry."""
 import tempfile
 import unittest
 from pathlib import Path
@@ -106,8 +106,8 @@ class PremiseRegistryRegression(unittest.TestCase):
         self.assertEqual(len(data["premises"]), 3)
 
     def test_status_enum_frozen(self):
-        # 2.1 status vocabulary must stay stable (index generator
-        # and audit language depend on it)
+        # the status vocabulary must stay stable (index generator
+        # and the status vocabulary depend on it)
         self.assertEqual(PremiseRegistry.STATUS_ENUM,
                          ("Proven", "Conditional", "Empirical",
                           "Speculative", "Deprecated"))

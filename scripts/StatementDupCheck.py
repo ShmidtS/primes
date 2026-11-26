@@ -1,18 +1,9 @@
 #!/usr/bin/env python3
-"""StatementDupCheck: no two theorems share a statement hash.
-
-Reads declarations.lock (name, declaration hash, statement hash, kind).
-Definition types are intentionally not compared: equal types do not
-make two definitions interchangeable. Compatibility aliases remain tracked
-by Freeze but are excluded from duplicate groups. A legacy or malformed
-lock must be regenerated explicitly with Freeze --update.
-
-Intentional restatement pins (C345 challenge files pin the conclusion
-shape of a capstone on purpose) are exempted via an explicit allowlist
-`stmdup_allowlist` next to declarations.lock (one FQN per line,
-`#` justification; absent file -> no exemptions). The allowlist must
-shrink, never rot: an entry missing from the lock or no longer part of
-any duplicate group is a FAIL.
+"""StatementDupCheck: no two theorems share a statement hash (read from
+declarations.lock; definition types are not compared, compatibility aliases are
+excluded). Intentional restatements must be listed in `stmdup_allowlist` next to
+the lock (one FQN per line, `#` justification); a stale entry is a FAIL.
+Run `python scripts/StatementDupCheck.py` -> STMDUP: PASS/FAIL.
 """
 import collections
 import os

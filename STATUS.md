@@ -1,7 +1,14 @@
-## Архив (исторические секции и полный журнал)
+# STATUS — доказанные результаты по файлам
 
-Полный дожатый журнал и не-файловые исторические секции —
-git-история: `git show b3939aa5:STATUS.md`.
+Главная теорема каждого Lean-файла корневого замыкания `Hagi.lean` словами: утверждение, существенные условия, граница утверждения. Формулировки — в исходниках; этот файл их не заменяет.
+
+Три уровня результатов:
+
+1. **Математическая база** — безусловные конечные утверждения.
+2. **Условные сертификаты** — свойства шага или траектории из явно перечисленных посылок.
+3. **Мосты** — связывают посылки сертификатов с конкретными моделями.
+
+Вне корневого замыкания (собираются целью `Hagi.Research` / `Hagi.Benchmarks`): `Hagi/Research/` — исследовательские модели, `Hagi/Research/Legacy/` — архив, `Hagi/Benchmarks/` — демонстрационные свидетели.
 
 ## Hagi/Architecture/
 
@@ -16,7 +23,11 @@ git-история: `git show b3939aa5:STATUS.md`.
 - **`OrthoInjection.lean`** — `fiberSplitOrtho`: при `IsOrthoCol U` остаток проекции удовлетворяет `Uᵀ * (A - U * (Uᵀ * A)) = 0`.
 - **`ResidualSplit.lean`** — `residual_gate_two_sided`: по определению `ResidualGateOn η E C P ↔ η * E - C - P > 0`.
 
-## Hagi/Audit/Audit.lean
+- `projI U = U·Uᵀ`, `projR U = 1 − U·Uᵀ`; `projI_add_projR`
+  (P_I + P_R = 1 exactly), `projI_idem`/`projR_idem`
+  (idempotence under `IsOrthoCol U`).
+
+## Hagi/Audit/
 
 - `amgm_equality`: при положительных `Bn`, `t0`, `c`, `B` и `B^2 = Bn * t0 / c` выполняется `c * B + Bn * t0 / B = 2 * Real.sqrt (c * Bn * t0)`.
 
@@ -24,13 +35,42 @@ git-история: `git show b3939aa5:STATUS.md`.
 
 - `batch_T_min`: при `0 < B`, неотрицательных `Bn`, `t0`, `c` величина `(1 + Bn / B) * (t0 + c * B)` не меньше `t0 + c * Bn + 2 * Real.sqrt (c * Bn * t0)`.
 
-## Hagi/Optimization/MirrorHedge.lean
+## Hagi/Optimization/
 
 - `hedge_step`: для вероятностного `p`, потерь `0 ≤ l i ≤ 1` и `0 ≤ eta ≤ 1` сумма `∑ i, p i * exp (-eta * l i)` не превосходит `1 - eta * ∑ i, p i * l i + eta ^ 2 / 2`.
 
 - `hedge_telescope`: если `0 ≤ 1 + u t` для всех `t`, то `∏ t < T, (1 + u t) ≤ exp (∑ t < T, u t)`.
 
 - `router_regret_bound`: при `0 < K`, `0 < eta` и посылке hsurv выполняется `A - Lstar ≤ Real.log K / eta + eta * T / 2`.
+
+- **`OptimizerVariants.lean`** — `acc_mono`: `adagradAcc g t ≤ adagradAcc g (t+1)`.
+- **`EF21Quantizer.lean`** — `IsContractive`: контракт контрактного компрессора `‖C u − u‖₂² ≤ (1−α)²‖u‖₂²` на plain-носителе `n → ℝ` (суммы квадратов явно). Доказанные инстансы: identity (α=1), нулевой компрессор
+
+- **`Checkpoint.lean`** — `ckpt_mem_floor`: для вещественных `0 < k n` `2*√n ≤ k+n/k`.
+- **`ComputeScaling.lean`** — `compute_scaling_lower_bound`: при `0 < a b m n` `(√a+√b)^2/(m+n) ≤ a/m+b/n`; `compute_scaling_bound_attained` достигает равенства при `m=√a*s`, `n=√b*s`, `0 < s`.
+- **`DREAM.lean`** — `dream_tau_extrapolation`: если `nu = (2*tau+1)-1/2`, то `‖dreamY s-s.x‖ = (2*tau+1/2)*‖s.x-s.xPrev‖`.
+- **`DirectionPacking.lean`** — `welch_bound_core`: для единичных `u : Fin M → F` в конечномерном вещественном пространстве с `OrthonormalBasis (Fin d)`, `2 ≤ M`, `0 < d` и `|⟪u i,u k⟫| ≤ μ` для `i≠k`
+- **`GraphDistanceRouting.lean`** — Если в конечном графе `G` каждая вершина достигает target, то носитель нецелевой строки ядра кратчайшего пути равен `shorterNeighborFinset`; `dist_add_one_eq_of_mem_support` доказывает
+- **`InexactContraction.lean`** — `inexact_contraction_halt`: при `0 < q < 1`, `0 ≤ ε`, `x(k+1)≤q*x k+ε`, `0 < B`, `x0≤B` и `q^K < (τ-ε/(1-q))/B` доказано `x K < τ`.
+- **`LRSchedule.lean`** — Для непустого конечного индекса `polyWeights C eps` неотрицательны и суммируются в `1`. При `0 < eps` и `C u < C w` теорема `polyWeights_strict_mono` даёт
+
+- **`Momentum.lean`** — `momentum_floor`: при `0 < q`, `0 ≤ β δ`, `q+β<1` и `e(k+1)≤q*e k+β*e(k-1)+δ` ошибка ограничена полом `δ/(1-q-β)` плюс затухающий член с `momentumRate q β`.
+- **`MomentumHB.lean`** — `hb_discriminant_interval`: при `0 < β < 1` и `(1-√β)^2 ≤ η*μ ≤ (1+√β)^2` дискриминант неположителен; `hb_root_modulus` для корня `λ²-tλ+β=0` с `0 < β` и дискриминантом `≤0` даёт
+- **`NeuronAlloc.lean`** — `neuron_alloc_lower_bound`: для положительных `c i n i N` и `Σn=N` `(Σ√c i)^2/N ≤ Σ(c i/n i)`.
+- **`PLConvergence.lean`** — `pl_linear_convergence`: при `0 < L`, `0 < μ ≤ L`, `Estar≤E t`, `E(t+1)≤E t-G t/(2L)` и `2μ*(E t-Estar)≤G t` `E t-Estar≤(1-μ/L)^t*(E0-Estar)`.
+- **`RobbinsMonro.lean`** — `robbins_monro_decay`: при `0 ≤ x 0`, `0 ≤ η k ≤ 1`, рекурсии `x (k+1) ≤ (1-η k)*x k` и `Tendsto (fun n => ∑ k ∈ range n, η k) atTop atTop` для любого `ε > 0` найдётся `T`, после которого
+
+- **`SphericalDamping.lean`** — `chordal_residual_eq`: для единичных `u v` выполнено `1 - ⟪u,v⟫ = (1/2)*‖u-v‖^2`.
+- **`SubspaceGrowth.lean`** — `projResidual u v = v - ∑ i, ⟪u i,v⟫ • u i`. Для единичного попарно ортогонального семейства остаток ортогонален каждому `u i`, выполнено `projResidual_self_inner`, а `projResidual_le_norm`
+
+- `adaptive_cycle_expansions`: если `0 < δ`, `C(k+1)≤C k-δ` и
+  `0 ≤ C j` для всех индексов, то для любого `N`
+  `(N : ℝ) ≤ C 0/δ`.
+
+- `routingKernelSupported` (Hagi/Optimization/PercolationPath.lean:39): носитель строки ядра — ровно рёбра графа `∀ a b, b ∈ (K a).support ↔ G.Adj a b`; `historyLaw_walk_pos` (Hagi/Optimization/PercolationPath.lean:75): для поддержанного ядра `K`, walk `w` и старта в носителе `0 < historyLaw initial (fun _ => K) w.length w.length (walkVertex w)`.
+- `vacantGraph` (Hagi/Optimization/PercolationPath.lean:106): решётка `grid L = Fin (L+1) × Fin (L+1)`, соседство Манхэттена, сайт открыт ⟺ `ω c ≠ q`; `crosses_pos` (Hagi/Optimization/PercolationPath.lean:125): пересечение связной компоненты от отмеченного верхнего множества до нижнего + поддержанное ядро ⇒ `∃ a b w, top a ∧ bottom b ∧ 0 < historyLaw (PMF.pure a) (fun _ => K) w.length w.length (walkVertex w)`.
+- Мост к оптимизации: путь спуска = перколяция ландшафта. `kernelDescentPath` (Hagi/Optimization/PercolationPath.lean:204) — траектория с шагами в носителе `K` и строгим убыванием `f`; `descentPath_apply_pos` (Hagi/Optimization/PercolationPath.lean:238): при `0 < T` ⇒ `∃ ω, 0 < historyLaw (PMF.pure a) (fun _ => K) T T ω ∧ (строгий спуск) ∧ f b < f a`; `descentPath_drop` (Hagi/Optimization/PercolationPath.lean:178): `descentPath f T a b` и `0 < T` ⇒ `f b < f a`.
+- `exists_descentGraph_edge_of_useful_step` (Hagi/Optimization/PercolationPath.lean:230): сертифицированный первый шаг `f (a + η•d) < f a` — ребро `descentGraph f (fun x => x + η•d)`. Ядро с точной строгой поддержкой нетотально на конечном `V` (нет бесконечного спуска), поэтому поддержка односторонняя (`supportedDescentKernel`, `descentKernelFullSupport`, `descentOrStayKernel`); вероятности попадания в точку и порога перколяции нет. Код-мост: next (графовой маршрутизации в HAGI_v2 @ca52eb4 нет).
 
 ## Hagi/Autonomy/
 
@@ -47,16 +87,6 @@ git-история: `git show b3939aa5:STATUS.md`.
 - **`BitAlloc.lean`** — `distill_chain_telescoping`: из `S k ≤ E k + delta k` для `k ≤ n` и `E (k + 1) ≤ S k` для `k < n` следует `S n ≤ E 0 + ∑ k ∈ Finset.range (n + 1), delta k`.
 - **`BitAllocTermination.lean`** — `error_chain_descends`: если ошибка строго убывает на каждом соседнем шаге, то она строго убывает между любыми временами `m < k`.
 
-## Hagi/Cert/CertifiedArgmax.lean
-
-- `argmax_pair_certified`: при `0 ≤ eps`, `|GammaHat k - Gamma k| ≤ eps` и `2 * eps < GammaHat i - GammaHat j` следует `Gamma j < Gamma i`.
-
-- `argmax_select_certified`: если sel максимизирует Γ̂ и отделён от каждого другого варианта больше чем на `2 * eps`, то sel максимизирует истинный Γ.
-
-- `tie_ambiguity`: при `0 < eps` и `0 < delta < 2 * eps` существуют две разные истинные функции с противоположными максимумами, обе согласованные с одной `eps`-точной оценкой.
-
-## Hagi/Budget/
-
 - **`DesignOpt.lean`** — `spectral_tail_mono`: при `m ≤ m'` конечная сумма `(sigma j)^2` по индексам `j ≥ m'` не превосходит суммы по `j ≥ m`.
 - **`ElementQuant.lean`** — `factor_quant_go`: если `‖dE - AB‖ = tail`, `‖AB - QAB‖ = qerr` и `tail + qerr < qdirect`, то `‖dE - QAB‖ < qdirect`.
 - **`JointCost.lean`** — `nsIter_block_le`: при `2 ≤ N`, `0 < h` и `0 ≤ r ≤ h` стоимость `N * nsIter h h + 3 * nsIter r (N * h)` не превосходит `nsIter (N * h) (N * h)`.
@@ -66,36 +96,31 @@ git-история: `git show b3939aa5:STATUS.md`.
 - **`WaterFilling.lean`** — `exists_balanced_allocation`: для `0 ≤ c l` и любого натурального `B` существует натуральное распределение `f` с `∑ l, f l ≤ B`, при котором
 - **`WeightedExpAlloc.lean`** — `weightedExpAllocation_budget`: на конечном непустом `ι` при `0 < κ i` и `0 < w i` построенное распределение точно удовлетворяет `∑ i, w i * weightedExpAllocation c κ w B i = B`.
 
-## Hagi/Research/Legacy/MasterChallenge.lean
-
-- `master_hagi_core_comparator`: при `0 ≤ lam`, `0 ≤ nu`, `0 ≤ epsQ` и `CorePremises S S' epsQ w` потенциал после перехода не превосходит исходного минус `verify.decrease`, плюс `lam * verify.riskSpend + nu * epsQ`.
-
-- Та же теорема доказывает точное бюджетное равенство `S'.toGrowthState.budget = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend`; все условия `CorePremises` остаются посылками.
+- Побитное распределение + закон ошибки по стадиям + изо-Фробениус чувствительность + пересертификация собраны в один шаговый сертификат (композиция, без новой математики).
 
 ## Hagi/Cert/
 
-- **`Core.lean`** — Каноническое ядро сертификации (master plan v3, S1+S2): `SystemMetrics` (objective/risk/budget/task как функции состояния), `StepObligations` (отдельная структура с floor), `FloorsKept`
-- **`Empirical.lean`** — C245 (Phase 1, A7): `Empirical P` — типизированная обёртка эмпирических посылок (заместительный путь для голых `h_emp_*`; миграции нет, AssumptionScan остаётся): поля measuredLaw/tolerance
+- `argmax_pair_certified`: при `0 ≤ eps`, `|GammaHat k - Gamma k| ≤ eps` и `2 * eps < GammaHat i - GammaHat j` следует `Gamma j < Gamma i`.
 
-## Hagi/State/Views.lean
+- `argmax_select_certified`: если sel максимизирует Γ̂ и отделён от каждого другого варианта больше чем на `2 * eps`, то sel максимизирует истинный Γ.
 
-- C245 (Phase 1, A7): survey носителей состояния (TrainState — канон
-спеки §4; GrowthState — legacy с GrowthStateViews (модуль слит в GrowthState); FunctionalState;
-MachineProto/MeasureProto; NC-мир) + минимальный честный view:
-`toSystemMetrics` (TrainState как `Hagi.Cert.SystemMetrics`:
-objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
-со спецификациями `toSystemMetrics_objective/_risk/_budget` (rfl).
-Массовая унификация носителей — Phase 2/3.
+- `tie_ambiguity`: при `0 < eps` и `0 < delta < 2 * eps` существуют две разные истинные функции с противоположными максимумами, обе согласованные с одной `eps`-точной оценкой.
 
-## Hagi/Cert/Adapters.lean
-
-- Генерические адаптеры между конкретными сертификатами спуска и каноническим ядром `Hagi.Cert` (импортирует только `Hagi.Cert.Core` — batch-CE-инстанциация живёт в Contracts из-за LayerLint).
+- **`Core.lean`** — `SystemMetrics` (objective/risk/budget/task как функции состояния), `StepObligations` (отдельная структура с floor), `FloorsKept`
+- **`Empirical.lean`** — `Empirical P` — типизированная обёртка эмпирических посылок : поля measuredLaw/tolerance
 
 - `zeroFloorObligations` и `floorsKept_zeroFloor` — тривиальные obligations (floor 0), держатся при неотрицательном objective.
 
 - `descentCertStep`: положительный drop + реальный спуск + сохранённые уровни budget/risk (нулевой расход) + floors → канонический `CertStep`; `holdTransition`: FloorsKept → `TransitionStep` через `HoldStep.id`.
 
-## Hagi/Challenge/MasterChallengeV3.lean
+- `Hagi.Cert.CertStepGen` — общее ядро сертифицированного шага: общий индекс задач `TaskId : Type*` остаток риска — ПОЛЕ
+  riskRem с законом расщепления risk_split (0-пиннинг невозможен по построению), свёрнутый δ-бюджет на явном
+  носителе deltaLevel.
+
+- Мосты: `Hagi.Cert.certStep_to_gen` (вложение `CertStep`), `Hagi.Cert.CertStepGen.toCertStep`
+  (проекция обратно, δ-канал отбрасывается),
+
+## Hagi/Challenge/
 
 - `master_hagi_challenge_v3`: для цепочки `StepCert`, согласованных drops и spends, начального `FloorKept` и `0 ≤ b 0`, при `1 ≤ n` доказаны `obj (f n) < obj (f 0)` и `∑ t < n, drops t ≤ obj (f 0) - obj (f n)`.
 
@@ -103,29 +128,29 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 ## Hagi/Contracts/
 
-- **`BatchRangeBF16Cert.lean`** — BF16-гард для C223 batch-шага: certified drop — точное выражение `2·batchAlignment²/batchLogitRangeSquare`; по-логитная bf16-ошибка — ПОСЫЛКА, универсального утверждения об
-- **`BatchCEAlignmentBudget.lean`** — C233 (R2): `batchLogitRangeSquare_le_rangeCurvature_mul_alignment` — без посылок, острая средняя `batchLogitRangeSquare X θ y ≤ rangeCurvature X * batchAlignment X θ y` (транзитивность
+- **`BatchRangeBF16Cert.lean`** — точное выражение `2·batchAlignment²/batchLogitRangeSquare`; по-логитная bf16-ошибка — ПОСЫЛКА, универсального утверждения об
+- **`BatchCEAlignmentBudget.lean`** — `batchLogitRangeSquare_le_rangeCurvature_mul_alignment` — без посылок, острая средняя `batchLogitRangeSquare X θ y ≤ rangeCurvature X * batchAlignment X θ y` (транзитивность
 - **`BatchCEBestResidual.lean`** — `exists_alignment_le_fixedAlignmentCesaro`: при `0 < T` найдётся `t : Fin T`, чьё `batchAlignment` не превосходит среднее Чезаро за префикс.
-- **`BatchCEGrowth.lean`** (вкл. BatchCEGrowthSelection и NaturalLean, слит C524) — `growthObjective_iteratedQuarantinedGrowStep_antitone`: цель `growthObjective` на точной последовательности итераций `quarantinedGrowStep` не возрастает.
-- **`BatchCEBudgetGuard.lean`** — C233 (R2): `batchLogitCertifiedDrop` — острый сертифицированный residual `if batchLogitRangeSquare = 0 then 0 else 2·A²/R'` (ns `BatchCETrajectory`, `[Nonempty V]`)
+- **`BatchCEGrowth.lean`** — `growthObjective_iteratedQuarantinedGrowStep_antitone`: цель `growthObjective` на точной последовательности итераций `quarantinedGrowStep` не возрастает.
+- **`BatchCEBudgetGuard.lean`** — `batchLogitCertifiedDrop` — острый сертифицированный residual `if batchLogitRangeSquare = 0 then 0 else 2·A²/R'` (ns `BatchCETrajectory`, `[Nonempty V]`)
 - **`BatchCETrajectory.lean`** — `fixedBatchObjective_sum_certifiedDrop_le_telescope`: при непустом `V` сумма `batchCertifiedDrop` по префиксу не превосходит точную разность между начальной CE и CE после `T` фактических
 - **`CEStepCertificate.lean`** — `coreParameters_ceTrainStep`: фактические параметры после `State.trainStep` совпадают с параметрами безопасного шага по категориальной CE.
-- **`LogicChoiceCert.lean`** — Первый гибридный нейро-символьный сертификат (Track B7 item 3, addendum A4): выбор маски как CE-задача — 16 масок решётки Венна суть классы (`Fintype (Fin 4 → Bool)`), лог-линейная
-- **`EMTrajectory.lean`** (вкл. ChangingEMTrajectory, слит C524) — `changingEMPath_nll_antitone`: при `∀ t a i, 0 < observationEvidence (c t a i).1 (c t a i).2 (y i)`, сохранении текущих пар (условие hKeep) и включении носителей текущих постериоров в
+- **`LogicChoiceCert.lean`** — : выбор маски как CE-задача — 16 масок решётки Венна суть классы (`Fintype (Fin 4 → Bool)`), лог-линейная
+- **`EMTrajectory.lean`** — `changingEMPath_nll_antitone`: при `∀ t a i, 0 < observationEvidence (c t a i).1 (c t a i).2 (y i)`, сохранении текущих пар (условие hKeep) и включении носителей текущих постериоров в
 - **`GatedCEStepCertificate.lean`** — `gatedCEObjective_gatedCETrainStep_lt`: при непустом `V` и `0 < gatedAlignment X (coreParameters S) t` фактический `gatedCETrainStep` строго уменьшает целевую CE с гейтингом
 - **`GatedCETrajectory.lean`** — `fixedGatedAlignment_sq_tendsto_zero_uniform`: при непустом `V` квадрат текущего `fixedGatedAlignment` для фиксированных входных данных стремится к нулю.
 - **`GatedCEGradientNorm.lean`** — `gatedGrad` отождествляет градиент гейтированного одноцелевого CE с `-gatedDirection`; `gatedGrad_ofLp` даёт покоординатное равенство с `gatedResidualTranspose` без предположений сверх
-- **`GatePipeline.lean`** — C264 (addendum A10, приоритет P1): ГЕЙТ-ТЕОРЕМА — пайплайн Python-гейта как он реально используется, в ОДНОМ Lean-модуле (состав: rescale → δ-расписание → union → P(false commit) ≤ δ).
+- **`GatePipeline.lean`** — ГЕЙТ-ТЕОРЕМА — пайплайн Python-гейта как он реально используется, в ОДНОМ Lean-модуле (состав: rescale → δ-расписание → union → P(false commit) ≤ δ).
 
-## Hagi/Contracts/AuditLedger.lean
+- **`GuardedLogitTrajectory.lean`** — `guardedLogitPath_logitCE_antitone` и `guardedLogitPath_logitCE_tendsto_ciInf`: для фиксированного скалярного защищённого контроллера CE не возрастает и сходится к своей точной нижней грани.
+- **`HadamardTernaryBridge.lean`** — `hadamard_satTail_zero_of_l2_bound`: при `s > 0`, `0 ≤ μ ≤ 1`, оценке `‖x‖₂ ≤ s·√(2^k)` и посылке μ-некогерентности `‖Hx‖∞ ≤ μ·‖x‖₂/√(2^k)` каждая координата ортонормального Адамара-образа
+- **`LogitGrad.lean`** — `logitGrad z N c v = smax (z c) v − N c v`: строчный носитель логит-градиента CE; обобщает форму ceResidual на произвольные суб-вероятностные `N` (one-hot или частоты).
 
-- C274 (audit E7): формальный audit ledger — Lean-мост Python
+- формальный audit ledger — Lean-мост Python
   HoeffdingAudit: alpha spending, disjoint cursors
   (proposal-independent slices как полуинтервалы [lo,hi) на ℕ),
   old-task harm, rejected consumption, repeat-task floors, final
   test untouched.
-
-## Hagi/Contracts/GradientBottleneck.lean
 
 - `logitGradM`: квадратный n×n комплексный матричный вид логит-градиента
   (вещественные записи коэрцированы) — носитель, требуемый Flywheel
@@ -138,28 +163,16 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   ранг обновлений ≤ 2D» и нетривиальность хвоста (Prop A.5) отложены
   и не утверждаются; при `k ≥ n` оценка тривиальна.
 
-## Hagi/Contracts/
-
-- **`GuardedLogitTrajectory.lean`** — `guardedLogitPath_logitCE_antitone` и `guardedLogitPath_logitCE_tendsto_ciInf`: для фиксированного скалярного защищённого контроллера CE не возрастает и сходится к своей точной нижней грани.
-- **`HadamardTernaryBridge.lean`** — `hadamard_satTail_zero_of_l2_bound`: при `s > 0`, `0 ≤ μ ≤ 1`, оценке `‖x‖₂ ≤ s·√(2^k)` и посылке μ-некогерентности `‖Hx‖∞ ≤ μ·‖x‖₂/√(2^k)` каждая координата ортонормального Адамара-образа
-- **`LogitGrad.lean`** — `logitGrad z N c v = smax (z c) v − N c v`: строчный носитель логит-градиента CE; обобщает форму ceResidual на произвольные суб-вероятностные `N` (one-hot или частоты).
-
-## Hagi/Contracts/IdentityMomentConvergence.lean
-
 - `meanPrediction` при заданном θ усредняет по supplied batch отдельные
   `softDef (ceLogits ...)`; `empiricalTarget` так же усредняет
   `(Pi.single (y b) 1 : Fin n → ℝ)`. Это средние вероятностей и one-hot
   меток, а не среднее параметров или logits.
-
-## Hagi/Contracts/BudgetedParetoStepContract.lean
 
 - `budgetedParetoStepContract` для `[Fintype V]` и `0≤opRisk` переводит
   реальный `budgetedParetoBatchTrainStep` в обычный `StepContract`.
   Для его successor `T` поле `StepContract.decrease` равно старому минус
   новому `batchCEObjective`, `StepContract.riskCost = T.saf.risk-S.saf.risk`,
   а `StepContract.budgetSpend = S.res.budget-T.res.budget`.
-
-## Hagi/Contracts/BudgetedParetoStepCert.lean
 
 - `budgetedParetoStepCert` возвращает существующий `StepCert` для реального
   `T = budgetedParetoBatchTrainStep X y S opCost opRisk write`.
@@ -168,26 +181,51 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   `batchTrainStep`. Строительство использует существующий
   `batchTrainStepCert` и accepted equality, а не новый guard или record cast.
 
-## Hagi/Contracts/ObjectiveTrajectory.lean
-
 - `sum_le_of_sum_two_mul_div_le`: при `0 < κ` и общей оценке `∑ t < T, 2 * f t / κ ≤ A` для каждого `T` следует `∑ t < T, f t ≤ κ * A / 2`.
 
 - `summable_and_tsum_le_of_sum_two_mul_div_le`: при дополнительном `0 ≤ f t` последовательность `f` суммируема и `∑' t, f t ≤ κ * A / 2`.
 
 - `exists_le_of_sum_two_mul_div_le`: при `0 < T` найдётся `t < T` с `f t ≤ κ * A / (2 * T)`; это оценка некоторого элемента префикса, а не всех поздних элементов.
 
-## Hagi/Research/
-
-- **`SchellingCandidateSelection.lean`** — `mem_feasible_withStructuralConstraint`: допустимость контроллера `a` в усиленной задаче эквивалентна конъюнкции исходной допустимости `a ∈ feasible p M C` и
-- **`SchellingMarkovRouting.lean`** — `walkHistory_support_of_mem_feasible_withStructuralConstraint_of_adjSupported`: для ядра `K`, согласованного со смежностью допустимого графа, из каждой верхней вершины `s` существуют нижняя
-
-## Hagi/Contracts/StepCertificate.lean
-
 - `trainStep_actualDescent`: `energy (trainStep S u) = energy S - (2 * u.eta * (∑ i, S.model.weights i * u.grad i) - u.eta ^ 2 * (∑ i, u.grad i ^ 2))`.
 
 - `trainStepMinimalCert`: при `0 < u.eta` и `2 * (∑ i, S.model.weights i * u.grad i) > u.eta * (∑ i, u.grad i ^ 2)` строит `CertStep` с положительным фактическим уменьшением энергии.
 
 - `trainStepCert`: при дополнительных ограничениях риска, стоимости, исходного `FloorHeld` и бюджета строит полный `StepCert`; сохранение качества использует неизменность `evaluate` при параметрическом шаге.
+
+- Мост спектральной идентификации `selP_conjTranspose_mul_selP`
+  (ортонормированные столбцы row-селектора) → `embedded_gram_eq`
+  (Gram-матрицы встроенного и прямоугольного совпадают) →
+  `embedded_eigenvalues₀_eq` (перенос спектра через
+  `sort_roots_charpoly_eq_eigenvalues₀`: равные матрицы — равные
+  charpoly — равные отсортированные спектры) →
+  `embedded_singularValues_eq_rect` (square singularValues₀
+  встроенной = Rectangular.singularValues на Fin(min)).
+
+- Детерминированная формализация «средней» контракции квантайзера блоков после Адамара: среднее — энергетическая посылка, не вероятностное усреднение.
+
+- sparsity-certified inference: спектральная маска + compute-доля (упаковка существующих ингредиентов).
+
+- total compute to quality = (шаги до ε) × (FLOP на шаг) — композиция на ядре `Hagi.Cert.CertStepGen`.
+- `budget_telescope_gen`: точная бюджетная идентичность `budget(t n) = budget(t 0) − Σ spends`.
+
+- cached attention: per-token work `t+1` против полного re-attend; cached выход точно равен полной рекомпутации.
+
+- Сколько сэмплов сертифицируют, что выбранная energy-модель оптимальна по population PL-risk.
+
+- `truncated_svd_error_eq_tail`: при `A = U·Sigma·Vᴴ` ошибка усечённого приближения `approxK` равна спектральному хвосту.
+
+Код: lm.py:978-1008 — 8 раундов permutation-срезов по 32, per-batch certified drop.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `batch_telescope_fixed`, `fixedBatch_telescope` | `f(t+1) ≤ f t − d t ⇒ f T + Σ d ≤ f 0` (obj = `step` LogitGrowth.lean:62; `fixedBatchState` BatchCETrajectory/FixedBatch.lean:288; родня `fixedBatchObjective_sum_certifiedDrop_le_telescope` :368) | Hagi/Contracts/BatchGlobalTelescope.lean:46, :62 |
+| `ebGap`, `centeredSample`, `centeredSample_snoc`, `azumaSum_centeredSample`, `batch_drop_generalizes` | iid-выборка n ⇒ `P[mean δ < Σ q δ + ebGap] ≥ 1 − α` (`empirical_bernstein_mean_bound` EmpiricalBernstein.lean:286; `azumaSum` Azuma.lean:169) | Hagi/Contracts/BatchGlobalTelescope.lean:76, :82, :89, :98, :122 |
+| `certified_batch_drop_global` | dropB ≤ фактического drop ⇒ `obj_G θ' ≤ obj_G θ − dropB + ebGap` с вероятностью ≥ `1 − α` | Hagi/Contracts/BatchGlobalTelescope.lean:178 |
+| `roundDens`, `roundP`, `roundP_isProb`, `round_marginal`, `rounds_union` | независимые раунды; union bound `1 − Σ eps ≤ P[∀ i, A i]` (`prodPq_union_finset` CertifiedEstimator.lean:563) | Hagi/Contracts/BatchGlobalTelescope.lean:229, :234, :237, :252, :300 |
+| `rounds_telescope`, `roundGood`, `certified_rounds_union` | k раундов: `obj k ≤ obj 0 − Σ dropB + k·ebGap(α/k)` | Hagi/Contracts/BatchGlobalTelescope.lean:341, :353, :367 |
+
+- Не доказано: консервативность выборки без возвращения относительно iid-EB; независимость раундов от обновления θ — модель, граница условная.
 
 ## Hagi/Core/
 
@@ -213,14 +251,20 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 ## Hagi/Data/
 
-- **`BoolVenn.lean`** — Булевозначная решётка Венна для 16 функций двух переменных (Track B7, addendum A4): `atomIdx`/`vennBool` — маска как таблица истинности; `venn_universal` — каждая `Bool → Bool → Bool`
+- **`BoolVenn.lean`** — Булевозначная решётка Венна для 16 функций двух переменных : `atomIdx`/`vennBool` — маска как таблица истинности; `venn_universal` — каждая `Bool → Bool → Bool`
 - **`BytePatch.lean`** — `seg_length`: длина сегмента `seg s a b` равна `b - a` в натуральной арифметике.
 - **`DBridge.lean`** — `dQuad_nonneg`: при `0 ≤ pW v` и `∑ v, pW v = 1` квадрат взвешенного среднего `d` не превосходит взвешенного второго момента.
 - **`DField.lean`** — `kl_product`: для строго положительных `p1`, `q1`, `p2`, `q2` и нормированных `p1`, `p2` KL продуктовых распределений равно `klDef p1 q1 + klDef p2 q2`.
 - **`DataMixing.lean`** — `mixing_loss_convex`: при `0 ≤ K` функция `rho ↦ mixingLoss K c rho` выпукла на всём пространстве пропорций.
 - **`Distill.lean`** — `kl_eq_ce_gap`: для строго положительных `q`, `p` выполняется `klDef q p = crossEntropy q p - crossEntropy q q`.
 
-## Hagi/Probability/FannesPinsker.lean
+- `log_weighted_jensen`: для строго положительной нормированной `q` и строго положительного `x` сумма `∑ i, q i * log (x i)` не превосходит `log (∑ i, q i * x i)`.
+
+- `gibbs_variational`: для строго положительных нормированных `q`, `p` выполняется `∑ i, q i * f i ≤ ∑ i, q i * log (q i / p i) + log (∑ i, p i * exp (f i))`; вероятностный шаг PAC-Bayes здесь не доказывается.
+
+- `anfTransform`: преобразование Жегалкина/Мёбиуса как рекурсивная «бабочка» по последней координате, `T f = (T f₀, T f₀ ⊕ T f₁)`, на таблицах истинности `(Fin n → Bool) → Bool`.
+
+## Hagi/Probability/
 
 - `log_sub_le_div`: при `0 < a ≤ b` выполняется `log b - log a ≤ (b - a) / a`.
 
@@ -228,29 +272,61 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 - `entropy_lipschitz_smooth`: при `0 < delta ≤ 1` и `delta ≤ p v, q v ≤ 1` для всех `v` выполняется `|H(p) - H(q)| ≤ (2 / delta + 2 * log (1 / delta)) * TV(p, q)`; полная граница Фаннеса с сингулярным членом не доказывается.
 
-## Hagi/Data/PACBayes.lean
+- `partition_hot_limit`: на конечном непустом `V` сумма `∑ v, exp (-(ℓ v) / T)` при `T → +∞` стремится к `Fintype.card V`.
 
-- `log_weighted_jensen`: для строго положительной нормированной `q` и строго положительного `x` сумма `∑ i, q i * log (x i)` не превосходит `log (∑ i, q i * x i)`.
+- `two_level_meanEnergy_strictMono`: для двухуровневой системы с `0 < ε` средняя энергия `ε / (1 + exp (ε / T))` строго возрастает при `0 < T₁ < T₂`.
 
-- `gibbs_variational`: для строго положительных нормированных `q`, `p` выполняется `∑ i, q i * f i ≤ ∑ i, q i * log (q i / p i) + log (∑ i, p i * exp (f i))`; вероятностный шаг PAC-Bayes здесь не доказывается.
+- `partition_cold_limit`: если `0 ≤ ℓ v`, то при `T → 0⁺` сумма статистических весов стремится к числу состояний с `ℓ v = 0`.
 
-## Hagi/Research/
+- **`AdaptiveSuccess.lean`** — `adaptive_success_count_floor`: на конечном независимом произведении, для `X i v ∈ [0,1]`, общего пола `SuccessFloor p X p0`, `n > 0` и `t > 0` вероятность события
+- **`Azuma.lean`** — `hoeffding_lemma_prefix` ограничивает MGF условно центрированной величины с `-c ≤ X ≤ c` через `exp (lam^2*c^2/2)`. `azuma_mgf` по префиксным условным средним даёт
+- **`ThermoBridge.lean`** — `snr_realized` записывает SNR как квадрат среднего, делённый на дисперсию batchMean; `snr_linear` даёт точное `snr g B = B * snr g 1`.
+- **`PMFBridge.lean`** — `probAccept_eq_bernPoly` доказывает равенство двух явных сумм `probAccept` и `bernPoly`; `binomWeight` содержит биномиальные веса `choose n j * p^j * (1-p)^(n-j)`.
+- **`CertifiedEstimator.lean`** — Для независимых `X i ∈ [0,1]` доказаны `hoeffding_chernoff`, оптимизированный `hoeffding_tail` и `hoeffding_two_sided`: односторонний хвост суммы центрирований имеет границу
+- **`ChernoffCGF.lean`** — `cgf_centering` для положительных `q` даёт `log ∑q*exp(c*g) = c*μ + log ∑q*exp(c*(g-μ))`; нормировка `q` в этой алгебраической формуле не требуется.
 
-- **`PPT.lean`** — `truncation_bias`: если ядро `K` не выходит из `S`, а `pi` стационарно, то существование `y₀ ∉ S` с `0 < pi y₀` невозможно.
-- **`PPTCanonical.lean`** — `discovery_prob_stationary_identity`: на конечном непустом измеримом пространстве с измеримыми одноэлементными множествами для неотрицательной нормированной `pi` вероятность события
+- **`ConditionalSuccess.lean`** — `success_count_lower` и `success_count_lower_p0`: при `0 < delta < 1`, измеримости, значениях `S t ∈ [0,1]` и `iIndepFun S μ` сумма успехов с вероятностью не меньше `1-delta` ограничена
+- **`EntropyConvexity.lean`** — `log_sum_ineq` для положительных `a b` даёт `sum(a)*log(sum(a)/sum(b)) ≤ ∑a*log(a/b)`; `kl_convex_first` доказывает выпуклость KL по первому аргументу при `0 < lam < 1` и положительных
+- **`ExpChord.lean`** — `exp_chord` — псевдоним `Hagi.Foundations.exp_chord_r`; `hoeffding_chord_mgf` для положительного нормированного `q` и `a ≤ g ≤ b`, `a < b`, ограничивает центрированный MGF хордой между `a`
+- **`FiniteBayes.lean`** — `observationEvidence_eq_sum` вычисляет свидетельство наблюдения как `∑x, p₀ x * K x y`; `posterior_apply` при `0 < observationEvidence` нормирует `p₀ x * K x y` этим свидетельством, а
+- **`FiniteEM.lean`** — Центральное разложение выражает `ceDef q (jointMass model) - entDef q` как `-log evidence + KL(q, posterior)` при положительном свидетельстве наблюдения и `q.support ⊆ posterior.support`
+- **`FiniteFamilyConfidence.lean`** — `finite_family_upper_confidence`: для заранее фиксированного конечного семейства и независимых `[0,1]`-выборок все истинные средние одновременно не превосходят выборочные средние плюс `eps`
+- **`FiniteLogScore.lean`** — При неотрицательных нормированных `p q` и поддержке `0 < p x → 0 < q x` доказаны `klDef_nonneg_of_support` и `klDef_eq_zero_iff_of_support`: `klDef p q ≥ 0`, а равенство нулю эквивалентно
+- **`FiniteMultiEM.lean`** — `total_negativeLogEvidence_drop_eq` при положительных свидетельствах наблюдения и включениях поддержек старых апостериорных законов в новые раскладывает суммарное убывание отрицательного
+- **`Freedman.lean`** — `freedman_lemma_prefix`: при `|X| ≤ b`, нулевом условном среднем, `∑q*X^2 ≤ sig` и `lam ≥ 0` MGF не превосходит `exp (lam^2*sig*exp(lam*b)/2)`. `freedman_mgf` итерирует эту границу по
+- **`GibbsCooling.lean`** — `gibbs_concentration`: при `T > 0` и зазоре `E vstar + δ ≤ E v` для всех `v ≠ vstar` доля Гиббса минимизатора не меньше `1 - card(univ.erase vstar)*exp(-δ/T)`. формулировка
+- **`KLSBridge.lean`** — `gradCovBound`: для неотрицательной нормированной `q`, `C ≥ 0`, из посылки Пуанкаре для каждого направления и оценки чувствительности `(sens a x)^2 ≤ L^2*sqN a` следует
+- **`LinkedFlip.lean`** — `linkedChannel_apply` представляет переход как `(ν.map (eventMask neighbors)) (x ^^^ y)`. Для `ν = pure none` канал оставляет `x` на месте, а для `pure (some a)` применяет
+- **`MarkovPathSupport.lean`** — `historyLaw_support_of_path`: если начальная точка принадлежит поддержке `initial` и первые `k ≤ T` переходы принадлежат поддержкам ядер, существует полная история в поддержке
+- **`MomentBounds.lean`** — Для положительного нормированного `q` и `a ≤ g ≤ b` доказаны `popoviciu_var`: `Var(g) ≤ (b-a)^2/4`, `popoviciu_abs_dev`: среднее абсолютного отклонения не превышает `(b-a)/2`, а также
+- **`NoiseTemperature.lean`** — При непустом `Fin b` теорема `batchMean_unbiased` доказывает равенство среднего batchMean исходному `popMean`; `batch_variance_eq` даёт точное
+- **`RankedStopRouting.lean`** — Если каждый поддерживаемый нетерминальный переход выполняет `R a b` и строго увеличивает rank, терминальные строки являются `PMF.pure a`, `rank a ≤ B` и `B ≤ T`, то
+- **`SphericalAngle.lean`** — `sphericalAngle_add_two` при `n > 0` даёт `Ω(n+2) = (2π/n)*Ω n`; `sphericalAngle_even_geo` и `sphericalAngle_odd_geo` ограничивают чётную ветвь от `8` и нечётную от `9` геометрическими
+- **`StationaryFlatness.lean`** — `tail_sum_identity`: для натуральнозначного `X ≤ M` на конечном вероятностном пространстве `expectNat q X = ∑_{k<M} probGe q X (k+1)`.
+
+-: единый concentration-API для Hoeffding-семейства
+  средних хвостов: `concConfidence ε n = exp(−2nε²)` — канонический
+  односторонний [0,1] confidence; `concConfidenceTwoSided ε n =
+  2·exp(−2nε²)`; парный радиус `concRadius δ n = sqrt(log(1/δ)/(2n))`
+  с двойственностью `concRadius_valid`; `concConfidence_pm1_rescale` —
+  [−1,1]-форма гейта `exp(−nη²/2)` есть `concConfidence (η/2) n`
+  (радиус на [−1,1] удваивается).
+
+- `freedman_tail_two_sided`, `eb_radius_algebra`, `empirical_bernstein_bound`, `empirical_bernstein_mean_bound`: EB-confidence как дополнение Freedman — σ̂-подстановка + аддитивный член (Maurer–Pontil).
 
 ## Hagi/Dynamics/
 
 - **`EndpointContraction.lean`** — `endpoint_bivariate_bound`: при `0 ≤ κ < 1`, `0 ≤ β` и `x (t + 1) ≤ κ * x t + β * c t` выполняется `x T ≤ κ^T * x 0 + β * ∑ i < T, κ^i * c (T - 1 - i)`.
 - **`GrowthBridge.lean`** — `capability_exp_growth_floor`: при `0 < alpha`, `0 ≤ C 0`, `C (t + 1) ≥ C t * (1 + alpha)^(s t)` и `N ≤ ∑ t < T, s t` выполняется `C T ≥ C 0 * (1 + alpha)^N`.
 
-## Hagi/Probability/GibbsCore.lean
+- `idle_not_productive`: при `δC,δL > 0` переход `S → S`
+  не удовлетворяет предикату `Productive`.
 
-- `partition_hot_limit`: на конечном непустом `V` сумма `∑ v, exp (-(ℓ v) / T)` при `T → +∞` стремится к `Fintype.card V`.
+- `ctv3_idle_contra`: `CertifiedTransitionV3` несовместим с равенством
+  энергии до и после перехода; `productive_of_ctv3` получает `Productive`
+  при фактическом спаде не меньше `δL > 0`.
 
-- `two_level_meanEnergy_strictMono`: для двухуровневой системы с `0 < ε` средняя энергия `ε / (1 + exp (ε / T))` строго возрастает при `0 < T₁ < T₂`.
-
-- `partition_cold_limit`: если `0 ≤ ℓ v`, то при `T → 0⁺` сумма статистических весов стремится к числу состояний с `ℓ v = 0`.
+- `budget_consumed`: при `0 ≤ e t + delta t` свойство `BudgetAlive e delta eps (T + 1)` влечёт `BudgetAlive e delta eps T`.
 
 ## Hagi/Energy/
 
@@ -258,31 +334,23 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - **`FreeEnergy.lean`** — `free_energy_gap`: при строго положительных `q`, `p` и `∑ v, q v = 1` выражение `∑ v, q v * ((-tau) * log (p v) + C) + tau * ∑ v, q v * log (q v)` равно `tau * klDef q p + C`.
 - **`Landauer.lean`** — `landauer_sandwich`: для положительных нормированных wPre, wPost, `0 < cUnit` и посылок `cUnit * klDef wPost wPre ≤ dissipation` и `dissipation ≤ kappa * s * quantErr` следует
 
-## Hagi/Energy/PairwiseCategorical.lean
-
-- Track E1 (addendum A9, CRAM 2611.17309): дискретная парная энергия
-  `pairwiseEnergy B K x = Σ B i (x i) + (1/2)·pairwiseInteractionSum K x`
-  на конечных переменных/доменах; КОНВЕНЦИЯ: ordered-pair сумма
-  Σ_{j≠i}, 1/2 вне её, симметрия K НЕ предполагается (пин E1).
-
-## Hagi/Energy/
-
-- **`SingleCellDescent.lean`** — Track E2 (addendum A9 + A9-supplement, CRAM 2611.17309): дискретное одно-клеточное ядро — точная дельта энергии переноса ОДНОЙ клетки.
-- **`EnergyCoordinateStep.lean`** — Track E2: координатная минимизация как ТОЧНЫЙ KL-сертификат — безопасная дискретная альтернатива Эйлеровым шагам непрерывного потока (собственное предостережение статьи CRAM).
-
-## Hagi/Energy/EnergyFlow.lean
-
-- Track E2 (уточнение A9-supplement): непрерывная часть, разделённая на
-  (1) алгебраические тождества и (2) supplied-trajectory теорему —
-  БЕЗ какого-либо ODE-existence API.
-
-## Hagi/Energy/
+- **`SingleCellDescent.lean`** — дискретное одно-клеточное ядро — точная дельта энергии переноса ОДНОЙ клетки.
+- **`EnergyCoordinateStep.lean`** — координатная минимизация как ТОЧНЫЙ KL-сертификат — безопасная дискретная альтернатива Эйлеровым шагам непрерывного потока.
 
 - **`PoEBound.lean`** — `poe_logZ_second_order`: для конечных `V` (непустого) и `K`, весов `w i ≥ 0` с суммой 1 и границы `R i` на размах `z i − Σₗ w l·z l` доказано
 - **`PreNorm.lean`** — `var_recursion`: для вещественных `x b s` при условии перекрёстного зануления `x * b = 0` доказано точное `(x + s*b)^2 = x^2 + s^2*b^2`; общая «независимость ветвей» в утверждение не входит.
 - **`Quantizer.lean`** — `gridQ_error` и `gridQ_idem`: при `Δ > 0` ближайший узел `gridQ Δ x = Δ·round(x/Δ)` отличается от `x` не более чем на `Δ/2`, а повторное квантование не меняет узел.
 - **`STEStep.lean`** — `tern_distortion_round`: для нормированного `x ∈ [-1,1]` округление `tern x` имеет ошибку `|x − tern x| ≤ 1/2`.
 - **`Ternary.lean`** — `tritEncode_injective`: кодирование пяти тритов в base-3 инъективно; используемое арифметическое условие — `3^5 ≤ 2^8`.
+
+- Дискретная парная энергия:
+  `pairwiseEnergy B K x = Σ B i (x i) + (1/2)·pairwiseInteractionSum K x`
+  на конечных переменных/доменах; КОНВЕНЦИЯ: ordered-pair сумма
+  Σ_{j≠i}, 1/2 вне её, симметрия K НЕ предполагается.
+
+- непрерывная часть, разделённая на.
+  (1) алгебраические тождества и (2) supplied-trajectory теорему —
+  БЕЗ какого-либо ODE-existence API.
 
 ## Hagi/Ensemble/
 
@@ -294,107 +362,13 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - **`SigmaKernel.lean`** — `quad_form_factorization`: для `Σ = Aᵀ*A` доказано `v ⬝ᵥ (Σ.mulVec v) = (A.mulVec v) ⬝ᵥ (A.mulVec v)`; `quad_form_zero_iff` даёт равенство нулю ровно при `A.mulVec v = 0`.
 - **`UniformCert.lean`** — `two_sided_good_point`: для положительных нормированных `w`, ограниченных центрированных `d k` и `2*card K*exp(−2ε²/(b−a)^2) < 1` существует `v`, для которого `|d k v| < ε` при всех `k`.
 
-## Hagi/Research/Legacy/
-
-- **`HAGICertWitness.lean`** — `hagicert_nonvacuous`: построены последовательности состояний и числовые параметры, для которых выполнен `HAGICert … T`. Это свидетель совместимости формального контракта на конкретных
-- **`Nonvacuity.lean`** — `merge_energy_bridge`: для midpoint-логитов доказано точное `CE(mid) = (CE(z₁)+CE(z₂))/2 − jensenGap z₁ z₂`, а также неотрицательность зазора.
-- **`NonvacuityHorizon.lean`** — `sat_step_laws`: при `γ ≠ 0` параметрическая траектория одновременно удовлетворяет шагу `C(t+1)=C(t)+γ*F(t)` и насыщению `C(t+1)=C(t)+σ*(Cstar−C(t))`.
-
-## Hagi/Benchmarks/QuadLoopWitness.lean
-
-- `quadE_qhalf`: после `t` полушагов энергия равна `quadE a (qhalf a x t) = (1/4^t)*quadE a x`.
-
-- `quad_loop_horizon`: если `quadGrad a x ≠ 0` и `n ≥ 1`, то `quadE a (qhalf a x n) < quadE a x`; `quad_witness_T3` и `quad_witness_T10` — конкретные специализации.
-
-## Hagi/Research/Legacy/QuadraticConcrete.lean
-
-- `quad_core_premises`: для любых `a : ℝ` и `w : Fin 5 → ℝ` построены квадратичные состояния, удовлетворяющие `CorePremises (quadGen a) (quadGen' a) 0 w`.
-
-- `quad_kappa_at0` даёт `‖fderiv ℝ (quadE a) 0‖ ≤ 1+|a|`; `quad_conj13` проверяет соответствующее неравенство для квантованного скалярного шага с тем же коэффициентом.
-
-## Hagi/Benchmarks/
-
-- **`QuadraticEndToEnd.lean`** — `qStep_descent`: при `0 < eta < 1` и `x ≠ a` шаг `qStep` строго уменьшает `qLoss a`.
-- **`QuarticWitness.lean`** — `quartic_two_steps`: построенные два шага дают `qE w2 < qE w0`, сохраняют `FloorKept qMeasured w2 qFloor` и удовлетворяют явному бюджетному условию `0 ≤ 9 ∧ 9 ≤ 10−1`.
-
-## Hagi/External/Diversity.lean
-
-- `grad_dist_polarization`: во внутреннем пространстве доказано `‖a−b‖² = ‖a‖²+‖b‖²−2⟪a,b⟫`.
-
-- `gittins_index_max`: на любом непустом конечном типе существует индекс, максимизирующий заданную вещественную функцию idx.
-
-- `merge_init_head_start`: из `meanCE < logV` следует `0 < logV − meanCE`. Теорема фиксирует только этот арифметический зазор, а не эмпирическое превосходство всего обучения.
-
-## Hagi/External/Flywheel/
-
-- **`CoherenceCharacterization.lean`** — `trunc1_spectral_optimal_aux`: для любой матрицы `N` ранга не более 1 доказано `‖A−truncatedSVD A 1‖ ≤ ‖A−N‖` в норме соответствующего операторного инстанса.
-- **`CourantFischer.lean`** — `courantFischer_maxMin_bounds`: для эрмитовой `A` и `k>0` head-подпространство достигает `rayleighInf ≥ λ_{k−1}`, а всякое `k`-мерное ненулевое подпространство имеет `rayleighInf ≤ λ_{k−1}`.
-- **`EckartYoungLower.lean`** — `eckart_young_lower_bound`: для любой `B` с `rank B ≤ k` доказано `∑ i, (truncatedSingularValues_tail A k i)² ≤ ‖A−B‖²` — общая нижняя граница Эккарта–Юнга в хвостовой форме, замыкающая
-- **`FrobeniusNorm.lean`** — `frobenius_norm_sq_eq_trace`: доказано `‖A‖² = Re(trace(Aᴴ*A))`; `frobenius_norm_unitary_mul` даёт инвариантность нормы при левом умножении на унитарную матрицу.
-- **`MDLRank.lean`** — `mdlJ_first_order`: при `lam*c>0`, `kstar < card n`, `σ_{kstar}² ≤ lam*c` и стартовом условии `kstar=0 ∨ lam*c < σ_{kstar−1}²` выбранный `k*` минимизирует `mdlJ A lam c` по всем `k`.
-- **`NegDiagRank.lean`** — `neg_diag_pos_off_diag_kernel_trivial`: если `M i i < 0`, `M i j ≥ 0` при `i ≠ j` и все строчные суммы строго отрицательны, то ядро `M *ᵥ` тривиально (max-|x| аргумент, самодостаточно).
-- **`MatrixNormRelations.lean`** — `kronecker_perturbation_single_factor_B` и `…_C`: при непустых внутренних размерностях изменение одного сомножителя имеет точную норму, соответственно `‖B−B'‖*‖C‖` и `‖B‖*‖C−C'‖`.
-- **`NormSupport.lean`** — `mulVec_eucl_norm_sq_le`: для комплексной матрицы квадрат евклидовой нормы `A*x` ограничен `(ΣᵢΣⱼ‖A i j‖²)*‖x‖²`; `mulVec_eucl_norm_le` — следствие без квадратов.
-- **`SVD.lean`** — `hermitian_spectralRadius_eq_sup_abs_eigenvalues` и `l2_opNorm_hermitian_eq_sup_abs_eigenvalues`: для непустого конечного индекса и эрмитовой `H` спектральный радиус и операторная норма
-- **`SpectralNormGap.lean`** — `outerProduct_spectral_norm_le`: спектральная норма внешнего произведения ограничена `‖u‖*‖v‖`.
-- **`TruncatedSVDRank1.lean`** — `singularValues₀_eq_zero_of_rank_le_one`: если `rank A ≤ 1` и индекс `k` имеет `k.val ≥ 1`, то `singularValues₀ A k = 0`.
-- **`WeylInequality.lean`** — `thompson_interlacing`: если `rank B ≤ r` и `i.val+r < card n`, элемент `singularValues₀ A` с индексом `i+r` не превосходит `singularValues₀ (A+B)` с индексом `i`.
-
-## Hagi/External/MemT/GDN2.lean
-
-- Обозначим `q = rowSumNorm(1−Uᵀ*U) * rowSumNorm D` и `b = rowSumNorm(Uᵀ*(diagonal ω*V))`. `gdn2_stabilizes`: при `0<q<1` и любом `ε>0` существует `T`, после которого норма памяти не превышает `b/(1−q)+ε`.
-
-- `gdn2_forgets_initial`: разность двух траекторий с разными начальными памятями ограничена `q^t*rowSumNorm(M₁−M₂)` при любом `t`; дополнительных условий на `q` это утверждение не требует.
-
-- `gdn2_reset_bound`: при `0<q<1` память, начатая с нуля, ограничена `b*(1−q^t)/(1−q)`.
-
-## Hagi/Math/Foundations/Chord.lean
-
-- `exp_chord_ab`: для `a<b` и `x∈[a,b]` доказана хордовая оценка `exp x ≤ ((b−x)/(b−a))*exp a + ((x−a)/(b−a))*exp b`; `exp_chord_r` — форма для `exp(r*x)`.
-
-- `log_cosh_le`: для любого вещественного `M` доказано `log(cosh M) ≤ M²/2`.
-
-## Hagi/Growth/LinearCone.lean
+## Hagi/Growth/
 
 - `cone_exact_exponential`: при `α≥0`, `γ>0`, `ρ≥0`, `C t>0`, начальном конусе, капе `C(t+1)≤(1+α)C t`, динамике `D`, пороге на `β`, шаге `C(t+1)=C t+G t` и `γD≤G` доказано одновременно `(1+α)^T*C0 ≤ C T` и `C T ≤ (1+α)^T*C0`.
 
 - `band_guaranteed_growth_range`: из `C(t+1)=C t+G t`, `b*(1−σ)^t≤G t` для `t<T` и `0<σ≤1` следует `C T ≥ C0 + b*(1−(1−σ)^T)/σ`.
 
 - `time_to_target_log`: при `b≥0`, `0<σ<1`, `C0≤Cstar`, `σ*(Cstar−C0)<b` и `log(1−σ*(Cstar−C0)/b)/log(1−σ)≤T` доказано достижение `Cstar≤C T`.
-
-## Hagi/Math/Foundations/
-
-- **`ConeTakeoff.lean`** — `geometric_growth_from_cone`: если `γ,k≥0`, на `range T` выполнен шаг `C(t+1)=C t+γD t`, а на `range (T+1)` — конус `k*C t≤D t`, то `C0*(1+γ*k)^T ≤ C T`.
-- **`GrowthBand.lean`** — `growth_band_iter`: при `0≤αmin≤αmax` и двустороннем шаге `(1+αmin)C t≤C(t+1)≤(1+αmax)C t` доказаны обе границы `(1+αmin)^T*C0≤C T≤(1+αmax)^T*C0`.
-- **`Hoeffding.lean`** — `bern_mgf_bound`: для `0≤θ≤1` и любого `s` доказано `1−θ+θ*exp s ≤ exp(θ*s+s²/8)`.
-- **`MesoScale.lean`** — `macro_collapse`: для неотрицательных `A,L` с оценками `A ℓ≤a0*ℓ^p`, `L ℓ≤L0*ℓ^(−q)` и `p<q` доказано `A ℓ*L ℓ → 0` при `ℓ→∞`.
-- **`Ortho.lean`** — `ortho_norm_sq`: для ортонормального семейства `v` на конечном `ι` доказано `‖Σᵢ c i•v i‖²=Σᵢ(c i)²`; имеется и вариант по произвольному `Finset`.
-- **`Potential.lean`** — `hagiPotential_penalty_drop`: при `epsQ≥0` и `q−epsQ≤q'` доказано `max 0 (qTarget−q') ≤ max 0 (qTarget−q)+epsQ`.
-- **`QuadEta.lean`** — `quad_eta_identity`: для `quadLossAt a w = ½‖w−a‖²` градиентный шаг даёт точное `E(w−η∇E)= (1−η)²*E(w)`.
-- **`Recurrence.lean`** — `recurrence_upper`: при `0≤ρ<1` и `x(t+1)≤ρ*x t+c` для `t<T` доказано `x T≤ρ^T*x0+c*(1−ρ^T)/(1−ρ)`.
-- **`StageCalculus.lean`** — `compress_stage`: при `κ,s≥0`, `h_emp_dist : dnorm≤1/2` и `h_emp_lip : E3−E2pre≤κ*s*dnorm` следует `E3−E2pre≤κ*s/2`.
-- **`Telescope.lean`** — `lyapunov_telescope_fin`: если `E(t+1)≤E t−eps` для всех `t<k`, то `E k≤E0−k*eps`.
-
-## Hagi/Generalization/ModeState.lean
-
-- `generalization_safe_step`: при `lam,nu,ε_Q≥0`, посылках `h_emp_fit`, ограничении прироста риска величиной budget и `h_emp_G : Qgen S−ε_Q≤Qgen S'` потенциал удовлетворяет `Φ'≤Φ−ε_E+lam*budget+nu*ε_Q`.
-
-- `modeDrop_rejected`: условия `ModeDrop`, `h_emp_G` и строгое `ε_Q<ε_Qmode` несовместимы.
-
-- `selector_skips_dominated`: при строго положительных весах скаляризации глобальный argmin не равен строго доминируемому checkpoint.
-
-## Hagi/Geometry/SphericalSimplex.lean
-
-- `dihedral_angle_ge_pi_div_three` и `dihedral_angle_lt_pi_div_two`: при `x≥2` выполнено `π/3≤arccos(1/x)`, а при `x>1` — `arccos(1/x)<π/2`.
-
-- `euclid_sum_bounds`: для `n≥2` и `K=n(n+1)/2` доказано `(π/3)*K ≤ K*arccos(1/n) < (π/2)*K`.
-
-## Hagi/Research/
-
-- **`Ceilings.lean`** — `gain_product_bound`: норма композиции непрерывных линейных операторов не превосходит произведения норм; `gain_stack_ceiling` при `q≥0` и `‖T‖≤q` для всех слоёв даёт
-- **`ChainUnification.lean`** — `training_core_is_measurement_tail`: если `E_dev=E_aligned`, `G_cap=η_p*η_o*η_s*E_dev`, а E_aligned и `α_align` ненулевые, то `η_p*η_o*η_s=α_trunc*α_safe*α_cap`.
-
-## Hagi/Growth/
 
 - **`FiberNecessity.lean`** — `configs_injective_on_separated` и `used_configs_lower_bound`: если разделённые задачи обслуживаются своими конфигурациями, отображение конфигураций инъективно на семействе и
 - **`GainDecomposition.lean`** — `merge_is_mean`: из разложения `mergeDecomp W M dev` следует `N • M=ΣW`.
@@ -405,13 +379,10 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - **`NoiseDisentangle.lean`** — `orthogonal_noise_averaging`: для ненулевого `N`, попарно ортогональных `n i` с `‖n i‖²=σ²` среднее имеет квадрат нормы ровно `σ²/N`.
 - **`PlasticityLedger.lean`** — `kl_le_log_card`: для `IsProbs P`, строго положительных `P i v` и `famMix P v` каждое `KL(P i‖famMix P)≤log(card I)`.
 
-## Hagi/Research/
-
-- **`RecursiveSelfDevelopment.lean`** — `opportunity_renewal`: из `ρD+βC−ξ≤D'` и `(1−ρ)D+δ_O≤βC−ξ` следует `D+δ_O≤D'`; `recursive_self_development` при `C≤C'`, `D≥0`, `δ_O>0` дополнительно даёт `D'>0`.
-- **`RoundViability.lean`** — `round_exhausted`: при `devEnergy dev=0` и `GainOp` доказаны `ρD−ξ≤D'` и `η*devEnergy dev=0`; `cycle_criterion` — импликативная форма.
-- **`RsiCriterion.lean`** — `rsi_step_growth`: из `ρD t+βC t−ξ t≤D(t+1)` и строгого `ξ t+(1−ρ)D t<βC t` следует `D t<D(t+1)`.
-
-## Hagi/Growth/Saturation.lean
+- **`SelfDevelopment.lean`** — `self_development_find`: при наличии безопасного `a₀` с `G a₀>0` существует безопасный `a'` с `0<G a'` и `G a₀≤G a'`.
+- **`StateBinding.lean`** — `capability_geometric_growth_state`: при `0<α`, `0<γ`, `0≤ρ`, положительной начальной capability, начальном конусе, полевых законах шага, gain- и frontier-динамики, капе и пороге на `β`
+- **`Takeoff.lean`** — `elasticity_chain`: если `(1+e t)*x t≤x(t+1)` и `1+e t>0` на `range T`, то `x0*∏_{t<T}(1+e t)≤x T`.
+- **`Thermostat.lean`** — `thermostat_stop`: при `0<α<1`, `T0,δ>0`, `0<θ<1` и `t≥⌈log(δ/(T0*log(1/θ)))/log α⌉` доказано `exp(−δ/(T0*α^t))≤θ`.
 
 - `saturation_limit`: при `0<σ≤1` и нижнем PL-шаге для любого `ε>0` найдётся `T`, после которого `Cstar−ε≤C t`.
 
@@ -419,36 +390,39 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 - `geometric_band_with_saturation`: при `γ,k>0`, `σ≤1`, точном cone-шаге, обеих PL-оценках, `ConeRatio` и `C0≤Cstar` доказана двусторонняя полоса `C0*(1+γ*k)^T≤C T≤Cstar−(1−σ)^T*(Cstar−C0)`.
 
-## Hagi/Research/SeedOnly.lean
+- `capability_geometric_of_local`: при `alpha > 0`,
+  `capability(t+1) = capability t + growGain t` и
+  `alpha·capability t ≤ growGain t` для всех `t` получается
+  `capability 0·(1+alpha)^T ≤ capability T`.
 
-- `cycle_decay_mono`: при `s≥0`, `F>0`, `0<k<F+s` новое `F*(1−k/(F+s))` строго меньше `F` и неотрицательно; `cycle_decay_ratio` даёт точное отношение соседних приростов.
+- `pointEffect` и `causalEffect` неотрицательны; нулевое изменение выхода
+  на всём выбранном наборе даёт нулевой эффект, а существование точки с
+  положительным эффектом делает средний эффект положительным.
 
-- `channel_switch`: при положительных `F,k,s,b,Cm,Cr` и `√F*(k*Cr)<b*Cm*s` индекс rank-канала строго больше movement-индекса.
+- `mass_split`: для неотрицательных весов сумма живой и пассивной массы
+  равна полной массе.
 
-- `seed_only_disp_bound`: при посылках `h_emp_lip`, `h_emp_disp_step`, `a,s≥0` и `dispP 0=0` доказано `dispL t≤Lam²*s*Σ_{i<t}a^i`.
+## Hagi/Generalization/
 
-## Hagi/Growth/
+- `generalization_safe_step`: при `lam,nu,ε_Q≥0`, посылках `h_emp_fit`, ограничении прироста риска величиной budget и `h_emp_G : Qgen S−ε_Q≤Qgen S'` потенциал удовлетворяет `Φ'≤Φ−ε_E+lam*budget+nu*ε_Q`.
 
-- **`SelfDevelopment.lean`** — `self_development_find`: при наличии безопасного `a₀` с `G a₀>0` существует безопасный `a'` с `0<G a'` и `G a₀≤G a'`.
-- **`StateBinding.lean`** — `capability_geometric_growth_state`: при `0<α`, `0<γ`, `0≤ρ`, положительной начальной capability, начальном конусе, полевых законах шага, gain- и frontier-динамики, капе и пороге на `β`
-- **`Takeoff.lean`** — `elasticity_chain`: если `(1+e t)*x t≤x(t+1)` и `1+e t>0` на `range T`, то `x0*∏_{t<T}(1+e t)≤x T`.
-- **`Thermostat.lean`** — `thermostat_stop`: при `0<α<1`, `T0,δ>0`, `0<θ<1` и `t≥⌈log(δ/(T0*log(1/θ)))/log α⌉` доказано `exp(−δ/(T0*α^t))≤θ`.
+- `modeDrop_rejected`: условия `ModeDrop`, `h_emp_G` и строгое `ε_Q<ε_Qmode` несовместимы.
 
-## Hagi/Information/Capacity.lean
+- `selector_skips_dominated`: при строго положительных весах скаляризации глобальный argmin не равен строго доминируемому checkpoint.
+
+## Hagi/Geometry/
+
+- `dihedral_angle_ge_pi_div_three` и `dihedral_angle_lt_pi_div_two`: при `x≥2` выполнено `π/3≤arccos(1/x)`, а при `x>1` — `arccos(1/x)<π/2`.
+
+- `euclid_sum_bounds`: для `n≥2` и `K=n(n+1)/2` доказано `(π/3)*K ≤ K*arccos(1/n) < (π/2)*K`.
+
+## Hagi/Information/
 
 - `separated_needs_capacity`: если каждая задача из `SepSeparated good tasks` допускает подходящий ответ через некоторое состояние `S`, то `tasks.card≤card S`.
 
 - `router_capacity_bound`: в аналогичной модели с `encode : A→Q` и `card Q≤2^B` получается `tasks.card≤2^B`. Отдельная `bits_floor` доказывает лишь неотрицательность `logb 2 (card S)` для непустого конечного `S`, а не оценку взаимной информации.
 
 - `recoverable_avg`: при `N>0` и `0<devEnergyF dev` существует `k`, для которого `devEnergyF dev/N≤dev k ⬝ᵥ dev k`.
-
-## Hagi/Math/Info/InfoCore.lean (moved from Hagi/Prelude/)
-
-- `entropy_le_diagonal`: для положительно полуопределённой `A` энтропия не превосходит `Σᵢ negMulLog(Re(A i i))`; `concaveOn_entropy` доказывает вогнутость энтропии на PSD-состояниях.
-
-- `discrete_fannes_coupling`: для вероятностных `p,q` на непустом конечном `ι` и посылки hbridge, отождествляющей энтропию неотрицательной диагонали с `shannon`, доказано `shannon p−shannon q≤tvHalf*log(card ι)+(1+tvHalf)*binEntropy(tvHalf/(1+tvHalf))`.
-
-- Введены конечные `klDef`, `ceDef`, `entDef`, `tvDef` и `softDef`. При `p v ≠ 0` тождество `klDef_eq_ceDef_sub` выражает KL как `ceDef q p - ceDef q q`, а `ceDef_self` даёт `ceDef q q = entDef q`.
 
 ## Hagi/Learning/
 
@@ -461,15 +435,17 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - **`ToyTrajectory.lean`** — `honest_step_cert`: при `0<eta<2`, `cost≤s.budget` и `lossS a s>0` существуют положительный drop и соответствующий `StepCertT`.
 - **`TrainingTransition.lean`** — `taskStep_identity`: энергия после шага равна `taskEnergy S−(2η−T*η²)/2*Σ_j taskGrad S j²`.
 
-## Hagi/Model/Adaptive.lean
+- CE смеси распределений не хуже взвешенного среднего CE компонент (Jensen); логит-смесь и смесь распределений — разные объекты.
+
+- `auditSpendChain`, `auditSpendChain_delta_split`: цепочка из m принятых адаптаций, адаптация k тратит срез δₖ на задачу tsk k; `∑ spent = ∑ spent₀ + ∑ₖ δₖ`. Контракт контроля забывания старых задач — не доказан.
+
+## Hagi/Model/
 
 - `switch_floor` и `switch_floor_eq_iff`: при `n>0` и `ΣP=1` выполнено `1/n≤ΣPᵢ²`, с равенством ровно при `P i=1/n` для всех `i`; неотрицательность `P` для этой квадратичной формулировки не требуется.
 
 - `lora_kernel_preserved`: если `A*ᵥx=0`, то `(W+B*A)*ᵥx=W*ᵥx`.
 
 - `ReZero.rezero_perturb_bound`: для `rezeroStep` доказано `‖rezeroStep x fx alpha−x‖≤|alpha|*‖fx‖`; нулевой коэффициент оставляет `x` неподвижным.
-
-## Hagi/Model/AdaptiveChunking.lean
 
 - На конечном носителе уровней `k` стоимость задана как
   `adaptiveCost c M = ∑ l, c l * M l ^ 2`. При `0 ≤ c l`, `0 ≤ M l`,
@@ -480,95 +456,13 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `adaptive_lt_of_strict`: при тех же условиях, если дополнительно
   `0 < c l₀` и `M l₀ < L / r`, неравенство стоимостей строгое.
 
-## Hagi/Model/
-
 - **`AlignmentRisk.lean`** — Для непустого конечного `V` и строго положительных нормированных `p q : V → ℝ`, `0 ≤ c` и односторонней посылки `risk ≤ c * ((1/2) * ∑ v, |p v - q v|)` `kl_budget_risk_bound` даёт
 - **`Attention.lean`** — `gqa_kv_ratio`: при `1 ≤ T`, `1 ≤ d`, `n_kv < n_h` отношение стоимостей KV-кэшей равно `(n_kv : ℝ) / n_h`, а `gqa_kv_lt` делает его строго меньшим единицы. `mla_cache_saving` даёт
 - **`AttentionSpend.lean`** — `hybrid_ratio`: при положительных `T n n_h d` `hybridAttnCost T w n_kv d / denseAttnCost T n n_h d = ((2*w+1 : ℝ)/n) * ((n_kv : ℝ)/n_h)`. При `2*w+1 < n` и `n_kv < n_h` отношение строго
 - **`BYOL.lean`** — Для `bl u v = 1 - cosS u v` при посылке `CSCarrier u v`, то есть `|cosS u v| ≤ 1`, `bl_bounds` даёт `0 ≤ bl u v ≤ 2`; `bl_zero_at_perfect` превращает `cosS u v = 1` в `bl u v = 0`.
 
-## Hagi/Model/BatchCEDescent.lean
-
-- `batchMeanDirection_eq_neg_meanResidualTranspose` отождествляет среднее
-  собственных отрицательных направлений с `−meanResidualTranspose X θ y`;
-  `batchMeanAction_common` даёт среднее действие `−batchAlignment X θ y`.
-  При `0 < batchRangeSquare X θ y` `batchLoss_safeStep_lt` строго снижает
-  арифметическое среднее CE на заданном конечном батче.
-
-## Hagi/Model/BlockNorm.lean
-
-- Для `Blocks m = Fin 3 → Fin m → ℝ` `global_eq_mean_blocks` доказывает
-  `(globalRms x)^2 = (∑ b : Fin 3, (blockRms (x b))^2) / 3`.
-
-- `equal_blocks_global`: если `blockRms (x b₁) = blockRms (x b₂)` для
-  всех блоков `b₁ b₂ : Fin 3`, то `globalNorm x = blockNorm x`.
-
-## Hagi/Model/CEHeldout.lean (вкл. CEConfidenceScale, слит C523)
-
-- `ceBound_mul_joint_normalizedCE` восстанавливает исходный one-hot CE
-  умножением нормированной потери на положительный `ceBound X`;
-  `sample_budget_normalized_eq_raw` даёт точное преобразование бюджета
-  при `B ≠ 0`, `eps ≠ 0`.
-
-## Hagi/Model/CECoupledShortcut.lean
-
-- `shortcutScales_eq_fast_of_coupledPenalty_eq_zero`: полный кандидат
-  fast с нулевым `coupledPenalty` возвращается без изменений; при
-  ненулевом штрафе используется точный `selectedCoupledScales`.
-
-- `shortcutScales_score_eq_selectedCoupled`: в обеих ветвях значение
-  `coupledPenalty` равно значению на полном связанном минимизаторе; это
-  равенство оценок, а не равенство выбранных кодов или исходного CE.
-
-## Hagi/Model/CEDescent.lean
-
-- Для конечного непустого `V` и любого `0 ≤ η`
-  `ceOneHot_next_le` доказывает
-  `CE(next η) ≤ CE θ - η*ceAlignment X θ t +
-  (η*ceStepRange X θ t)^2/8`; направление —
-  отрицательный транспонированный softmax-остаток.
-
-## Hagi/Model/
-
 - **`CEExpansion.lean`** — `ceLogits_expandedParameters`: новый логит равен `ceLogits X θ v + Z v * gamma`; поэтому при `gamma = 0` `ceOneHot_expandedParameters_zero` сохраняет CE при произвольной новой координате
 - **`CEGradient.lean`** — На непустом конечном `V` и `EuclideanSpace ℝ (Fin d)` `fderiv_ceOneHot_mulVec` вычисляет направленную производную CE как `∑ v, (softDef (X*ᵥθ) v - oneHot t v) * (X*ᵥh) v`, то есть действие
-
-## Hagi/Model/CEGroupedScale.lean
-
-- Для эквивалентности `(Fin G × Fin 5) ≃ Fin (5*G)` и непустого `V`
-  `ceOneHot_joint_le_blockPenalties` доказывает
-  `CE(jointParameters e w scales) ≤ CE w + ∑ g, blockPenalty e X w g (scales g)`.
-
-- `selectedGroupScales_spec`: каждый избранный код минимизирует
-  `blockPenalty` среди полного конечного семейства из 255 кодов.
-  При `2 ≤ G` независимый локальный поиск использует строго меньше
-  математических вычислений оценки, чем полное число совместных кандидатов.
-
-## Hagi/Model/CEJacobianMajorizer.lean
-
-- Для непустого конечного `V`, `HasFDerivAt f J θ`,
-  `A = -(fderiv CE(f) θ d)`, диапазона `(J d)u-(J d)v ≤ R` и остатка
-  `‖f w-f θ-J(w-θ)‖ ≤ ρ*‖w-θ‖^2` на `closedBall θ r`
-  `ceOneHot_local_line_majorize_of_jacobian_remainder` при `0 ≤ η` и
-  `η*‖d‖ ≤ r` даёт
-  `CE(f(θ+ηd)) ≤ CE(fθ) - η*A + η^2*(R^2/8 + 2*ρ*‖d‖^2)`.
-
-## Hagi/Model/CEJointScale.lean
-
-- `selectedCoupledScales_spec` минимизирует `coupledPenalty` по всему
-  пространству функций `Fin G → DyadicScaleCode`;
-  `selectedCoupledScales_le_selectedGroupScales_total` сравнивает этот
-  минимум с суммой раздельных блочных штрафов, не упорядочивая исходный CE.
-
-## Hagi/Model/CEMarkovConfidence.lean
-
-- `raw_bank_freedman_confidence`: на истории пар «банк кодов — метка» с
-  непустым конечным типом меток, при `0 < r`, `0 ≤ V`, вероятность того, что
-  условная граница дисперсии `V` влечёт одновременное
-  `|historyAdditive ...| < r` для всех `m` моделей, не менее
-  `1 - 2*m*exp(-r^2/(4*(V + ceBound X*r)))`.
-
-## Hagi/Model/
 
 - **`CEPadding.lean`** — Для любого `d` `d ≤ paddedDimension d`, `paddedLogicalBits d = 16*((d+4)/5)`; `unpadVector (padVector w) = w`.
 - **`CEQuantized.lean`** — На непустом конечном `V` `ceOneHot_le_of_abs_sub_le`: если `∀ v, |z v-y v| ≤ r`, то `ceOneHot t z ≤ ceOneHot t y + 2*r`.
@@ -578,41 +472,9 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - **`ConsolidationMirror.lean`** — На непустом конечном `V`, при `0 < T`, строго положительном нормированном `ρ₀`, `grow_gain_from_mirror` равен разность потерь приора и шага Гиббса
 - **`CycleCertificate.lean`** — `cycle_certificate_composition`: один `CycleCertificate T C Φ B` даёт `C T = C 0 + Σ gain`, `Φ T ≤ Φ 0 - Σ drop + Σ risk` и `B T = B 0 - Σ spend`.
 
-## Hagi/Model/EnergyReasoning/Pseudolikelihood.lean
-
-- Track E1: псевдоправдоподобие как локальная условная CE на каноническом
-  Prelude-стержне. Логиты `conditionalLogit B K y i a = −pairwiseEnergy B K
-  (update y i a)` (CRAM-знак), условные `conditionalDist = softDef` от них,
-  цель `pseudolikelihoodObjective = (Σ ceOneHot (y i) z_i)/|ι|`.
-
-## Hagi/Model/
-
 - **`DiffAttention.lean`** — `sm_shift`: `sm (fun j => x j + c) i = sm x i`; общий аддитивный сдвиг логитов не меняет softmax-веса.
 - **`DistillCert.lean`** — Для `DistillCert` на `Fin n → ℝ`, с `0 < delta`, `0 ≤ lip`, `0 ≤ dist2 ≤ dbound` и `dist2^2 = ∑(teacher-student)^2`, `quant_L2` доказывает `∑(quantStudent-student)^2 ≤ n*(delta/2)^2`.
 - **`GDNBridge.lean`** — `gdn_onehot_interp`: one-hot Gated DeltaNet-обновление равно `colInterp S i v g β`; записываемый столбец интерполируется между затухшим состоянием и `v` с коэффициентом `β`.
-
-## Hagi/Model/RamProtocol.lean
-
-- C303 (E6 — RAM induction: протокол store/load + нормализация
-  заикания): `ramStore`/`ramLoad` — протокольный API поверх
-  GDNRAM-носителя; `ram_store_load_roundtrip` — store→load по
-  тому же адресу возвращает значение в точности (упаковка
-  идеального one-hot roundtrip), `ram_store_isolation` — load по
-  другому адресу не затронут записью (one-hot независимость
-  слотов, режим lag-1).
-
-## Hagi/Model/GatedCEDescent.lean
-
-- Для непустого конечного `V` производная CE вдоль
-  `gatedDirection X θ t` в нуле равна `-gatedAlignment X θ t`
-  (`hasDerivAt_gatedLineObjective`).
-
-- При `0 < gatedAlignment X θ t`
-  `exists_gated_ceOneHot_descent` даёт существование `η > 0` со строгим
-  локальным снижением фактического CE управляемой модели; явный размер
-  шага в этой теореме не вычисляется.
-
-## Hagi/Model/
 
 - **`Generative.lean`** — DDPM: `alphaBar_succ` задаёт рекуррентность произведения. При `0 ≤ β i ≤ 1` `alphaBar_mono` доказывает невозрастание, а если `0 < b < 1`, `b ≤ β i ≤ 1`, то `alphaBar_exp_bound` даёт
 - **`Grokfast.lean`** — `decompose`: `gLow + gHigh = g`; `amp_recompose` переписывает усиленное направление как `(1+lam)*gLow + gHigh`.
@@ -620,37 +482,9 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - **`HNet2.lean`** — `hier2_compression_product`: при `r1 r2 ≠ 0` `hier2Positions T r1 r2 = T/r1/r2`; при `0 ≤ T`, `1 ≤ r1`, `1 ≤ r2` `hier2_positions_le` даёт неравенство `hier2Positions ≤ T`.
 - **`HypothesisCompetition.lean`** — При `0 < K`, `T ≠ 0` `dhcWeights_pos` и `dhcWeights_sum_one` доказывают строгую положительность и нормировку DHC-весов; `dhcWeights_mono` при `0 < T` сохраняет порядок активаций.
 
-## Hagi/Model/Logic/VennHead.lean
-
-- Точная нейро-символьная голова (Track B7): атомы Венна как
-  ReLU-нейроны `vAtom` на {−1,+1}-входах — ровно один активен
-  (`vAtoms_sum_one`, `vAtoms_mem`); голова `vennHead` линейна по атомам
-  с {0,1}-маской (`vennHead_mem`).
-
-- `vennHead_exact` — 64-случайный мост: на знаковых входах голова
-  вычисляет значение истинности маски `Hagi.Data.BoolVenn` (16 масок ×
-  4 входа).
-
-## Hagi/Model/
-
 - **`LabelSmoothing.lean`** — При `0 ≤ ε` на непустом конечном `K` `ls_pointwise_dist` даёт точное равенство `|lsTarget q ε i-q i| = ε*|q i-1/card K|`; для нормированной неотрицательной `q` `ls_l1_bound` ограничивает
 - **`LayerNorm.lean`** — `ln_scale_invariant`: для `0 < c` `lnVec (c • x) = lnVec x`.
 - **`LogitPSV.lean`** — Для непустого конечного `k` и строго положительных весов `p` с суммой `1` `logitPSV_gap_nonneg` доказывает `0 ≤ twoGap p (biasedScore base sigma ∘ eps)`.
-
-## Hagi/Model/Losses.lean
-
-- NT-Xent: `nt2_nonneg`, `nt2_anti`, `nt2_zero_margin` и `nt2_le_log2`
-  для `nt2 m = log(1+exp(-m))` дают неотрицательность, строгое убывание
-  по марже, значение `log 2` при `m=0` и верхнюю границу `log 2` при
-  `0 ≤ m`.
-
-## Hagi/Model/MachineBridge.lean
-
-- `machine_param_bridge`: если `S.params = w` для
-  `S : GrowthState (EuclideanSpace ℝ (Fin n))`, то параметры `advance`
-  равны `jointStepE a w eta`; `0 < eta` входит в построение входных данных.
-
-## Hagi/Model/
 
 - **`MambaSSM.lean`** — `ssm_linear_cost_lt`: при `0 < c κ` и `κ < T` `c*T*κ < c*T*T`.
 - **`MeasuredEffects.lean`** — Для `MS`, содержащего способность, бюджет и типизированные эффекты, `trainStep_measured` отождествляет эффекты шага с `measure S batch`, а `trainStep_budget_balance` даёт
@@ -663,7 +497,104 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - **`MuPScaling.lean`** — `muP_width_invariant`: при `0 ≤ eta`, `0 ≤ c` и строчных нормах `≤ c` абсолютное обновление каждого выхода не превышает `eta*c*√(∑x j^2)` без множителя ширины.
 - **`NeuralComputer.lean`** — Для `S : NCState`, `u : NCInput` `nc_cpu_frozen` и `nc_base_frozen` сохраняют соответственно параметры CPU и тритарную базу.
 
-## Hagi/Model/NonlinearCE.lean
+- **`NormAct.lean`** — PreNorm: `preNorm_step_bound` ограничивает шаг суммой норм; `preNorm_depth_bound` при `‖fs t‖ ≤ B` даёт `‖x_L‖ ≤ ‖x0‖ + L*B`.
+- **`Perceiver.lean`** — `perceiver_cost_ratio_lt`: при `1 ≤ n`, `2*m ≤ n` `perceiverCost n m / attnCost n < 1`.
+- **`QuantizedAdvance.lean`** — `advanceQ_quantized`: для `S : GrowthState X` `(advanceQ S u q).params = q(S.params-u.sp.eta • u.stepDir)`.
+
+- **`RMSNorm.lean`** — `rn_scale_invariant`: для `0 < c` `rnVec (c • x) = rnVec x`.
+- **`RVCore.lean`** — `wordAdd_spec`: `(wordAdd a b).toNat = (a.toNat+b.toNat) % 2^32`; `wordSub_spec` задаёт оборачивающуюся разность по тому же модулю, а `wordAnd_spec` использует `Nat.land`.
+- **`ReferenceMachine.lean`** — Для `a w : Fin n → ℝ` `jointStep_energy` даёт `energy a (jointStep a w eta) = (1-eta)^2*energy a w`; `jointStep_energy_decrease` при `0 < eta < 2`, `a ≠ w` делает спад строгим.
+- **`Residual.lean`** — Для нормированного `X`, `‖f t x‖ ≤ eps` и `0 ≤ eps` `res_bounded_drift` даёт `‖resStream f x0 T-x0‖ ≤ T*eps`.
+- **`Routing.lean`** — `softDef_odds`: точное обновление шансов softmax при произвольном сдвиге скоров `a⁺j/a⁺k = (aj/ak)·exp(Δsj−Δsk)` — без приближений первого порядка.
+
+- **`Sidon.lean`** — `sidon_pair_diff_injective`: для Sidon-`S`, `t i ∈ S`, `StrictMono t`, `i<j`, `k<l` равенство `t j-t i = t l-t k` влечёт `i=k`, `j=l`.
+- **`SoftmaxStep.lean`** — Для одномерной `logitCE` `logitCE_deriv` даёт производную `-1/(1+exp w)`, а `grad_lipschitz` — глобальный коэффициент `1/4`.
+
+- **`SourceMixture.lean`** — `mixture_sum_one`: если `Σλ=1` и каждый источник нормирован, смесь нормирована; `mixture_nonneg` дополнительно требует `0 ≤ λ`, `0 ≤ p s x`.
+- **`SpecDecoding.lean`** — `anchor_eq_ema`: `anchorSeq α x n = ema (1-α) x n`; `anchor_stable` при `0 ≤ α ≤ 1` и всех `x t ∈ [lo,hi]` сохраняет всю якорную траекторию в `[lo,hi]`.
+
+- `batchMeanDirection_eq_neg_meanResidualTranspose` отождествляет среднее
+  собственных отрицательных направлений с `−meanResidualTranspose X θ y`;
+  `batchMeanAction_common` даёт среднее действие `−batchAlignment X θ y`.
+  При `0 < batchRangeSquare X θ y` `batchLoss_safeStep_lt` строго снижает
+  арифметическое среднее CE на заданном конечном батче.
+
+- Для `Blocks m = Fin 3 → Fin m → ℝ` `global_eq_mean_blocks` доказывает
+  `(globalRms x)^2 = (∑ b : Fin 3, (blockRms (x b))^2) / 3`.
+
+- `equal_blocks_global`: если `blockRms (x b₁) = blockRms (x b₂)` для
+  всех блоков `b₁ b₂ : Fin 3`, то `globalNorm x = blockNorm x`.
+
+- `ceBound_mul_joint_normalizedCE` восстанавливает исходный one-hot CE
+  умножением нормированной потери на положительный `ceBound X`;
+  `sample_budget_normalized_eq_raw` даёт точное преобразование бюджета
+  при `B ≠ 0`, `eps ≠ 0`.
+
+- `shortcutScales_eq_fast_of_coupledPenalty_eq_zero`: полный кандидат
+  fast с нулевым `coupledPenalty` возвращается без изменений; при
+  ненулевом штрафе используется точный `selectedCoupledScales`.
+
+- `shortcutScales_score_eq_selectedCoupled`: в обеих ветвях значение
+  `coupledPenalty` равно значению на полном связанном минимизаторе; это
+  равенство оценок, а не равенство выбранных кодов или исходного CE.
+
+- Для конечного непустого `V` и любого `0 ≤ η`
+  `ceOneHot_next_le` доказывает
+  `CE(next η) ≤ CE θ - η*ceAlignment X θ t +
+  (η*ceStepRange X θ t)^2/8`; направление —
+  отрицательный транспонированный softmax-остаток.
+
+- Для эквивалентности `(Fin G × Fin 5) ≃ Fin (5*G)` и непустого `V`
+  `ceOneHot_joint_le_blockPenalties` доказывает
+  `CE(jointParameters e w scales) ≤ CE w + ∑ g, blockPenalty e X w g (scales g)`.
+
+- `selectedGroupScales_spec`: каждый избранный код минимизирует
+  `blockPenalty` среди полного конечного семейства из 255 кодов.
+  При `2 ≤ G` независимый локальный поиск использует строго меньше
+  математических вычислений оценки, чем полное число совместных кандидатов.
+
+- Для непустого конечного `V`, `HasFDerivAt f J θ`,
+  `A = -(fderiv CE(f) θ d)`, диапазона `(J d)u-(J d)v ≤ R` и остатка
+  `‖f w-f θ-J(w-θ)‖ ≤ ρ*‖w-θ‖^2` на `closedBall θ r`
+  `ceOneHot_local_line_majorize_of_jacobian_remainder` при `0 ≤ η` и
+  `η*‖d‖ ≤ r` даёт
+  `CE(f(θ+ηd)) ≤ CE(fθ) - η*A + η^2*(R^2/8 + 2*ρ*‖d‖^2)`.
+
+- `selectedCoupledScales_spec` минимизирует `coupledPenalty` по всему
+  пространству функций `Fin G → DyadicScaleCode`;
+  `selectedCoupledScales_le_selectedGroupScales_total` сравнивает этот
+  минимум с суммой раздельных блочных штрафов, не упорядочивая исходный CE.
+
+- `raw_bank_freedman_confidence`: на истории пар «банк кодов — метка» с
+  непустым конечным типом меток, при `0 < r`, `0 ≤ V`, вероятность того, что
+  условная граница дисперсии `V` влечёт одновременное
+  `|historyAdditive ...| < r` для всех `m` моделей, не менее
+  `1 - 2*m*exp(-r^2/(4*(V + ceBound X*r)))`.
+
+- `ramStore`/`ramLoad` — протокольный API поверх
+  GDNRAM-носителя; `ram_store_load_roundtrip` — store→load по
+  тому же адресу возвращает значение в точности (упаковка
+  идеального one-hot roundtrip), `ram_store_isolation` — load по
+  другому адресу не затронут записью (one-hot независимость
+  слотов, режим lag-1).
+
+- Для непустого конечного `V` производная CE вдоль
+  `gatedDirection X θ t` в нуле равна `-gatedAlignment X θ t`
+  (`hasDerivAt_gatedLineObjective`).
+
+- При `0 < gatedAlignment X θ t`
+  `exists_gated_ceOneHot_descent` даёт существование `η > 0` со строгим
+  локальным снижением фактического CE управляемой модели; явный размер
+  шага в этой теореме не вычисляется.
+
+- NT-Xent: `nt2_nonneg`, `nt2_anti`, `nt2_zero_margin` и `nt2_le_log2`
+  для `nt2 m = log(1+exp(-m))` дают неотрицательность, строгое убывание
+  по марже, значение `log 2` при `m=0` и верхнюю границу `log 2` при
+  `0 ≤ m`.
+
+- `machine_param_bridge`: если `S.params = w` для
+  `S : GrowthState (EuclideanSpace ℝ (Fin n))`, то параметры `advance`
+  равны `jointStepE a w eta`; `0 < eta` входит в построение входных данных.
 
 - `ceOneHot_nonlinear_descent_le`: нелинейная лемма о спуске — при
   посылках мажоризатора Якобиана (оструктуренный остаток
@@ -672,14 +603,6 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   (nonlinearCurvature R ρ ‖d‖^2 / 2)*η^2`, где составная кривизна
   `nonlinearCurvature R ρ dn = R^2/4 + 4*ρ*dn` (без отброшенных
   перекрёстных членов).
-
-## Hagi/Model/
-
-- **`NormAct.lean`** — PreNorm: `preNorm_step_bound` ограничивает шаг суммой норм; `preNorm_depth_bound` при `‖fs t‖ ≤ B` даёт `‖x_L‖ ≤ ‖x0‖ + L*B`.
-- **`Perceiver.lean`** — `perceiver_cost_ratio_lt`: при `1 ≤ n`, `2*m ≤ n` `perceiverCost n m / attnCost n < 1`.
-- **`QuantizedAdvance.lean`** — `advanceQ_quantized`: для `S : GrowthState X` `(advanceQ S u q).params = q(S.params-u.sp.eta • u.stepDir)`.
-
-## Hagi/Model/RL.lean
 
 - GRPO: `groupAdv_sum_zero` при `0 < n` даёт нулевую сумму, а
   `groupAdv_sq_min` доказывает оптимальность среднего как baseline. При
@@ -690,16 +613,6 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   `q p` и `0 ≤ β` доказывает, что вычитание `β*klDef q p` не увеличивает
   ожидаемую награду.
 
-## Hagi/Model/
-
-- **`RMSNorm.lean`** — `rn_scale_invariant`: для `0 < c` `rnVec (c • x) = rnVec x`.
-- **`RVCore.lean`** — `wordAdd_spec`: `(wordAdd a b).toNat = (a.toNat+b.toNat) % 2^32`; `wordSub_spec` задаёт оборачивающуюся разность по тому же модулю, а `wordAnd_spec` использует `Nat.land`.
-- **`ReferenceMachine.lean`** — Для `a w : Fin n → ℝ` `jointStep_energy` даёт `energy a (jointStep a w eta) = (1-eta)^2*energy a w`; `jointStep_energy_decrease` при `0 < eta < 2`, `a ≠ w` делает спад строгим.
-- **`Residual.lean`** — Для нормированного `X`, `‖f t x‖ ≤ eps` и `0 ≤ eps` `res_bounded_drift` даёт `‖resStream f x0 T-x0‖ ≤ T*eps`.
-- **`Routing.lean`** — `softDef_odds`: точное обновление шансов softmax при произвольном сдвиге скоров `a⁺j/a⁺k = (aj/ak)·exp(Δsj−Δsk)` — без приближений первого порядка.
-
-## Hagi/Model/ResidualVQ.lean
-
 - `residual_sum_split`: `z = reconstruct R k + (z-reconstruct R k)`;
   `refine_geometric` при `0 ≤ D 0`, `0 ≤ rho k` и
   `D(k+1) ≤ rho k*D k` для `k<K` даёт
@@ -709,14 +622,7 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   `0 ≤ ε`, `D(k+1) ≤ rho k*D k+eps k` и `0 ≤ D k`
   `D K ≤ ρ^K*D 0 + ε*(1-ρ^K)/(1-ρ)`.
 
-## Hagi/Model/
-
-- **`Sidon.lean`** — `sidon_pair_diff_injective`: для Sidon-`S`, `t i ∈ S`, `StrictMono t`, `i<j`, `k<l` равенство `t j-t i = t l-t k` влечёт `i=k`, `j=l`.
-- **`SoftmaxStep.lean`** — Для одномерной `logitCE` `logitCE_deriv` даёт производную `-1/(1+exp w)`, а `grad_lipschitz` — глобальный коэффициент `1/4`.
-
-## Hagi/Model/SoftmaxHead.lean
-
-- C283 parametric softmax-head core: оси CE-семейства (gated, tanh,
+- parametric softmax-head core: оси CE-семейства (gated, tanh,
   packed, grouped/joint scale, padding, held-out confidence, batch
   descent) становятся конфигурацией — `LogitMap` (ident/tanh;
   `LogitMap.apply` — единственная точка рекурсии), `Reduction` с
@@ -728,21 +634,12 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   ось сознательно НЕ конструктор (меняет константы штрафов, не
   функционал).
 
-## Hagi/Model/
-
-- **`SourceMixture.lean`** — `mixture_sum_one`: если `Σλ=1` и каждый источник нормирован, смесь нормирована; `mixture_nonneg` дополнительно требует `0 ≤ λ`, `0 ≤ p s x`.
-- **`SpecDecoding.lean`** — `anchor_eq_ema`: `anchorSeq α x n = ema (1-α) x n`; `anchor_stable` при `0 ≤ α ≤ 1` и всех `x t ∈ [lo,hi]` сохраняет всю якорную траекторию в `[lo,hi]`.
-
-## Hagi/Model/StageSemantics.lean
-
 - `advance_energy_drop` для `S : GrowthState X` и свежего `StageInput X`
   при законах роста/слияния/совместного шага/сжатия даёт
   `compressEnergy ≤ S.energy - (growGain + gap +
   (η*⟪grad,d⟫ - L*η^2*‖d‖^2/2) - κ*s*quantErr)`;
   посылки включают `0 ≤ gap`, `0 < L`, `η ≤ 1/L`,
   `‖d‖^2 ≤ ⟪grad,d⟫` и соответствующие неравенства энергии.
-
-## Hagi/Model/TanhCEStep.lean
 
 - Для модели `x ↦ ![Real.tanh x, 0]` на `Fin 2`
   `ceOneHot_tanh_step_le` доказывает
@@ -752,7 +649,68 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `ceOneHot_tanh_step_lt` делает спуск строгим; равенство фактического
   спада величине `1/66` не утверждается.
 
-## Hagi/Numerics/Numerics.lean (вкл. SoftmaxFix, слит C526)
+- `resStep_lipschitz`: residual-шаг `(1+μ)`-липшицев при `μ`-липшицевой ветви `f`.
+- `residual_transfer_le`, `residual_transfer_descent`, `residual_transfer_descent_strict`: сертифицированный спуск головы `δ` (посылка hdrop) переносится через один residual-блок с утечкой `Lc·μ·‖dx‖`; `μ=0` — нулевая утечка.
+- Стек `resStack`: `stackGain = ∏(1+μᵢ)`, `stackGain_ge_one`, `resStack_bounds`, `resStack_lipschitz`, `resStack_leak_le` (`‖G(x+dx)−G x−dx‖ ≤ (∏(1+μᵢ)−1)·‖dx‖`), `resStack_transfer_descent` и `resStack_transfer_descent_strict` — перенос спуска через весь стек.
+- Не доказано: attention-якобианы, RoPE-точность, GDN RAM-звено, RMSNorm-константы (следующие четыре файла закрывают их посылками).
+
+- `attnBranch` — softmax-взвешенная композиция `∑ i, p i • v i x`; веса `p` — посылка (фиксированное распределение).
+- `attn_branch_damped`: отклонение ветви при возмущении ограничено максимальным откликом value-отображений (инстанция `Hagi.Core.attention_error_damped`). `attn_branch_lipschitz`: равномерное демпфирование μatt даёт `LipschitzWith μatt`. `attn_norm_branch_lipschitz`: pre-norm (посылка μn) ∘ ветвь даёт `LipschitzWith (μn·μatt)`.
+- `attention_block_transfer`: один attention-блок (pre-norm + ветвь + residual) — утечка `Lc·(μn·μatt)·‖dx‖`.
+- Стек: `AttnBlock`, `attnBlockList`, `attnStack`, `attnGain = ∏(1+μnᵢ·μattᵢ)`, `attnBlockList_lipschitz`, `attention_stack_transfer_descent`, `attention_stack_transfer_descent_strict`.
+- Не доказано: softmax-карта весов (p от x через QKᵀ) — посылка; Lipschitz RMSNorm — посылка μn; полный forward/backward FastArch3.
+
+- `rope_pair_inner`: `pairInner (rotVec θ m x) (rotVec θ m y) = pairInner x y`; `rot_norm` — случай `y = x`.
+- `toEuc`/`fromEuc`: транспорт `Fin d → ℝ × ℝ` в `EuclideanSpace ℝ (Fin d ⊕ Fin d)` с `‖toEuc x‖² = pairInner x x` (`toEuc_norm_sq`).
+- `rope_isometry`: `rotEuc = toEuc ∘ rotVec ∘ fromEuc` — изометрия, `‖R a − R b‖ = ‖a − b‖`.
+- `rope_block_transfer` / `rope_block_post_transfer`: пре/пост-композиция с изометрией сохраняет константу Липшица. `attention_block_rope_transfer`: RoPE-обёрнутый pre-norm attention-блок — та же утечка при `μn·μatt`.
+- Стек: `attnRopeBlockList`, `attnRopeStack`, `attnRopeGain = attnGain` (`attnRopeGain_eq`), `attnRopeBlockList_lipschitz`, `attention_rope_stack_transfer_descent`.
+- Не доказано: матричная ортогональность `RᵀR = I` и операторная норма; полный FastArch3.
+
+- Носитель `rnVec x i = x i / sqrt (ms x)` (без ε-пола, без аффинного веса). `msE`/`rnEuc`/`rnEpsEuc` на `EuclideanSpace ℝ (Fin n)`, `norm_eq_sqrt`: `‖x‖ = √n·√(msE x)`.
+- `rnEuc_not_lipschitz_with` (n ≥ 2): чистый носитель НЕ липшицев глобально. На области `{z | r ≤ ‖z‖}` — `rn_lipschitz_region` с константой `2√n/r`.
+- ε-полный носитель `rnEpsEuc ε x i = x i / sqrt (msE x + ε)` глобально `(2/√ε)`-липшицев (`rnEpsEuc_lipschitz`), через `msE_abs_sub_le`.
+- `residual_transfer_le_pointwise`; `attention_block_transfer_rmsnorm`: блок с константой `Lc·((2√n/r)·μatt)` (посылки области на обоих концах шага). `attention_stack_transfer_rmsnorm_eps`: стек с μn(ε) = 2/√ε.
+- Не доказано: аффинный вес g в носителе; softmax — посылка; полный FastArch3 certificate.
+
+- GDN-блок здесь — mixing-ветвь `gdnMix M x = toLp 2 (M *ᵥ ofLp x)` с GDN-гейтом в посылке (μg-липшицев пред-гейт).
+- `gdnMix_lipschitz`: `IsDoublyStochastic M ⇒ LipschitzWith 1 (gdnMix M)` (через `doublyStochastic_sq_le`, `gdnMix_norm_sub_le`). `gdn_branch_lipschitz`; `gdn_block_transfer`: утечка `Lc·μg·‖dx‖`.
+- Стек: `GdnBlock`, `gdnBlockList`, `gdnStack`, `gdnGain = ∏(1+μgᵢ)`, `gdn_stack_transfer_descent`.
+- Гибрид: `HybBlock` (конструкторы att | gdn), `hybBlockList`, `hybStack`, `hybGain`, `hybBlockList_lipschitz`, `hybrid_stack_transfer_descent` — стек из attention- и GDN-блоков спускается с произведением gain.
+- Не доказано: GDNBridge RAM-чтение/запись и GDN2 memory update как state-сжатия; нелинейный гейт; Sinkhorn (`IsDoublyStochastic` — посылка).
+
+- `FA3Block n ι` (`att a R` — attention-блок с RoPE-обёрткой, посылка изометрии; `gdn g`), `FastArch3Spec`, `fa3BlockList`, `fa3Stack`, `fa3Gain = ∏(1+μᵢ)`, `fa3BlockList_lipschitz`, `fa3Objective`.
+- `fastarch3_transfer_descent`: параметрический SoftmaxHead поверх гибридного стека — сертифицированный спуск головы δ (посылка, инстанцируется `ceOneHot_next_le_param`) + Lc-липшицева потеря головы ⇒ утечка `Lc·(∏(1+μᵢ)−1)·‖dx‖`. `fastarch3_transfer_descent_strict`: при `δ >` утечке — строгое убывание end-to-end objective.
+
+Код: hagi/selfmodel.py:35-60 — Frank-Wolfe по симплексу над нормированными градиентами, `gamma = 2/(2+t)`.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `mgdaCodeDirection`, `SimplexWeights`, `mgdaCodeDirection_mem_convexHull` | смесь кода `d = alpha @ G` на симплексе ∈ convex hull | Hagi/Model/BatchCEDescentMgdaCode.lean:44, :49, :91 |
+| `MgdaStationary`, `inner_le_of_mem_convexHull_range`, `mgda_norm_sq_le_of_stationary` | ε-стационарная смесь ⇒ `‖d‖² − 2ε ≤ ‖c‖²` для всех `c` из hull | Hagi/Model/BatchCEDescentMgdaCode.lean:54, :60, :102 |
+| `mgda_eq_of_stationary`, `batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary` | `ε = 0` ⇒ смесь = min-norm точке hull; инстанс канона `batchGradientMinimizer` (BatchCEDescent.lean:362; потребитель `evaluatedBatchMinimumNormPath_floor_kept_and_objective_lt` FixedBatch.lean:147) | Hagi/Model/BatchCEDescentMgdaCode.lean:126, :146 |
+
+- Точно на остановке, приближённо `(2ε)` по допуску. Witness: α = (1/2, 1/2) = `segmentMinNorm` e0 e1 (ProjectionDescent.lean:75); негативы [2,−1], [1,0]. Не доказано: код решает на `g/‖g‖`, канон — на raw (моста нет); скорость `O(1/k)`.
+
+## Hagi/Model/EnergyReasoning/
+
+- псевдоправдоподобие как локальная условная CE на каноническом
+  Prelude-стержне. Логиты `conditionalLogit B K y i a = −pairwiseEnergy B K
+  (update y i a)`, условные `conditionalDist = softDef` от них,
+  цель `pseudolikelihoodObjective = (Σ ceOneHot (y i) z_i)/|ι|`.
+
+## Hagi/Model/Logic/
+
+- Точная нейро-символьная голова : атомы Венна как
+  ReLU-нейроны `vAtom` на {−1,+1}-входах — ровно один активен
+  (`vAtoms_sum_one`, `vAtoms_mem`); голова `vennHead` линейна по атомам
+  с {0,1}-маской (`vennHead_mem`).
+
+- `vennHead_exact` — 64-случайный мост: на знаковых входах голова
+  вычисляет значение истинности маски `Hagi.Data.BoolVenn` (16 масок ×
+  4 входа).
+
+## Hagi/Numerics/
 
 - `ce_grad_sum_zero`: для нормированной `p`
   `Σ(softDef z-p)=0`; `distill_grad_self_zero` обнуляет остаток при
@@ -762,77 +720,9 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   `Σ_{j≠t}exp(z j-z t)=exp(-logitMargin z t)`, а `ce_loss_margin`
   переписывает CE как `log(1+exp(-logitMargin z t))`.
 
-## Hagi/Research/
+## Hagi/Planning/
 
-- **`ConditionalInformation.lean`** — Для строго положительной нормированной `p` на `X×(Z×Y)` и условной положительной нормированной ссылки `q : X→Y→ℝ` `conditionalMutualInformation_eq_expected_log_ratio_sub_reference_kl` равна
-- **`CrossModalGap.lean`** — Для непустых конечных `X Y` и строго положительной нормированной `p : X×Y→ℝ` `crossModalGap_eq_kl` равна `klDef p (margX p * margY p)`; `crossModalGap_nonneg` доказывает неотрицательность.
-- **`OmniInvariant.lean`** — На непустых конечных `Y1 Y2`, для положительной нормированной `p`, `omniStep C gIntra gCross cComp cRisk = C+gIntra+gCross-cComp-cRisk`.
-- **`OmniState.lean`** — `driftTube_closed`: при `ρ ≠ 1` `driftTube ρ e d0 t = ρ^t*d0 + e*(1-ρ^t)/(1-ρ)`; `drift_limit` при `0 ≤ ρ < 1`, `0 ≤ e d0` ограничивает его `d0 + e/(1-ρ)`, а `drift_zero` убирает аддитивный
-
-## Hagi/Optimization/
-
-- **`OptimizerVariants.lean`** — `acc_mono`: `adagradAcc g t ≤ adagradAcc g (t+1)`.
-- **`EF21Quantizer.lean`** — `IsContractive`: контракт контрактного компрессора `‖C u − u‖₂² ≤ (1−α)²‖u‖₂²` на plain-носителе `n → ℝ` (суммы квадратов явно). Доказанные инстансы: identity (α=1), нулевой компрессор
-
-## Hagi/Optimization/AdaptiveCycle.lean
-
-- `adaptive_cycle_expansions`: если `0 < δ`, `C(k+1)≤C k-δ` и
-  `0 ≤ C j` для всех индексов, то для любого `N`
-  `(N : ℝ) ≤ C 0/δ`.
-
-## Hagi/Optimization/
-
-- **`Checkpoint.lean`** — `ckpt_mem_floor`: для вещественных `0 < k n` `2*√n ≤ k+n/k`.
-- **`ComputeScaling.lean`** — `compute_scaling_lower_bound`: при `0 < a b m n` `(√a+√b)^2/(m+n) ≤ a/m+b/n`; `compute_scaling_bound_attained` достигает равенства при `m=√a*s`, `n=√b*s`, `0 < s`.
-- **`DREAM.lean`** — `dream_tau_extrapolation`: если `nu = (2*tau+1)-1/2`, то `‖dreamY s-s.x‖ = (2*tau+1/2)*‖s.x-s.xPrev‖`.
-- **`DirectionPacking.lean`** — `welch_bound_core`: для единичных `u : Fin M → F` в конечномерном вещественном пространстве с `OrthonormalBasis (Fin d)`, `2 ≤ M`, `0 < d` и `|⟪u i,u k⟫| ≤ μ` для `i≠k`
-- **`GraphDistanceRouting.lean`** — Если в конечном графе `G` каждая вершина достигает target, то носитель нецелевой строки ядра кратчайшего пути равен `shorterNeighborFinset`; `dist_add_one_eq_of_mem_support` доказывает
-- **`InexactContraction.lean`** — `inexact_contraction_halt`: при `0 < q < 1`, `0 ≤ ε`, `x(k+1)≤q*x k+ε`, `0 < B`, `x0≤B` и `q^K < (τ-ε/(1-q))/B` доказано `x K < τ`.
-- **`LRSchedule.lean`** — Для непустого конечного индекса `polyWeights C eps` неотрицательны и суммируются в `1`. При `0 < eps` и `C u < C w` теорема `polyWeights_strict_mono` даёт
-
-## Hagi/Optimization/PercolationPath.lean
-
-- `routingKernelSupported` (Hagi/Optimization/PercolationPath.lean:39): носитель строки ядра — ровно рёбра графа `∀ a b, b ∈ (K a).support ↔ G.Adj a b`; `historyLaw_walk_pos` (Hagi/Optimization/PercolationPath.lean:75): для поддержанного ядра `K`, walk `w` и старта в носителе `0 < historyLaw initial (fun _ => K) w.length w.length (walkVertex w)`.
-- `vacantGraph` (Hagi/Optimization/PercolationPath.lean:106): решётка `grid L = Fin (L+1) × Fin (L+1)`, соседство Манхэттена, сайт открыт ⟺ `ω c ≠ q`; `crosses_pos` (Hagi/Optimization/PercolationPath.lean:125): пересечение связной компоненты от отмеченного верхнего множества до нижнего + поддержанное ядро ⇒ `∃ a b w, top a ∧ bottom b ∧ 0 < historyLaw (PMF.pure a) (fun _ => K) w.length w.length (walkVertex w)`.
-- Мост к оптимизации: путь спуска = перколяция ландшафта. `kernelDescentPath` (Hagi/Optimization/PercolationPath.lean:204) — траектория с шагами в носителе `K` и строгим убыванием `f`; `descentPath_apply_pos` (Hagi/Optimization/PercolationPath.lean:238): при `0 < T` ⇒ `∃ ω, 0 < historyLaw (PMF.pure a) (fun _ => K) T T ω ∧ (строгий спуск) ∧ f b < f a`; `descentPath_drop` (Hagi/Optimization/PercolationPath.lean:178): `descentPath f T a b` и `0 < T` ⇒ `f b < f a`.
-- `exists_descentGraph_edge_of_useful_step` (Hagi/Optimization/PercolationPath.lean:230): сертифицированный первый шаг `f (a + η•d) < f a` — ребро `descentGraph f (fun x => x + η•d)`. Ядро с точной строгой поддержкой нетотально на конечном `V` (нет бесконечного спуска), поэтому поддержка односторонняя (`supportedDescentKernel`, `descentKernelFullSupport`, `descentOrStayKernel`); вероятности попадания в точку и порога перколяции нет. Код-мост: next (графовой маршрутизации в HAGI_v2 @ca52eb4 нет).
-
-## Hagi/Research/MarkovPercolation.lean
-
-- `historyLaw_walk_support`: любой маршрут графа поддерживается однородным
-  `historyLaw` для `supportedRoutingKernel`, если его первая вершина
-  принадлежит носителю начального PMF.
-
-## Hagi/Optimization/
-
-- **`Momentum.lean`** — `momentum_floor`: при `0 < q`, `0 ≤ β δ`, `q+β<1` и `e(k+1)≤q*e k+β*e(k-1)+δ` ошибка ограничена полом `δ/(1-q-β)` плюс затухающий член с `momentumRate q β`.
-- **`MomentumHB.lean`** — `hb_discriminant_interval`: при `0 < β < 1` и `(1-√β)^2 ≤ η*μ ≤ (1+√β)^2` дискриминант неположителен; `hb_root_modulus` для корня `λ²-tλ+β=0` с `0 < β` и дискриминантом `≤0` даёт
-- **`NeuronAlloc.lean`** — `neuron_alloc_lower_bound`: для положительных `c i n i N` и `Σn=N` `(Σ√c i)^2/N ≤ Σ(c i/n i)`.
-- **`PLConvergence.lean`** — `pl_linear_convergence`: при `0 < L`, `0 < μ ≤ L`, `Estar≤E t`, `E(t+1)≤E t-G t/(2L)` и `2μ*(E t-Estar)≤G t` `E t-Estar≤(1-μ/L)^t*(E0-Estar)`.
-- **`RobbinsMonro.lean`** — `robbins_monro_decay`: при `0 ≤ x 0`, `0 ≤ η k ≤ 1`, рекурсии `x (k+1) ≤ (1-η k)*x k` и `Tendsto (fun n => ∑ k ∈ range n, η k) atTop atTop` для любого `ε > 0` найдётся `T`, после которого
-
-## Hagi/Research/
-
-- **`Schelling.lean`** — `localCompatibleDegree` считает соседей `w` с `k ≤ compatibility v w`, а `locallySatisfied` требует не менее `min k (G.degree v)` таких соседей. Нулевой порог и изолированная вершина
-- **`SchellingPercolation.lean`** — `locallySatisfied_mono_of_le`: при `G ≤ G'` локальная удовлетворённость сохраняется только с дополнительной посылкой `k ≤ G.degree v`; без неё квота `min k degree` может вырасти при
-
-## Hagi/Optimization/
-
-- **`SphericalDamping.lean`** — `chordal_residual_eq`: для единичных `u v` выполнено `1 - ⟪u,v⟫ = (1/2)*‖u-v‖^2`.
-- **`SubspaceGrowth.lean`** — `projResidual u v = v - ∑ i, ⟪u i,v⟫ • u i`. Для единичного попарно ортогонального семейства остаток ортогонален каждому `u i`, выполнено `projResidual_self_inner`, а `projResidual_le_norm`
-
-## Hagi/Research/Site.lean
-
-- На конечной решётке определены `openAt`, `openGraph`, `crossing` и равномерная по всем конфигурациям затравки вероятность `R`. `card_Ω` равен `M^(L*L)`, а `crossing_mono` и `R_monotone` доказывают монотонность по порогу на одном пространстве затравок.
-
-- Для чётной затравки на решётке `2×2` доказаны `parity_not_crossing1` и `parity_crossing2`; `emergence_jump_witness` упаковывает этот пример, а `R_strict_jump` даёт строгое `R 2 rowTop rowBot 1 < R 2 rowTop rowBot 2`.
-
-- Все результаты конечны; бесконечный перколяционный порог и асимптотический закон критической точности здесь не выводятся.
-
-## Hagi/Planning/Imagination.lean
-
-- C220 (удаление zero-consumer дубликатов): forward-thinking
-  regret-утверждение удалено; родственная доказанная граница той же
+- (удаление zero-consumer дубликатов): forward-thinking
   формы `A − L* ≤ log K/eta + eta*T/2` — `router_regret_bound`
   (Hagi/Optimization/MirrorHedge.lean).
 
@@ -848,59 +738,19 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - **`Speedrun.lean`** — `cePartition_move` точно вычисляет изменение суммы экспонент при сдвиге одного логита. При положительной исходной сумме `ceLogit_move_change` выражает изменение CE как целевой член
 - **`SyntheticPretrain.lean`** — `time_to_capability_correct`: при достижимости порога и монотонности `C` индекс `TimeToCapability` является первым с `τ ≤ C`, до него `C < τ`, а после него порог сохраняется.
 
-## Hagi/Probability/
-
-- **`AdaptiveSuccess.lean`** — `adaptive_success_count_floor`: на конечном независимом произведении, для `X i v ∈ [0,1]`, общего пола `SuccessFloor p X p0`, `n > 0` и `t > 0` вероятность события
-- **`Azuma.lean`** — `hoeffding_lemma_prefix` ограничивает MGF условно центрированной величины с `-c ≤ X ≤ c` через `exp (lam^2*c^2/2)`. `azuma_mgf` по префиксным условным средним даёт
-- **`ThermoBridge.lean`** (BatchSNR) — `snr_realized` записывает SNR как квадрат среднего, делённый на дисперсию batchMean; `snr_linear` даёт точное `snr g B = B * snr g 1`.
-- **`PMFBridge.lean`** (BernoulliFactory) — `probAccept_eq_bernPoly` доказывает равенство двух явных сумм `probAccept` и `bernPoly`; `binomWeight` содержит биномиальные веса `choose n j * p^j * (1-p)^(n-j)`.
-- **`CertifiedEstimator.lean`** — Для независимых `X i ∈ [0,1]` доказаны `hoeffding_chernoff`, оптимизированный `hoeffding_tail` и `hoeffding_two_sided`: односторонний хвост суммы центрирований имеет границу
-- **`ChernoffCGF.lean`** — `cgf_centering` для положительных `q` даёт `log ∑q*exp(c*g) = c*μ + log ∑q*exp(c*(g-μ))`; нормировка `q` в этой алгебраической формуле не требуется.
-
-## Hagi/Probability/Concentration.lean
-
-- C287 (A10): единый concentration-API для Hoeffding-семейства
-  средних хвостов: `concConfidence ε n = exp(−2nε²)` — канонический
-  односторонний [0,1] confidence; `concConfidenceTwoSided ε n =
-  2·exp(−2nε²)`; парный радиус `concRadius δ n = sqrt(log(1/δ)/(2n))`
-  с двойственностью `concRadius_valid`; `concConfidence_pm1_rescale` —
-  [−1,1]-форма гейта C264 `exp(−nη²/2)` есть `concConfidence (η/2) n`
-  (радиус на [−1,1] удваивается).
-
-## Hagi/Probability/
-
-- **`ConditionalSuccess.lean`** — `success_count_lower` и `success_count_lower_p0`: при `0 < delta < 1`, измеримости, значениях `S t ∈ [0,1]` и `iIndepFun S μ` сумма успехов с вероятностью не меньше `1-delta` ограничена
-- **`EntropyConvexity.lean`** — `log_sum_ineq` для положительных `a b` даёт `sum(a)*log(sum(a)/sum(b)) ≤ ∑a*log(a/b)`; `kl_convex_first` доказывает выпуклость KL по первому аргументу при `0 < lam < 1` и положительных
-- **`ExpChord.lean`** — `exp_chord` — псевдоним `Hagi.Foundations.exp_chord_r`; `hoeffding_chord_mgf` для положительного нормированного `q` и `a ≤ g ≤ b`, `a < b`, ограничивает центрированный MGF хордой между `a`
-- **`FiniteBayes.lean`** — `observationEvidence_eq_sum` вычисляет свидетельство наблюдения как `∑x, p₀ x * K x y`; `posterior_apply` при `0 < observationEvidence` нормирует `p₀ x * K x y` этим свидетельством, а
-- **`FiniteEM.lean`** — Центральное разложение выражает `ceDef q (jointMass model) - entDef q` как `-log evidence + KL(q, posterior)` при положительном свидетельстве наблюдения и `q.support ⊆ posterior.support`
-- **`FiniteFamilyConfidence.lean`** — `finite_family_upper_confidence`: для заранее фиксированного конечного семейства и независимых `[0,1]`-выборок все истинные средние одновременно не превосходят выборочные средние плюс `eps`
-- **`FiniteLogScore.lean`** (вкл. FiniteJointLogScore, слит C525) — При неотрицательных нормированных `p q` и поддержке `0 < p x → 0 < q x` доказаны `klDef_nonneg_of_support` и `klDef_eq_zero_iff_of_support`: `klDef p q ≥ 0`, а равенство нулю эквивалентно
-- **`FiniteMultiEM.lean`** — `total_negativeLogEvidence_drop_eq` при положительных свидетельствах наблюдения и включениях поддержек старых апостериорных законов в новые раскладывает суммарное убывание отрицательного
-- **`Freedman.lean`** (вкл. TwoSided/Step/Adaptive/FamilyConfidence, слит C525) — `freedman_lemma_prefix`: при `|X| ≤ b`, нулевом условном среднем, `∑q*X^2 ≤ sig` и `lam ≥ 0` MGF не превосходит `exp (lam^2*sig*exp(lam*b)/2)`. `freedman_mgf` итерирует эту границу по
-- **`GibbsCooling.lean`** — `gibbs_concentration`: при `T > 0` и зазоре `E vstar + δ ≤ E v` для всех `v ≠ vstar` доля Гиббса минимизатора не меньше `1 - card(univ.erase vstar)*exp(-δ/T)`. C221: формулировка
-- **`KLSBridge.lean`** — `gradCovBound`: для неотрицательной нормированной `q`, `C ≥ 0`, из посылки Пуанкаре для каждого направления и оценки чувствительности `(sens a x)^2 ≤ L^2*sqN a` следует
-- **`LinkedFlip.lean`** — `linkedChannel_apply` представляет переход как `(ν.map (eventMask neighbors)) (x ^^^ y)`. Для `ν = pure none` канал оставляет `x` на месте, а для `pure (some a)` применяет
-- **`MarkovPathSupport.lean`** — `historyLaw_support_of_path`: если начальная точка принадлежит поддержке `initial` и первые `k ≤ T` переходы принадлежат поддержкам ядер, существует полная история в поддержке
-- **`MomentBounds.lean`** — Для положительного нормированного `q` и `a ≤ g ≤ b` доказаны `popoviciu_var`: `Var(g) ≤ (b-a)^2/4`, `popoviciu_abs_dev`: среднее абсолютного отклонения не превышает `(b-a)/2`, а также
-- **`NoiseTemperature.lean`** — При непустом `Fin b` теорема `batchMean_unbiased` доказывает равенство среднего batchMean исходному `popMean`; `batch_variance_eq` даёт точное
-- **`RankedStopRouting.lean`** — Если каждый поддерживаемый нетерминальный переход выполняет `R a b` и строго увеличивает rank, терминальные строки являются `PMF.pure a`, `rank a ≤ B` и `B ≤ T`, то
-- **`SphericalAngle.lean`** — `sphericalAngle_add_two` при `n > 0` даёт `Ω(n+2) = (2π/n)*Ω n`; `sphericalAngle_even_geo` и `sphericalAngle_odd_geo` ограничивают чётную ветвь от `8` и нечётную от `9` геометрическими
-- **`StationaryFlatness.lean`** — `tail_sum_identity`: для натуральнозначного `X ≤ M` на конечном вероятностном пространстве `expectNat q X = ∑_{k<M} probGe q X (k+1)`.
-
 ## Hagi/Runtime/
 
 - **`BF16Delta.lean`** — `Code` и `decode` задают все конечные BF16-коды с точным значением в `ℚ`, включая signed zeros и subnormals. `exists_IsNearest` строит ближайший код для каждого рационального аргумента без
 - **`ControllerGates.lean`** — `logitRange_scale` при `tau > 0` даёт линейное масштабирование диапазона, `variance_gate_contract` при `tau ≥ 1` — сокращение квадратичной величины `range^2/8`, а `variance_gate_normalize`
 - **`TernaryExact.lean`** — `qTern_error_in` при `s > 0` ограничивает ошибку внутри диапазона через `s/2`, а `qTern_error_out` вне его даёт точное `|x - qTern s x| = |x| - s`. `ternary_split_bound` разлагает полную
 
-## Hagi/Sparsity/SparseStep0.lean
+## Hagi/Sparsity/
 
 - `sparse_step0`: для ортонормированного семейства `v`, `tol ≥ 0` и строгого условия `∑_{i∈sᶜ} c i^2 < tol^2` норма разности полной и сохранённой сумм строго меньше tol.
 
 - Оценка не зависит от числа отброшенных индексов: вся их совместная энергия уже учтена в посылке htail.
 
-## Hagi/Spectral/RankGrowth.lean
+## Hagi/Spectral/
 
 - `rank_orthogonal_growth`: если строки `R` линейно независимы и `OrthRows M R`, то ранг `stackRows M R` равен `M.rank + Fintype.card k`.
 
@@ -916,8 +766,16 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 
 ## Hagi/State/
 
-- **`TrainState.lean`** — Статус файла преимущественно состоит из определений носителей: `TrainState` объединяет `ModelState`, `OptimizerState`, `MemoryState`, `ResourceState`, `SafetyState` и пятиканальный
+objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
+
 - **`Transition.lean`** — `trainStep_quality_unchanged` и `trainStep_evaluate_unchanged` оставляют качество и его покомпонентное значение неизменными. `trainStep_energy_identity` даёт точный квадратичный закон
+
+- `descentFold_eq_effective`: для истории пар `(v,x)` плотная свёртка
+  `W₀+Σ outerProd(v,x)` точно равна эффективным весам представления
+  `fromHistory W₀ hist`.
+
+- `history_storage_cost`: число сохраняемых элементов блоков равно
+  `hist.length·(|m|+|n|)`.
 
 ## Hagi/Step/
 
@@ -947,7 +805,11 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - **`RobustDescent.lean`** — `biased_norm_upper` и `biased_inner_lower`: из `‖ĝ-g‖ ≤ m` следуют `‖ĝ‖ ≤ ‖g‖+m` и `(‖g‖²-m²)/2 ≤ ⟪g,ĝ⟫`.
 - **`SNRWeights.lean`** — `uniform_is_mean` переписывает сумму `(1/r)*(dev i)^2` как `(∑dev i^2)/r`; условие `r > 0` в самом тождестве не требуется из-за тотализации деления Lean.
 
-## Hagi/Step/SafeQP.lean
+- **`SafeQPStep.lean`** — `safeqp_eta_max_conflict_free`: при `L i > 0`, `eps i ≥ 0`, `0 ≤ eta`, `d ≠ 0`, `⟪g i,d⟫ ≥ 0` и линейной оценке `dL i ≤ −eta⟪g i,d⟫ + L i·eta²‖d‖²/2` условие
+- **`SignSGD.lean`** — `sign_inner_nonneg`: для каждого конечного `g` `Σᵢ sign(gᵢ)gᵢ = Σᵢ |gᵢ| ≥ 0`.
+- **`Upgrades.lean`** — `skip_bound`: если `p = softmaxW s` — распределение и масса `δ` пропущенного множества меньше `1`, после удаления этого множества и перенормировки сумма абсолютных изменений весов не
+- **`WarmupSchedule.lean`** — `warmup_eta_monotone`: при `c ≥ 0`, `ρ,Kρ > 0` и `0 < Δ' ≤ Δ` выполняется `warmupEta(Δ) ≤ warmupEta(Δ')`.
+- **`WeightDecay.lean`** — `wd_norm_bound`: при `λ > 0`, `0 ≤ eta λ ≤ 1`, `‖g t‖ ≤ G` и рекуррентности `w(t+1) = (1−etaλ)w(t) − eta·g(t)` для всех `t` выполняется `‖w t‖ ≤ max(‖w 0‖,G/λ)`.
 
 - Минибатч-оценка `ĝᵢ = gᵢ + m⁻¹Σⱼ ξᵢⱼ` имеет точную проекцию
   `⟪ĝᵢ,d⟫ = ⟪gᵢ,d⟫ + m⁻¹Σⱼ⟪ξᵢⱼ,d⟫`.
@@ -957,15 +819,15 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   `−eps i ≤ ⟪ĝᵢ,d⟫` в истинные `−(eps i + noiseEps) ≤ ⟪gᵢ,d⟫`
   с вероятностью не менее `1 − δ`.
 
-## Hagi/Step/
+| теорема | формулировка | file:line |
+|---|---|---|
+| `ema_one_unbiased` | `m̂₁ = g₁` | Hagi/Step/AdamDirection.lean:67 |
+| `adam_first_step_dot_nonneg`, `adam_first_step_dot_pos` | `d_i = g_i/(abs(g_i)+eps)`: `⟨g,d⟩ ≥ 0`; `> 0` при `g ≠ 0` | Hagi/Step/AdamDirection.lean:74, :85 |
+| `adam_coord_sign_flip_neg`, `ema_sign_flip_negative`, `adam_step_not_always_descent` | контрпример шага 2 (β₁ = 9/10, g₁ = 1, g₂ = −1/10) ⇒ `⟨g₂,d₂⟩ < 0` | Hagi/Step/AdamDirection.lean:106, :125, :116 |
 
-- **`SafeQPStep.lean`** — `safeqp_eta_max_conflict_free`: при `L i > 0`, `eps i ≥ 0`, `0 ≤ eta`, `d ≠ 0`, `⟪g i,d⟫ ≥ 0` и линейной оценке `dL i ≤ −eta⟪g i,d⟫ + L i·eta²‖d‖²/2` условие
-- **`SignSGD.lean`** — `sign_inner_nonneg`: для каждого конечного `g` `Σᵢ sign(gᵢ)gᵢ = Σᵢ |gᵢ| ≥ 0`.
-- **`Upgrades.lean`** — `skip_bound`: если `p = softmaxW s` — распределение и масса `δ` пропущенного множества меньше `1`, после удаления этого множества и перенормировки сумма абсолютных изменений весов не
-- **`WarmupSchedule.lean`** — `warmup_eta_monotone`: при `c ≥ 0`, `ρ,Kρ > 0` и `0 < Δ' ≤ Δ` выполняется `warmupEta(Δ) ≤ warmupEta(Δ')`.
-- **`WeightDecay.lean`** — `wd_norm_bound`: при `λ > 0`, `0 ≤ eta λ ≤ 1`, `‖g t‖ ≤ G` и рекуррентности `w(t+1) = (1−etaλ)w(t) − eta·g(t)` для всех `t` выполняется `‖w t‖ ≤ max(‖w 0‖,G/λ)`.
+- Шаг кода принимается измерённым гейтом `backtrackAccept` ⇒ h1 для Adam-шага требует `backtrackAccept`.
 
-## Hagi/System/Certificates.lean
+## Hagi/System/
 
 - `cycle_certificate_sound`: при `lam,nu ≥ 0`, согласованной цепочке
   сертификатов и условии
@@ -973,31 +835,19 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
     gap + eta·inner − L·eta²dnorm²/2 − κqerr`,
   конечный потенциал `E + lam·R + nu·max(0,qTarget−q)` не превышает начального.
 
-## Hagi/System/GrowthState.lean
-
 - Определение `joint` задаёт именно `params' = params − eta·stepDir`,
   `energy' = effects.jointEnergy`,
   `protectedRisk' = protectedRisk + effects.jointRisk` и
   `budget' = budget − effects.jointCost`; `potential S = energy + protectedRisk`.
 
-## Hagi/System/
-
 - **`StepCertificate.lean`** — `stepCertificate_base`: базовая часть сертификата, построенного по состоянию и `epsG ≥ 0`, совпадает с `verify S`.
 - **`UnifiedStep.lean`** — `unified_step_budget`: при `Δ,Tt > 0` гиббсовы веса дают ожидаемую потерю не выше `m + Tt·log|ι|` для некоторой нижней границы `m` всех потерь, а ошибка `gridQ` композитного обновления не
 
-## Hagi/Research/Legacy/AdvanceWitness.lean
-
-- `certified_invariant_advance_witness`: на горизонте `2` фактические поля
-  траектории удовлетворяют `CertifiedHAGIInvariant` с `alpha=1`;
-  capability проходит `1→2→4`, бюджет `100→98→96`.
-
-## Hagi/Unified/AnytimeMartingale.lean
+## Hagi/Unified/
 
 - `merge_stage_linked`: при `w t ≥ 0` и `Σt w t = 1` взвешенная
   categorical CE среднего логита не превосходит взвешенного среднего CE
   отдельных логитов.
-
-## Hagi/Unified/StitchingEProcess.lean
 
 - `stitchedMaster w E = Σ i, w i • E i`; `stitching_master_supermartingale`:
   a finite family of supermartingales with nonnegative weights stitches
@@ -1006,8 +856,6 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   empty case is gated by
   `[Nonempty k]` — the zero-process certificate needs an unavailable
   norm instance on the bare Pi type).
-
-## Hagi/Unified/CountableStitching.lean (P4 E3)
 
 - `stitchedMasterCountable w E t = ∑' k, w k * E k t` — счётное
   (tsum) сшивание мастером; веса на ℕ с посылкой `Summable w`
@@ -1021,56 +869,6 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   ofReal_integral_norm_eq_lintegral_enorm (ennreal-кастинг —
   вся счётная бухгалтерия).
 
-## Hagi/Architecture/SpaceDecoupling.lean
-
-- `projI U = U·Uᵀ`, `projR U = 1 − U·Uᵀ`; `projI_add_projR`
-  (P_I + P_R = 1 exactly), `projI_idem`/`projR_idem`
-  (idempotence under `IsOrthoCol U`).
-
-## Hagi/Research/Legacy/ArchitectureTheorem.lean
-
-- `entropy_continuity_pinsker`: если уже доказана граница
-  `|H(p)−H(q)| ≤ τ log(|V|−1) + h₂(τ)`, а также `0 ≤ τ ≤ 1/2`,
-  `τ ≤ √(kl/2) ≤ 1/2`, `log(|V|−1) ≥ 0` и монотонность `binEnt`
-  на данном отрезке, то получается та же граница с `√(kl/2)` вместо `τ`.
-
-## Hagi/Research/Legacy/Assumptions.lean
-
-- `masterhagi_trunc_of_assumptions`: пакет `Trunc S lam nu Qtarget Emin T`
-  заменяет стадийные, бюджетные и нижние энергетические предпосылки;
-  при отдельных SafeQP-окнах и усечённых законах роста он даёт тот же
-  `CertifiedHAGIInvariant`.
-
-## Hagi/Semantics/CanonicalParams.lean
-
-- `advance_params_ne`: для перехода с `u.stepDir ≠ 0`
-  канонические `S.params` действительно различаются; положительность шага
-  закреплена типом входного перехода.
-
-- `bridge_update`: законный инъективный проектор toW переносит это различие
-  на `canonWeights`; `idProj` доказывает существование такого проектора
-  на `Fin d → ℝ`.
-
-## Hagi/Growth/CapabilityLocal.lean
-
-- `capability_geometric_of_local`: при `alpha > 0`,
-  `capability(t+1) = capability t + growGain t` и
-  `alpha·capability t ≤ growGain t` для всех `t` получается
-  `capability 0·(1+alpha)^T ≤ capability T`.
-
-## Hagi/Research/Legacy/CertifiedGrowth.lean
-
-- `certified_gainprod_takeoff`: для `[0,1]`-наблюдений, `n,eps > 0`,
-  `alpha,gamma,C0 > 0`, `rho ≥ 0`, начального конуса, принятого моста
-  от средних к `γD t ≤ G t` и усечённых законов
-  `C(t+1)=C t+G t`, `D'`, верхнего `(1+alpha)` и β-порога
-  выполняется вероятностная импликация:
-  из всех margins `ΣX + 2n eps ≤ ΣY` для `t < T`
-  следует `C0(1+alpha)^T ≤ C T` с нижней оценкой вероятности
-  `1 − 2T·exp(−2n·eps²)`.
-
-## Hagi/Unified/CertifiedLoop.lean
-
 - `certified_loop`: если начальный `FloorKept` и `0 ≤ b 0` даны, а каждое
   звено — `StepCert`, то сумма `(certs t).trans.objectiveDrop` не превосходит фактического
   убывания `obj(f 0)−obj(f n)`, финальное качество удовлетворяет floor,
@@ -1080,19 +878,34 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   `certified_loop_strict` при `n ≥ 1` дополнительно даёт
   `obj(f n) < obj(f 0)`.
 
-## Hagi/Unified/
-
 - **`CertifiedTrajectory.lean`** — `certified_progress_honest`: при `decrease = claimed`, `Φ(t+1) ≤ Φt − decrease + riskCost`, `Φ_min ≤ Φt` для всех `t ≤ T` и заданном интервале `measured−δ ≤ claimed ≤ measured+δ`
 - **`CommitGate.lean`** — `commitProductive`: активный `gate c` влечёт `commitV c < c.V`; `holdSafe` даёт точное равенство `holdV c = c.V`.
 
-## Hagi/Research/Legacy/CorePremisesDerived.lean
+- **`DerivAlong.lean`** — `ceStepLogitRange_sq_le_featureMass_sq_norm_sq` — острая по-примерная `ceStepLogitRange² ≤ 4·featureAbsSum²·‖ceDirection‖²`; `ceStepLogitQuad_le_engine`
+- **`DescentCore.lean`** — `descent_drop`: в `Objective` с `L > 0` и заданной descent-леммой, если `‖dir‖² ≤ ⟪grad x,dir⟫` и `0 < eta ≤ 1/L`, то `f(x−eta·dir) ≤ f x − eta(1−L·eta/2)‖dir‖²`.
+- **`DescentCoreDiag.lean`** — `diag_descent_eq`: для `diagE a y x = ½Σᵢaᵢ(xᵢ−yᵢ)²` доказано точное разложение `E(x+d) = E x + ⟪a∘(x−y),d⟫ + ½Σᵢaᵢdᵢ²`.
+- **`DescentCoreQuad.lean`** — `quad_eta_identity`: для `quadE a w = ½Σᵢ(wᵢ−aᵢ)²` и градиента `w−a` выполняется `quadE(w−eta·grad) = (1−eta)²quadE a w` (мост над `Hagi.Foundations.quad_eta_identity` из
+- **`Distillation.lean`** — `soft_dial_max` и `soft_dial_zero`: `softProb x → 1` при `x→+∞` и `softProb x → 1/2` при `x→0`.
 
-- `core_premises_joint_operational` и `core_premises_compress_operational`
-  выводят квадратичный joint и квантованный compress из дифференцируемости,
-  ограничений производной и операциональных равенств энергий, а не из
-  свободно назначенных полей.
+- **`LinkedProjects.lean`** — `value_iteration_via_contraction`: при `0 < gamma < 1`, `eps ≥ 0` и `V(k+1)−Vstar(k+1) ≤ gamma(Vk−Vstar k)+eps` получается для всех `k`
+- **`LinkedQVec.lean`** — `floor_preserved`: если начальное и каждое состояние списка удовлетворяют `FloorKept`, последнее состояние тоже сохраняет покомпонентный floor.
 
-## Hagi/Unified/CostComposition.lean
+- **`LiveDeltaCycle.lean`** — `live_delta_cycle`: при SafeQP-окне в фактор-пространстве, `L i > 0`, `eps i ≥ 0`, `eta ≥ 0`, `d ≠ 0`, заданной линейной оценке, принятом динамическом аудите и допустимом масштабе базы
+- **`Liveness.lean`** — `liveness_merge`: если `p` строго положительно и нормировано, а отклонения `d` не являются общим константным вектором, то `twoGap p d > 0`.
+- **`LogitCert.lean`** — `logitCE_strictAnti`: скалярная `logitCE` строго антитонна.
+
+- **`LoopInstances.lean`** — `quadCert_hits_optimum`: на квадратичной цели шаг `x−quadGrad a x` даёт `quadE = 0`.
+- **`MachineProto.lean`** — `machineProto_gap`: вычисленный `machineGap a w eta` равен `(machineProto a).loss w − (machineProto a).loss(jointStep a w eta)`, так что величина шага берётся из функции весов.
+
+- **`NCStepCert.lean`** — `nc_loop_horizon`: при положительных gains, допустимых риске и бюджете, покомпонентном начальном floor и `n ≥ 1` энергия траектории строго убывает, а `S.cpu` остаётся исходным.
+- **`NegativeTests.lean`** — `risk_limit_respected`: любой `StepCert` даёт `riskSpend ≤ riskLim` непосредственно из своей структуры.
+- **`CandidateConfig.lean`** — `CandidateConfig`: кандидатная конфигурация — все параметры вычисляются как функции целей; глобальная оптимальность НЕ доказана и не заявляется.
+
+- **`RateTheory.lean`** — `pl_linear`: если `κ ≥ 0`, `μ > 0`, `2κμ < 1`, `Estar ≤ obj(f t)`, `2μ(obj−Estar) ≤ gsqr`, `κ·gsqr ≤ drops` и `obj(t+1) ≤ obj t−drops`, то `obj(f n)−Estar ≤ (1−2κμ)^n(obj(f 0)−Estar)`.
+- **`RecursiveClean.lean`** — `clean_neuron_of_conditions`: из структуры `CleanCertificate`, положительной внесетевой массы вне корня и непустого множества рёбер следует `branchLocality ≤ εA`, `timeConsistency = 1` и
+
+- **`SignComp.lean`** — `signStepCert`: на квадратичной цели, если `quadGrad a x ≠ 0`, `0 < eta ≤ 1`, начальный floor и `signCommCost k ≤ riskLim`, строится полный `StepCert` для знакового шага; поле
+- **`SignDescent.lean`** — `sign_descent`: масштабированный знаковый шаг `signScale(grad)·sign(grad)` наследует `descent_drop`: при `0 < eta ≤ 1/L` `f(x−eta·dir) ≤ f x−eta(1−L eta/2)‖dir‖²`.
 
 - `hybrid_cost_lt`: при `L ≥ 1`, `k < n` и `2w+1 < n`
   `hybridCost L k w < denseCost L n`.
@@ -1101,41 +914,12 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   не превосходит `(k/n)·((2w+1)/n)`. Стоимости — заданные модельные формулы,
   а не измеренные аппаратные затраты.
 
-## Hagi/Training/Ctv2Telescope.lean
-
-- `ctv2_family_telescope`: для фактических `S(t+1)=advance(S t,u t)`,
-  сертификатов `CertifiedTransitionV2`, grow/merge-оценок, `0 < L`,
-  `eta ≤ 1/L`, `‖stepDir‖² ≤ inner`, квадратичного joint и
-  `compressEnergy−jointEnergy ≤ κ·s·quantErr`
-  получается `Σ stepDrop(u t) ≤ energy(S0) − energy(S T)`.
-
-## Hagi/Unified/
-
-- **`DerivAlong.lean`** — C233 (R2): `ceStepLogitRange_sq_le_featureMass_sq_norm_sq` — острая по-примерная `ceStepLogitRange² ≤ 4·featureAbsSum²·‖ceDirection‖²`; `ceStepLogitQuad_le_engine`
-- **`DescentCore.lean`** — `descent_drop`: в `Objective` с `L > 0` и заданной descent-леммой, если `‖dir‖² ≤ ⟪grad x,dir⟫` и `0 < eta ≤ 1/L`, то `f(x−eta·dir) ≤ f x − eta(1−L·eta/2)‖dir‖²`.
-- **`DescentCoreDiag.lean`** — `diag_descent_eq`: для `diagE a y x = ½Σᵢaᵢ(xᵢ−yᵢ)²` доказано точное разложение `E(x+d) = E x + ⟪a∘(x−y),d⟫ + ½Σᵢaᵢdᵢ²`.
-- **`DescentCoreQuad.lean`** — `quad_eta_identity`: для `quadE a w = ½Σᵢ(wᵢ−aᵢ)²` и градиента `w−a` выполняется `quadE(w−eta·grad) = (1−eta)²quadE a w` (мост над `Hagi.Foundations.quad_eta_identity` из
-- **`Distillation.lean`** — `soft_dial_max` и `soft_dial_zero`: `softProb x → 1` при `x→+∞` и `softProb x → 1/2` при `x→0`.
-
-## Hagi/Theory/Compression.lean
-
-- `ef_iterate_shadow`: при `e(t+1)=d t+e t−comp(d t+e t)`,
-  рекуррентностях сжатой и полной траекторий с общим началом
-  получается точное `xC n−xF n = eta·(e n−e 0)`.
-
-- `thrComp_barrier`: квадрат нормы несжатого остатка порогового
-  компрессора ограничен `|k|·τ²`.
-
-## Hagi/Unified/EmpiricalPremises.lean
-
 - `premises_give_smooth`: монитор `holds p`, условие
   `dnorm² ≤ inner` и отдельно принятая квадратичная модель hsmooth
   дают `E2 ≤ E1 − eta·dnorm²/2`; монитор сам модель не доказывает.
 
 - `premises_lip_witness`: при `holds p` и `s ≥ 0` доказана только
   `0 ≤ κ·s·dnorm`, а не требуемая липшицева оценка энергии.
-
-## Hagi/Unified/ParetoExecution.lean
 
 - `finiteSelection_cost_eq_minimumResource`: если вычислимый список
   содержит все действия, выбранная стоимость совпадает со стоимостью
@@ -1149,18 +933,50 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - Частные результаты показывают, что фильтрованный выбор реально является
   `List.argmin` по memory-first стоимости среди допущенных элементов списка.
 
-**Hagi.Unified.ExecutableSelection** — merged into ParetoExecution
+- `honest_actual_drop`: сертификат содержит строгое фактическое убывание
+  `obj s' < obj s` и `objectiveDrop > 0`, а не только положительность
+  числового показателя.
 
-## Hagi/Training/ExecutedCert.lean
+- `honest_telescope`: два связанных перехода дают
+  `obj s2 ≤ obj s0 − (drop1+drop2)`.
 
-- `measured_honest` и `measured_lower`: зависимый сертификат связывает
-  измерение `m`, фактический спуск `C.drop` и ошибку `d` неравенствами
-  `drop−d ≤ m ≤ obj(s)−obj(step s)+d`, а `drop > 0` входит в сертификат.
+- `microstep_cert`: из квадратичной оценки `E`, `frobDot G ΔW ≤ −ε`
+  и GPM-ортогональности следует
+  `E(W+ΔW) ≤ E W − ε + L/2·frobSq ΔW` и
+  `(W+ΔW)x_k = W x_k` для каждого защищаемого входа.
 
-- `telescope_measured`: по исполненной цепочке из `n` шагов
-  `Σm ≤ obj(s)−obj(traj step s n) + Σd`, и все шаговые `(cs t).drop` положительны.
+- `microstep_net_drop`: если дополнительно `L/2·frobSq ΔW < ε`,
+  энергия строго убывает при сохранении всех этих действий на входах.
 
-## Hagi/Semantics/FunctionalState.lean
+- `quadE_eq_energy` и `quadGrad_eq_grad`: квадратичная энергия и градиент
+  вычислительной машины совпадают с соответствующими определениями
+  `DescentCoreQuad`.
+
+- `machine_one_step_zero`: на этой модели шаг с `eta=1` обнуляет энергию.
+
+- `trajectory_convergence`: при
+  `Φ(t+1) ≤ Φt−decrease+riskCost` и `Φ_min ≤ Φt` для всех `t ≤ T`
+  получается `Σdecrease ≤ Φ0−Φ_min+ΣriskCost`.
+
+- `chain_budget` и `chain_risk` доказывают, что составной контракт
+  содержит соответственно суммы бюджетных и рисковых затрат звеньев.
+
+- `TransitionCert` содержит фактический `obj(step s) < obj s` и
+  `risk(step s) ≤ risk s + riskLim`; `of_ctv3` строит его из V3-перехода
+  для `energy` и `St.protectedRisk`.
+
+- `certs_telescope`: для фактической цепочки `x(t+1)=step(x t)`
+  при `T > 0` цель строго убывает, а `risk(x T) ≤ risk(x0)+T·riskLim`.
+
+## Hagi/Semantics/
+
+- `advance_params_ne`: для перехода с `u.stepDir ≠ 0`
+  канонические `S.params` действительно различаются; положительность шага
+  закреплена типом входного перехода.
+
+- `bridge_update`: законный инъективный проектор toW переносит это различие
+  на `canonWeights`; `idProj` доказывает существование такого проектора
+  на `Fin d → ℝ`.
 
 - `fs_two_steps_productive`: при `0 < eta < 2`, `eta ≠ 1`, `a ≠ w`
   и `s.weights = w` два последовательных `funStepJoint` строго убывают
@@ -1170,27 +986,29 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
 - `fs_energy_after` вычисляет энергию преемника из его новых весов,
   а не копирует старое значение.
 
-## Hagi/Theory/GaugeQuotient.lean
+- `RamWriteCert` требует `post = Matrix.updateRow pre address value`,
+  чтение по address возвращает value, посторонние адреса неизменны,
+  повторная запись идемпотентна.
 
-- `quotientResidual_gauge_invariant`: остаток
-  `r_G(z) = inf_φ‖Tz−e^{iφ}z‖` не меняется при фазовом вращении.
+- `CertifiedMemoryWrite` добавляет фактический `admit c`;
+  `certified_gain_margin` извлекает из него
+  `lamM·Δcost + lamR·Δrisk + ε_cert ≤ gain`.
 
-- `relativeEquilibrium_residual_zero`: если `Tz = rot φ₀ z`, то `r_G(z)=0`;
-  `relativeEquilibrium_orbit` дополнительно даёт `T^k z = rot(kφ₀) z`.
+## Hagi/Training/
 
-- `seq_dev_exact` при `s ≠ 1` даёт точное решение скалярной модели
-  `x_t−c/(1−s) = s^t·(x₀−c/(1−s))`.
+- `ctv2_family_telescope`: для фактических `S(t+1)=advance(S t,u t)`,
+  сертификатов `CertifiedTransitionV2`, grow/merge-оценок, `0 < L`,
+  `eta ≤ 1/L`, `‖stepDir‖² ≤ inner`, квадратичного joint и
+  `compressEnergy−jointEnergy ≤ κ·s·quantErr`
+  получается `Σ stepDrop(u t) ≤ energy(S0) − energy(S T)`.
 
-## Hagi/Research/Legacy/GrandSynthesis.lean
+- `measured_honest` и `measured_lower`: зависимый сертификат связывает
+  измерение `m`, фактический спуск `C.drop` и ошибку `d` неравенствами
+  `drop−d ≤ m ≤ obj(s)−obj(step s)+d`, а `drop > 0` входит в сертификат.
 
-- `grand_synthesis_weak`: при заданных границах сертификации стадий,
-  `κD t ≤ E_raw`, производственной динамике, начальном конусе
-  `kC0 ≤ D0`, неотрицательных `C,D` и условиях связывания коэффициентов
-  получается `C0(1+(beta⁴κ)k)^T ≤ C T`.
+- `telescope_measured`: по исполненной цепочке из `n` шагов
+  `Σm ≤ obj(s)−obj(traj step s n) + Σd`, и все шаговые `(cs t).drop` положительны.
 
-## Hagi/Training/GrowthComputedCert.lean
-
-Именованных top-level theorem-деклараций нет; носители результата —
 две definitions.
 
 - `next S eta`: сохраняет все каналы `S`, кроме замены `S.weights`
@@ -1201,39 +1019,673 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   Его поля `CertStep.drop_pos` и `CertStep.actual` содержат доказательства положительности
   и фактического неравенства, но не являются отдельными top-level теоремами.
 
-**Hagi.Unified.GuardedRobustLogit** — merged into ParetoExecution
+- `delta_pos_of_dominates`: при `λ > 0`, `ρ ≥ 0`,
+  `logS−logR ≤ ρ` и `cS−cR > ρ/λ`
+  разность `loglik−λ·complexity` строго положительна.
 
-## Hagi/Unified/HonestTransition.lean
+- `piR_lower_of_certified`: для индикаторов `zⱼ∈[0,1]`,
+  `k ≤ N`, `N > 0` и первых `k` единиц получается `k/N ≤ piR z N`.
 
-- `honest_actual_drop`: сертификат содержит строгое фактическое убывание
-  `obj s' < obj s` и `objectiveDrop > 0`, а не только положительность
-  числового показателя.
+- Интерфейсный слой над `Hagi.Cert.CertStepGen`: `StepProposal`
+  (следующее состояние + канонический сертификат CertStepGen —
+  носитель неотделим от доказательства), `StepProvider`
+  (init + оракул `step : s → Option (StepProposal …)`); провайдер —
+  ЗНАЧЕНИЕ (выбор провайдера — решение политики, не typeclass),
+  none = сертифицированного продвижения нет (прогресс и hold
+  разделены — `HoldStep`).
 
-- `honest_telescope`: два связанных перехода дают
-  `obj s2 ≤ obj s0 − (drop1+drop2)`.
+## Hagi/Theory/
 
-## Hagi/Growth/InterpretiveGrowth.lean
+- `ef_iterate_shadow`: при `e(t+1)=d t+e t−comp(d t+e t)`,
+  рекуррентностях сжатой и полной траекторий с общим началом
+  получается точное `xC n−xF n = eta·(e n−e 0)`.
 
-- `pointEffect` и `causalEffect` неотрицательны; нулевое изменение выхода
-  на всём выбранном наборе даёт нулевой эффект, а существование точки с
-  положительным эффектом делает средний эффект положительным.
+- `thrComp_barrier`: квадрат нормы несжатого остатка порогового
+  компрессора ограничен `|k|·τ²`.
 
-- `mass_split`: для неотрицательных весов сумма живой и пассивной массы
-  равна полной массе.
+- `quotientResidual_gauge_invariant`: остаток
+  `r_G(z) = inf_φ‖Tz−e^{iφ}z‖` не меняется при фазовом вращении.
 
-## Hagi/Research/Legacy/LearningKernel.lean
+- `relativeEquilibrium_residual_zero`: если `Tz = rot φ₀ z`, то `r_G(z)=0`;
+  `relativeEquilibrium_orbit` дополнительно даёт `T^k z = rot(kφ₀) z`.
+
+- `seq_dev_exact` при `s ≠ 1` даёт точное решение скалярной модели
+  `x_t−c/(1−s) = s^t·(x₀−c/(1−s))`.
+
+- `step_params`, `step_energy` и `step_capability`: вычисленный преемник имеет
+  `params' = next(S.params,eta)`, `energy' = logitCE(params')`, а при
+  `capability = −logitCE(params)` и `capability' = −logitCE(params')`.
+  Так прирост capability — тот же CE-спуск, без второго учёта каналов.
+
+  TwoDomainConfidence + HoldoutWithoutReplacement + AnytimeHoldoutStop
+ .
+
+- `holdout_concentration`: для фиксированной до дров модели
+  `f : Ω → [0,1]`, k > 0: `P[|holdoutMean − popMean| ≥ ε] ≤ 2exp(−2kε²)`;
+  `selection_bias_*` — негатив: выбор модели ПОСЛЕ просмотра holdout
+  ломает несмещённость.
+
+  (бюджет как premise-канал, ns `Hagi.Theory`) + VerticalCapstone
+  (ns `Hagi.Unified`).
+
+- `cfmPsi`/`cfmOtField`/`cfmSigma`: OT-условный путь и замкнутый
+  conditional VF (equations 20–22 статьи Flow Matching), честно
+  дискретно — на конечном словаре `V`.
+
+- `cfmSampleLoss` + `cfmSampleLoss_eq_sqDiff`: per-sample CFM loss
+  === инстанциация `sqDiffObjective` на паре
+  (v t (ψ_t x₀), otField) — мост definitional (rfl).
+
+- `RebuildSystem`/`Rebuildable`: контракт — интерпретируемость
+  как description-length bound (iWSP rebuild bottleneck, arXiv
+  2611.18114): сертификат = существование описания d бюджетом ≤ B,
+  чей rebuild R(d) сохраняет качество в пределах ε по лоссу ℓ.
+
+- adapter snap: `adapter_snap_bound` (Lipschitz-оценка адаптера `h = B·A·x`), `adapter_snap_cycle_sound` (телескоп цикла: admission-вклад 0 + certified fd-шаги + snap `q/2^k`).
+- rank-adaptive: `rankScore`, `rankSelect`, `rank_select_deterministic`, `rank_select_sound`.
+- SVD-«матрёшка»: `adapter_stack_rank_bound` (`rank(Π(I+E_i)−I) ≤ Σ rank E_i`), `cs_row`, `adapter_merge_error_bound` (Frobenius-хвост × Lipschitz ⇒ certified ε-окрестность merge).
+
+- `wd_compl_annihilates`, `wd_proj_preserves`, `naive_decay_leak`: непроецируемый weight decay рушит GPM-память (строгая утечка), проецируемый сохраняет точно.
+- `wd_gpm_step_sound`: шаг в дополнении + projected decay ⇒ `W·P` неизменно.
+
+- `oe_classes_partition`, `oe_search_complete`: первый представитель каждого класса наблюдательно-эквивалентных программ достигается поиском — дедупликация не теряет решение (полнота относительно проб). `oe_search_terminates`.
+
+- `ce_pointwise_of_prob_one`, `ce_covered_zero`, `ce_split`, `ce_total_eq_residual`, `exact_gate_sound`, `exact_gate_rejects_zero`, `ceOneHot_eq_zero_of_softmaxP_eq_one`: символьные эксперты с `p = 1` дают точечный log-loss 0; общий CE = CE остатка.
+
+- `full_loop_sound`: композиция инвариантов certified-компонентов одного прогона (без новых фактов).
+- `coverage_append_monotone`, `iterative_loop_sound`: в итеративном цикле покрытие монотонно растёт.
+
+- `bankUpdate`, `warmTransfer`, `bankBatch`, `adapter_bank_isolation` (_obj): обновление слота j не трогает слот i точно. `warm_transfer_sound`: forgetA = 0 копией + certified-обучаемость warm-init. `bank_composition`. Качество transfer — эмпирика, не теорема.
+
+- `sum_phat_anti_mono_single_domain`: суммарная p̂-анти-монотонность при фиксированном числителе и вложенных стенах одной банки. `band_mix_counterex`, `phat_total_not_anti_mono`: контрпример при смешении доменов.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `snap_preserves_objective_bound`, `snap_denominator_reset`, `grow_snap_cycle_sound` | certified snap `q/2^k` на границе grow снимает экспоненциальный рост знаменателей | Hagi/Theory/GrowSnap.lean:81, :119, :145 |
+| `snap_err_bound` | `\|obj g − obj f\| ≤ L·d·2^-(k+1)` | Hagi/Theory/GrowSnap.lean:215 |
+| `snapAdmissible`, `snapK`, `snap_k_admissible`, `snap_k_min`, `snap_k_lt_violates` | k* = минимальное k с `err(k*) ≤ ε`; любое допустимое `k ≥ k*`; `k < k*` ⇒ err строго > ε | Hagi/Theory/GrowSnap.lean:190, :287, :293, :301, :308 |
+| `snap_k_eq_ceil` | при `L·d > ε`: `k* = ⌈log₂(L·d/ε)⌉ − 1` | Hagi/Theory/GrowSnap.lean:342 |
+| `snapBits`, `snap_bits_err_tradeoff`, `snap_optimal_k` | биты = `d·(k+1)`; k* даёт certified `err ≤ ε` и минимальные биты | Hagi/Theory/GrowSnap.lean:185, :392, :401 |
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `neg_transfer_char`, `warm_better_char`, `transfer_boundary` | квадратичная obj, равный бюджет: warm хуже cold ⟺ `2⟪θ,t⟫ < ‖θ‖²` | Hagi/Theory/NegativeTransfer.lean:117, :127, :137 |
+| `neg_transfer_adversarial`, `gd_run_dist`, `warm_better_budget` | `t = −c•θ` ⇒ adversarial; бюджет не размывает границу | Hagi/Theory/NegativeTransfer.lean:150, :176, :191 |
+| `smooth_obj_transfer_bound`, `sufficient_negative_transfer` | L-smooth obj + GD равным бюджетом ⇒ `f z − n·nlBudget γ L G ≤ f (nlRun n γ grad z) ≤ f z`; стартовый запас > `n·nlBudget` ⇒ warm строго хуже. `G` — binder вдоль траектории | Hagi/Theory/NegativeTransfer.lean:386, :406 |
+| `nlDrop`, `nl_drop_bound`, `nlDrop_le_optimal`, `nl_drop_optimal` | `drop = γG² − Lγ²G²/2 ≤ G²/(2L)`, равенство при `γ* = 1/L` | Hagi/Theory/NegativeTransfer.lean:434, :443, :467, :481 |
+| `growthGate`, `growth_gate_stay_char` | grow ⟺ `potential_bound > c_add` (равенство → stay) | Hagi/Theory/NegativeTransfer.lean:570, :576 |
+| `nl_drop_step_eq`, `nl_drop_total` | в квадратичной модели n шагов уменьшают obj ≤ `n·G²/(2L)` | Hagi/Theory/NegativeTransfer.lean:604, :616 |
+| `growth_gate_sound` | `n·G²/(2L) ≤ c_add` ⟹ любое n-шаговое дообучение выигрывает ≤ c_add (stay сертифицирован, grow — нет) | Hagi/Theory/NegativeTransfer.lean:673 |
+
+Условная граница достаточная, не необходимая. Потенциал-модель квадратичная; для L-smooth потолок шире.
+
+- `tritPack`, `tritUnpack`, `tritPack_lt_243`, `trit_roundtrip`, `tritPack_injective`: биекция 5 тритов ↔ байт (`3^5 = 243 ≤ 2^8`).
+
+- `master_theorem_v3` (Hagi/Theory/MasterTheoremV3.lean:83), контракт посылок `OptimizerPremises` (:428): 5 гарантий машины v3 (params-бюджет, zero-forgetting, coverage-монотонность, obj-телескоп, transfer-граница) — конъюнкция делегатов.
+- `hagi_master_v31` (:128) = (1)–(8); `hagi_master_v32` (:187) = +(9)(10); `hagi_master_v33` (Hagi/Theory/MasterTheoremV3.lean:252) = +(11); `hagi_master_v34` (:323) = +(12)(13)(14); `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458) = v3.4 + (O1)–(O7). Каждый клоз — делегат к доказанной теореме, гипотезы дословно.
+
+| # | клоз | делегат |
+|---|---|---|
+| (1) | params-бюджет ≤ 2·k·dd | `self_compress_loop_sound` |
+| (2) | zero-forgetting per-task адаптеров | `adapter_per_task_sound` (AdapterGrowth.lean:579) |
+| (3) | certified obj-телескоп ≤ o0 + Σ bounds | — |
+| (4) | монотонность покрытия | `iterative_loop_sound` |
+| (5) | точный iff-transfer (квадр) | `neg_transfer_char` |
+| (6) | snap `k* = ⌈log₂(L·d/ε)⌉−1` | `snap_optimal_k` |
+| (7) | каждый байт прочитан окном `covStarts` | `covStarts_covers` |
+| (8) | smooth sufficient-transfer: `f z − n·nlBudget ≤ f (nlRun n γ grad z) ≤ f z` | `sufficient_negative_transfer` |
+| (9) | guaranteed drop при `γ* = 1/L` равен `G²/(2L)` | `nl_drop_optimal` |
+| (10) | любой `i < nB` покрыт окном `hierStarts` при `0 < B`, `0 < s' ≤ w`, любое n | `hier_covers_any_n` |
+| (11) | `(hierStarts nB B w w).length = ⌈nB/w⌉` (`0 < w`, `w ∣ B`) — floor любого покрытия | `hier_optimal` |
+| (12) | growth first step: `a<0`, `R>0`, `stepEps<2a²/R²` ⇒ `∃ η>0`, `CE_t(L(bη η)) < fOld` | `first_step_strict_improves` |
+| (13) | Adam first step: `g≠0`, `eps>0` ⇒ `⟨g, adamDir g g² eps⟩ > 0` | `adam_first_step_dot_pos` |
+| (14) | holdout two-way: `\|Θ\|≤N`, `ln(2N/δ) ≤ 2k(ε/B)²` ⇒ `P≥1−δ` [гейт принял ⇒ `pop_new ≤ pop_old + 2ε − margin`] | `holdout_gate_two_way_delta` |
+| (O7) | контракт `OptimizerPremises` (MasterTheoremV3.lean:428) | сама структура |
+| (O1) | `∇_{W1} CE` одного входа rank-one (`g ⊗ x`); батч: `D CE[Δ] = −⟨Σ_t g_t⊗x_t, Δ⟩` | `w1_grad_rank_one`, `batch_directional_derivative` |
+| (O2) | smooth step: `γ* = 1/S_batch`, drop `= ‖D‖²/(2·S_batch)`; вдоль любого d: `γ* = a/(L‖d‖²)` | `w1BatchCE_optimal_step_drop`, `dir_drop_optimal` |
+| (O3) | Muon optimality: `⟨G,Δ⟩ ≤ Σσ` на изометриях (`ΔᵀΔ = 1`, `ΔΔᵀ = 1`), максимум достигается | `muon_step_optimal_in_isometry_group`, `wide_step_optimal'` |
+| (O4) | NS approximation: `σ₀ ∈ [1/2,1] ⇒ σ₃ ≥ 39/40`; `⟨G, ns_k G⟩ = Σ σ i·ns_seq k (σ i)` | `ns_sigma_min_three`, `muon_alignment_exact`, `wide_alignment_exact'` |
+| (O5) | descent certificate: `∃ η>0`, CE строго убывает после `W1 − η·ns_k(Ĝ)`, слой любой формы (один вход, батч) | `muon_step_useful_w1_rect'`, `muon_step_useful_w1_rect_batch'` |
+| (O6) | momentum: `⟨G,m⟩ ≥ (1−μ)‖G‖² − μ‖G‖‖m_prev‖`; `⟨G,Xₖ⟩ ≥ ‖m‖_F − ‖G−m‖_F‖Xₖ‖_F` | `momentum_align_cs`, `momentum_align_ge_grad`, `muon_momentum_bound` |
+
+Условия (O1)–(O6): `S_batch > 0`, равные маски до/после шага, вне kink, `G ≠ 0`; прочие посылки — дословно посылки делегатов. Mean-форма батча (`w1MeanCE_optimal_step_drop`) в v3.5 не входит.
+
+- `fact_append_preserves`, `fact_lookup_monotone`: append-only история фактов. Идемпотентности append нет.
+
+- `rangeWrap_inrange`: `rangeWrap lo c x m ∈ [lo, lo+m)`; `rangeWrap_fixed_point`: `c % m = 0` не двигает.
+
+- `selectW_spec`, `selectW_occam_minimal`, `selectW_budget_bound`: «self-CE elbow» — наименьшее W с `CE ≤ best·(1+tol)`; ≤ maxW окон.
+
+- `consolidate_prompt_empty`, `remember_preserves_pages` (append-only), `learn_from_dialog_archives`. Top-k ранжирование не монотонно — теоремы нет.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `covStarts_covers` | окна k с шагом k (+ суффикс-окно) покрывают каждый байт `[0, n)` | Hagi/Theory/CoverageReading.lean:54 |
+| `covStarts_trunc_uncovered_zero` | граница: усечение `windows[-max_span:]` при окон > m отбрасывает старт 0 | Hagi/Theory/CoverageReading.lean:130 |
+| `covStartsStep`, `covStarts_eq_step`, `covStartsStep_covers`, `covStartsStep_len_le`, `covStartsStep_adaptive_covers` | старты с шагом s: покрытие точно при `0 < s ≤ w`; окон ≤ `(n−w)/s + 2`; при `(n−w)/s+2 ≤ m` усечение не срабатывает | Hagi/Theory/CoverageReading.lean:171, :178, :184, :220, :233 |
+| `hierBlockLen`, `hierStarts`, `hier_covers_any_n`, `hier_peak_window_budget` | 2 уровня (блоки B × `covStartsStep`): покрытие любого n; peak ≤ m окон в блоке при `s = w`, `B = w·(m−1)` | Hagi/Theory/CoverageReading.lean:268, :273, :282, :314 |
+| `covStartsStep_len_tiling`, `hier_blocks_sum_tiling`, `hier_total_formula`, `hier_total_min`, `hier_total_floor`, `hier_optimal` | total ≤ `⌈n/B⌉·((B−w)/s+2)`; при `s = w`, `w ∣ B` total `= ⌈n/w⌉`, независимо от B; floor любого покрытия ≥ `⌈n/w⌉` | Hagi/Theory/CoverageReading.lean:352, :387, :438, :460, :494, :531 |
+| `ceil_div_anti`, `windowCost_fixed_mono`, `windowCost_linear_bounds`, `windowCost_linear_near_const`, `windowCost_hier` | `totalCost(w) = ⌈n/w⌉·c(w)`: `c(w)=c` — монотонно, оптимум w_max; `c(w)=c·w` — total ∈ `[c·n, c·(n+w))` | Hagi/Theory/CoverageReading.lean:553, :575, :584, :600, :611 |
+| `mixedCost_relax_min`, `mixedCost_relax_min_eq`, `mixedCost_lower` | `c(w) = a + c·w²`: непрерывный минимум при `w = √(a/c)`; дискретно `⌈n/w⌉(a+c·w²) ≥ 2n√(a·c)` | Hagi/Theory/CoverageReading.lean:628, :648, :673 |
+
+- Правило: `c(w)=a+c·w^α` ⇒ `w* = (a/(c·(α−1)))^(1/α)`; общий `α>1` и чистая `c·w^α` — вне Lean.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `slot`, `slot_mono`, `slot_last` | oldest-first: `slot k p j = p + j`, query-слот `k−1` = байт `p+k−1` | Hagi/Theory/CoverageReading.lean:707, :716, :720 |
+| `slotRev`, `slotRev_first`, `slotRev_last` | реверс: слот 0 = новейший байт | Hagi/Theory/CoverageReading.lean:712, :732, :726 |
+| `padSlot`, `padSlot_tail`, `padSlot_last`, `padSlot_full` | generation-путь: левый паддинг + `slot` со сдвигом; `n = k` ⇒ окно = `slot k p` | Hagi/Theory/CoverageReading.lean:741, :746, :754, :763 |
+
+- `covStarts` (:45) — про начала окон, с порядком слотов не пересекается. Инвариант только порядка (смежность цели — не Lean-утверждение).
+
+Код: `h = h + relu(a@W1+b1)@Wo`, `Wo = 0` (lm.py:581-601), `_maybe_grow` (unified.py:383-440), `_certified_finite_step` (lm.py:826).
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `identityBlock`, `trunk_function_preserving`, `lmLogits_grow_identity` (→ `lmLogits` LMCompose.lean:214), `function_preserving_growth` | trunk ++ [identity-блок] = старый trunk ⇒ те же логиты (шаг 0). Также: `zero_init_identity` (NonlinearStep0.lean:104), `adapter_neutral_B` (AdapterGrowth.lean:101) | Hagi/Theory/FunctionPreservingGrowth.lean:136, :165, :175, :199 |
+| `warmup_telescope`, `warmup_safe`, `warmup_strict` | h0 (старт = fOld) + h1 (каждый шаг `obj' ≤ obj − drop`) ⇒ `obj n ≤ fOld − Σ drop` | Hagi/Theory/FunctionPreservingGrowth.lean:287, :302, :317 |
+| `uncertified_step_can_worsen` | без h1 один шаг растёт obj (негатив) | Hagi/Theory/FunctionPreservingGrowth.lean:334 |
+| `post_warmup_growth_safe`, `post_warmup_growth_safe_of_certified` | + rollback-гейт (`guardedStep` RollbackGate.lean:86): при любом вердикте `obj ≤ fOld` | Hagi/Theory/FunctionPreservingGrowth.lean:351, :370 |
+| `stepEps`, `CertifiedFiniteStep`, `warmup_h1_of_certified_steps`, `warmup_safe_of_certified_steps`, `post_warmup_growth_safe_of_certified_steps` | контракт COMMIT (`drop > 1e-12 ∧ obj' ≤ obj − drop`) ∨ HOLD ⇒ h1 ⇒ `warmup_safe` и rollback-композиция | Hagi/Theory/FunctionPreservingGrowth.lean:394, :401, :409, :425, :436 |
+| `uncertified_step_not_certified`, `batch_drop_not_global` | негативы: растущий шаг не проходит контракт; drop на batch ≠ drop на другом functional | Hagi/Theory/FunctionPreservingGrowth.lean:449, :463 |
+| `certified_step_block_of_range`, `block_step_certified_of_range_bound`, `block_step_commit_of_range_bound`, `block_range_bound_violated_not_certified` | range-лемма о логитах (`lse_shift_upper` PoEBound.lean:161) не зависит от носителя ⇒ шаг certified при range ≤ r | Hagi/Theory/FunctionPreservingGrowth.lean:490, :506, :520, :535 |
+| `linDrop`, `useful_first_step`, `useful_first_step_pos`, `useful_eta_le`, `exists_useful_eta`, `first_step_useful_certified`, `first_step_strict_improves`, `no_signal_no_drop` | линейный по η шаг: `drop_max = 2a²/R²` при `η* = −4a/R²`; `a < 0 ∧ 2a²/R² > stepEps` ⇒ COMMIT и `CE < fOld`; `a = 0` ⇒ `drop ≤ 0` | Hagi/Theory/FunctionPreservingGrowth.lean:578, :583, :589, :596, :619, :640, :675, :628 |
+| `chainGrad`, `chain_linear`, `useful_of_adam_first` | `∇(CE∘L) = Jᵀ∇CE`; Adam-first `g ≠ 0` ⇒ `a < 0` ⇒ COMMIT на линейном носителе | Hagi/Theory/FunctionPreservingGrowth.lean:712, :720, :745 |
+| `useful_step_of_fderiv`, `useful_of_adam_first_fderiv`, `reluL`, `reluMask`, `reluJacLin`, `reluJac`, `hasFDerivAt_relu`, `hasFDerivAt_reluL`, `useful_of_adam_first_relu` | `fderiv d = −c < 0` ⇒ `∃ η > 0` строгого убывания (`fderiv_ceOneHot_comp_apply` CEGradient.lean:170; `smax_pos` PoEBound.lean:101, `softDef_sum_one` InfoCore.lean:114); Adam-first по b1 relu-блоку вне kink — без certified-величины drop | Hagi/Theory/FunctionPreservingGrowth.lean:809, :864, :892, :896, :913, :925, :899, :936, :981 |
+
+- Не доказано: глобальная достижимость «выразительный блок ⇒ drop ≥ δ»; certified drop для нелинейного носителя `b1` и `W1`; в коде warm-up — голый Adam (unified.py:423-433), h1 условен; L-smooth блока; holdout-гейт — измерение; унификации depth- и width-роста нет.
+
+Слой `W1 : ι → δ → ℝ`, один вход `x : δ → ℝ`, pre-activation `w1Pre x W1 i = Σ_j W1 i j * x j`. Код: `_block_add` lm.py:586, lm.py:594.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `w1Pre`, `w1L`, `w1PreCLM`, `w1Jac`, `w1Jac_apply`, `w1Entry` | `w1L W1 b wo x = reluL (W1ᵀx) b wo`; `W1 ↦ W1ᵀx` непрерывно линейно; якобиан `J·Δ v = Σ_i mask i·(Δᵀx) i·wo i v`; `J v (i,j) = mask i·wo i v·x j` | Hagi/Theory/FirstLayerGrad.lean:49, :54, :59, :72, :77, :114 |
+| `hasFDerivAt_w1L` | вне kink (`w1Pre x W1 i + b i ≠ 0`) `w1L · b wo x` дифференцируема по матрице, производная `w1Jac` | Hagi/Theory/FirstLayerGrad.lean:87 |
+| `w1_grad_rank_one` | `chainGrad w1Entry p y (i,j) = g i · x j`, `g i = Σ_v (y v − p v)·mask i·wo i v` | Hagi/Theory/FirstLayerGrad.lean:123 |
+| `w1_directional_derivative` | `⟨p − y, J·Δ⟩ = −Σ_{ij} (g i · x j)·Δ i j` | Hagi/Theory/FirstLayerGrad.lean:140 |
+| `useful_of_adam_first_w1` | вне kink, `g ≠ 0` ⇒ `∃ η > 0`, `CE_t (w1L (W1 + η•d)) < CE_t (w1L W1)` | Hagi/Theory/FirstLayerGrad.lean:167 |
+| `w1_rank_one_step_eq_bias` | `ΔW1 = (c/Σx²)•(u ⊗ x)` для одного входа равно сдвигу bias `b + c • u` | Hagi/Theory/FirstLayerGrad.lean:188 |
+
+- Не доказано: certified-величина drop по `W1` в этом файле (закрыт внутри области активации: `w1CE_drop_of_step`, `w1CE_optimal_step_drop`, FirstLayerLip.lean:339/:392); оптимум `ΔW1` по норме Фробениуса; kink вне носителя.
+
+Батч `x : τ → δ → ℝ`, `batchGrad g x i j = Σ_t g t i · x t j`, `fdot G Δ = Σ_{ij} G i j·Δ i j`, `frobSq A = Σ_{ij} A i j²`. Код: `W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)` core.py:1755; лосс — среднее CE по батчу (lm.py:688).
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `batchGrad`, `fdot`, `frobSq`, `rowGrad`, `r1`, `colComb` | носители: батч-градиент, спаривание, квадрат нормы, `u ⊗ v`, `Gᵀ u` | Hagi/Theory/BatchRankOne.lean:48, :52, :55, :58, :166, :170 |
+| `batch_directional_derivative` | `Σ_t⟨p_t − y_t, J_t·Δ⟩ = −Σ_{ij} (batchGrad g x i j)·Δ i j` | Hagi/Theory/BatchRankOne.lean:65 |
+| `frobSq_nonneg`, `fdot_sq_le`, `frob_inner_abs_le`, `frob_inner_le` | Коши–Шварц: `⟨G,Δ⟩² ≤ ‖G‖²_F·‖Δ‖²_F` | Hagi/Theory/BatchRankOne.lean:93, :99, :107, :114 |
+| `frob_step_le` | `frobSq Δ ≤ R²` ⇒ `−R·‖G‖_F ≤ ⟨G, Δ⟩` | Hagi/Theory/BatchRankOne.lean:120 |
+| `sgd_step_attains` | `G ≠ 0` ⇒ `Δ = −(R/‖G‖_F)•G` допустим и `⟨G, Δ⟩ = −R·‖G‖_F` — SGD-направление оптимально в шаре Фробениуса | Hagi/Theory/BatchRankOne.lean:136 |
+| `rank_one_inner` | `⟨G, u ⊗ v⟩ = ⟨v, Gᵀu⟩` | Hagi/Theory/BatchRankOne.lean:176 |
+| `rank_one_le` | `⟨G, u ⊗ v⟩ ≤ ‖v‖·‖Gᵀu‖` и `‖Gᵀu‖² ≤ ‖u‖²·‖G‖²_F` | Hagi/Theory/BatchRankOne.lean:184 |
+| `rank_one_best_v` | `Gᵀu ≠ 0` ⇒ `v = Gᵀu/‖Gᵀu‖` даёт `⟨G, u ⊗ v⟩ = ‖Gᵀu‖` | Hagi/Theory/BatchRankOne.lean:209 |
+
+- Батч здесь — сумма по `τ` без деления на размер. Спектральный аналог T2 (max `⟨G,Δ⟩` при `‖Δ‖_2 ≤ 1` равен `σ_max(G)`) — MuonSpectral; в репо есть только диагональное ядро `muon_alignment_optimal` и `spectral_norm_le_frobenius_norm`. Гладкость батча — `w1BatchCE_descent_lemma` (FirstLayerLipBatch.lean:113).
+
+Квадратный слой, `smax G` = наибольшее сингулярное число, норма — операторная `l2`.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `fdot`, `r1`, `smax`, `Unit`, `smax_nonneg` | Frobenius-спаривание; rank-one `u ⊗ v`; наибольшее сингулярное число; `σ_max ≥ 0` (`fdot` из MuonSpectral.lean:46) | Hagi/Theory/MuonSpectral.lean:46, :49, :53, :58, :61 |
+| `sum_sq_mulVec`, `ortho_preserves_sq`, `smax_svd` | `‖M v‖² = Σ_i v i·(Mᵀ(M v)) i`; ортогональная `M` сохраняет норму; явный SVD `G = U·Σ·Vᵀ` | Hagi/Theory/MuonSpectral.lean:69, :89, :95 |
+| `rank_one_inner` | `⟨G, u ⊗ v⟩ = Σ_i u i·(G v) i` | Hagi/Theory/MuonSpectral.lean:81 |
+| `rank_one_norm_bound` | `‖G v‖² ≤ σ_max(G)²·‖v‖²` | Hagi/Theory/MuonSpectral.lean:118 |
+| `rank_one_inner_le` | единичные `u`, `v` ⇒ `⟨G, u ⊗ v⟩ ≤ σ_max(G)` | Hagi/Theory/MuonSpectral.lean:156 |
+| `rank_one_spectral_norm` | единичные `u`, `v` ⇒ `‖u ⊗ v‖₂ = 1` | Hagi/Theory/MuonSpectral.lean:179 |
+| `rank_one_attains` | топ-пара `(u₁, v₁)` единична и `⟨G, u₁ ⊗ v₁⟩ = σ_max(G)` | Hagi/Theory/MuonSpectral.lean:231 |
+| `rank_one_spectral_step_optimal` | всякий rank-one шаг с единичными `u`, `v` имеет норму 1 и `⟨G, Δ⟩ ≤ σ_max(G)`; граница достигается | Hagi/Theory/MuonSpectral.lean:289 |
+| `l2_opNorm_mul_orth`, `l2_opNorm_diagonal_abs`, `l2_opNorm_diagonal_nonneg` | `YᵀY = 1 ⇒ ‖Y X‖₂ = ‖X‖₂`; `‖diag σ‖₂ = max_i abs(σ i)` | Hagi/Theory/MuonSpectral.lean:297, :306, :327 |
+| `smax_eq_opNorm` | `smax G = ‖G‖₂` | Hagi/Theory/MuonSpectral.lean:333 |
+| `smax_le_frobenius` | `σ_max(G) ≤ ‖G‖_F` | Hagi/Theory/MuonSpectral.lean:354 |
+| `opNorm_mulVec_le` | `‖G v‖₂ ≤ σ_max(G)·‖v‖₂` в EuclideanSpace | Hagi/Theory/MuonSpectral.lean:383 |
+
+- Доказан rank-one срез спектрального оптимума. Полный шаг Muon (`max ⟨G, Δ⟩` по шару `‖Δ‖₂ ≤ 1` равен `σ_max`) требует дуальности спектральной/ядерной норм — в пине Mathlib её нет.
+
+`Isometry Δ` = `ΔᵀΔ = 1`, `ssum G = ∑ i, σ i` (ядерная норма). Идея: `⟨G, Δ⟩ = Σ_i σ i·(UᵀΔV) i i`, `Q = UᵀΔV` — изометрия, `Q i i ≤ 1`.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `Isometry`, `ssum`, `ssum_nonneg`, `ssum_eq` | носители | Hagi/Theory/MuonIsometry.lean:50, :53, :56, :59 |
+| `isometry_diag_le_one` | `QᵀQ = 1 ⇒ Q i i ≤ 1` | Hagi/Theory/MuonIsometry.lean:65 |
+| `fdot_eq_trace`, `inner_eq_sigma_weighted_diag` | `⟨G, Δ⟩ = tr(GᵀΔ) = Σ_i σ i·(UᵀΔV) i i` для `G = U·Σ·Vᵀ` | Hagi/Theory/MuonIsometry.lean:85, :93 |
+| `isometry_conj` | `UᵀΔV` — изометрия | Hagi/Theory/MuonIsometry.lean:115 |
+| `isometry_inner_le_ssum` | `ΔᵀΔ = 1 ⇒ ⟨G, Δ⟩ ≤ ssum G` | Hagi/Theory/MuonIsometry.lean:128 |
+| `uv_transpose_isometry`, `uv_transpose_attains_ssum` | `U Vᵀ` — изометрия и `⟨G, U Vᵀ⟩ = ssum G` | Hagi/Theory/MuonIsometry.lean:146, :156 |
+| `muon_step_optimal_in_isometry_group` | max по изометриям `⟨G, Δ⟩ = ssum G`, оптимум `U Vᵀ` | Hagi/Theory/MuonIsometry.lean:175 |
+
+- Максимум доказан на группе изометрий (квадратный вещественный слой), не на всём шаре `‖Δ‖₂ ≤ 1`. Формула «идеальный Newton–Schulz = `U Vᵀ`» не формализована; связь с обновлением `W1` — см. MuonDescentW1Rect.
+
+`Y = ns_step X = (1/2)·X(3I − XᵀX)`: `σ ← ns_p σ = σ(3 − σ²)/2`, дефект `d = 1 − σ` сжимается как `d ← d²(3 − d)/2`. Код: `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` core.py:1363, нормировка Frobenius core.py:1353, `iters=3` core.py:1755.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `ns_p`, `ns_seq`, `ns_step` | шаг `t(3 − t²)/2`; k-я итерация; матричный шаг | Hagi/Theory/NewtonSchulzSigma.lean:42, :45, :148 |
+| `ns_quadratic_invariant` | `0 ≤ t ≤ 1 ⇒ t ≤ ns_p t ≤ 1` | Hagi/Theory/NewtonSchulzSigma.lean:51 |
+| `ns_seq_bounds` | `0 ≤ t ≤ 1 ⇒ t ≤ ns_seq k t ≤ 1` | Hagi/Theory/NewtonSchulzSigma.lean:62 |
+| `ns_defect_contraction` | `t ≤ 1 ⇒ 1 − ns_p t ≤ (3/2)·(1 − t)²` | Hagi/Theory/NewtonSchulzSigma.lean:73 |
+| `ns_defect_bound` | `0 ≤ d₀ ≤ 1/2 ⇒ 1 − ns_seq k (1 − d₀) ≤ (2/3)·(3/4)^(2^k)` | Hagi/Theory/NewtonSchulzSigma.lean:83 |
+| `ns_p_mono`, `ns_seq_mono` | монотонность на `[0, 1]` | Hagi/Theory/NewtonSchulzSigma.lean:105, :115 |
+| `ns_sigma_min_three` | `1/2 ≤ σ₀ ≤ 1 ⇒ 39/40 ≤ ns_seq 3 σ₀` | Hagi/Theory/NewtonSchulzSigma.lean:126 |
+| `ns_shift_mulVec`, `ns_step_eigenvalue` | `XᵀX v = μ•v ⇒ (YᵀY) v = (μ·((3 − μ)/2)²)•v` | Hagi/Theory/NewtonSchulzSigma.lean:152, :163 |
+| `ns_step_eigenvalue_sigma` | `XᵀX v = σ²•v ⇒ (YᵀY) v = (ns_p σ)²•v` | Hagi/Theory/NewtonSchulzSigma.lean:200 |
+
+- `σ₀ ≥ 1/2` — гипотеза (после Frobenius-нормировки доказано лишь `σ₀ ≤ 1`); при `σ₀ < 1/2` три итерации сингулярные числа не поднимают. Мост к `⟨G, Δ_k⟩` — через MuonAlignment, не через `σ_min`.
+
+Шаг кода — правое умножение на симметричный множитель, поэтому `X_k = U·diag(ns_seq k ∘ σ)·Vᵀ` и `⟨G, X_k⟩ = Σ_i σ i·ns_seq k (σ i)`. Заменяет ложный в общем виде мост «`σ_min(Δ) ≥ 1 − ε ⇒ ⟨G, Δ⟩ ≥ (1 − ε)·ssum G`» (поворот на 90° даёт `⟨G, Δ⟩ = 0`).
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `ns_step_svd` | `X = U·diag τ·Vᵀ, UᵀU = VᵀV = 1 ⇒ ns_step X = U·diag (ns_p∘τ)·Vᵀ` | Hagi/Theory/MuonAlignment.lean:45 |
+| `ns_iter` | k итераций шага кода `ns_step^[k] X` | Hagi/Theory/MuonAlignment.lean:86 |
+| `ns_iter_svd` | `G = U·diag σ·Vᵀ ⇒ ns_iter k G = U·diag (ns_seq k∘σ)·Vᵀ` | Hagi/Theory/MuonAlignment.lean:91 |
+| `muon_alignment_exact` | `⟨G, ns_iter k G⟩ = Σ_i σ i·ns_seq k (σ i)` | Hagi/Theory/MuonAlignment.lean:104 |
+| `kept` | носитель `{i \| 1/2 ≤ σ i ≤ 1}` | Hagi/Theory/MuonAlignment.lean:125 |
+| `muon_near_optimal` | `∀ i, σ i ≤ 1 ⇒ (39/40)·Σ_{i∈kept} σ i ≤ ⟨G, ns_iter 3 G⟩` | Hagi/Theory/MuonAlignment.lean:131 |
+| `muon_alignment_ge_gradient` | `∀ i, σ i ≤ 1 ⇒ ⟨G, G⟩ ≤ ⟨G, ns_iter k G⟩` | Hagi/Theory/MuonAlignment.lean:162 |
+
+- Для нормированного градиента гипотеза `σ i ≤ 1` снята (`normed_sigma_le_one` в MuonDescent). Учтена только масса `σ ≥ 1/2`; её доля — величина данных. Носитель — квадратный вещественный `G`; прямоугольный — MuonWide.
+
+`Ĝ = G/‖G‖_F`. Код: `G / (G.norm + eps)` core.py:1353, итерация core.py:1363, обновление core.py:1755.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `smax_smul` | `smax (c • G) = \|c\|·smax G` | Hagi/Theory/MuonDescent.lean:105 |
+| `sigma_le_smax` | `σ i ≤ smax G` | Hagi/Theory/MuonDescent.lean:115 |
+| `normed_sigma_le_one` | `G ≠ 0 ⇒ ∀ i, σ i (G/‖G‖_F) ≤ 1` | Hagi/Theory/MuonDescent.lean:122 |
+| `muon_step_inner_ge_frob` | `G ≠ 0 ⇒ 1 ≤ ⟨Ĝ, ns_iter k Ĝ⟩ ∧ ‖G‖_F ≤ ⟨G, ns_iter k Ĝ⟩` | Hagi/Theory/MuonDescent.lean:136 |
+| `normed_near_optimal` | `G ≠ 0 ⇒ (39/40)·Σ_{kept(Ĝ)} σ ≤ ⟨Ĝ, ns_iter 3 Ĝ⟩` | Hagi/Theory/MuonDescent.lean:156 |
+| `useful_of_neg_fderiv` | `HasFDerivAt f φ x`, `φ d < 0 ⇒ ∃ η > 0, f (x + η•d) < f x` | Hagi/Theory/MuonDescent.lean:164 |
+| `muon_step_useful` | `HasFDerivAt f φ W`, `∀ Δ, φ Δ = ⟨g, Δ⟩`, `g ≠ 0 ⇒ ∃ η > 0, f (W − η•ns_iter k Ĝ) < f W` | Hagi/Theory/MuonDescent.lean:176 |
+| `muon_vs_sign_first_order` | `G ≠ 0 ⇒ ‖G‖_F ≤ ⟨G, ns_iter k Ĝ⟩ ∧ ‖G‖_F ≤ ⟨G, sign G⟩` | Hagi/Theory/MuonDescent.lean:196 |
+
+- `spectral_norm_eq_max_singularValue` (Hagi/External/Flywheel/MatrixNormRelations.lean:328, комплексный случай). Существование `η` локальное (без величины шага); `η = cos_lr·0.7`, momentum-буфер `m1`, липшицева оценка и сходимость — вне теории. Сравнение «на единицу нормы шага» Muon vs sign не доказано. Связь `φ Δ = ⟨g, Δ⟩` для слоя `W1` — MuonDescentW1.
+
+Носитель — функциональный `n → n → ℝ`, `f = CE_t ∘ w1L`.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `fdot_neg_of` | `⟨−A, Δ⟩ = −Σ A i j·Δ i j` | Hagi/Theory/MuonDescentW1.lean:56 |
+| `w1_fderiv_apply` | вне kink: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −(g ⊗ x)` | Hagi/Theory/MuonDescentW1.lean:65 |
+| `w1Grad_ne` | `g ≠ 0`, `x ≠ 0 ⇒ G ≠ 0` | Hagi/Theory/MuonDescentW1.lean:79 |
+| `muon_step_useful_w1` | вне kink, `g ≠ 0`, `x ≠ 0 ⇒ ∃ η > 0`, `CE_t (w1L (W1 − η·ns_iter k Ĝ)) < CE_t (w1L W1)` | Hagi/Theory/MuonDescentW1.lean:104 |
+| `w1Batch_fderiv_apply` | по батчу: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −Σ_t g_t ⊗ x_t` | Hagi/Theory/MuonDescentW1.lean:156 |
+| `muon_step_useful_w1_batch` | вне kink, `G ≠ 0 ⇒ ∃ η > 0`, сумма CE по батчу строго убывает вдоль `W1 − η·ns_iter k Ĝ` | Hagi/Theory/MuonDescentW1.lean:193 |
+
+- Ни в одной теореме файла нет посылки «дифференциал равен спариванию». В батче `G ≠ 0` — посылка; доказано для суммы CE (mean отличается положительным множителем). Прямоугольный слой — MuonDescentW1Rect.
+
+Итог: для слоя `W1 : ι → δ → ℝ` любой формы, вне kink, `G ≠ 0`, любого `k` шаг кода `W1 − η·wide_iter k Ĝ` строго спускает CE (один вход и сумма по батчу) — `muon_step_useful_w1_rect'`, `muon_step_useful_w1_rect_batch'`. Шаг — `wide_iter k Ĝ` (MuonWide) на `Matrix ι δ ℝ`.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `w1GradR` | `G = −(g ⊗ x)` на `Matrix ι δ ℝ` | Hagi/Theory/MuonDescentW1Rect.lean:47 |
+| `fdot_wide_neg_of` | `⟨−A, Δ⟩ = −Σ A i j·Δ i j` | Hagi/Theory/MuonDescentW1Rect.lean:55 |
+| `w1_fderiv_apply_R` | вне kink: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −(g ⊗ x)`, `f = CE_t ∘ w1L` | Hagi/Theory/MuonDescentW1Rect.lean:63 |
+| `w1GradR_ne` | `g ≠ 0`, `x ≠ 0 ⇒ G ≠ 0` | Hagi/Theory/MuonDescentW1Rect.lean:77 |
+| `w1StepR` | `d = wide_iter k Ĝ` как элемент носителя `ι → δ → ℝ` | Hagi/Theory/MuonDescentW1Rect.lean:100 |
+| `fdot_wide_w1StepR_pos` | `G ≠ 0`, `card ι ≤ card δ ⇒ 0 < ⟨G, wide_iter k Ĝ⟩` | Hagi/Theory/MuonDescentW1Rect.lean:105 |
+| `muon_step_rect_of_fderiv` | ядро: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0`, `f (W1 − η·d) < f W1` | Hagi/Theory/MuonDescentW1Rect.lean:113 |
+| `muon_step_useful_w1_rect` | вне kink, `g ≠ 0`, `x ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0`, `CE_t (w1L (W1 − η·wide_iter k Ĝ)) < CE_t (w1L W1)` | Hagi/Theory/MuonDescentW1Rect.lean:134 |
+| `w1BatchObjR`, `w1BatchGradR` | батч-лосс и `G = −Σ_t g_t ⊗ x_t` на `Matrix ι δ ℝ` | Hagi/Theory/MuonDescentW1Rect.lean:154/:158 |
+| `w1Batch_fderiv_apply_R` | по батчу: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −Σ_t g_t ⊗ x_t` | Hagi/Theory/MuonDescentW1Rect.lean:166 |
+| `muon_step_useful_w1_rect_batch` | вне kink, `G ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0`, сумма CE по батчу строго убывает вдоль `W1 − η·wide_iter k Ĝ` | Hagi/Theory/MuonDescentW1Rect.lean:203 |
+| `fdot_transpose` | `⟨Gᵀ, Hᵀ⟩ = ⟨G, H⟩` | Hagi/Theory/MuonDescentW1Rect.lean:248 |
+| `wfrobSq_transpose`, `wnormed_transpose` | `‖Gᵀ‖_F = ‖G‖_F`; `wnormed Gᵀ = (wnormed G)ᵀ` | Hagi/Theory/MuonDescentW1Rect.lean:256/:264 |
+| `tall_alignment_ge_gradient` | высокий `G` (`card n ≤ card m`), `G ≠ 0 ⇒ ‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩` | Hagi/Theory/MuonDescentW1Rect.lean:276 |
+| `alignment_ge_gradient_any` | `G` любой формы, `G ≠ 0 ⇒ ‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩` | Hagi/Theory/MuonDescentW1Rect.lean:300 |
+| `fdot_wide_w1StepR_pos'` | `G ≠ 0 ⇒ 0 < ⟨G, wide_iter k Ĝ⟩` (без посылки размерности) | Hagi/Theory/MuonDescentW1Rect.lean:314 |
+| `w1StepR_eq_code_ns` | шаг теоремы = вывод кода `code_ns` (core.py:1358–1361 транспонирует) | Hagi/Theory/MuonDescentW1Rect.lean:321 |
+| `muon_step_rect_of_fderiv'` | ядро без посылки размерности: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G ≠ 0 ⇒ ∃ η > 0`, `f (W1 − η·d) < f W1` | Hagi/Theory/MuonDescentW1Rect.lean:328 |
+| `muon_step_useful_w1_rect'` | вне kink, `g ≠ 0`, `x ≠ 0`, слой любой формы ⇒ `∃ η > 0`, CE_t строго убывает вдоль `W1 − η·wide_iter k Ĝ` | Hagi/Theory/MuonDescentW1Rect.lean:348 |
+| `muon_step_useful_w1_rect_batch'` | вне kink, `G ≠ 0`, слой любой формы ⇒ `∃ η > 0`, сумма CE по батчу строго убывает | Hagi/Theory/MuonDescentW1Rect.lean:369 |
+
+- Версии без штриха сохраняют посылку `card ι ≤ card δ`; высокий слой сведён к широкой через `fdot_transpose`, `wnormed_transpose`, `wide_iter_transpose`.
+- В батче `G ≠ 0` — посылка; для Muon-шага доказана сумма CE (mean-версия есть только для plain batch-gradient шага: `w1MeanCE_optimal_step_drop`, `w1BatchCE_descent_lemma`, `w1BatchCE_dir_optimal_step_drop`, MomentumAlign.lean:261). Момент `m1` — граница через невязку `G − m1` (`muon_momentum_bound`, MomentumAlign.lean:419). `η` только существует; momentum `m1`, `iters = 3` — вне теории. Оптимум доказан на строчных изометриях, не на шаре.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `trit5_unshift`, `trit5_roundtrip`, `trit5Pack_lt_243`, `int4_roundtrip`, `exists_best_mse_scale` | BitAlloc: `unpack ∘ pack = id` (5 тритов < 243; int4-пара < 256); ∃ минимизатор MSE на конечном списке. Родитель pack — `trit_roundtrip`, `tritPack_injective` (TritCodec.lean:117, :132) | Hagi/Theory/NadyaOptimal.lean:72, :79, :87, :98, :126 |
+| `cosine_sched_bounds`, `cosine_sched_start`, `cosine_sched_end`, `cosine_sched_mono`, `muon_step_norm_bound` | HybridMuon: `3/20 ≤ sched ≤ 1`, `sched 0 = 1`, `sched T = 3/20`, монотонно; `‖шаг Muon‖ ≤ a·c` при `‖orth‖ ≤ c` | Hagi/Theory/NadyaOptimal.lean:143, :151, :157, :166, :201 |
+| `paired_mean_dev_bound`, `paired_lcb_false_grow_bound` | LCB-гейт: paired Hoeffding (`holdout_concentration` Statistics.lean:177); `P[ложный GROW] ≤ 2·exp(−2k(r/2B)²)` при `popMean d ≤ 0` | Hagi/Theory/NadyaOptimal.lean:221, :270 |
+| `idealLen_eq_zero_of_prob_one`, `bypass_reaches_compression_limit` | EXACT_BYPASS: `q = 1` на носителе `p` ⇒ `ceBits = expLen = entBits = 0` (`ce_covered_zero` ExactBypass.lean:70 ↔ `idealLen_self_bounds` ArchiverCodeLength.lean:208) | Hagi/Theory/NadyaOptimal.lean:294, :304 |
+
+- Уже есть, не дублировано: auto_transfer_gate = `warm_better_char` (NegativeTransfer.lean:127) + `auto_transfer_gate_sound` (AutoTransferGate.lean:139); best-snapshot peeking = `holdout_gate_two_way_delta`.
+- Не формализовано: радиус LCB `z·σ̂/√n` случаен (в теореме детерминированный r); iid-holdout; list-level `_pack_int4`; список кандидатов `_best_mse_ternary`; полярная норма c — гипотеза; momentum/weight decay Muon; float32 ≠ ℝ.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `rmsOut`, `rmsMs_pad`, `rmsnorm_scale_inv`, `padTo`, `sum_pad`, `sum_pad_scale`, `eq_padTo`, `mulvec_rowPad`, `matPadS`, `mulvec_matPadS`, `padTo_castLE` | padding-леммы; rmsnorm gain ×√(d0/d1), eps ×(d0/d1) ⇒ первые d0 координат равны старым точно | Hagi/Theory/WidthGrowth.lean:42, :46, :96, :125, :129, :164, :171, :190, :206, :210, :233 |
+| `rotIdx`, `rotMate`, `rotV`, `rotV_smul`, `rotary_old_pairs_unchanged` | rotary: padTo-вектор × padTo-таблицы cos/sin ⇒ старые пары `(2i, 2i+1)` без изменения, новые — 0 | Hagi/Theory/WidthGrowth.lean:240, :244, :250, :256, :266 |
+| `attn_score_scale_preserved`, `attn_out_pad`, `h1_pad`, `wlogits_width_preserved` | `(K·Q)/√hd1` = старому при `W_q × qScale`; композиция: `logits_new(padTo v, padTo c) = logits_old(v, c)` — width-рост function-preserving (`nh = 1`) | Hagi/Theory/WidthGrowth.lean:329, :359, :375, :597 |
+| `WParams`, `qScale`, `WGrowth`, `wX0`, `wN1`, `wQ`, `wK`, `wV`, `wKr`, `wQr`, `wScore`, `wW`, `wAttn`, `wH1`, `wN2`, `wG`, `wU`, `wSw` (`swish` NormAct.lean:166), `wH2`, `wLogits` | носитель: параметры, правило роста (нулевые `matPadS`-блоки, компенсация нормировок, gain ×√(d0/d1)), одноголовый forward | Hagi/Theory/WidthGrowth.lean:412, :452, :458–:541, :548 |
+
+- Гипотезы `WGrowth`: `nh > 1`, нечётная ширина, клип сигмоиды `[−20, 20]`, пулинг/emb/alibi; float32 ≠ ℝ; с depth-ростом носители разные.
+
+Код: hagi/lm.py:1286-1324 (`R`, `C = kappa(R)*Var`).
+
+| теорема | формулировка | file:line | код |
+|---|---|---|---|
+| `ceDispRange`, `ceDispRange_nonneg`, `ce_direction_range` | точный диапазон направленного логит-смещения (sup' − inf') | Hagi/Theory/AdaptiveMajorizer.lean:1156, :1165, :1178 | lm.py:1286, :1293 |
+| `ceAdaptiveCurvRange`, `ceOneHot_next_le_adaptive_range` | `ceOneHot_next_le_adaptive_tight` (:764) на точном диапазоне | Hagi/Theory/AdaptiveMajorizer.lean:1202, :1214 | lm.py:1287-1300 |
+| `kappaClamp`, `kappaClamp_eq_kappa`, `ceAdaptiveCurvCode` | множитель кода (1/2 ниже 1e-5, иначе `kappa(min R 50)`); на окне `(1e-5, 50]` равен точному | Hagi/Theory/AdaptiveMajorizer.lean:1395, :1413, :1400 | lm.py:1298-1300 |
+| `ce_adaptive_code_drop` | CE после шага ≤ текущего − `(eta·A − eta²·C)`, `eta ∈ [0,1]`, `C` кода, диапазон в окне (без привязки eta к `A/2C`) | Hagi/Theory/AdaptiveMajorizer.lean:1429 | lm.py:1313-1324 |
+| `ce_range_code_drop` | `eta ≥ 0`: `eta·A − eta²·R²/8` ветки range без unit-cap (`ceOneHot_next_le` CEDescent.lean:282) | Hagi/Theory/AdaptiveMajorizer.lean:1453 | lm.py:1314, :1323-1324 |
+| `adaptive_claim_scaled`, `adaptive_claim_scaled_bounds` | claim в точке `s·A/2C = (2s − s²)·A²/4C ∈ [s², 1]·A²/4C`; `s = 0.05 → 39/400` | Hagi/Theory/AdaptiveMajorizer.lean:1469, :1481 | — |
+
+- Сертификат реального кода — `ce_range_code_drop` (adaptive-ветка может не браться). Вне окна `(1e-5, 50]` `C` кода занижен, claim не сертифицирован (код полагается на post-step rollback lm.py:1337-1344); теорема — о точном смещении, код строит majorizer на JVP.
+
+Код: unified.py:408-455 (rollback `q.copy_(s0)` :450, бюджет 6).
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `stepValue`, `stepValue_retrain`, `stepValue_rollback` | раунд: принятый шаг = кандидат, откаченный = прежнее значение точно | Hagi/Theory/RepairForgetting.lean:42, :46, :52 |
+| `RepairRun`, `acceptedCount`, `accepted_le_budget` | отношение «старт → финал»; #принятых ≤ r | Hagi/Theory/RepairForgetting.lean:61, :69, :93 |
+| `repair_drop_bound`, `repair_sound` | `z ≤ v − tol·(#принятых)`; gate не растёт, линейная граница, бюджет | Hagi/Theory/RepairForgetting.lean:78, :105 |
+
+- Точный мост потока управления. Нет геометрической границы (принимается любое улучшение > 1e-4); gate — выборочная CE, не популяционное забывание; Repair пишет в общий trunk ⇒ клоз (2) `master_theorem_v3` не инстанцируется (`adapter_per_task_sound` AdapterGrowth.lean:579, `gpm_multi_zero_forgetting` Continual.lean:145).
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `expLen`, `entBits`, `ceBits` | `E_p[len]`, `H(p)` и CE в битах | Hagi/Theory/ArchiverCodeLength.lean:35, :38, :41 |
+| `codelength_ge_entropy_of_kraft`, `codelength_ge_entropy_of_uniquelyDecodable` | Kraft ⇒ `H(p) ≤ E[len]`; Kraft из uniquely decodable (`ceDef_self_le_of_support` FiniteLogScore.lean:168) | Hagi/Theory/ArchiverCodeLength.lean:55, :106 |
+| `idealLen`, `idealLen_kraft`, `idealLen_ge_entropy`, `idealLen_le_ce_add_one` | `len = ⌈−log₂ p̂⌉₊`: Kraft, `H(p) ≤ E[len] ≤ ceBits + 1` | Hagi/Theory/ArchiverCodeLength.lean:129, :150, :157, :164 |
+| `ceBits_eq_entBits_add_kl`, `idealLen_self_bounds` | `CE = H + KL/log 2` (`klDef_eq_ceDef_sub_of_support` FiniteLogScore.lean:97); при `p̂ = p`: `H ≤ E[len] ≤ H + 1` | Hagi/Theory/ArchiverCodeLength.lean:194, :208 |
+
+- Сэндвич: `H(p) ≤ E_p[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1` — для идеального кодера. Не доказано: lossless round-trip range coder (только тесты); `o(1)` на поток у range coder; stored-mode и заголовок.
+
+Код: unified.py:536-543 (первые ≤ 512 окон последних 10% домена), peeking :563-567, гейт :577.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `holdout_gate_two_way`, `two_sided_union_budget`, `holdout_gate_two_way_delta` | потери ∈ `[0,B]`, k iid: `1 − \|Θ\|·2·exp(−2k(ε/B)²) ≤ P[гейт принял ⇒ pop_new ≤ pop_old + 2ε − margin]`; `\|Θ\| ≤ N ⇒ P ≥ 1 − δ`; union bound покрывает peeking | Hagi/Theory/HoldoutGateTwoWay.lean:52, :89, :109 |
+
+- Опора: `holdout_uniform_codebook` (Statistics.lean:292), `prodPq_compl`, `prodPq_mono` (CertifiedEstimator.lean:103, :119). `block_admission_sound` (BlockAdmission.lean:315, `RiskChannel` CertCEHoldout.lean:58) популяции не даёт. `anytime_catoni` (Statistics.lean:394) и `gibbs_variational` (PACBayes.lean:99) не подходят (peeking по гипотезам, не по размеру выборки).
+- iid holdout — модель (код — связный срез); нормировка CE на `ceBound` (CEHeldout.lean:200) не формализована; при k = 512 `ε ≈ 0.12·B ≫ margin 1e-4`.
+
+Код: selfmodel.py:78-180 guarded_optimizer_step.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `btScale`, `backtrack_scale_halves`, `backtrack_trials_bounded` | масштаб bt-й пробы `(1/2)^bt`; `btScale 8 = 1/256`; ровно 9 проб | Hagi/Theory/RollbackGate.lean:244, :270, :282 |
+| `backtrackAccept`, `backtrack_accept_drop` | приём: `worst ≤ max_task_regression ∧ wb − wa > total_bound` (НЕ Armijo) ⇒ `drop = wb − wa − errBound ≥ 0` | Hagi/Theory/RollbackGate.lean:252, :261 |
+
+- Также: `rollback_state_params` (:105), `rollback_gate_sound` (:100). h1 для warm-up не закрыт (warm-up — голый Adam); obj в предикате — holdout-лосс; связь с `GateCert` (Unified/CommitGate.lean:37) не формализована.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `benchResidualBlock`, `benchResidual_zero` | `γ = 0` маскирует любую внутреннюю h (сильнее кода: нулевой гейт vs `Wo = 0`) | Hagi/Theory/GrowTrunkBlock.lean:85, :94 |
+| `grow_block_bench_sound`, `grow_block_obj_invariant`, `grow_blocks_repeat_sound` | глубина 2 → 3 сохраняет функцию и любой функционал точно; повтор ≤ `MAX_BLOCKS = 2` | Hagi/Theory/GrowTrunkBlock.lean:123, :134, :148 |
+
+- Код: lm.py:589-601, unified.py:381 (`CertifiedBlock`/`lmTrunk` LMCompose.lean:113, :135). Гейт `_maybe_grow` (`growthGate` NegativeTransfer.lean:570, `growth_gate_sound` :673) сертифицирует только ветку stay; c_add в коде — эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель, Adam в него не вписан.
+
+`parNorm W1 = √(Σᵢⱼ W1 i j²)`, `w1CE t b wo x W1 = ceOneHot t (w1L W1 b wo x)`. Гессиан lse: `lse_descent` (CEGlobalConvergence.lean:406).
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `parNorm`, `w1CE`, `parDiff`, `parNorm_sq_parDiff`, `parNorm_sq` | носители: `parDiff W1 V1 = V1 − W1`; `parNorm f ^ 2 = Σ f i j²` | Hagi/Theory/FirstLayerLip.lean:52, :56, :61, :65, :71 |
+| `row_sq_le`, `sum_mul_sq_le` | Коши–Шварц: `Σᵢ (Δᵢ·x)² ≤ ‖Δ‖_F²‖x‖²` | Hagi/Theory/FirstLayerLip.lean:76, :91 |
+| `w1Logits_sq_le` | глобально: `Σ_v (w1L W1 − w1L V1) v² ≤ ‖wo‖_F²·‖W1 − V1‖_F²·‖x‖₂²` | Hagi/Theory/FirstLayerLip.lean:111 |
+| `w1CE_lipschitz_param` | `\|w1CE W1 − w1CE V1\| ≤ 2·‖wo‖_F·‖W1 − V1‖_F·‖x‖₂` глобально; спуск из неё не следует | Hagi/Theory/FirstLayerLip.lean:182 |
+| `w1L_eq_add_jac_of_mask_eq` | внутри области активации логиты линейны по `Δ`: `w1L V1 v = w1L W1 v + w1Jac Δ v` | Hagi/Theory/FirstLayerLip.lean:218 |
+| `w1CE_descent_lemma` | гладкость внутри области активации, `S = ‖wo‖_F²·‖x‖₂²`: `CE V1 ≤ CE W1 − Σᵢⱼ (gᵢxⱼ)Δᵢⱼ + S/2·‖Δ‖_F²` | Hagi/Theory/FirstLayerLip.lean:258 |
+| `w1DescentDir` | направление спуска `D (i,j) = gᵢ·xⱼ` | Hagi/Theory/FirstLayerLip.lean:329 |
+| `w1CE_drop_of_step` | шаг `W1 + γ•D` внутри области: `CE' ≤ CE − nlDrop γ S ‖D‖_F` | Hagi/Theory/FirstLayerLip.lean:339 |
+| `w1CE_optimal_step_drop` | `S > 0`: `γ* = 1/S`, certified drop `‖D‖²/(2S)` | Hagi/Theory/FirstLayerLip.lean:392 |
+
+- Глобальной гладкости по `W1` нет (relu kink); один вход (батч — FirstLayerLipBatch); теорема — про `γ·∇`, Adam-шаг нормирован; L_dir certified-шага (denom) — диапазонная кривизна (`ce_range_code_drop`, AdaptiveMajorizer.lean:1453); код не логирует `‖wo‖_F`, `‖x‖₂`.
+
+`X : Matrix m n ℝ`, `G = U·diag σ·Vᵀ`, `U : m×m`, `V : n×m`, `UᵀU = VᵀV = 1`. Ключевая алгебра: `(3I − XXᵀ)X = X(3I − XᵀX)`. Код: core.py:1349 (транспонирование core.py:1358), итерация core.py:1363, `iters=3` core.py:1755.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `code_step` | строка кода core.py:1363: `(1/2)•((3•1 − XXᵀ)X)` | Hagi/Theory/MuonWide.lean:47 |
+| `code_step_eq_ns_step` | `code_step X = NewtonSchulzSigma.ns_step X` | Hagi/Theory/MuonWide.lean:52 |
+| `ns_step_wide_svd` | `X = U·diag τ·Vᵀ, UᵀU = VᵀV = 1 ⇒ ns_step X = U·diag (ns_p∘τ)·Vᵀ` | Hagi/Theory/MuonWide.lean:61 |
+| `wide_iter` | k итераций кодового шага `ns_step^[k] X` | Hagi/Theory/MuonWide.lean:112 |
+| `ns_iter_wide_svd` | `G = U·diag σ·Vᵀ ⇒ wide_iter k G = U·diag (ns_seq k∘σ)·Vᵀ` | Hagi/Theory/MuonWide.lean:116 |
+| `fdot_wide` | `⟨G, Y⟩ = Σ_i Σ_j G i j·Y i j` на `m×n` | Hagi/Theory/MuonWide.lean:131 |
+| `wide_alignment_exact` | `⟨G, wide_iter k G⟩ = Σ_i σ i·ns_seq k (σ i)` | Hagi/Theory/MuonWide.lean:163 |
+| `wide_alignment_ge_gradient` | `0 ≤ σ i ≤ 1 ⇒ ⟨G, G⟩ ≤ ⟨G, wide_iter k G⟩` | Hagi/Theory/MuonWide.lean:178 |
+| `wide_row_isometry` | `UUᵀ = VᵀV = 1 ⇒ (UVᵀ)(UVᵀ)ᵀ = 1` | Hagi/Theory/MuonWide.lean:193 |
+| `wide_inner_le_sigma_sum` | `ΔΔᵀ = 1, σ ≥ 0 ⇒ ⟨G, Δ⟩ ≤ Σ σ i` | Hagi/Theory/MuonWide.lean:210 |
+| `wide_step_optimal` | граница + достижимость на `Δ = U Vᵀ` | Hagi/Theory/MuonWide.lean:245 |
+| `ns_step_transpose` | `ns_step Xᵀ = (ns_step X)ᵀ` для любых форм | Hagi/Theory/MuonWide.lean:261 |
+| `wide_iter_transpose` | `wide_iter k Xᵀ = (wide_iter k X)ᵀ` | Hagi/Theory/MuonWide.lean:268 |
+| `code_ns_eq_wide_iter` | `code_ns k G = wide_iter k G` для любой формы `G : m×n` | Hagi/Theory/MuonWide.lean:286 |
+
+- Носители: `fdot_wide_eq_trace`, `wide_inner_eq_sigma_weighted_diag`, `col_sq_eq_one`. Гипотеза разложения `G = U·diag σ·Vᵀ` снята в WideSVD (`wide_iter_svd'`, `wide_alignment_exact'`, `wide_step_optimal'`).
+- Оптимум доказан на строчных изометриях `ΔΔᵀ = 1`, не на всём шаре. Проверка `norm < 1e-12` (core.py:1355) не формализована.
+
+Вывод (pad-to-square): `Ĝ = [G; 0] : n×n`, квадратный SVD, `zeros_outside_leading`, `G = K·V₀ᵀ`, квадратный SVD `K` ⇒ `G = U·diag σ·(V₀W)ᵀ`.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `padSquare` | `Ĝ = [G; 0] : n×n` | Hagi/Theory/WideSVD.lean:53 |
+| `padSquare_transpose_mul_self` | `ĜᵀĜ = GᵀG` | Hagi/Theory/WideSVD.lean:66 |
+| `enum`, `eigenvalues_enum` | нумерация `n ≃ Fin (card n)`, согласованная с `IsHermitian.eigenvalues` | Hagi/Theory/WideSVD.lean:83/:87 |
+| `leadingEmbedding` | первые `card m` индексов типа `n` | Hagi/Theory/WideSVD.lean:92 |
+| `zeros_outside_leading` | антонатонный `σ`, #ненулевых ≤ card m ⇒ `σ = 0` вне первых `card m` | Hagi/Theory/WideSVD.lean:119 |
+| `sum_leading` | `f = 0` вне `range e ⇒ Σ_j f (e j) = Σ_c f c` | Hagi/Theory/WideSVD.lean:135 |
+| `exists_wide_svd` | `card m ≤ card n ⇒ ∃ U σ V, UᵀU = VᵀV = 1 ∧ σ ≥ 0 ∧ G = U·diag σ·Vᵀ` | Hagi/Theory/WideSVD.lean:155 |
+| `wide_iter_svd'` | `∃ U σ V, … ∧ wide_iter k G = U·diag (ns_seq k∘σ)·Vᵀ` | Hagi/Theory/WideSVD.lean:306 |
+| `wide_alignment_exact'` | `∃ σ ≥ 0, ⟨G, wide_iter k G⟩ = Σ σ i·ns_seq k (σ i)` | Hagi/Theory/WideSVD.lean:306 |
+| `wide_step_optimal'` | `∃ σ ≥ 0, P, PPᵀ = 1, ⟨G, P⟩ = Σ σ i ∧ ∀ ΔΔᵀ = 1, ⟨G, Δ⟩ ≤ Σ σ i` | Hagi/Theory/WideSVD.lean:317 |
+| `wfrobSq`, `wnormed` | `‖G‖_F²` и `Ĝ = G/‖G‖_F` для `m×n` | Hagi/Theory/WideSVD.lean:332/:335 |
+| `wfrobSq_eq_sum_sigma_sq` | `G = U·diag σ·Vᵀ, изометрии ⇒ ‖G‖_F² = Σ σ i²` | Hagi/Theory/WideSVD.lean:372 |
+| `wnormed_sigma_le_one` | `G ≠ 0, Ĝ = U·diag σ·Vᵀ ⇒ 0 ≤ σ i² ≤ 1` | Hagi/Theory/WideSVD.lean:391 |
+| `wnormed_inner_eq_one` | `⟨Ĝ, Ĝ⟩ = 1` | Hagi/Theory/WideSVD.lean:405 |
+| `wide_alignment_ge_gradient'` | `⟨Ĝ, Ĝ⟩ ≤ ⟨Ĝ, wide_iter k Ĝ⟩ ∧ ‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩` без гипотез | Hagi/Theory/WideSVD.lean:418 |
+| `muon_step_useful_wide` | `f'(W) = ⟨G, ·⟩`, `G ≠ 0 ⇒ ∃ η > 0, f (W − η·wide_iter k Ĝ) < f W` | Hagi/Theory/WideSVD.lean:446 |
+
+- Порядок `σ` не утверждается. S1/S3 — только широкая форма; высокая сводится транспонированием (`code_ns_eq_wide_iter`). Сертификат `muon_step_useful_wide` — на координатном носителе; мост к слою `W1` — MuonDescentW1Rect. Пустой `m` разобран (`IsEmpty m`).
+
+Сумма CE по входам `x : τ → δ → ℝ`, направление — батч-градиент, норма — `parNorm`. Код: lm.py:586; лосс `ce(reduction="mean")` lm.py:299.
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `w1BatchCE`, `xMaxSq`, `S_batch`, `w1BatchDescentDir` | `w1BatchCE = Σ_t w1CE (y t) b wo (x t) W1`; `xMaxSq x = max_t ‖x t‖₂²`; `S_batch wo x = ‖wo‖_F²·Σ_t ‖x t‖₂²`; `D_batch i j = Σ_t gₜ i·x t j` | Hagi/Theory/FirstLayerLipBatch.lean:44, :50, :56, :61 |
+| `w1BatchDescentDir_eq` | `w1BatchDescentDir = −w1BatchGradR` — мост к Muon-батчу | Hagi/Theory/FirstLayerLipBatch.lean:70 |
+| `sum_xMaxSq_le`, `S_batch_le_max` | `S_batch ≤ B·‖wo‖_F²·max_t ‖x t‖₂²` | Hagi/Theory/FirstLayerLipBatch.lean:77, :86 |
+| `w1BatchCE_eq` | `w1BatchCE = w1BatchObjR` | Hagi/Theory/FirstLayerLipBatch.lean:95 |
+| `sum_sq_smul`, `parNorm_sq_smul` | `parNorm (c • D)² = c²·parNorm D²` | Hagi/Theory/FirstLayerLipBatch.lean:101, :236 |
+| `w1BatchCE_descent_lemma` | гладкость суммы CE по батчу внутри области активации каждого входа: `CE_batch V1 ≤ CE_batch W1 − Σᵢⱼ D_batch i j·Δ i j + S_batch/2·‖Δ‖_F²` | Hagi/Theory/FirstLayerLipBatch.lean:113 |
+| `w1BatchCE_drop_of_step` | шаг `W1 + γ•D_batch`: `CE_batch' ≤ CE_batch − nlDrop γ S_batch ‖D_batch‖_F` | Hagi/Theory/FirstLayerLipBatch.lean:186 |
+| `w1BatchCE_optimal_step_drop` | `S_batch > 0`: `γ*_batch = 1/S_batch`, drop `‖D_batch‖²/(2S_batch)` | Hagi/Theory/FirstLayerLipBatch.lean:218 |
+| `w1MeanCE_optimal_step_drop` | mean CE: `B > 0`, шаг `W1 + (B/S_batch)•(D_batch/B)`, `γ*_mean = B/S_batch` | Hagi/Theory/FirstLayerLipBatch.lean:247 |
+
+- `S_batch` — сумма констант по входам, не максимум; глобальной гладкости нет (kink); шаг — plain batch gradient (код применяет Muon/Adam к momentum `m1`).
+
+Код: `m1 = 0.85·m1 + 0.15·grad` (core.py:1754), `W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)` (core.py:1755).
+
+| теорема | формулировка | file:line |
+|---|---|---|
+| `dir_drop_of_step` | `L`-smooth ⇒ `f (z + γ•d) ≤ f z − (γ·a − L·γ²·‖d‖²/2)`, `a = −⟪grad z, d⟫`, любое `d` | Hagi/Theory/MomentumAlign.lean:71 |
+| `dir_drop_le_optimal` | `γ·a − L·γ²·D²/2 ≤ a²/(2L·D²)` | Hagi/Theory/MomentumAlign.lean:89 |
+| `dir_drop_is_nlDrop` | при `d = −c•grad` drop `= nlDrop (cγ) L ‖g‖` | Hagi/Theory/MomentumAlign.lean:103 |
+| `dir_drop_optimal` | `d ≠ 0`: `γ* = a/(L‖d‖²)`, `f (z + γ*•d) ≤ f z − a²/(2L‖d‖²)` | Hagi/Theory/MomentumAlign.lean:112 |
+| `mom` | `mom μ mPrev G = μ•mPrev + (1−μ)•G` | Hagi/Theory/MomentumAlign.lean:136 |
+| `momentum_align` | `⟪G, mom μ mPrev G⟫ = (1−μ)‖G‖² + μ⟪G, mPrev⟫` | Hagi/Theory/MomentumAlign.lean:140 |
+| `momentum_align_cs` | `(1−μ)‖G‖² − \|μ\|·‖G‖·‖mPrev‖ ≤ ⟪G,m⟫` всегда | Hagi/Theory/MomentumAlign.lean:149 |
+| `momentum_align_ge` | `0 ≤ μ`, `0 ≤ ⟪G,mPrev⟫ ⇒ (1−μ)‖G‖² ≤ ⟪G,m⟫` | Hagi/Theory/MomentumAlign.lean:169 |
+| `momentum_align_ge_grad` | `0 ≤ μ`, `‖G‖² ≤ ⟪G,mPrev⟫ ⇒ ‖G‖² ≤ ⟪G,m⟫` | Hagi/Theory/MomentumAlign.lean:179 |
+| `momentum_residual` | `G − mom μ mPrev G = μ•(G − mPrev)` | Hagi/Theory/MomentumAlign.lean:187 |
+| `momentum_dir_drop` | дифференциал `⟪G,·⟫`, шаг вдоль `m ≠ 0` с `γ* = −⟪G,m⟫/(L‖m‖²)` даёт drop `⟪G,m⟫²/(2L‖m‖²)` | Hagi/Theory/MomentumAlign.lean:196 |
+| `momentum_dir_drop_le_gd` | certified drop вдоль `m` ≤ `‖G‖²/(2L)` | Hagi/Theory/MomentumAlign.lean:207 |
+| `w1BatchCE_dir_drop_of_step` | шаг `W1 + γ•d` (маски равны): `CE_batch' ≤ CE_batch − (γ·a − S_batch·γ²·‖d‖²/2)` | Hagi/Theory/MomentumAlign.lean:230 |
+| `w1BatchCE_dir_optimal_step_drop` | `S_batch > 0`, `d ≠ 0`: `γ* = a/(S_batch‖d‖²)`, drop `a²/(2·S_batch·‖d‖²)` | Hagi/Theory/MomentumAlign.lean:261 |
+| `parNorm_eq_sqrt_wfrobSq`, `fdot_wide_add_left`, `wfrobSq_neg`, `fdot_wide_comm`, `fdot_wide_self` | технические: одна норма; линейность; `‖−A‖_F = ‖A‖_F`; симметрия; `⟨A,A⟩ = ‖A‖_F²` | Hagi/Theory/MomentumAlign.lean:311, :317, :323, :328, :333 |
+| `wfrob_cauchy`, `wfrob_abs_cauchy` | `\|⟨A,B⟩\| ≤ ‖A‖_F‖B‖_F` | Hagi/Theory/MomentumAlign.lean:340, :359 |
+| `wfrob_triangle` | `‖A+B‖_F ≤ ‖A‖_F + ‖B‖_F` | Hagi/Theory/MomentumAlign.lean:370 |
+| `momStep`, `momStep_apply` | `momStep m k = ns_k (m/‖m‖_F)`; `momStep m k i j = w1StepR m k i j` | Hagi/Theory/MomentumAlign.lean:388, :391 |
+| `momStep_norm_ge_one` | `m ≠ 0 ⇒ 1 ≤ ‖ns_k m̂‖_F` | Hagi/Theory/MomentumAlign.lean:396 |
+| `muon_momentum_bound` | `m ≠ 0`, `X = ns_k m̂`: `‖m‖_F − ‖G−m‖_F·‖X‖_F ≤ ⟨G, X⟩` | Hagi/Theory/MomentumAlign.lean:419 |
+| `muon_momentum_third` | `‖G−m‖_F·‖X‖_F ≤ ‖m‖_F/2 ⇒ ‖G‖_F/3 ≤ ⟨G, X⟩` | Hagi/Theory/MomentumAlign.lean:442 |
+| `wfdot_mom_align` | матричная форма `momentum_align` | Hagi/Theory/MomentumAlign.lean:482 |
+
+- Безусловное `(1−μ)‖G‖² ≤ ⟪G,m⟫` неверно (`m_prev = −G`); `‖G‖²` — только при `⟪G,m_prev⟫ ≥ ‖G‖²`; «`‖G‖/2`-следствие» ложно — верно `‖G‖/3`. Знак `⟨G−m, X⟩` неизвестен; условие `muon_momentum_third` код не проверяет; `μ = 0.85` не выводится.
+
+## Hagi/Deployment/
+
+- Вес маршрута `w` непрерывен, канареечный разгон 0→1, утечка линейна по `w` (`cascade_leak_router_linear`); e-процесс следит за вредом (Ville — посылки).
+
+## Hagi/Math/Foundations/
+
+- **`ConeTakeoff.lean`** — `geometric_growth_from_cone`: если `γ,k≥0`, на `range T` выполнен шаг `C(t+1)=C t+γD t`, а на `range (T+1)` — конус `k*C t≤D t`, то `C0*(1+γ*k)^T ≤ C T`.
+- **`GrowthBand.lean`** — `growth_band_iter`: при `0≤αmin≤αmax` и двустороннем шаге `(1+αmin)C t≤C(t+1)≤(1+αmax)C t` доказаны обе границы `(1+αmin)^T*C0≤C T≤(1+αmax)^T*C0`.
+- **`Hoeffding.lean`** — `bern_mgf_bound`: для `0≤θ≤1` и любого `s` доказано `1−θ+θ*exp s ≤ exp(θ*s+s²/8)`.
+- **`MesoScale.lean`** — `macro_collapse`: для неотрицательных `A,L` с оценками `A ℓ≤a0*ℓ^p`, `L ℓ≤L0*ℓ^(−q)` и `p<q` доказано `A ℓ*L ℓ → 0` при `ℓ→∞`.
+- **`Ortho.lean`** — `ortho_norm_sq`: для ортонормального семейства `v` на конечном `ι` доказано `‖Σᵢ c i•v i‖²=Σᵢ(c i)²`; имеется и вариант по произвольному `Finset`.
+- **`Potential.lean`** — `hagiPotential_penalty_drop`: при `epsQ≥0` и `q−epsQ≤q'` доказано `max 0 (qTarget−q') ≤ max 0 (qTarget−q)+epsQ`.
+- **`QuadEta.lean`** — `quad_eta_identity`: для `quadLossAt a w = ½‖w−a‖²` градиентный шаг даёт точное `E(w−η∇E)= (1−η)²*E(w)`.
+- **`Recurrence.lean`** — `recurrence_upper`: при `0≤ρ<1` и `x(t+1)≤ρ*x t+c` для `t<T` доказано `x T≤ρ^T*x0+c*(1−ρ^T)/(1−ρ)`.
+- **`StageCalculus.lean`** — `compress_stage`: при `κ,s≥0`, `h_emp_dist : dnorm≤1/2` и `h_emp_lip : E3−E2pre≤κ*s*dnorm` следует `E3−E2pre≤κ*s/2`.
+- **`Telescope.lean`** — `lyapunov_telescope_fin`: если `E(t+1)≤E t−eps` для всех `t<k`, то `E k≤E0−k*eps`.
+
+- `exp_chord_ab`: для `a<b` и `x∈[a,b]` доказана хордовая оценка `exp x ≤ ((b−x)/(b−a))*exp a + ((x−a)/(b−a))*exp b`; `exp_chord_r` — форма для `exp(r*x)`.
+
+- `log_cosh_le`: для любого вещественного `M` доказано `log(cosh M) ≤ M²/2`.
+
+## Hagi/Math/Info/
+
+- `entropy_le_diagonal`: для положительно полуопределённой `A` энтропия не превосходит `Σᵢ negMulLog(Re(A i i))`; `concaveOn_entropy` доказывает вогнутость энтропии на PSD-состояниях.
+
+- `discrete_fannes_coupling`: для вероятностных `p,q` на непустом конечном `ι` и посылки hbridge, отождествляющей энтропию неотрицательной диагонали с `shannon`, доказано `shannon p−shannon q≤tvHalf*log(card ι)+(1+tvHalf)*binEntropy(tvHalf/(1+tvHalf))`.
+
+- Введены конечные `klDef`, `ceDef`, `entDef`, `tvDef` и `softDef`. При `p v ≠ 0` тождество `klDef_eq_ceDef_sub` выражает KL как `ceDef q p - ceDef q q`, а `ceDef_self` даёт `ceDef q q = entDef q`.
+
+## Hagi/External/
+
+- `grad_dist_polarization`: во внутреннем пространстве доказано `‖a−b‖² = ‖a‖²+‖b‖²−2⟪a,b⟫`.
+
+- `gittins_index_max`: на любом непустом конечном типе существует индекс, максимизирующий заданную вещественную функцию idx.
+
+- `merge_init_head_start`: из `meanCE < logV` следует `0 < logV − meanCE`. Теорема фиксирует только этот арифметический зазор, а не эмпирическое превосходство всего обучения.
+
+## Hagi/External/Flywheel/
+
+- **`CoherenceCharacterization.lean`** — `trunc1_spectral_optimal_aux`: для любой матрицы `N` ранга не более 1 доказано `‖A−truncatedSVD A 1‖ ≤ ‖A−N‖` в норме соответствующего операторного инстанса.
+- **`CourantFischer.lean`** — `courantFischer_maxMin_bounds`: для эрмитовой `A` и `k>0` head-подпространство достигает `rayleighInf ≥ λ_{k−1}`, а всякое `k`-мерное ненулевое подпространство имеет `rayleighInf ≤ λ_{k−1}`.
+- **`EckartYoungLower.lean`** — `eckart_young_lower_bound`: для любой `B` с `rank B ≤ k` доказано `∑ i, (truncatedSingularValues_tail A k i)² ≤ ‖A−B‖²` — общая нижняя граница Эккарта–Юнга в хвостовой форме, замыкающая
+- **`FrobeniusNorm.lean`** — `frobenius_norm_sq_eq_trace`: доказано `‖A‖² = Re(trace(Aᴴ*A))`; `frobenius_norm_unitary_mul` даёт инвариантность нормы при левом умножении на унитарную матрицу.
+- **`MDLRank.lean`** — `mdlJ_first_order`: при `lam*c>0`, `kstar < card n`, `σ_{kstar}² ≤ lam*c` и стартовом условии `kstar=0 ∨ lam*c < σ_{kstar−1}²` выбранный `k*` минимизирует `mdlJ A lam c` по всем `k`.
+- **`NegDiagRank.lean`** — `neg_diag_pos_off_diag_kernel_trivial`: если `M i i < 0`, `M i j ≥ 0` при `i ≠ j` и все строчные суммы строго отрицательны, то ядро `M *ᵥ` тривиально (max-|x| аргумент, самодостаточно).
+- **`MatrixNormRelations.lean`** — `kronecker_perturbation_single_factor_B` и `…_C`: при непустых внутренних размерностях изменение одного сомножителя имеет точную норму, соответственно `‖B−B'‖*‖C‖` и `‖B‖*‖C−C'‖`.
+- **`NormSupport.lean`** — `mulVec_eucl_norm_sq_le`: для комплексной матрицы квадрат евклидовой нормы `A*x` ограничен `(ΣᵢΣⱼ‖A i j‖²)*‖x‖²`; `mulVec_eucl_norm_le` — следствие без квадратов.
+- **`SVD.lean`** — `hermitian_spectralRadius_eq_sup_abs_eigenvalues` и `l2_opNorm_hermitian_eq_sup_abs_eigenvalues`: для непустого конечного индекса и эрмитовой `H` спектральный радиус и операторная норма
+- **`SpectralNormGap.lean`** — `outerProduct_spectral_norm_le`: спектральная норма внешнего произведения ограничена `‖u‖*‖v‖`.
+- **`TruncatedSVDRank1.lean`** — `singularValues₀_eq_zero_of_rank_le_one`: если `rank A ≤ 1` и индекс `k` имеет `k.val ≥ 1`, то `singularValues₀ A k = 0`.
+- **`WeylInequality.lean`** — `thompson_interlacing`: если `rank B ≤ r` и `i.val+r < card n`, элемент `singularValues₀ A` с индексом `i+r` не превосходит `singularValues₀ (A+B)` с индексом `i`.
+
+## Hagi/External/MemT/
+
+- Обозначим `q = rowSumNorm(1−Uᵀ*U) * rowSumNorm D` и `b = rowSumNorm(Uᵀ*(diagonal ω*V))`. `gdn2_stabilizes`: при `0<q<1` и любом `ε>0` существует `T`, после которого норма памяти не превышает `b/(1−q)+ε`.
+
+- `gdn2_forgets_initial`: разность двух траекторий с разными начальными памятями ограничена `q^t*rowSumNorm(M₁−M₂)` при любом `t`; дополнительных условий на `q` это утверждение не требует.
+
+- `gdn2_reset_bound`: при `0<q<1` память, начатая с нуля, ограничена `b*(1−q^t)/(1−q)`.
+
+## Hagi/Benchmarks/
+
+- `quadE_qhalf`: после `t` полушагов энергия равна `quadE a (qhalf a x t) = (1/4^t)*quadE a x`.
+
+- `quad_loop_horizon`: если `quadGrad a x ≠ 0` и `n ≥ 1`, то `quadE a (qhalf a x n) < quadE a x`.
+
+- **`QuadraticEndToEnd.lean`** — `qStep_descent`: при `0 < eta < 1` и `x ≠ a` шаг `qStep` строго уменьшает `qLoss a`.
+- **`QuarticWitness.lean`** — `quartic_two_steps`: построенные два шага дают `qE w2 < qE w0`, сохраняют `FloorKept qMeasured w2 qFloor` и удовлетворяют явному бюджетному условию `0 ≤ 9 ∧ 9 ≤ 10−1`.
+
+- **`TernaryProbe.lean`** — `ternaryCubicShift_abs_error_le_stepBudget`: при `level,σmax > 0` и `|t| ≤ σmax` ошибка насыщающего тернарного квантования сдвинутой кубической энергии ограничена вычисленным
+- **`TernaryWitness.lean`** — `quantOpt_energy_bound`: при `s > 0` и `ternInRange s (a i)` для всех `i` энергия `quadE a (quantOpt s a)` не превосходит `|k|·s²/8`.
+
+## Hagi/Research/
+
+- **`SchellingCandidateSelection.lean`** — `mem_feasible_withStructuralConstraint`: допустимость контроллера `a` в усиленной задаче эквивалентна конъюнкции исходной допустимости `a ∈ feasible p M C` и
+- **`SchellingMarkovRouting.lean`** — `walkHistory_support_of_mem_feasible_withStructuralConstraint_of_adjSupported`: для ядра `K`, согласованного со смежностью допустимого графа, из каждой верхней вершины `s` существуют нижняя
+
+- **`PPT.lean`** — `truncation_bias`: если ядро `K` не выходит из `S`, а `pi` стационарно, то существование `y₀ ∉ S` с `0 < pi y₀` невозможно.
+- **`PPTCanonical.lean`** — `discovery_prob_stationary_identity`: на конечном непустом измеримом пространстве с измеримыми одноэлементными множествами для неотрицательной нормированной `pi` вероятность события
+
+- **`Ceilings.lean`** — `gain_product_bound`: норма композиции непрерывных линейных операторов не превосходит произведения норм; `gain_stack_ceiling` при `q≥0` и `‖T‖≤q` для всех слоёв даёт
+- **`ChainUnification.lean`** — `training_core_is_measurement_tail`: если `E_dev=E_aligned`, `G_cap=η_p*η_o*η_s*E_dev`, а E_aligned и `α_align` ненулевые, то `η_p*η_o*η_s=α_trunc*α_safe*α_cap`.
+
+- **`RecursiveSelfDevelopment.lean`** — `opportunity_renewal`: из `ρD+βC−ξ≤D'` и `(1−ρ)D+δ_O≤βC−ξ` следует `D+δ_O≤D'`; `recursive_self_development` при `C≤C'`, `D≥0`, `δ_O>0` дополнительно даёт `D'>0`.
+- **`RoundViability.lean`** — `round_exhausted`: при `devEnergy dev=0` и `GainOp` доказаны `ρD−ξ≤D'` и `η*devEnergy dev=0`; `cycle_criterion` — импликативная форма.
+- **`RsiCriterion.lean`** — `rsi_step_growth`: из `ρD t+βC t−ξ t≤D(t+1)` и строгого `ξ t+(1−ρ)D t<βC t` следует `D t<D(t+1)`.
+
+- **`ConditionalInformation.lean`** — Для строго положительной нормированной `p` на `X×(Z×Y)` и условной положительной нормированной ссылки `q : X→Y→ℝ` `conditionalMutualInformation_eq_expected_log_ratio_sub_reference_kl` равна
+- **`CrossModalGap.lean`** — Для непустых конечных `X Y` и строго положительной нормированной `p : X×Y→ℝ` `crossModalGap_eq_kl` равна `klDef p (margX p * margY p)`; `crossModalGap_nonneg` доказывает неотрицательность.
+- **`OmniInvariant.lean`** — На непустых конечных `Y1 Y2`, для положительной нормированной `p`, `omniStep C gIntra gCross cComp cRisk = C+gIntra+gCross-cComp-cRisk`.
+- **`OmniState.lean`** — `driftTube_closed`: при `ρ ≠ 1` `driftTube ρ e d0 t = ρ^t*d0 + e*(1-ρ^t)/(1-ρ)`; `drift_limit` при `0 ≤ ρ < 1`, `0 ≤ e d0` ограничивает его `d0 + e/(1-ρ)`, а `drift_zero` убирает аддитивный
+
+- **`Schelling.lean`** — `localCompatibleDegree` считает соседей `w` с `k ≤ compatibility v w`, а `locallySatisfied` требует не менее `min k (G.degree v)` таких соседей. Нулевой порог и изолированная вершина
+- **`SchellingPercolation.lean`** — `locallySatisfied_mono_of_le`: при `G ≤ G'` локальная удовлетворённость сохраняется только с дополнительной посылкой `k ≤ G.degree v`; без неё квота `min k degree` может вырасти при
+
+- `cycle_decay_mono`: при `s≥0`, `F>0`, `0<k<F+s` новое `F*(1−k/(F+s))` строго меньше `F` и неотрицательно; `cycle_decay_ratio` даёт точное отношение соседних приростов.
+
+- `channel_switch`: при положительных `F,k,s,b,Cm,Cr` и `√F*(k*Cr)<b*Cm*s` индекс rank-канала строго больше movement-индекса.
+
+- `seed_only_disp_bound`: при посылках `h_emp_lip`, `h_emp_disp_step`, `a,s≥0` и `dispP 0=0` доказано `dispL t≤Lam²*s*Σ_{i<t}a^i`.
+
+- `historyLaw_walk_support`: любой маршрут графа поддерживается однородным
+  `historyLaw` для `supportedRoutingKernel`, если его первая вершина
+  принадлежит носителю начального PMF.
+
+- На конечной решётке определены `openAt`, `openGraph`, `crossing` и равномерная по всем конфигурациям затравки вероятность `R`. `card_Ω` равен `M^(L*L)`, а `crossing_mono` и `R_monotone` доказывают монотонность по порогу на одном пространстве затравок.
+
+- Для чётной затравки на решётке `2×2` доказаны `parity_not_crossing1` и `parity_crossing2`; `emergence_jump_witness` упаковывает этот пример, а `R_strict_jump` даёт строгое `R 2 rowTop rowBot 1 < R 2 rowTop rowBot 2`.
+
+- Все результаты конечны; бесконечный перколяционный порог и асимптотический закон критической точности здесь не выводятся.
+
+## Hagi/Research/Legacy/
+
+- **`HAGICertWitness.lean`** — `hagicert_nonvacuous`: построены последовательности состояний и числовые параметры, для которых выполнен `HAGICert … T`. Это свидетель совместимости формального контракта на конкретных
+- **`Nonvacuity.lean`** — `merge_energy_bridge`: для midpoint-логитов доказано точное `CE(mid) = (CE(z₁)+CE(z₂))/2 − jensenGap z₁ z₂`, а также неотрицательность зазора.
+- **`NonvacuityHorizon.lean`** — `sat_step_laws`: при `γ ≠ 0` параметрическая траектория одновременно удовлетворяет шагу `C(t+1)=C(t)+γ*F(t)` и насыщению `C(t+1)=C(t)+σ*(Cstar−C(t))`.
+
+- `master_hagi_core_comparator`: при `0 ≤ lam`, `0 ≤ nu`, `0 ≤ epsQ` и `CorePremises S S' epsQ w` потенциал после перехода не превосходит исходного минус `verify.decrease`, плюс `lam * verify.riskSpend + nu * epsQ`.
+
+- Та же теорема доказывает точное бюджетное равенство `S'.toGrowthState.budget = S.toGrowthState.budget - (verify S.toGrowthState).budgetSpend`; все условия `CorePremises` остаются посылками.
+
+- `quad_core_premises`: для любых `a : ℝ` и `w : Fin 5 → ℝ` построены квадратичные состояния, удовлетворяющие `CorePremises (quadGen a) (quadGen' a) 0 w`.
+
+- `quad_kappa_at0` даёт `‖fderiv ℝ (quadE a) 0‖ ≤ 1+|a|`; `quad_conj13` проверяет соответствующее неравенство для квантованного скалярного шага с тем же коэффициентом.
+
+- `certified_invariant_advance_witness`: на горизонте `2` фактические поля
+  траектории удовлетворяют `CertifiedHAGIInvariant` с `alpha=1`;
+  capability проходит `1→2→4`, бюджет `100→98→96`.
+
+- `entropy_continuity_pinsker`: если уже доказана граница
+  `|H(p)−H(q)| ≤ τ log(|V|−1) + h₂(τ)`, а также `0 ≤ τ ≤ 1/2`,
+  `τ ≤ √(kl/2) ≤ 1/2`, `log(|V|−1) ≥ 0` и монотонность `binEnt`
+  на данном отрезке, то получается та же граница с `√(kl/2)` вместо `τ`.
+
+- `masterhagi_trunc_of_assumptions`: пакет `Trunc S lam nu Qtarget Emin T`
+  заменяет стадийные, бюджетные и нижние энергетические предпосылки;
+  при отдельных SafeQP-окнах и усечённых законах роста он даёт тот же
+  `CertifiedHAGIInvariant`.
+
+- `certified_gainprod_takeoff`: для `[0,1]`-наблюдений, `n,eps > 0`,
+  `alpha,gamma,C0 > 0`, `rho ≥ 0`, начального конуса, принятого моста
+  от средних к `γD t ≤ G t` и усечённых законов
+  `C(t+1)=C t+G t`, `D'`, верхнего `(1+alpha)` и β-порога
+  выполняется вероятностная импликация:
+  из всех margins `ΣX + 2n eps ≤ ΣY` для `t < T`
+  следует `C0(1+alpha)^T ≤ C T` с нижней оценкой вероятности
+  `1 − 2T·exp(−2n·eps²)`.
+
+- `core_premises_joint_operational` и `core_premises_compress_operational`
+  выводят квадратичный joint и квантованный compress из дифференцируемости,
+  ограничений производной и операциональных равенств энергий, а не из
+  свободно назначенных полей.
+
+- `grand_synthesis_weak`: при заданных границах сертификации стадий,
+  `κD t ≤ E_raw`, производственной динамике, начальном конусе
+  `kC0 ≤ D0`, неотрицательных `C,D` и условиях связывания коэффициентов
+  получается `C0(1+(beta⁴κ)k)^T ≤ C T`.
 
 - `grow_premise_derived`: если `LearningKernel` даёт
   `capability' ≤ energy'` и `energy' = energy−growEnergy`, а дополнительно
   `growGain ≤ capability'−capability` и `capability ≥ 0`, то
   `growEnergy ≤ energy−growGain`.
-
-## Hagi/Unified/
-
-- **`LinkedProjects.lean`** — `value_iteration_via_contraction`: при `0 < gamma < 1`, `eps ≥ 0` и `V(k+1)−Vstar(k+1) ≤ gamma(Vk−Vstar k)+eps` получается для всех `k`
-- **`LinkedQVec.lean`** — `floor_preserved`: если начальное и каждое состояние списка удовлетворяют `FloorKept`, последнее состояние тоже сохраняет покомпонентный floor.
-
-## Hagi/Research/Legacy/LinkedWitness.lean
 
 - `wTraj_certified_family`: три конкретных перехода удовлетворяют
   `CertifiedTransition` при сумме стадийных рисков как пределе.
@@ -1242,106 +1694,11 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   `budget 100→94` реализует `LinkedHAGIInvariant` на горизонте `3`
   с `alpha=1`.
 
-## Hagi/Unified/
-
-- **`LiveDeltaCycle.lean`** — `live_delta_cycle`: при SafeQP-окне в фактор-пространстве, `L i > 0`, `eps i ≥ 0`, `eta ≥ 0`, `d ≠ 0`, заданной линейной оценке, принятом динамическом аудите и допустимом масштабе базы
-- **`Liveness.lean`** — `liveness_merge`: если `p` строго положительно и нормировано, а отклонения `d` не являются общим константным вектором, то `twoGap p d > 0`.
-- **`LogitCert.lean`** — `logitCE_strictAnti`: скалярная `logitCE` строго антитонна.
-
-## Hagi/Theory/LogitGrowth.lean
-
-- `step_params`, `step_energy` и `step_capability`: вычисленный преемник имеет
-  `params' = next(S.params,eta)`, `energy' = logitCE(params')`, а при
-  `capability = −logitCE(params)` и `capability' = −logitCE(params')`.
-  Так прирост capability — тот же CE-спуск, без второго учёта каналов.
-
-## Hagi/Unified/
-
-- **`LoopInstances.lean`** — `quadCert_hits_optimum`: на квадратичной цели шаг `x−quadGrad a x` даёт `quadE = 0`.
-- **`MachineProto.lean`** — `machineProto_gap`: вычисленный `machineGap a w eta` равен `(machineProto a).loss w − (machineProto a).loss(jointStep a w eta)`, так что величина шага берётся из функции весов.
-
-## Hagi/Research/Legacy/MasterHAGI.lean
-
-- C304 (A12 credo quarantine): linked-вариант капстоуна
-  (R362) удалён — deprecated, 0 потребителей; `MasterHAGI`/
   `MasterHAGICore` оставлены — живые потребители
   (`MasterHAGICoreOperational_v2`, nonvacuity-witness в
   `Hagi/Research/Legacy/Nonvacuity.lean`).
 
-## Hagi/Research/Legacy/
-
 - **`MasterHAGICoupled.lean`** — `CoupledHAGIInvariant` связывает канал capability непосредственно с состояниями и содержит отдельные неотрицательные spend/risk, векторный probe-floor и бюджетную бухгалтерию.
-- **`MasterHAGITrunc.lean`** — `MasterHAGI_trunc`: сохранён (recheck: живой потребитель — capstone-мост в `Hagi/Research/Legacy/Assumptions.lean`).
-
-## Hagi/State/MemoryCycle.lean
-
-- `descentFold_eq_effective`: для истории пар `(v,x)` плотная свёртка
-  `W₀+Σ outerProd(v,x)` точно равна эффективным весам представления
-  `fromHistory W₀ hist`.
-
-- `history_storage_cost`: число сохраняемых элементов блоков равно
-  `hist.length·(|m|+|n|)`.
-
-## Hagi/Semantics/MemorySemantics.lean
-
-- `RamWriteCert` требует `post = Matrix.updateRow pre address value`,
-  чтение по address возвращает value, посторонние адреса неизменны,
-  повторная запись идемпотентна.
-
-- `CertifiedMemoryWrite` добавляет фактический `admit c`;
-  `certified_gain_margin` извлекает из него
-  `lamM·Δcost + lamR·Δrisk + ε_cert ≤ gain`.
-
-## Hagi/Unified/MicroStepCert.lean
-
-- `microstep_cert`: из квадратичной оценки `E`, `frobDot G ΔW ≤ −ε`
-  и GPM-ортогональности следует
-  `E(W+ΔW) ≤ E W − ε + L/2·frobSq ΔW` и
-  `(W+ΔW)x_k = W x_k` для каждого защищаемого входа.
-
-- `microstep_net_drop`: если дополнительно `L/2·frobSq ΔW < ε`,
-  энергия строго убывает при сохранении всех этих действий на входах.
-
-## Hagi/Training/ModelComparison.lean
-
-- `delta_pos_of_dominates`: при `λ > 0`, `ρ ≥ 0`,
-  `logS−logR ≤ ρ` и `cS−cR > ρ/λ`
-  разность `loglik−λ·complexity` строго положительна.
-
-- `piR_lower_of_certified`: для индикаторов `zⱼ∈[0,1]`,
-  `k ≤ N`, `N > 0` и первых `k` единиц получается `k/N ≤ piR z N`.
-
-## Hagi/Unified/
-
-- **`NCStepCert.lean`** — `nc_loop_horizon`: при положительных gains, допустимых риске и бюджете, покомпонентном начальном floor и `n ≥ 1` энергия траектории строго убывает, а `S.cpu` остаётся исходным.
-- **`NegativeTests.lean`** — `risk_limit_respected`: любой `StepCert` даёт `riskSpend ≤ riskLim` непосредственно из своей структуры.
-- **`CandidateConfig.lean`** — `CandidateConfig`: кандидатная конфигурация — все параметры вычисляются как функции целей; глобальная оптимальность НЕ доказана и не заявляется (аудит A17).
-
-## Hagi/Dynamics/ProductiveTransition.lean
-
-- `idle_not_productive`: при `δC,δL > 0` переход `S → S`
-  не удовлетворяет предикату `Productive`.
-
-- `ctv3_idle_contra`: `CertifiedTransitionV3` несовместим с равенством
-  энергии до и после перехода; `productive_of_ctv3` получает `Productive`
-  при фактическом спаде не меньше `δL > 0`.
-
-- `budget_consumed`: при `0 ≤ e t + delta t` свойство `BudgetAlive e delta eps (T + 1)` влечёт `BudgetAlive e delta eps T`.
-
-## Hagi/Unified/QuadMachine.lean
-
-- `quadE_eq_energy` и `quadGrad_eq_grad`: квадратичная энергия и градиент
-  вычислительной машины совпадают с соответствующими определениями
-  `DescentCoreQuad`.
-
-- `machine_one_step_zero`: на этой модели шаг с `eta=1` обнуляет энергию.
-
-## Hagi/Unified/
-
-- **`RateTheory.lean`** — `pl_linear`: если `κ ≥ 0`, `μ > 0`, `2κμ < 1`, `Estar ≤ obj(f t)`, `2μ(obj−Estar) ≤ gsqr`, `κ·gsqr ≤ drops` и `obj(t+1) ≤ obj t−drops`, то `obj(f n)−Estar ≤ (1−2κμ)^n(obj(f 0)−Estar)`.
-- **`RecursiveClean.lean`** — `clean_neuron_of_conditions`: из структуры `CleanCertificate`, положительной внесетевой массы вне корня и непустого множества рёбер следует `branchLocality ≤ εA`, `timeConsistency = 1` и
-
-## Hagi/Research/Legacy/RecursiveGrowth.lean
 
 - `macro_step_decrease`: при merge-выигрыше `G ≥ 0`, `0 < L`,
   `0 ≤ eta ≤ 1/L`, `dnorm² ≤ inner`, квадратичной joint-оценке,
@@ -1353,29 +1710,11 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   `eta t ≥ etamin`, `eps > 0` и `dn t² ≥ eps²`
   горизонт удовлетворяет `n ≤ 2(E0−Emin)/(etamin·eps²)`.
 
-## Hagi/Unified/
-
-- **`SignComp.lean`** — `signStepCert`: на квадратичной цели, если `quadGrad a x ≠ 0`, `0 < eta ≤ 1`, начальный floor и `signCommCost k ≤ riskLim`, строится полный `StepCert` для знакового шага; поле
-- **`SignDescent.lean`** — `sign_descent`: масштабированный знаковый шаг `signScale(grad)·sign(grad)` наследует `descent_drop`: при `0 < eta ≤ 1/L` `f(x−eta·dir) ≤ f x−eta(1−L eta/2)‖dir‖²`.
-
-## Hagi/Research/Legacy/StateTakeoff.lean
-
 - `state_capability_takeoff`: при `FullCycleRefinement`,
   `alpha,gamma > 0`, `rho ≥ 0`, положительной начальной capability,
   начальном конусе, `γD t ≤ growGain t`, производственной динамике,
   потолке `(1+alpha)` и β-пороге для `t < T`
   `capability(S0)·(1+alpha)^T ≤ capability(S T)`.
-
-## Hagi/Unified/StepContract.lean
-
-- `trajectory_convergence`: при
-  `Φ(t+1) ≤ Φt−decrease+riskCost` и `Φ_min ≤ Φt` для всех `t ≤ T`
-  получается `Σdecrease ≤ Φ0−Φ_min+ΣriskCost`.
-
-- `chain_budget` и `chain_risk` доказывают, что составной контракт
-  содержит соответственно суммы бюджетных и рисковых затрат звеньев.
-
-## Hagi/Research/Legacy/TernaryGrad.lean
 
 - `quantized_net_gain`: из `gamma·D ≤ Graw` и `Graw−G ≤ p`
   следует `gamma·D−p ≤ G`.
@@ -1384,1780 +1723,23 @@ objective = energy, risk = riskOf, budget = budgetOf, TaskId = Unit)
   `gamma·D ≤ Graw`, `Graw−G ≤ p` и margin
   `p ≤ gamma(D−kC)` доказывается `gamma·k·C ≤ G`.
 
-## Hagi/Benchmarks/
-
-- **`TernaryProbe.lean`** — `ternaryCubicShift_abs_error_le_stepBudget`: при `level,σmax > 0` и `|t| ≤ σmax` ошибка насыщающего тернарного квантования сдвинутой кубической энергии ограничена вычисленным
-- **`TernaryWitness.lean`** — `quantOpt_energy_bound`: при `s > 0` и `ternInRange s (a i)` для всех `i` энергия `quadE a (quantOpt s a)` не превосходит `|k|·s²/8`.
-
-## Hagi/Research/Legacy/TopLevel.lean
-
 - `quant_residual_norm` и `quant_energy_bridge`: если
   `|w i−q i| ≤ s/2`, то `Σᵢ(w i−q i)² ≤ n(s/2)²`;
   при `s,κ ≥ 0` и `dE ≤ κ√Σ(w−q)²` получается `dE ≤ κ√n·s/2`.
   Lipschitz-условие остаётся `h_emp_`-посылкой.
 
-## Hagi/Unified/TransitionCert.lean
-
-- `TransitionCert` содержит фактический `obj(step s) < obj s` и
-  `risk(step s) ≤ risk s + riskLim`; `of_ctv3` строит его из V3-перехода
-  для `energy` и `St.protectedRisk`.
-
-- `certs_telescope`: для фактической цепочки `x(t+1)=step(x t)`
-  при `T > 0` цель строго убывает, а `risk(x T) ≤ risk(x0)+T·riskLim`.
-
-## Hagi/Theory/Statistics.lean
-
-- Канон статистик (v4 T3): HoldoutRisk + AnytimePACBayes +
-  TwoDomainConfidence + HoldoutWithoutReplacement + AnytimeHoldoutStop
-  в одном модуле, исторические namespace'ы и все имена сохранены.
-
-- `holdout_concentration`: для фиксированной до дров модели
-  `f : Ω → [0,1]`, k > 0: `P[|holdoutMean − popMean| ≥ ε] ≤ 2exp(−2kε²)`;
-  `selection_bias_*` — негатив: выбор модели ПОСЛЕ просмотра holdout
-  ломает несмещённость.
-
-## Hagi/Theory/MasterTheorem.lean (v4 T6: + MasterBudget, VerticalCapstone)
-
-- Канон master-траектории (v4 T6): MasterTheorem + MasterBudget
-  (бюджет как premise-канал, ns `Hagi.Theory`) + VerticalCapstone
-  (ns `Hagi.Unified`) в одном модуле, имена сохранены.
-
-## Hagi/Theory/FlowMatching.lean
-
-- `cfmPsi`/`cfmOtField`/`cfmSigma`: OT-условный путь и замкнутый
-  conditional VF (equations 20–22 статьи Flow Matching), честно
-  дискретно — на конечном словаре `V`.
-
-- `cfmSampleLoss` + `cfmSampleLoss_eq_sqDiff`: per-sample CFM loss
-  === инстанциация C384 `sqDiffObjective` на паре
-  (v t (ψ_t x₀), otField) — мост definitional (rfl).
-
-## Hagi/Theory/Interpretability.lean
-
-- `RebuildSystem`/`Rebuildable`: контракт C421 — интерпретируемость
-  как description-length bound (iWSP rebuild bottleneck, arXiv
-  2611.18114): сертификат = существование описания d бюджетом ≤ B,
-  чей rebuild R(d) сохраняет качество в пределах ε по лоссу ℓ.
-
-## Hagi/Cert/StepGen.lean (A10 item 2 step 1)
-
-- `Hagi.Cert.CertStepGen` — ОБЩЕЕ ядро сертифицированного шага
-  (A10 target): общий индекс задач `TaskId : Type*` (жёсткий `Fin 5`
-  цикла — инстанциация, не ограничение ядра), остаток риска — ПОЛЕ
-  riskRem с законом расщепления risk_split (0-пиннинг C254
-  невозможен по построению), свёрнутый δ-бюджет на явном
-  носителе deltaLevel.
-
-- Мосты: `Hagi.Cert.certStep_to_gen` (каждое замороженное `CertStep`
-  вложено; нулевой δ-носитель), `Hagi.Cert.CertStepGen.toCertStep`
-  (проекция обратно, δ-канал отбрасывается),
-  `Hagi.Cert.certStepDelta_to_gen` (свёртка C245-надстройки).
-
-## Hagi/Contracts/GradientBottleneckIdentification.lean (E2 addendum A10)
-
-- Мост спектральной идентификации C232: `selP_conjTranspose_mul_selP`
-  (ортонормированные столбцы row-селектора) → `embedded_gram_eq`
-  (Gram-матрицы встроенного и прямоугольного совпадают) →
-  `embedded_eigenvalues₀_eq` (перенос спектра через
-  `sort_roots_charpoly_eq_eigenvalues₀`: равные матрицы — равные
-  charpoly — равные отсортированные спектры) →
-  `embedded_singularValues_eq_rect` (square singularValues₀
-  встроенной = Rectangular.singularValues на Fin(min)).
-
-## Hagi/Training/StepProvider.lean (merge map A10)
-
-- Интерфейсный слой над `Hagi.Cert.CertStepGen`: `StepProposal`
-  (следующее состояние + канонический сертификат CertStepGen —
-  носитель неотделим от доказательства), `StepProvider`
-  (init + оракул `step : s → Option (StepProposal …)`); провайдер —
-  ЗНАЧЕНИЕ (выбор провайдера — решение политики, не typeclass),
-  none = сертифицированного продвижения нет (прогресс и hold
-  разделены — `HoldStep`).
-
-## Hagi/Model/BackboneTransfer.lean
-
-- C300 (E4 first composition — residual transfer of certified
-  descent): `resStep_lipschitz` — residual-шаг `(1+μ)`-липшицев при
-  `μ`-липшицевой ветви `f`. `residual_transfer_le`,
-  `residual_transfer_descent`,
-  `residual_transfer_descent_strict`: сертифицированный спуск
-  головы `δ` (C291-посылка hdrop) переносится через один
-  residual-блок с утечкой `Lc·μ·‖dx‖` (паттерн C250
-  entering-vector на пути обновления; `μ=0` — нулевая утечка).
-  Стек: `resStack`/`stackGain` (`∏(1+μᵢ)`, паттерн `cascadeGain`
-  из `Hagi.Core.ErrorProp`), `stackGain_ge_one`, `resStack_bounds`
-  (взаимная индукция липшицевости и утечки), `resStack_lipschitz`,
-  `resStack_leak_le` (`‖G(x+dx)−G x−dx‖ ≤ (∏(1+μᵢ)−1)·‖dx‖`,
-  мультипликативная композиция), `resStack_transfer_descent`
-  и `resStack_transfer_descent_strict` — перенос спуска через весь
-  стек. Скалярные якоря невырожденности (μ=1/10: один блок 1/10,
-  два блока 21/100 ≥ 1/5). Честная граница: attention-якобианы,
-  RoPE-точность, GDN RAM-звено, RMSNorm-константы — НЕ заявлены
-  (лестница продолжений в tech-debt E4-C300).
-
-## Hagi/Model/AttentionTransfer.lean
-
-- C307 (E4 attention rung — attention block transfer composition):
-  `attnBranch` — softmax-взвешенная композиция ценностей
-  `∑ i, p i • v i x` (веса premise-form: фиксированное
-  вероятностное распределение инкапсулирует QK^T-структуру).
-  `attn_branch_damped` — интерфейс демпфирования: отклонение
-  ветви при возмущении ограничено максимальным откликом
-  value-отображений (инстанция `Hagi.Core.attention_error_damped`
-  с ошибками `e i = v i (x+dx) − v i x`). `attn_branch_lipschitz`
-  — равномерное демпфирование value-отображений μatt даёт
-  LipschitzWith μatt ветви. `attn_norm_branch_lipschitz` —
-  pre-norm (посылка μn) ∘ ветвь даёт LipschitzWith (μn·μatt) —
-  в точности форма блочной гипотезы C300.
-  `attention_block_transfer` — один attention-блок (pre-norm +
-  взвешенная ветвь + residual) удовлетворяет C300-границе утечки
-  `Lc·(μn·μatt)·‖dx‖`. Стек: `AttnBlock`/`attnBlockList`/
-  `attnStack`/`attnGain` (`∏(1+μnᵢ·μattᵢ)`),
-  `attnBlockList_lipschitz`,
-  `attention_stack_transfer_descent` и
-  `attention_stack_transfer_descent_strict` — теорема C300 о
-  стеке в применении к attention-блокам с композицией
-  демпфирований. Скалярные якоря (μ_att=3/10, μ_res=2/10:
-  (1+0.3)(1+0.2)−1 = 28/50 ≥ 1/2). Честная граница: softmax-карта
-  весов (p от x через QK^T) — premise-форма; Lipschitz RMSNorm —
-  посылка μn (звено 4 лестницы); изометрия RoPE на
-  нормированном носителе (`rot_norm` сохраняет `pairInner`, не
-  норму нормированного пространства) — СЛЕДУЮЩЕЕ звено; полный
-  forward/backward FastArch3 НЕ заявлен.
-
-## Hagi/Model/RoPETransfer.lean
-
-- C308 (E4 rope rung — rope isometry transfer composition):
-  `rope_pair_inner` — ПОЛНАЯ билинейная сохранность
-  `pairInner (rotVec θ m x) (rotVec θ m y) = pairInner x y`
-  (блочное 2×2-вращение ортогонально; `rot_norm` — диагональная
-  специализация y = x). Транспорт носителя: `toEuc`/`fromEuc`
-  переносят `Fin d → ℝ × ℝ` в `EuclideanSpace ℝ (Fin d ⊕ Fin d)`
-  с точным равенством норм `‖toEuc x‖² = pairInner x x`
-  (`toEuc_norm_sq`). `rope_isometry` — перенесённое вращение
-  `rotEuc = toEuc ∘ rotVec ∘ fromEuc` — ИЗОМЕТРИЯ носителя
-  (`‖R a − R b‖ = ‖a − b‖`). Композиция: `rope_block_transfer` /
-  `rope_block_post_transfer` — пре/пост-композиция с изометрией
-  сохраняет константу Липшица (μ неизменно).
-  `attention_block_rope_transfer` — RoPE-обёрнутый pre-norm
-  attention-блок удовлетворяет ТОЙ ЖЕ C300-границе утечки при
-  неизменном μn·μatt. Стек: `attnRopeBlockList`/`attnRopeStack`/
-  `attnRopeGain` = `attnGain` (`attnRopeGain_eq`: обёртка не
-  меняет фактор утечки), `attnRopeBlockList_lipschitz`,
-  `attention_rope_stack_transfer_descent` и `_strict` — теорема
-  C300 дословно на обёрнутых блоках. Якорь: d=2, θ≡π/3, m=1 на
-  ![(3,4),(0,0)] — норма 5 сохранена. Честная граница: нет
-  матричной ортогональности (RᵀR=I) и операторной нормы; softmax
-  и RMSNorm — premise-форма; полный FastArch3 НЕ заявлен.
-
-## Hagi/Model/RMSNormTransfer.lean
-
-- C309 (E4 rmsnorm rung — RMSNorm Lipschitz constant discharge):
-  предпосылка `μn` из C307 разряжена в ЯВНЫЕ честные константы,
-  согласованные с точным определением носителя `rnVec x i =
-  x i / sqrt (ms x)` (чистая форма Zhang–Sennrich: без ε-пола,
-  без аффинного веса g). Транспорт носителя: `msE`/`rnEuc`/
-  `rnEpsEuc` на `EuclideanSpace ℝ (Fin n)` поточечно через
-  `WithLp.ofLp`/`WithLp.toLp`, точный мост норм `norm_eq_sqrt`
-  (‖x‖ = √n·√(msE x)). Честный вердикт по константам: чистый
-  носитель НЕ липшицев глобально — закреплено ОТРИЦАНИЕМ
-  `rnEuc_not_lipschitz_with` (n ≥ 2: направления δ•eₐ, δ•e_b
-  переходят в ФИКСИРОВанные единично-RMS направления √n•eₐ,
-  √n•e_b при ‖x−y‖ ~ δ√2 → 0); на области `{z | r ≤ ‖z‖}` —
-  `rn_lipschitz_region` с константой μn(r) = 2√n/r (радиальная
-  форма `rnEuc x = (√n/‖x‖)•x` + обратное неравенство
-  треугольника); ε-полный вариант `rnEpsEuc ε x i =
-  x i / sqrt (msE x + ε)` ГЛОБАЛЬНО (2/√ε)-липшицев
-  (`rnEpsEuc_lipschitz`) через точное сопряжение
-  (gy−gx)(gy+gx) = △msE и евклидову Коши–Шварца `msE_abs_sub_le`.
-  Wiring: `residual_transfer_le_pointwise` (утечка C300 в точке
-  шага из поточечной оценки отклика ветви), `attention_block_
-  transfer_rmsnorm` — ТЕОРЕМА ЗВЕНА: блок C307 с разряженной μn
-  (посылки области на обоих концах шага), составная константа
-  Lc·((2√n/r)·μatt) явная; стек-инстанс `attention_stack_
-  transfer_rmsnorm_eps` (+ `_strict`) — теорема C307 c μn(ε) =
-  2/√ε через ε-полные pre-norms (`μnEps`). Якоря (n=4):
-  константа области 2·√4/1 = 4; ‖rnEuc (3,4,0,0)‖ = 2
-  (треугольник 3-4-5 через `rnEuc_eq` + `norm_eq_sqrt`). Честная
-  граница: глобального липшица чистого носителя НЕ заявлено
-  (закреплено отрицанием); аффинного веса g в носителе нет (если
-  появится — константы масштабируются на max|g|); softmax-карта
-  весов — premise-форма; полный FastArch3 certificate НЕ
-  заявлен.
-
-## Hagi/Model/GDNTransfer.lean
-
-- C310 (E4 GDN rung — GDN block transfer + hybrid stack): GDN-сто-
-  рона гибридного attention+GDN backbone встроена в C300 transfer
-  stack, посажена HYBRID-теорема (стек из attention- и GDN-блоков
-  спускается с произведением gain). Вердикт по форме GDN (pin):
-  в репо три формы — (1) GDNBridge one-hot RAM-адресация (C254,
-  семантика чтения/записи, не state-оператор); (2) GDN2 memory
-  update `M̃' = (I−UᵀU)·D·M̃ + Uᵀ(ω⊙V)` (аффинен по памяти,
-  rowSumNorm `gdn2_step_bound`, матричное пространство); (3) mHC
-  STATE MIXING `x ↦ M *ᵥ x` с M дважды стохастической.
-  Блок GDN здесь — форма (3): mixing-ветвь с GDN-гейтом в
-  PREMISE-форме (μg-липшицев пред-гейт, зеркально пре-норм C307).
-  Транспорт носителя: `gdnMix M x = toLp 2 (M *ᵥ ofLp x)` на
-  `EuclideanSpace ℝ n` (как в C309). ГЛАВНАЯ лемма:
-  `gdnMix_lipschitz` — `IsDoublyStochastic M ⇒ LipschitzWith 1
-  (gdnMix M)` — сжатие C231 `doublyStochastic_sq_le` на разности,
-  поднятая в евклидову норму мостом `EuclideanSpace.real_norm_sq_eq`
-  (`gdnMix_norm_sub_le`). `gdn_branch_lipschitz` — гейт μg ∘
-  mixing ⇒ μg-липшицева ветвь (форма гипотезы блока C300);
-  `gdn_block_transfer` — утечка C300 `Lc·μg·‖dx‖` на одном блоке.
-  Стек: `GdnBlock`/`gdnBlockList`/`gdnStack`/`gdnGain`,
-  `gdn_stack_transfer_descent` (+ `_strict`), gain `∏ (1+μgᵢ)`
-  (mixing 1-липшицев — роста нет). HYBRID (payoff звена):
-  `HybBlock` (inductive: конструкторы att | gdn), `hybBlockList`/
-  `hybStack`/`hybGain`, `hybBlockList_lipschitz` (диспетчеризация
-  по конструктору: C307-адаптер для attention, C231-бэкед для
-  GDN), `hybrid_stack_transfer_descent` (+ `_strict`) — теорема
-  C300 на гетерогенном списке блоков, каждый со своим μᵢ
-  (attention μn·μatt, GDN μg). Якоря: единичная матрица дважды
-  стохастическая (невакуумность посылки mixing); числовая μ-ком-
-  позиция hybrid (att 3/10, gdn 2/10 ⇒ утечка (1+3/10)(1+2/10)−1
-  = 14/25); мультипликативность ≥ аддитивности. Честная граница:
-  GDNBridge RAM-чтение/запись и GDN2 memory update НЕ заявлены
-  как state-сжатия; нелинейный гейт — premise-форма μg; Sinkhorn
-  НЕ заявлен (IsDoublyStochastic — посылка, граница C231);
-  softmax — premise-форма; полный FastArch3 certificate НЕ
-  заявлен.
-
-## Hagi/Model/FastArch3Transfer.lean
-
-- C311 (E4 FINAL rung — FastArch3 end-to-end transfer assembly):
-  end-to-end FastArch3-SHAPED certified-descent теорема —
-  параметрический SoftmaxHead поверх гибридного стека
-  (C307 attention + C308 RoPE + C309 RMSNorm + C310 GDN), чистая
-  КОМПОЗИЦИЯ уложенных носителей с явным PREMISE LEDGER. Форма:
-  `FA3Block n ι` (inductive: `att a R` — attention-блок C307 с
-  RoPE-обёрткой R — посылка Isometry, инстанцируется rotEuc C308,
-  константа не меняется; `gdn g` — GDN-блок C310), `FastArch3Spec`
-  (blocks + C283 `HeadConfig`), `fa3BlockList` (attention μn·μatt,
-  GDN μg), `fa3Stack`/`fa3Gain` (∏(1+μᵢ), C300 stackGain),
-  `fa3BlockList_lipschitz` (dispatch: C307-адаптер ∘ изометрия
-  C308-паттерном (hR.lipschitzWith, mul_one); C310-адаптер),
-  `fa3Objective` (потеря на выходе стека — полная objective
-  модели), ГЛАВНАЯ `fastarch3_transfer_descent` (+ `_strict`):
-  теорема C300 на списке FastArch3-блоков — сертифицированный
-  спуск головы δ (посылка формы C291, инстанцируется
-  `ceOneHot_next_le_param`) + Lc-липшицева потеря головы ⇒ утечка
-  `Lc·(∏(1+μᵢ)−1)·‖dx‖`; гвард δ > утечки ⇒ STRICT убывание
-  end-to-end objective. Якоря: rotEuc изометрия; spec-невакуум-
-  ность; 2-блочный инстанс (att μn·μatt = 1.4·0.4 = 0.56, gdn
-  μg = 0.2 ⇒ утечка (1.56)(1.2)−1 = 0.872; drop 0.5 > 0.436).
-
-## Hagi/Data/AnfTransform.lean
-
-- C301 (E5 ANF/Möbius core — Zhegalkin transform correctness):
-  `anfTransform` — преобразование Жегалкина/Мёбиуса как рекурсивная
-  «бабочка» на последней координате (`T f = (T f₀, T f₀ ⊕ T f₁)`,
-  вычислимое, носитель `(Fin n → Bool) → Bool` — таблицы истинности
-  над конечным типом, маски `Hagi.Data.BoolVenn` суть случай n=2).
-
-## Hagi/Learning/SoftRouterMix.lean
-
-- Аудит §7 (T): «Мягкая калиброванная смесь вместо жёстких ±10:
-  CE смеси не хуже взвешенного среднего CE (Jensen)» —
-  существование проверено, форма отсутствовала (равномерный
-  1/N-вариант `ensemble_ce_le_mean_general` был; вероятностно-
-  взвешенного роутерного — не было). Доставлена честная
-  раскладка: ЛОГИТ-смесь и СМЕСЬ РАСПРЕДЕЛЕНИЙ — разные
-  объекты, оба истинны по разным причинам (challenge-pin в
-  докстрингах модуля).
-
-## Hagi/Contracts/HadamardSpread.lean
-
-- C321 — аудит A10 §9 п.5 («теорема о контракции реального
-  квантайзера, средняя версия для блоков после Адамара,
-  измерено ≈0.33 против худшего α≈0.106»): доставлена честная
-  ДЕТЕРМИНИРОВАННАЯ формализация среднего случая — без теории
-  меры, «среднее» = энергетическая предпосылка, не вероятностное
-  усреднение по сфере.
-
-## Hagi/Budget/RDAlloc.lean
-
-- C322 — аудит §7 п.7 (slow-loop композиция RD-сжатия):
-  побитное распределение + закон ошибки по стадиям +
-  изо-Фробениус чувствительность + пересертификация собраны в
-  ОДИН шаговый сертификат. Композиция ONLY: вся математика
-  цитируется из своих носителей, новый —
-  только клей и упаковка.
-
-## Hagi/Deployment/CanaryRamp.lean
-
-- C324 — аудит §7 p.1 по ранжированию
-  `.omc/analysis/period-c313-c323-analysis.md` (canary-приёмка;
-  файл удалён в c442e69, история:
-  `git show c442e69^:.omc/analysis/period-c313-c323-analysis.md`):
-  вес маршрута w непрерывен, канареечный разгон 0→1, утечка линейна
-  по w (`cascade_leak_router_linear`), e-процесс следит за
-  вредом (Ville, C264/C295 — процитированы premise-form, Unified
-  слой 6 выше Deployment 5). Композиция ONLY: новый файл — клей и
-  упаковка поверх C250 + C278.
-
-## Hagi/Learning/ContinualForgetting.lean
-
-- C327 — ранжирование item c: continual-learning forgetting
-  bounds — формальный контракт контроля забывания старых задач при
-  адаптации к новым (вывод — research C327).
-
-- `auditSpendChain` + `auditSpendChain_delta_split` — цепочка из m
-  принятых адаптаций (адаптация k тратит срез δₖ на задачу tsk k):
-  δ-SPLIT арифметика ∑ spent = ∑ spent₀ + ∑ₖ δₖ (бухгалтерская
-  лемма, которой нет в C274 — его мастер одно-снимковый).
-
-## Hagi/Contracts/SparseInferenceCert.lean
-
-- Audit §8 inference-сторона разреженности: sparsity-certified
-  inference — спектральная маска + compute-доля, вся упаковка
-  новая, все ингредиенты процитированы.
-
-## Hagi/Contracts/ComputeToQuality.lean
-
-- Цель GOAL «минимизация вычислений» end-to-end: total compute to
-  quality = (шаги до ε) × (FLOP на шаг) — обе несущие уже
-  приземлены (descent rate, FLOP-учёт), новая только
-  КОМПОЗИЦИЯ на ядре C278 CertStepGen.
-
-- `budget_telescope_gen`: недостающий четвёртый телескоп ядра —
-  ТОЧНАЯ бюджетная идентичность `budget(t n) = budget(t 0) −
-  Σ spends` (раньше телескопировались только drop/delta/risk).
-
-## Hagi/Contracts/KVCacheCert.lean
-
-- Цель: KV-cache inference certificate — расширение
-  compute-сертификации на последовательный инференс:
-  cached attention (новый токен attends по сохранённым
-  keys/values через бегущий summary) имеет per-token work `t+1`
-  против recompute-режима, который на каждом шаге ре-attend'ит
-  ВСЁ прошлое; и cached выход ТОЧНО равен полной рекомпутации.
-
-## Hagi/Contracts/DataToQuality.lean
-
-- Цель GOAL «минимизация данных» — data-efficiency / sample-complexity
-  сертификат: сколько СЭМПЛОВ сертифицируют, что выбранный energy-модель
-  оптимальна по population PL-risk (дополнение compute-дуги C330).
-
-## Hagi/Contracts/TruncatedSVDTail.lean
-
-Rectangular spectral-tail bridge (A13 P-3): under the SVD premise
-(A = U·Sigma·V^H with carrier rectangular singular values sigma),
-the truncated approximant approxK satisfies
-`truncated_svd_error_eq_tail`:
-
-## Hagi/Theory/AdapterGrowth.lean (секции)
-
-Единый файл роста адаптеров (карта секций — module docstring).
-
-- C533 adapter snap composite: `adapter_snap_bound` (Lipschitz-оценка
-  адаптера h = B·A·x), `adapter_snap_cycle_sound` (телескоп цикла:
-  admission-вклад 0 ТОЧНО + certified fd-шаги + snap q/2^k). Bench
-  `--mode adapter-snap-grow`: 8 уровней × 8 параметров (64 против 21
-  у full-блока), obj 2.283 → ~0, snap bound ≈ 2.98e-13, глубина 10.
-- C535 rank-adaptive: `rankScore`/`rankSelect` (probe-drop на
-  параметр, селектор r ∈ {1,2}; паттерн hybridSelect C510),
-  `rank_select_deterministic`/`rank_select_sound`. Bench: на всех
-  уровнях score(r=2) ≤ score(r=1) — селектор честно берёт r=1;
-  adaptive ≡ fix-r1 побитово, детерминизм повторов побитовый.
-- C536 SVD-«Матрёшка»: `adapter_stack_rank_bound` (rank(Π(I+E_i)−I)
-  ≤ Σ rank E_i), `cs_row` + `adapter_merge_error_bound` (Frobenius-
-  хвост × Lipschitz ⇒ certified ε-окрестность merge), ссылка на
-  Contracts/TruncatedSVDTail без импорта. Bench: стек 8×r=1 (64
-  парам) → точный ранг ρ=2 → merge 16 параметров (−75%), возмущение
-  0 до снапа; k=1 matryoshka честно unusable (деградация ~0.5).
-- C555/C556/C558/C560 — секции self-compress/distill/mini-v3/
-  adapter-transfer: см. единый bench-канон ниже (режимы
-  bench_bridge.py) и карту секций в module docstring.
-
-## Hagi/Theory/WeightDecayLeak.lean (weight decay leak — P4)
-
-- Непроецируемый weight decay рушит GPM-память, проецируемый
-  сохраняет ТОЧНО: `wd_compl_annihilates`/`wd_proj_preserves`
-  (равенство), `naive_decay_leak` (СТРОГАЯ утечка теоремой),
-  `wd_gpm_step_sound` (main: шаг в дополнении + projected decay ⇒
-  W·P неизменно). Witness C538 (ℚ, P = diag(1,0)).
-
-## Hagi/Probability/EmpiricalBernstein.lean (empirical bernstein — P1)
-
-- EB-confidence как дополнение Freedman: σ̂-подстановка +
-  аддитивный член (Maurer–Pontil стиль). `freedman_tail_two_sided`,
-  `eb_radius_algebra`, `empirical_bernstein_bound` (main),
-  `empirical_bernstein_mean_bound`. Контраст (witness C539):
-  n_EB(наша форма) = 4267 против n_Hoeffding = 176995 (41.5×).
-
-## Hagi/Theory/OEComplete.lean (OE search completeness — P6)
-
-- Дедупликация наблюдательно-эквивалентных программ НЕ теряет
-  решение: `oe_classes_partition` (Setoid), `oe_search_complete`
-  (main: первый представитель каждого OE-класса достигается;
-  полнота ОТНОСИТЕЛЬНО ПРОБ — честно), `oe_search_terminates`.
-  Witness: naive 343 посещений vs OE-дедуп 4.
-
-## Hagi/Theory/ExactBypass.lean (exact bypass zero CE — P8)
-
-- PROVEN_EXACT символьные эксперты: p = 1 ⇒ точечный log-loss 0
-  РОВНО. `ce_pointwise_of_prob_one`, `ce_covered_zero`, `ce_split`/
-  `ce_total_eq_residual`, `exact_gate_sound`/
-  `exact_gate_rejects_zero`, мост `ceOneHot_eq_zero_of_softmaxP_eq_one`
-  (SSOT ядро). Witness: 6 покрытых + 4 остаточных, total =
-  residual бит-в-бит; негатив p=0 → гейт false.
-
-## Hagi/Theory/MiniHagiLoop.lean (self-improving loop)
-
-- C547 `--mode mini-hagi-loop`: все certified-компоненты в одном
-  прогоне (P1 bypass + P2/P3 адаптерный рост + P4 continual-изоляция
-  C544 + P5 OE+EB + P6 метрики). `full_loop_sound` — КОМПОЗИЦИОННАЯ
-  обёртка (конъюнкция инвариантов компонент без новых фактов).
-  Прогон: 107/113 покрыто (CE-вклад 0 EXACT), forgetA = 0 EXACT,
-  26 certified-шагов.
-- C549 `--mode mini-hagi-loop2`: итеративный цикл — OE-поиск в
-  пространстве, ВЫРОЖЕННОМ из принятых примитивов → EXACT-расширение
-  → переобучение адаптера на остатке → EB-телеметрия. Сходимость
-  покрытия 54.9 → 93.8% (стоп EB-гейт); негативы композиционной
-  цепочки (закон 2 не находится без блока 1). Lean:
-  `coverage_append_monotone`, `iterative_loop_sound` (новый факт —
-  только монотонность).
-
-## Hagi/Theory/AdapterBank.lean (adapter bank bridge from hagi v2)
-
-- Source-anchored мост волны 210/210b (hagi/trunk_ops.py:310-345,
-  unified.py:147-165, lm.py:770-777): `bankUpdate`/`warmTransfer`/
-  `bankBatch`; `adapter_bank_isolation`(_obj) — обновление слота j
-  не трогает слот i ТОЧНО; `warm_transfer_sound` (forgetA=0 копией +
-  certified-обучаемость warm-init), `bank_composition` (индукция по
-  batch). HONEST: transfer-качество — эмпирика, теоремой не
-  подменено; негатив warm-хуже-cold в witness. Bench: нет (мост).
-
-## Hagi/Theory/Softmax.lean (phat monotonicity domain characterization)
-
-- Суммарная p̂-анти-монотонность охарактеризована ТОЧНО:
-  `sum_phat_anti_mono_single_domain` (держится при фиксированном
-  числителе и вложенных стенах одной банки) +
-  `band_mix_counterex`/`phat_total_not_anti_mono` (ТЕОРЕМА-
-  контрпример при смешении доменов). Bench: нет.
-
-## Imports final deriv-safe (bare-import сужение)
-
-- `import Mathlib` → точные модули в 40 файлах (bare 62 → 22).
-  Batch C (deriv-risk) откачан: freeze-детект statement-drift —
-  C482-урок. Остаток 22 bare = перманентные deriv-pins; список
-  сужаемых импортов ПУСТ (терминальное состояние). Эффект:
-  15.0s → 9.2s на файл (BlockNorm probe).
-
-## Hagi/Theory/GrowSnap.lean (certified snap-политика и оптимальный k)
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `snap_preserves_objective_bound`, `snap_denominator_reset`, `grow_snap_cycle_sound` | C521: certified snap q/2^k на границе grow — снимает экспоненциальную стену знаменателей C506 (2366 цифр → k бит) | Hagi/Theory/GrowSnap.lean:81, :119, :145 | `--mode adapter-snap-grow` (AdapterGrowth) |
-| `snap_err_bound` | ДВУСТОРОННЯЯ obj-ошибка \|obj g − obj f\| ≤ L·d·2^-(k+1) (C521-версия — односторонняя) | Hagi/Theory/GrowSnap.lean:215 | — |
-| `snapAdmissible`/`snapK` (Nat.find), `snap_k_admissible`, `snap_k_min`, `snap_k_lt_violates` | k* = минимальное допустимое k: feasibility err(k*) ≤ ε; точность (любое допустимое k ≥ k*); негатив k < k* ⇒ err СТРОГО > ε | Hagi/Theory/GrowSnap.lean:190, :287, :293, :301, :308 | — |
-| `snap_k_eq_ceil` | ЗАМКНУТАЯ ФОРМА: при L·d > ε k* = ⌈log₂(L·d/ε)⌉ − 1 (обе стороны из feasibility + minimality) | Hagi/Theory/GrowSnap.lean:342 | — |
-| `snapBits`, `snap_bits_err_tradeoff`, `snap_optimal_k` | биты = d·(k+1); Pareto k ≤ k' ⇒ биты ↑, полуячейка ↓; DECISION-ПРАВИЛО: k* даёт certified err ≤ ε И минимальные биты | Hagi/Theory/GrowSnap.lean:185, :392, :401 | — |
-
-Witness C593 (trajSnap.lean, rc=0, ℚ-зеркало поиска): I1 L=1,d=10,ε=2^-12
-→ k*=15, биты 160, k=14 нарушает; I2 L=3,d=1,ε=2^-6 → k*=7, k=6
-нарушает; I3 ГРАНИЦА РАВЕНСТВА Ld/ε=4 → k*=1, bound = ε, k=0 нарушает.
-
-## Hagi/Theory/NegativeTransfer.lean (negative transfer, smooth, schedule, growth gate)
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `neg_transfer_char`, `warm_better_char`, `transfer_boundary` | C572: квадратичная obj, равный бюджет: warm хуже cold ⟺ 2•⟪θ,t⟫ < ‖θ‖² (ТОЧНАЯ iff). Decision: warm iff 2⟪θ,t̂⟫ > ‖θ‖² | Hagi/Theory/NegativeTransfer.lean:117, :127, :137 | `--mode transfer-gate-certified` (quad-iff уровень) |
-| `neg_transfer_adversarial`, `gd_run_dist`, `warm_better_budget` | t = −c•θ ⇒ всегда T2; бюджет НЕ размывает границу | Hagi/Theory/NegativeTransfer.lean:150, :176, :191 | — |
-| `smooth_obj_transfer_bound`, `sufficient_negative_transfer` | C592: L-smooth obj + GD равным бюджетом ⇒ f z − n•`nlBudget γ L G` ≤ f (nlRun n γ grad z) ≤ f z; стартовый запас > n•nlBudget ⇒ warm строго хуже. G — честный binder вдоль траектории (глобальная не выводится) | Hagi/Theory/NegativeTransfer.lean:386, :406 | `--mode transfer-gate-certified` (smooth-sufficient уровень) |
-| `nlDrop`, `nl_drop_bound`, `nlDrop_le_optimal`, `nl_drop_optimal` | C606 Schedule: drop = γG² − Lγ²G²/2 ≤ G²/(2L) для любого γ, равенство при γ* = 1/L (полный квадрат). Кандидат 2/(3L) отклонён | Hagi/Theory/NegativeTransfer.lean:434, :443, :467, :481 | auto-LR γ = 1/L (C609) |
-| `growthGate`, `growth_gate_stay_char` | C632 (второй namespace `Hagi.Theory.GrowthGate` в этом же файле, блок перенесён дословно): grow ⟺ potential_bound > c_add (равенство → stay: budget-приоритет меньшей ёмкости); гейт = порог, no hidden state | Hagi/Theory/NegativeTransfer.lean:570, :576 | `--mode grow-snap` / `adapter-grow`, перед каждым добавлением |
-| `nl_drop_step_eq`, `nl_drop_total` | nlDrop (1/L) L x = x²/(2L); в квадратичной модели n шагов уменьшают obj ≤ n·G²/(2L) — certified-потолок выигрыша | Hagi/Theory/NegativeTransfer.lean:604, :616 | — |
-| `growth_gate_sound` | MAIN (certified-stay): n·G²/(2L) ≤ c_add ⟹ любое n-шаговое дообучение выигрывает ≤ c_add — рост не окупится | Hagi/Theory/NegativeTransfer.lean:673 | `growth_gate_measure` |
-
-Контраст: квадратичная obj → точный iff; L-smooth произвольный →
-консервативная sufficient, применять когда есть G-оценка на
-траектории и консервативного вердикта достаточно. Witness C592
-(trajNL.lean, γ=1/5, L=2, G=2): n=1 certified (1 > 24/25); n=2 условие
-НЕ выполнено (1 ≤ 48/25), но warm всё равно хуже ⇒ sufficient ≠
-necessary. C606 (L=2, G=1): drop γ=0.1/0.5/0.9 → 9/100, 1/4, 9/100.
-
-- C632 рост-гейт (блок `Hagi.Theory.GrowthGate` ниже секции Schedule):
-  отличие от C535 (rankSelect по probe-score) и C577/C601 (два
-  probe-прогона): ноль измерений, решение по формуле ДО probe.
-  Honest: потенциал-модель квадратичная (для L-smooth потолок шире
-  — nlBudget C592, гейт пересчитывается); grow = РАЗРЕШЕНИЕ, не
-  обещание; sound только у stay-ветки. Witness C632 trajGate.lean:
-  G=2, L=2, n=5 → bound 5; c_add=10 → stay; c_add=4 → grow.
-
-## Hagi/Theory/TritCodec.lean (trit-кодек, 5 тритов в байте)
-
-- Биекция wave214 pack/unpack_trits5 (3^5 = 243 ≤ 2^8):
-  `tritPack`/`tritUnpack`, `tritPack_lt_243` (guard недостижим),
-  `trit_roundtrip`, `tritPack_injective`. Bench: нет.
-
-## Hagi/Theory/MasterTheoremV3.lean (метатеорема v3 → v3.5)
-
-- `master_theorem_v3` (Hagi/Theory/MasterTheoremV3.lean:83): 5 гарантий
-  машины v3 (params-бюджет, zero-forgetting, coverage-монотонность,
-  obj-телескоп, transfer-граница) — конъюнкция делегатов без
-  ослабления; не дублирует MasterTheorem.lean.
-- `hagi_master_v33` (Hagi/Theory/MasterTheoremV3.lean:252) — certified-
-  машина v3.3 ОДНОЙ теоремой; каждый клоз — делегат к доказанной
-  теореме, гипотезы дословно, ноль новых доказательств:
-
-| # | клоз | делегат | с версии |
-|---|---|---|---|
-| (1) | params-бюджет ≤ 2·k·dd | `self_compress_loop_sound` | v3.1 (C600) |
-| (2) | zero-forgetting per-task адаптеров | `adapter_per_task_sound` | v3.1 |
-| (3) | certified obj-телескоп ≤ o0 + Σ bounds | — | v3.1 |
-| (4) | монотонность покрытия | `iterative_loop_sound` | v3.1 |
-| (5) | точный iff-transfer (квадр) | `neg_transfer_char` | v3.1 |
-| (6) | snap-грид оптимальность k* = ⌈log₂(L·d/ε)⌉−1 | `snap_optimal_k` | v3.1 |
-| (7) | coverage-чтение: каждый байт прочитан окном решётки covStarts | `covStarts_covers` | v3.1 |
-| (8) | smooth sufficient-transfer: f z − n·nlBudget ≤ f (nlRun n γ grad z) ≤ f z | `sufficient_negative_transfer` | v3.1 |
-| (9) | guaranteed drop при γ* = 1/L равен G²/(2L) | `nl_drop_optimal` | v3.2 (C614) |
-| (10) | hierarchical coverage: любой i < nB покрыт окном `hierStarts` решётки при 0 < B, 0 < s' ≤ w — ЛЮБОЕ n | `hier_covers_any_n` | v3.2 |
-| (11) | reading floor: (hierStarts nB B w w).length = ⌈nB/w⌉ (0 < w, w ∣ B) = floor любого покрытия | `hier_optimal` | v3.3 (C622) |
-
-- v3.1 `hagi_master_v31` (:128) = (1)–(8); v3.2 `hagi_master_v32`
-  (:187) = v3.1 + (9)(10); v3.3 `hagi_master_v33` (:252) = v3.2 + (11).
-  Witness: C600 trajMT31 (#check 8 клозов), C614 trajMT32 (клоз (9):
-  L=2, G=1 → drop 1/4; (10): n=8128, B=4032), C622 trajMT33 (клоз
-  (11): total 127 = ⌈8128/64⌉). Axioms: propext, Classical.choice,
-  Quot.sound.
-- `hagi_master_v34` (Hagi/Theory/MasterTheoremV3.lean:323) — v3.4 =
-  v3.3 + 3 делегата growth-контура; 14 клозов ОДНОЙ теоремой,
-  гипотезы дословно (trailing), ноль новых доказательств:
-
-| # | клоз | делегат | с версии |
-|---|---|---|---|
-| (12) | growth first step: a<0, R>0, stepEps<2a²/R² ⇒ ∃ η>0, CE_t(L(bη η)) < fOld (strict) | `first_step_strict_improves` | v3.4 (C662) |
-| (13) | Adam first step: g≠0, eps>0 ⇒ ⟨g, adamDir g g² eps⟩ > 0 | `adam_first_step_dot_pos` | v3.4 (C662) |
-| (14) | holdout two-way: |Θ|≤N, ln(2N/δ) ≤ 2k(ε/B)² ⇒ P≥1−δ [гейт принял ⇒ pop_new ≤ pop_old + 2ε − margin] | `holdout_gate_two_way_delta` | v3.4 (C662) |
-
-  v3.4 `hagi_master_v34` (:323) = v3.3 + (12)(13)(14); клозы (1)–(11)
-  одним делегатом `hagi_master_v33` (деструкцией конъюнкции). Cycle-аудит C662:
-  MasterTheoremV3 импортирует только Hagi.lean; транзитивные импорты
-  FunctionPreservingGrowth (70 модулей) / AdamDirection (1) /
-  HoldoutGateTwoWay (53) не содержат MasterTheoremV3* ⇒ v3.4 в том же
-  файле. Witness: C662 traj (#check 14 клозов;
-  (14): ln 400 ≤ 2·1200·0.05²). Axioms: propext, Classical.choice,
-  Quot.sound. Proposal: docs/PROPOSAL-holdout-size.md (#8).
-- `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458) — v3.5 =
-  v3.4 + оптимизаторный блок (C668–C687): 14 клозов машины + контракт (O7)
-  + 6 клозов оптимизатора ОДНОЙ теоремой; (1)–(14) одним делегатом
-  `hagi_master_v34`, ноль новых доказательств:
-
-| # | клоз | делегат | с версии |
-|---|---|---|---|
-| (O7) | honest-closure: контракт `OptimizerPremises` — первая конъюнкта блока | сама структура | v3.5 (C687) |
-| (O1) | grad structure: ∇_{W1} CE одного входа rank-one (g ⊗ x); батч: D CE[Δ] = −⟨Σ_t g_t⊗x_t, Δ⟩ | `w1_grad_rank_one`, `batch_directional_derivative` | v3.5 (C687) |
-| (O2) | smooth step: γ* = 1/S_batch, drop = ‖D‖²/(2·S_batch) (сумма CE батча); вдоль любого d: γ* = a/(L‖d‖²) | `w1BatchCE_optimal_step_drop`, `dir_drop_optimal` | v3.5 (C687) |
-| (O3) | Muon optimality: ⟨G,Δ⟩ ≤ Σσ на изометриях (ΔᵀΔ = 1; wide ΔΔᵀ = 1), максимум достигается | `muon_step_optimal_in_isometry_group`, `wide_step_optimal'` | v3.5 (C687) |
-| (O4) | NS approximation: σ₀ ∈ [1/2,1] ⇒ σ₃ ≥ 39/40; ⟨G, ns_k G⟩ = Σ σ i·ns_seq k (σ i) | `ns_sigma_min_three`, `muon_alignment_exact`, `wide_alignment_exact'` | v3.5 (C687) |
-| (O5) | descent certificate: ∃ η>0, CE строго убывает после W1 − η·ns_k(Ĝ), слой любой формы (один вход, батч) | `muon_step_useful_w1_rect'`, `muon_step_useful_w1_rect_batch'` | v3.5 (C687) |
-| (O6) | momentum: ⟨G,m⟩ ≥ (1−μ)‖G‖² − μ‖G‖‖m_prev‖; ≥ ‖G‖² при ⟨G,m_prev⟩ ≥ ‖G‖²; Muon с моментом: ⟨G,Xₖ⟩ ≥ ‖m‖_F − ‖G−m‖_F‖Xₖ‖_F | `momentum_align_cs`, `momentum_align_ge_grad`, `muon_momentum_bound` | v3.5 (C687) |
-
-  Контракт посылок слоя — `OptimizerPremises` (MasterTheoremV3.lean:428),
-  (O1)–(O6) обусловлены им:
-  `S_batch > 0`, равные маски до/после шага `1/S_batch`, вне kink,
-  `G ≠ 0` (батч и один вход, `x ≠ 0`); прочие посылки — дословно
-  посылки делегатов (`d ≠ 0`, `0 ≤ μ`, `⟪grad z, m_prev⟫ ≥ ‖grad z‖²`,
-  `card m ≤ card n`, `σ ∈ [1/2, 1]`, `m ≠ 0`). Mean-форма батча —
-  `w1MeanCE_optimal_step_drop` (C685), в v3.5 не входит. Witness:
-  C687 traj (пример C685/C686: Fin 3 × Fin 2, S_batch = 49, вне kink;
-  hsame/hG/hgS — hypothesis-примеры). Axioms: propext, Classical.choice,
-  Quot.sound. Docs: DERIVED-CONFIG v2, paper v1.4 §3.17.
-
-## Hagi/Theory/FactLedger.lean (fact-ledger append-only мост)
-
-- Мост к wave219 memory_store (facts.py): `FactEntry`/`FactHistory`,
-  `fact_append_preserves` (take-инвариант), `fact_lookup_monotone`.
-  Честно: идемпотентности append НЕТ (как в коде), dedup-теорема
-  опущена. Bench: нет.
-
-## Hagi/Theory/RangeWrap.lean (piecewise range-affine мост)
-
-- Мост к wave222 `_mod_affine_expr` (core.py): `rangeWrap lo c x m`,
-  `rangeWrap_inrange` (замкнутость в [lo, lo+m), `Int.emod`),
-  `rangeWrap_fixed_point` (c % m = 0 не двигает). Идемпотентность
-  композиции честно опущена. Bench: нет.
-
-## Hagi/Theory/AdaptiveContext.lean (adaptive-context мост)
-
-- Мост к lm.AdaptiveContextSelector (lm.py:124): «self-CE elbow» —
-  наименьший W с CE ≤ best·(1+tol). `selectW_spec`,
-  `selectW_occam_minimal` (меньшие окна отклонены измерением),
-  `selectW_budget_bound` (≤ maxW окон). Bench: нет.
-
-## Hagi/Theory/KnowledgeConsolidation.lean (knowledge-consolidation мост)
-
-- Мост к wave225 (unified.py:285-315: remember/consolidate/
-  learn_from_dialog): `consolidate_prompt_empty` (graceful
-  degradation), `remember_preserves_pages` (append-only, родня
-  C579), `learn_from_dialog_archives` (архив до ingest). HONEST:
-  top-k ранжирование НЕ монотонно — теорема опущена. Bench: нет.
-
-## Hagi/Theory/CoverageReading.lean (чтение и стоимость окна)
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `covStarts_covers` | C598: окна k с шагом k (+ суффикс-окно) покрывают каждый байт [0, n) — полное чтение входа | Hagi/Theory/CoverageReading.lean:54 | — |
-| `covStarts_trunc_uncovered_zero` | ЧЕСТНАЯ ГРАНИЦА (не позитив): усечение windows[-max_span:] при окон > m отбрасывает старт 0, байт 0 не прочитан | Hagi/Theory/CoverageReading.lean:130 | мотивация adaptive-span |
-| `covStartsStep`, `covStarts_eq_step`, `covStartsStep_covers`, `covStartsStep_len_le`, `covStartsStep_adaptive_covers` | C602: старты с шагом s: покрытие ТОЧНО при 0 < s ≤ w (s > w — дыра); окон ≤ (n−w)/s + 2; при (n−w)/s+2 ≤ m покрытие полное И усечение не срабатывает | Hagi/Theory/CoverageReading.lean:171, :178, :184, :220, :233 | `--mode adaptive-span`, `adaptive_span` |
-| `hierBlockLen`, `hierStarts`, `hier_covers_any_n`, `hier_peak_window_budget` | C611: 2 уровня (блоки B × `covStartsStep`): покрытие [0, n) для ЛЮБОГО n без верхней границы; peak ≤ m окон в каждом блоке (peak ≠ total). Точный бюджет s = w, B = w·(m−1) | Hagi/Theory/CoverageReading.lean:268, :273, :282, :314 | `--mode generate-hier`, `hier_span` |
-| `covStartsStep_len_tiling`, `hier_blocks_sum_tiling`, `hier_total_formula`, `hier_total_min`, `hier_total_floor`, `hier_optimal` | C618: total ≤ ⌈n/B⌉·((B−w)/s+2); при s = w, w ∣ B total = ⌈n/w⌉ ТОЧНО и не зависит от B (внутреннего оптимума B* нет); информационный floor любого покрытия ≥ ⌈n/w⌉ ⇒ выбор C611 total-оптимален | Hagi/Theory/CoverageReading.lean:352, :387, :438, :460, :494, :531 | pinned assert C613 |
-| `ceil_div_anti`, `windowCost_fixed_mono`, `windowCost_linear_bounds`, `windowCost_linear_near_const`, `windowCost_hier` | C623 (ns WindowTradeoff): totalCost(w) = ⌈n/w⌉·c(w). c(w)=c ⇒ монотонно невозрастает, оптимально w_max; c(w)=c·w ⇒ n ≤ w⌈n/w⌉ ≤ n+w−1, total ∈ [c·n, c·(n+w)) — НЕ зависит от w; мост к `hier_total_min` | Hagi/Theory/CoverageReading.lean:553, :575, :584, :600, :611 | `--cost-regime fixed/linear`, `cost_regime_w` |
-| `mixedCost_relax_min`, `mixedCost_relax_min_eq`, `mixedCost_lower` | C628: c(w) = a + c·w²: a/w + c·w ≥ 2√(a·c) (AM-GM), равенство при w = √(a/c) — внутренний оптимум w*; дискретный ⌈n/w⌉(a+c·w²) ≥ 2n√(a·c) (равенство в общем случае недостижимо — точку берёт целый argmin bench) | Hagi/Theory/CoverageReading.lean:628, :648, :673 | `--cost-regime mixed`, α=2 |
-
-- Правило выбора w: c(w)=c ⇒ w_max; c(w)=c·w ⇒ свободно (по
-  точности); c(w)=a+c·w^α ⇒ w* = (a/(c·(α−1)))^(1/α). Общий α>1 —
-  вне Lean (honest Real-sketch deriv+convexOn); чистая c·w^α
-  оптимума не имеет (optimum w → min). Стоп-предикаты generate_auto
-  (sentence + low confidence + 8-step repetition + entropy collapse)
-  — def-eq тривиальность, опущены.
-- Witness: C598 trajCov.lean 540/64 covered (9 окон), негатив 3/10
-  false; C602 trajSpan.lean 540/w64/s=9 — 54 окна covered; s=17 > w=9
-  (n=60) байт 9 в дыре; 1152/w64/s=17 — 65 окон > 64, усечение теряет
-  байт 0, фикс s=18 — 62 окна covered. C611 trajHier.lean n=8128, B=4032,
-  s=w=64: per-block [63, 63, 1], peak 63; одноуровнево 127 > 64. C618
-  trajOptB.lean n=100000: total 1563 = ⌈n/w⌉ для B ∈ {64, 2048, 4032,
-  4096}; s=32, B=1088 → 3033 > floor. C623 trajW.lean n=100000, w ∈
-  {16, 64, 256}: чтения {6250, 1563, 391}; linear-cost {100000, 100032,
-  100096}.
-
-## scripts/bench_bridge.py (C551–C654: режимы без собственного Lean-ряда)
-
-Все режимы: append-блок + choice + dispatch (backward-совместимо,
-канон ALGORITHMS §27), certified snap-GD (drop>0 COMMIT / HOLD),
-forgetA=0 bit-exact asserts, drift-детект на замороженной копии,
-EB-телеметрия, негативы (wrong-const, HOLD), witness-lean rc=0,
-аксиомы только propext/Quot.sound/Classical.choice.
-
-- C551 `--mode universal-loop`: полный живой корпус 113/113 —
-  покрытие 93.8% = 6 реальных констант-кластеров; линейных законов
-  НЕТ (измерено); законы C549 на реальный корпус не переносятся
-  (0/113). Lean: `universal_loop_corpus_mono`.
-- C553 `--mode universal-loop-nl`: нелинейный язык v2 (произведения,
-  min/max, пороговые): законов НЕТ (19204 кандидата, покрытие
-  идентично). Новая теорема не нужна (oe_search_complete абстрагирован
-  по Prog/space).
-- C555 `--mode self-compress-loop`: learn→merge→learn, params ≤
-  2·K·d = 32 при монотонном росте знания (CE остатка −84%), Σ merge
-  bounds = 0; негативы k<ρ теряют знание (usable=false). Lean:
-  `selfCompressParams`, `self_compress_params_bounded`/`_contrast`,
-  `self_compress_loop_sound`.
-- C556 `--mode distill`: констант-кластеры → rank-1 (`distillAdapter`,
-  `constant_distill_exact`): CE кластеров 0 бит-в-бит, ветвления 113
-  → 0. Контраст `symbolic_storage_cheaper`: символьное хранение
-  дешевле по памяти.
-- C558 `--mode mini-hagi-v3`: сборка C547–C556 (115 точек): кластеры
-  108/115, params ≤ 32, forget 0. Lean: `v3_assembly_sound`.
-- C560 `--mode adapter-transfer`: warm vs cold vs poisoned, равные
-  бюджеты — T1 3/3 по AUC (×387 на близкой паре); poisoned хуже по
-  AUC. C566 реактивно (корпус 115→122): инварианты стабильны.
-- C568 `--mode band-check`: 48/48 полос на живом корпусе, негатив
-  переставленной полосы 0/2. Lean: `softDef_shift`,
-  `bandDescribes_of_pointwise`, `bernoulliBandDescribes`
-  (Hagi/Theory/TrainerBenchmark.lean:140, :155, :169).
-- C577 `--mode adapter-transfer-auto`: probe-A/B гейт (2 шага,
-  rollback C530) выбирает warm/cold — T1 сохранены, adversarial →
-  cold. Lean: `gate_char`, `auto_transfer_gate_sound`
-  (Hagi/Theory/AutoTransferGate.lean:80, :139).
-- C601 `--mode transfer-gate-certified` (bench_bridge.py:12442,
-  :12450): `nl_budget` γG² + Lγ²G²/2 ДОСЛОВНО из Lean; warm допустим
-  ⟺ start_gap = f(θA) − f(0) ≤ n·nlBudget; двухуровневая семантика
-  quad-iff + smooth-sufficient. L = 2·trace(H̄), G — измеренный
-  max ‖grad‖² (honest premise). Honest: adversarial — quad-iff
-  cold, smooth-гейт допускает warm (G ≈ 0.03, бюджет 99.66 > 5.43)
-  — sufficient ≠ iff. Порог точно по границе: 24/25 → warm, 25/25 →
-  cold. 3 реальные пары: оба уровня warm.
-- C609 auto-LR (bench_bridge.py:12170): adapter-transfer-auto и
-  transfer-gate-certified переведены на γ = 1/(2·trace(H̄)) по
-  `nl_drop_optimal`; старая константа 1/10 — флаг --fixed-lr.
-  Телеметрия `steps_drop_vs_bound` (bound может быть loose). γ_auto
-  примеры 0.477 / 0.520 / 0.667. A/B: вердикты идентичны, golden
-  бит-идентичен. NOT changed: grow-семейство уже 1/L, mini-hagi,
-  trunk.
-- C613 `--mode generate-hier` (bench_bridge.py:13051): `hier_span` —
-  двойник `hierStarts`; n = 540/4032/8128/100000 → блоков 1/1/3/25,
-  total 9/63/127/1563, peak 9/63/63/63, covered; одноуровневый
-  adaptive_span: OK / OK / INFEASIBLE / INFEASIBLE. Pinned: n=8128 →
-  [63, 63, 1] (совпало с #eval C613 HierEval.lean).
-- C626 `--cost-regime {fixed,linear,mixed}` в generate-hier
-  (bench_bridge.py:13150): `cost_regime_w` — точные Fractions,
-  fail-closed asserts (коридор, near-const, w_max, argmin); n =
-  540/4032/8128/100000, варианты w {16, 64, 256, w_max}; сверка с
-  C623 совпала дословно.
-- C633 growth gate в grow-snap / adapter-grow (bench_bridge.py:5862,
-  :5882): `growth_gate_measure` (G² — сумма квадратов fd-градиентов;
-  L — однокоординатная выборка кривизны, honest proxy, L=0 → GROW
-  fail-closed); c_add = n_new_params·λ, λ = 1/10⁴ (PIN = одна
-  минимальная ячейка snap-сетки). grow-snap: 6 событий, все GROW,
-  глубина 8 = golden; adapter-grow: 2 события (r=1, r=2) GROW, ranks
-  [1, 2]. skipped-certified = 0 — честно.
-- C635 `--gate-test` (bench_bridge.py:5952): 6 синтетик — S1..S4 STAY
-  (в т.ч. равенство), G1/G2 GROW, физически проходит SKIP-ветку;
-  Lean-witness gatetest.lean PASS. `--lambda-sweep`: λ=1/10⁴ → 6 GROW
-  (golden); λ ≥ 1/10³ → первый гейт STAY, глубина 2; certified_stay
-  λ* ≈ 10⁴¹ (GROW ⟺ λ < pb/params).
-- C654 `--mode certified-warmup-sim` (`certified_warmup_sim_run`):
-  certified warm-up против plain Adam на adapter-grow (trunk заморожен);
-  snapshot fOld 3.761650 -> certified 2.783855 (600 COMMIT, 0 HOLD),
-  plain Adam 3.583951 без сертификата; Verdict PASS, warmup_safe true.
-
-## Hagi/Theory/FunctionPreservingGrowth.lean (рост: identity, warm-up, certified-шаг, useful first, chain rule)
-
-Код-якорь HAGI_v2: `_block_add`/`grow` lm.py:581-601 @ca52eb4
-(`h = h + relu(a@W1+b1)@Wo`, Wo = 0, W1 random); `_maybe_grow`
-unified.py:383-440 @ca52eb4; `_certified_finite_step` lm.py:826 @ca52eb4.
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `identityBlock`, `trunk_function_preserving`, `lmLogits_grow_identity` (→ `lmLogits` LMCompose.lean:215), `function_preserving_growth` | trunk ++ [identity-блок] = старый trunk ⇒ те же логиты (только шаг 0). Родня: `zero_init_identity` (NonlinearStep0.lean:104), `adapter_neutral_B` (AdapterGrowth.lean:101) | Hagi/Theory/FunctionPreservingGrowth.lean:137, :166, :176, :200 | `--mode grow` (C444, `blockAdmissionRule`) |
-| `warmup_telescope`, `warmup_safe`, `warmup_strict` | h0 (старт = fOld) + h1 (каждый шаг obj' ≤ obj − drop) ⇒ obj n ≤ fOld − Σ drop | Hagi/Theory/FunctionPreservingGrowth.lean:288, :303, :318 | `certified-warmup-sim` (C654) |
-| `uncertified_step_can_worsen` | без h1 один шаг растёт obj — негатив | Hagi/Theory/FunctionPreservingGrowth.lean:335 | — |
-| `post_warmup_growth_safe`, `post_warmup_growth_safe_of_certified` | + rollback-гейт (`guardedStep` RollbackGate.lean:86): при любом вердикте obj ≤ fOld | Hagi/Theory/FunctionPreservingGrowth.lean:352, :371 | — |
-| `stepEps`, `CertifiedFiniteStep`, `warmup_h1_of_certified_steps`, `warmup_safe_of_certified_steps`, `post_warmup_growth_safe_of_certified_steps` | контракт COMMIT (drop > 1e-12 ∧ obj' ≤ obj − drop) ∨ HOLD ⇒ h1 ⇒ warmup_safe и rollback-композиция | Hagi/Theory/FunctionPreservingGrowth.lean:395, :402, :410, :426, :437 | `certified-warmup-sim` (C654) |
-| `uncertified_step_not_certified`, `batch_drop_not_global` | негативы: растущий шаг не проходит контракт; drop на batch ≠ drop на другом functional | Hagi/Theory/FunctionPreservingGrowth.lean:450, :464 | — |
-| `certified_step_block_of_range`, `block_step_certified_of_range_bound`, `block_step_commit_of_range_bound`, `block_range_bound_violated_not_certified` | range-лемма о логитах (`lse_shift_upper` PoEBound.lean:164) не зависит от носителя ⇒ шаг по параметрам блока certified при range ≤ r | Hagi/Theory/FunctionPreservingGrowth.lean:491, :507, :521, :536 | — |
-| `linDrop`, `useful_first_step`, `useful_first_step_pos`, `useful_eta_le`, `exists_useful_eta`, `first_step_useful_certified`, `first_step_strict_improves`, `no_signal_no_drop` | линейный по η шаг: drop_max = 2a²/R² при η* = −4a/R²; a < 0 ∧ 2a²/R² > stepEps ⇒ COMMIT и CE < fOld; a = 0 ⇒ drop ≤ 0 ∀η | Hagi/Theory/FunctionPreservingGrowth.lean:579, :584, :590, :597, :620, :641, :676, :629 | — |
-| `chainGrad`, `chain_linear`, `useful_of_adam_first` | ∇(CE∘L) = Jᵀ∇CE (алгебра); Adam-first g ≠ 0 ⇒ a < 0 ⇒ certified COMMIT на линейном носителе (Wo при фиксированном h) | Hagi/Theory/FunctionPreservingGrowth.lean:713, :721, :746 | — |
-| `useful_step_of_fderiv`, `useful_of_adam_first_fderiv`, `reluL`, `reluMask`, `reluJacLin`, `reluJac`, `hasFDerivAt_relu`, `hasFDerivAt_reluL`, `useful_of_adam_first_relu` | fderiv d = −c < 0 ⇒ ∃ η > 0 строгого убывания (`fderiv_ceOneHot_comp_apply` CEGradient.lean:170; `smax_pos` PoEBound.lean:104, `softDef_sum_one` InfoCore.lean:118); инстанс Adam-first по b1 relu-блока вне kink (БЕЗ certified-величины drop) | Hagi/Theory/FunctionPreservingGrowth.lean:810, :865, :893, :897, :914, :926, :900, :937, :982 | — |
-
-- Honest-остаток: (F3 → закрыт C668, `Hagi/Theory/FirstLayerGrad.lean`);
-  (U2) global
-  reachability «expressive блок ⇒ drop ≥ δ» открыт (non-convex + UAT);
-  certified drop для нелинейного носителя (b1 и W1) не выведен; в коде
-  warm-up — голый
-  Adam (unified.py:423-433 @ca52eb4), h1 условен, L-smooth блока не доказана;
-  holdout-гейт — измерение; η* — certificate-оптимум, не шаг кода; depth- и
-  width-рост — разные носители, унификации нет.
-
-## Hagi/Theory/FirstLayerGrad.lean (производная по первому слою W1, C668)
-
-→ v3.5 clause O1: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-Код-якорь HAGI_v2: `_block_add` lm.py:586 @ca52eb4
-(`h = h + t.relu(a @ blk["W1"] + blk["b1"]) @ blk["Wo"]`), `W1 : dim ×
-hidden` — lm.py:594 @ca52eb4. Пин F3 карточки FunctionPreservingGrowth
-(«производная по W1 не формализована») закрыт: слой `W1 : ι → δ → ℝ`
-(строка `i`, столбец `j`), один вход `x : δ → ℝ`, pre-activation
-`w1Pre x W1 i = Σ_j W1 i j * x j`.
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `w1Pre`, `w1L`, `w1PreCLM`, `w1Jac`, `w1Jac_apply`, `w1Entry` | логиты как функция матрицы: `w1L W1 b wo x = reluL (W1ᵀx) b wo`; `W1 ↦ W1ᵀx` — непрерывное линейное; якобиан `J·Δ v = Σ_i mask i·(Δᵀx) i·wo i v`; запись `J v (i,j) = mask i·wo i v·x j` | Hagi/Theory/FirstLayerGrad.lean:49, :54, :59, :72, :77, :114 | — |
-| `hasFDerivAt_w1L` | вне kink (`w1Pre x W1 i + b i ≠ 0`) `w1L · b wo x` дифференцируема по матрице, производная `w1Jac` (`hasFDerivAt_reluL` по симметрии `reluL w b = reluL b w` + `HasFDerivAt.comp` с линейной `W1 ↦ W1ᵀx`) | Hagi/Theory/FirstLayerGrad.lean:87 | — |
-| `w1_grad_rank_one` | градиент по `W1` RANK-ONE: `chainGrad w1Entry p y (i,j) = g i · x j`, `g i = Σ_v (y v − p v)·mask i·wo i v` (строка `Woᵀ r`, умноженная на вход) | Hagi/Theory/FirstLayerGrad.lean:123 | — |
-| `w1_directional_derivative` | pairing range-леммы `⟨p − y, J·Δ⟩ = −Σ_{ij} (g i · x j)·Δ i j` — Frobenius-скалярное произведение rank-one градиента с возмущением (`chain_linear` на `ι × δ`) | Hagi/Theory/FirstLayerGrad.lean:140 | — |
-| `useful_of_adam_first_w1` | T5: Adam-first по матрице `W1` (параметр `ι × δ`), вне kink, `g ≠ 0` ⇒ `∃ η > 0`, `CE_t (w1L (W1 + η•d)) < CE_t (w1L W1)` (через `useful_of_adam_first_fderiv`) | Hagi/Theory/FirstLayerGrad.lean:167 | — |
-| `w1_rank_one_step_eq_bias` | rank-one обновление `ΔW1 = (c/Σx²)•(u ⊗ x)` для одного входа равно сдвигу bias `b + c • u` (первый слой вдоль входа — тот же b1-слой) | Hagi/Theory/FirstLayerGrad.lean:188 | — |
-
-Witness: `.tmp/C668/traj.lean` (d = 3, d_ff = 4, 2 класса; мёртвый нейрон 2):
-`fderiv (w1L · b wo x) W Δ = Σ_i mask i·(Δᵀx) i·wo i v` численно = (14, 42),
-логиты = (14, 28), rank-one шаг c = 2, u = e₁ ⇒ логиты (16, 30); rc = 0.
-Freeze 9043 → 9054 (+11: `w1Pre`, `w1L`, `w1PreCLM`, `w1Jac`, `w1Jac_apply`,
-`hasFDerivAt_w1L`, `w1Entry`, `w1_grad_rank_one`, `w1_directional_derivative`,
-`useful_of_adam_first_w1`, `w1_rank_one_step_eq_bias`).
-
-- Honest-остаток: уровень — строгое убывание (T3/T4), certified-величина
-  drop по W1 не выведена (→ закрыт C684 внутри области активации:
-  `w1CE_drop_of_step`, `w1CE_optimal_step_drop`, FirstLayerLip.lean:339/:392);
-  один вход `x` (в коде — батч/последовательность
-  `a @ W1`, градиент по батчу = Σ_t g_t ⊗ a_t — сумма rank-one;
-  формализована C669/C681 (`batchGrad`, `w1BatchGradR`), гладкость батча —
-  C685 (`w1BatchCE_descent_lemma`, FirstLayerLipBatch.lean:113)); оптимум `ΔW1` по норме Фробениуса (вариант B/C:
-  `η* = 4|a|/R²`, минимальность rank-one) — не формализован; kink
-  (`w i + b i = 0`) вне носителя.
-  (Батч `Σ_t g_t ⊗ x_t` и оптимум в шаре Фробениуса → закрыты C669,
-  `Hagi/Theory/BatchRankOne.lean`.)
-
-
-## Hagi/Theory/BatchRankOne.lean (батч-градиент по W1 и оптимальный шаг, C669)
-
-→ v3.5 clause O1: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-Код-якорь HAGI_v2: `W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1,
-iters=3)` core.py:1755 @ca52eb4 — Muon-шаг (Newton–Schulz-ортогонализация,
-функция newton_schulz_orthogonalize, core.py:1350 @ca52eb4) по матрице `W1`; лосс —
-cross_entropy по батчу (среднее, lm.py:688 @ca52eb4). Носитель: батч
-`x : τ → δ → ℝ`, `batchGrad g x i j = Σ_t g t i · x t j` (= `Σ_t g_t ⊗ x_t`,
-сумма rank-one), `fdot G Δ = Σ_{ij} G i j·Δ i j`, `frobSq A = Σ_{ij} A i j²`.
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `batchGrad`, `fdot`, `frobSq`, `rowGrad`, `r1`, `colComb` | батч-градиент `Σ_t g_t ⊗ x_t`; Frobenius-спаривание и квадрат нормы; строка градиента `g t i` (`chainGrad` для входа `x t`); rank-one `u ⊗ v`; `Gᵀ u` | Hagi/Theory/BatchRankOne.lean:48, :52, :55, :58, :166, :170 | — |
-| `batch_directional_derivative` | T1: `Σ_t⟨p_t − y_t, J_t·Δ⟩ = −Σ_{ij} (batchGrad g x i j)·Δ i j` — directional derivative по батчу = Frobenius-спаривание батч-градиента с `Δ` (сумма `w1_directional_derivative` по `t`) | Hagi/Theory/BatchRankOne.lean:65 | — |
-| `frobSq_nonneg`, `fdot_sq_le`, `frob_inner_abs_le`, `frob_inner_le` | Коши–Шварц: `⟨G,Δ⟩² ≤ ‖G‖²_F·‖Δ‖²_F`, `|⟨G,Δ⟩| ≤ ‖G‖_F·‖Δ‖_F` (`Finset.sum_mul_sq_le_sq_mul_sq` на `ι × δ`) | Hagi/Theory/BatchRankOne.lean:93, :99, :107, :114 | — |
-| `frob_step_le` | T2 (граница): `frobSq Δ ≤ R²`, `R ≥ 0` ⇒ `−R·‖G‖_F ≤ ⟨G, Δ⟩` — в шаре Фробениуса спуск не лучше `R·‖G‖_F` | Hagi/Theory/BatchRankOne.lean:120 | — |
-| `sgd_step_attains` | T2 (достижимость): `G ≠ 0` ⇒ `Δ = −(R/‖G‖_F)•G` допустим (`frobSq Δ = R²`) и `⟨G, Δ⟩ = −R·‖G‖_F` — SGD-направление оптимально | Hagi/Theory/BatchRankOne.lean:136 | — |
-| `rank_one_inner` | `⟨G, u ⊗ v⟩ = ⟨v, Gᵀu⟩` — спаривание с rank-one шагом зависит от `G` только через `Gᵀu` | Hagi/Theory/BatchRankOne.lean:176 | — |
-| `rank_one_le` | T3'' (граница): `⟨G, u ⊗ v⟩ ≤ ‖v‖·‖Gᵀu‖` и `‖Gᵀu‖² ≤ ‖u‖²·‖G‖²_F` | Hagi/Theory/BatchRankOne.lean:184 | — |
-| `rank_one_best_v` | T3'' (достижимость): `Gᵀu ≠ 0` ⇒ `v = Gᵀu/‖Gᵀu‖` единично и `⟨G, u ⊗ v⟩ = ‖Gᵀu‖` — оптимум внутри rank-one-семейства при фикс. `u` | Hagi/Theory/BatchRankOne.lean:209 | — |
-
-Witness: `.tmp/C669/traj.lean` (d = 3, d_ff = 4, 2 класса, батч из 2 входов
-`x₀ = (2,−1,3)`, `x₁ = (1,5,1)`; мёртвый нейрон 2): `Σ_t⟨p_t − y_t, J_t·Δ⟩`
-= −4 = `−⟨G, Δ⟩`, `G = Σ_t g_t ⊗ x_t` со строками `(−1,2)`, `(0,1)`, `0`,
-`(2,−1)` (элементы `G 0 1 = 11`, `G 3 1 = −7`); T2: `G = [[2,4],[6,1]]`,
-`frobSq G = 57`, `R = 1` ⇒ SGD-шаг `frobSq = 1`, `⟨G, Δ⟩ = −√57`; T3'':
-`u = e₁` ⇒ `Gᵀu = (6,1)`, `v = (6,1)/√37` даёт `⟨G, u⊗v⟩ = √37`, `‖v‖² = 1`;
-rc = 0. Freeze 9054 → 9070 (+16: `batchGrad`, `fdot`, `frobSq`, `rowGrad`,
-`batch_directional_derivative`, `frobSq_nonneg`, `fdot_sq_le`,
-`frob_inner_abs_le`, `frob_inner_le`, `frob_step_le`, `sgd_step_attains`,
-`r1`, `colComb`, `rank_one_inner`, `rank_one_le`, `rank_one_best_v`).
-
-- Honest-остаток (down-scope C669): спектральный аналог T2 — max `⟨G,Δ⟩` при
-  `‖Δ‖_2 ≤ 1` равен `σ_max(G)` и достигается на `U Vᵀ` (ядро Muon) — НЕ
-  доказан: нужна дуальность спектральной/ядерной нормы (hbridge, см.
-  `Hagi/Step/FrobeniusLMO.lean`; в репо есть только диагональное ядро
-  `muon_alignment_optimal` и `spectral_norm_le_frobenius_norm`). Доказан
-  rank-one срез (T3''); spectral: → MuonSpectral (C670: rank-one спектральный
-  оптимум через SVD, полный шаг Muon `U Vᵀ` — hbridge). Сравнение с Adam-sign (`‖G‖₁ ≥ ‖G‖_F ≥ σ_max`) не
-  формализовано. Батч здесь — сумма по `τ` без деления на размер (код:
-  cross_entropy со средним — множитель `1/|τ|` на градиент). Muon-шаг кода
-  (core.py:1755) относится к другой `W1`, чем слой `_block_add` (lm.py:586)
-  — bridge to be made.
-## Hagi/Theory/MuonSpectral.lean (rank-one спектральный шаг Muon: σ_max, C670; мост σ_max = ‖G‖₂, C671; full step → MuonIsometry)
-
-→ v3.5: зависимости делегатов (клоза своего нет); сборка — `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), C687.
-
-Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1350 @ca52eb4 (вызов —
-`W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)` core.py:1755
-@ca52eb4) — приближает полярный фактор `U Vᵀ` градиента (quirk `iters=3` ⇒
-приближённая изометрия; якорь только @sha). Носитель: матрицы `Matrix n n ℝ`
-(квадратный слой), `fdot G Δ = Σ_{ij} G i j·Δ i j`, `r1 u v` = `u ⊗ v`,
-`smax G` = `max_i √(λᵢ(GᵀG))` (Flywheel realSingularValues), `Unit x` =
-`∑ x i² = 1`; норма — операторная `l2` (Matrix.Norms.L2Operator).
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `fdot`, `r1`, `smax`, `Unit`, `smax_nonneg` | Frobenius-спаривание; rank-one `u ⊗ v`; наибольшее сингулярное число; единичный вектор; `σ_max ≥ 0` | Hagi/Theory/MuonSpectral.lean:46, :49, :53, :58, :61 | — |
-| `rank_one_inner` | `⟨G, u ⊗ v⟩ = Σ_i u i·(G v) i` | Hagi/Theory/MuonSpectral.lean:81 | — |
-| `sum_sq_mulVec`, `ortho_preserves_sq`, `smax_svd` | `‖M v‖² = Σ_i v i·(Mᵀ(M v)) i`; ортогональная `M` сохраняет `‖v‖²`; явный SVD `G = U·Σ·Vᵀ` с `σ = realSingularValues G` (обе `U`, `V` ортогональны) | Hagi/Theory/MuonSpectral.lean:69, :89, :95 | — |
-| `rank_one_norm_bound` | Courant–Fischer в форме SVD: `‖G v‖² ≤ σ_max(G)²·‖v‖²` | Hagi/Theory/MuonSpectral.lean:118 | — |
-| `rank_one_inner_le` | T1 (граница): единичные `u`, `v` ⇒ `⟨G, u ⊗ v⟩ ≤ σ_max(G)` | Hagi/Theory/MuonSpectral.lean:156 | — |
-| `rank_one_spectral_norm` | T2: единичные `u`, `v` ⇒ `‖u ⊗ v‖₂ = 1` (rank-one шаг лежит на спектральной сфере) | Hagi/Theory/MuonSpectral.lean:179 | — |
-| `rank_one_attains` | T3 (достижимость): топ-пара (столбцы `U`, `V` с индексом топ-σ) единична и `⟨G, u₁ ⊗ v₁⟩ = σ_max(G)` | Hagi/Theory/MuonSpectral.lean:231 | — |
-| `rank_one_spectral_step_optimal` | T4 (итог): всякий rank-one шаг с единичными `u`, `v` имеет норму 1 и `⟨G, Δ⟩ ≤ σ_max(G)`; граница достигается | Hagi/Theory/MuonSpectral.lean:289 | — |
-| `l2_opNorm_mul_orth`, `l2_opNorm_diagonal_abs`, `l2_opNorm_diagonal_nonneg` | C671 (несущие): `YᵀY = 1 ⇒ ‖Y X‖₂ = ‖X‖₂`; `‖diag σ‖₂ = max_i abs(σ i)`; для `σ ≥ 0` — `max_i σ i` | Hagi/Theory/MuonSpectral.lean:297, :306, :327 | — |
-| `smax_eq_opNorm` | C671 T1 (вещественный мост): `smax G = ‖G‖₂` | Hagi/Theory/MuonSpectral.lean:333 | — |
-| `smax_le_frobenius` | C671 T2: `σ_max(G) ≤ ‖G‖_F = √(Σ G i j²)` — spectral ball содержит F-ball | Hagi/Theory/MuonSpectral.lean:354 | — |
-| `opNorm_mulVec_le` | C671 T3: `‖G v‖₂ ≤ σ_max(G)·‖v‖₂` в EuclideanSpace (операторная форма `rank_one_norm_bound`) | Hagi/Theory/MuonSpectral.lean:383 | — |
-
-Witness: `.tmp/C670/traj.lean` (G = diag(3,1), n = 2): для любой единичной
-пары `⟨G, u ⊗ v⟩ ≤ smax G` (T1), `‖u ⊗ v‖ = 1` (T2), топ-пара существует (T3),
-`⟨G, e₁ ⊗ e₁⟩ = G 0 0 = 3`; rc = 0. Freeze 9070 → 9084 (+14: `fdot`, `r1`,
-`smax`, `Unit`, `smax_nonneg`, `sum_sq_mulVec`, `rank_one_inner`,
-`ortho_preserves_sq`, `smax_svd`, `rank_one_norm_bound`, `rank_one_inner_le`,
-`rank_one_spectral_norm`, `rank_one_attains`, `rank_one_spectral_step_optimal`).
-
-- Honest-остаток (down-scope C670): доказан rank-one срез спектрального
-  оптимума, НЕ полный шаг Muon. Полная теорема (max `⟨G, Δ⟩` по всем `Δ` с
-  `‖Δ‖₂ ≤ 1` равна `σ_max`; шаг Muon `U Vᵀ` оптимален по ядерной норме —
-  `⟨G, Δ⟩ ≤ Σσᵢ(G)·σᵢ(Δ)`, von Neumann) требует дуальности спектральной/ядерной
-  норм или неравенства фон Неймана о следе — в Mathlib v4.36 pin
-  (scripts/mathlib-rev.txt) их нет: LinearMap.singularValues есть (sNum0,
-  antitone, без равенства операторной норме), spectral_norm_eq_max_singularValue
-  доказан во Flywheel (Hagi/External/Flywheel/MatrixNormRelations.lean:328,
-  комплексный случай). C671: эквивалентность `smax G = ‖G‖₂` для вещественных
-  матриц ДОКАЗАНА (`smax_eq_opNorm`, путь `G = U Σ Vᵀ` + инвариантность
-  операторной нормы). Witness `.tmp/C671/traj.lean` — общие теоремы, rc = 0
-  (числовой пример 2×2 не вычислялся: `realSingularValues` конкретной матрицы
-  не оценивается). Freeze 9084 → 9090 (+6: `l2_opNorm_mul_orth`,
-  `l2_opNorm_diagonal_abs`, `l2_opNorm_diagonal_nonneg`, `smax_eq_opNorm`,
-  `smax_le_frobenius`, `opNorm_mulVec_le`). Характеризация «равенство ⟺
-  топ-пара» (при кратном топ-σ оптимум не единственный) не формализована.
-  Прямоугольный слой (`ι ≠ δ`) не формализован (Flywheel
-  svd_decomposition_rectangular — комплексный). Код: newton_schulz_orthogonalize
-  с `iters=3` — приближённый `U Vᵀ`, связь с формальным `U·Σ·Vᵀ` — только
-  якорь @sha.
-
-## Hagi/Theory/MuonIsometry.lean (полный шаг Muon оптимален на изометриях, C672)
-
-→ v3.5 clause O3: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1350 @ca52eb4 — итерация
-`X = 0.5 * (3.0 * I_m - X @ X.T) @ X` core.py:1363; нормировка — Frobenius
-`X /= norm`, `norm = np.linalg.norm(X)` core.py:1353 (НЕ спектральная);
-вызов `iters=3` core.py:1755. Идеальный (бесконечный) Newton–Schulz даёт
-полярный фактор `U Vᵀ` — изометрию `ΔᵀΔ = 1`. Здесь доказан максимум
-`⟨G, Δ⟩` по всем изометриям БЕЗ неравенства фон Неймана: разложение
-`⟨G, Δ⟩ = tr(GᵀΔ) = Σ_i σ i·(UᵀΔV) i i`, где `Q = UᵀΔV` — изометрия, поэтому
-`Q i i ≤ 1`, и `σ i ≥ 0`. Носители: `Isometry Δ` = `ΔᵀΔ = 1`,
-`ssum G` = `∑ i, σ i` (ядерная норма `‖G‖_*`), `fdot` из MuonSpectral.lean:46.
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `Isometry`, `ssum`, `ssum_nonneg`, `ssum_eq` | `ΔᵀΔ = 1`; сумма сингулярных чисел; `ssum ≥ 0`; `ssum G = ∑ σ i` при `σ = realSingularValues G` | Hagi/Theory/MuonIsometry.lean:50, :53, :56, :59 | — |
-| `isometry_diag_le_one` | T1: `QᵀQ = 1 ⇒ Q i i ≤ 1` (столбец единичный) | Hagi/Theory/MuonIsometry.lean:65 | — |
-| `fdot_eq_trace`, `inner_eq_sigma_weighted_diag` | носители: `⟨G, Δ⟩ = tr(GᵀΔ)`; `= Σ_i σ i·(UᵀΔV) i i` для `G = U·Σ·Vᵀ` | Hagi/Theory/MuonIsometry.lean:85, :93 | — |
-| `isometry_conj` | `Q = UᵀΔV` — изометрия (произведение изометрий) | Hagi/Theory/MuonIsometry.lean:115 | — |
-| `isometry_inner_le_ssum` | T2 (граница): `ΔᵀΔ = 1 ⇒ ⟨G, Δ⟩ ≤ ssum G` | Hagi/Theory/MuonIsometry.lean:128 | — |
-| `uv_transpose_isometry`, `uv_transpose_attains_ssum` | T3 (достижимость): `U Vᵀ` — изометрия и `⟨G, U Vᵀ⟩ = ssum G` | Hagi/Theory/MuonIsometry.lean:146, :156 | — |
-| `muon_step_optimal_in_isometry_group` | T4 (итог): max по изометриям `⟨G, Δ⟩ = ssum G`, оптимум `U Vᵀ` | Hagi/Theory/MuonIsometry.lean:175 | — |
-
-Witness: `.tmp/C672/traj.lean` (G = diag(3, 1), n = 2, поворот `rot c s` на
-θ: `⟨G, rot⟩ = 4·cos θ` — картинка «≤ 4, равенство при θ = 0»; поворот —
-изометрия; общие T2/T4 применены к G), rc = 0, аксиомы всех 8 теорем:
-propext, Classical.choice, Quot.sound. Freeze 9090 → 9102 (+12:
-`Isometry`, `ssum`, `ssum_nonneg`, `ssum_eq`, `isometry_diag_le_one`,
-`fdot_eq_trace`, `inner_eq_sigma_weighted_diag`, `isometry_conj`,
-`isometry_inner_le_ssum`, `uv_transpose_isometry`, `uv_transpose_attains_ssum`,
-`muon_step_optimal_in_isometry_group`).
-
-Honest (границы):
-- Доказан максимум на ГРУППЕ ИЗОМЕТРИЙ (квадратный вещественный слой),
-  а не на всём шаре `‖Δ‖₂ ≤ 1`: для неквадратного/приближённого шага нужен
-  фон Нейман (в пине Mathlib его нет). Связь «`σ_max(G) ≤ smax` (rank-one,
-  C670) ⊂ `ssum` (full rank, C672)» — числовая, не формальная.
-- Код: нормировка Frobenius (core.py:1353) и `iters = 3` (core.py:1755) ⇒
-  приближённая изометрия: `σ_min` после 3 итераций формализован в C673
-  (`ns_sigma_min_three`: `σ₀ ≥ 1/2 ⇒ σ₃ ≥ 39/40`); мост к `⟨G, Δ_k⟩` закрыт
-  в C674 (`muon_alignment_exact`, `muon_near_optimal`: Newton–Schulz делит
-  сингулярные векторы с `G` ⇒ `UᵀΔ_kV` диагональна; лемма о диагонали не
-  нужна). Прямоугольный `G` (транспонирование core.py:1358) — wide →
-  MuonWide (C678: `wide_step_optimal` — тот же максимум `Σ σ i` на
-  строчных изометриях; существование разложения `G` — C679
-  `exists_wide_svd`). Связь с обновлением `W1` (core.py:1755 ↔ lm.py:586) —
-  не формализована.
-- Формулы «идеальный Newton–Schulz = `U Vᵀ`» (сходимость итерации
-  core.py:1363 к полярному фактору) — не формализована; мост только @sha.
-
-Карточка «`iters = 3`» (C673): скалярная динамика `σ ← σ(3 − σ²)/2`
-формализована в NewtonSchulzSigma (T1–T5'): при `σ₀ ≥ 1/2` доказано
-`σ₃ ≥ 39/40` (`ns_sigma_min_three`), общая граница `1 − σ_k ≤ (2/3)·(3/4)^(2^k)`
-(`ns_defect_bound`). Мост «`σ_min(Δ_k)` ⇒ `⟨G, Δ_k⟩ ≥ (1 − ε)·ssum G`» в
-форме σ_min НЕ нужен и в общем виде ложен (для несимметричной `Q = UᵀΔV`
-`⟨G, Δ⟩` не ограничена снизу числом `σ_min`): шаг кода — правое умножение на
-симметричный множитель, поэтому `Δ_k` делит сингулярные векторы с `G` и
-`Q` диагональна — C674, `muon_alignment_exact`. Остаются гипотезами: `σ₀ ≥ 1/2`
-(код даёт лишь `σ₀ ≤ 1`).
-
-## Hagi/Theory/NewtonSchulzSigma.lean (скалярная динамика Ньютона–Шульца и граница σ_min после k итераций, C673)
-
-→ v3.5 clause O4: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-Код-якорь HAGI_v2: итерация `X = 0.5 * (3.0 * I_m - X @ X.T) @ X`
-core.py:1363 @ca52eb4 — КВАДРАТИЧНАЯ схема `X ← (3X − X·XᵀX)/2`
-(`a = 3/2`, `b = −1/2`, кубичного члена `(3.4445, −4.7750, 2.0315)` в коде НЕТ);
-нормировка Frobenius `X /= norm`, `norm = np.linalg.norm(X)` core.py:1353 ⇒
-`σ_max(X₀) ≤ 1`; вызов `iters=3` core.py:1755. Здесь формализована скалярная
-динамика: `Y = ns_step X = (1/2)·X(3I − XᵀX)`, собственное число `YᵀY` равно
-`μ·((3 − μ)/2)²` (`μ = σ²`), т.е. `σ ← ns_p σ = σ(3 − σ²)/2`; дефект
-`d = 1 − σ` сжимается квадратично: `d ← d²(3 − d)/2`.
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `ns_p`, `ns_seq`, `ns_step` | шаг `t(3 − t²)/2`; k-я итерация; матричный шаг `(1/2)·X(3I − XᵀX)` | Hagi/Theory/NewtonSchulzSigma.lean:42, :45, :148 | — |
-| `ns_quadratic_invariant` | T1: `0 ≤ t ≤ 1 ⇒ t ≤ ns_p t ≤ 1` (рост, инвариант `[0, 1]`) | Hagi/Theory/NewtonSchulzSigma.lean:51 | — |
-| `ns_seq_bounds` | T1': `0 ≤ t ≤ 1 ⇒ t ≤ ns_seq k t ≤ 1` для всех `k` | Hagi/Theory/NewtonSchulzSigma.lean:62 | — |
-| `ns_defect_contraction` | T2: `t ≤ 1 ⇒ 1 − ns_p t ≤ (3/2)·(1 − t)²` | Hagi/Theory/NewtonSchulzSigma.lean:73 | — |
-| `ns_defect_bound` | T3: `0 ≤ d₀ ≤ 1/2 ⇒ 1 − ns_seq k (1 − d₀) ≤ (2/3)·(3/4)^(2^k)` | Hagi/Theory/NewtonSchulzSigma.lean:83 | — |
-| `ns_p_mono`, `ns_seq_mono` | носители: монотонность шага и итераций на `[0, 1]` | Hagi/Theory/NewtonSchulzSigma.lean:105, :115 | — |
-| `ns_sigma_min_three` | T4: `1/2 ≤ σ₀ ≤ 1 ⇒ 39/40 ≤ ns_seq 3 σ₀` | Hagi/Theory/NewtonSchulzSigma.lean:126 | — |
-| `ns_shift_mulVec`, `ns_step_eigenvalue` | T5: `XᵀX v = μ•v ⇒ (YᵀY) v = (μ·((3 − μ)/2)²)•v` | Hagi/Theory/NewtonSchulzSigma.lean:152, :163 | — |
-| `ns_step_eigenvalue_sigma` | T5': `XᵀX v = σ²•v ⇒ (YᵀY) v = (ns_p σ)²•v` | Hagi/Theory/NewtonSchulzSigma.lean:200 | — |
-
-Явное число (witness `.tmp/C673/traj.lean`, rc = 0): при `σ₀ = 1/2` дефект
-`1/2 → 5/16 → 1075/8192 → 1072353284651/1099511627776`, т.е.
-`σ₁ = 11/16 = 0.6875`, `σ₂ = 1 − 1075/8192 ≈ 0.868774`, `σ₃ ≈ 0.975300`;
-доказано `σ₃ ≥ 39/40 = 0.975`. Общая граница T3 при `k = 3`:
-`(2/3)·(3/4)^8 = 2187/32768 ≈ 0.066742` ⇒ `σ₃ ≥ 0.933258` (слабее точной).
-Аксиомы всех 11 деклараций: propext, Classical.choice, Quot.sound.
-
-Honest (границы):
-- `σ₀ ≥ 1/2` — ГИПОТЕЗА T4 (после Frobenius-нормировки доказано лишь
-  `σ₀ ≤ 1`: `smax_le_frobenius`, C671). Для градиента с маленькими
-  сингулярными числами (`σ₀ < 1/2`) три итерации их НЕ поднимают
-  (внешний источник: Shulgin et al., arXiv 2610.30280 — малые σ обрабатываются
-  NS-итерациями Muon как gradient descent).
-- T5/T5' — собственный вектор `XᵀX` (мост «сингулярные числа ⇒ скалярная
-  динамика» через SVD не собран: нужен спектр `YᵀY` из `smax_svd`-носителя).
-- Прямоугольный `X` (транспонирование core.py:1358) — wide → MuonWide
-  (C678: `ns_step_wide_svd` — T1 для `m×n`, `VᵀV = 1`; существование
-  разложения — C679 `exists_wide_svd`); сходимость к `U Vᵀ`, кубичная схема (в коде отсутствует) —
-  не формализованы.
-- Мост к C672 НЕ следует через `σ_min` (нужна диагональ `Q = UᵀΔ_kV`);
-  закрыт в C674 другим путём — через общие сингулярные векторы
-  (`Hagi/Theory/MuonAlignment.lean`: `muon_alignment_exact`,
-  `muon_near_optimal`).
-
-## Hagi/Theory/MuonAlignment.lean (Newton–Schulz делит сингулярные векторы с градиентом: точное выравнивание, C674)
-
-→ v3.5 clause O4: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-Код-якорь HAGI_v2: итерация `X = 0.5 * (3.0 * I_m - X @ X.T) @ X`
-core.py:1363 @ca52eb4 — ПРАВОЕ умножение `X` на симметричный множитель
-`(3I − XᵀX)/2`; нормировка Frobenius core.py:1353; `iters=3` core.py:1755.
-Следствие: каждая итерация сохраняет сингулярные векторы стартовой матрицы —
-`X_k = U·diag(ns_seq k ∘ σ)·Vᵀ` для `G = U·diag σ·Vᵀ`. Поэтому
-`Q = UᵀX_kV` ДИАГОНАЛЬНА и `⟨G, X_k⟩ = Σ_i σ i·ns_seq k (σ i)` (через
-`inner_eq_sigma_weighted_diag`, C672). Замыкает мост C672 ↔ C673: вместо
-«σ_min(Δ) ≥ 1 − ε ⇒ ⟨G, Δ⟩ ≥ (1 − ε)·ssum G» (нужна была лемма о диагонали;
-для произвольной изометрии `Δ` с `σ_min ≥ 1 − ε` утверждение в общем виде
-ЛОЖНО — поворот на 90° даёт `⟨G, Δ⟩ = 0`) доказана точная формула, из которой
-нижняя граница следует на массе спектра с `σ ≥ 1/2`. Широкая
-(прямоугольная) версия — wide → MuonWide (C678: `ns_step_wide_svd`,
-`wide_alignment_exact`).
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `ns_step_svd` | T1: `X = U·diag τ·Vᵀ, UᵀU = VᵀV = 1 ⇒ ns_step X = U·diag (ns_p∘τ)·Vᵀ` | Hagi/Theory/MuonAlignment.lean:45 | — |
-| `ns_iter` | k итераций шага кода: `ns_step^[k] X` | Hagi/Theory/MuonAlignment.lean:86 | — |
-| `ns_iter_svd` | T1': `G = U·diag σ·Vᵀ ⇒ ns_iter k G = U·diag (ns_seq k∘σ)·Vᵀ` | Hagi/Theory/MuonAlignment.lean:91 | — |
-| `muon_alignment_exact` | T2: `⟨G, ns_iter k G⟩ = Σ_i σ i·ns_seq k (σ i)` (`σ = realSingularValues G`) | Hagi/Theory/MuonAlignment.lean:104 | — |
-| `kept` | носитель: `{i | 1/2 ≤ σ i ≤ 1}` | Hagi/Theory/MuonAlignment.lean:125 | — |
-| `muon_near_optimal` | T3: `∀ i, σ i ≤ 1 ⇒ (39/40)·Σ_{i∈kept} σ i ≤ ⟨G, ns_iter 3 G⟩` | Hagi/Theory/MuonAlignment.lean:131 | — |
-| `muon_alignment_ge_gradient` | T4: `∀ i, σ i ≤ 1 ⇒ ⟨G, G⟩ ≤ ⟨G, ns_iter k G⟩` | Hagi/Theory/MuonAlignment.lean:162 | — |
-
-Числа (witness `.tmp/C674/traj.lean`, rc = 0; спектр `G = diag(1, 3/4, 1/2,
-1/10)`, все `σ ≤ 1`): точные траектории `3/4 → 117/128 → 4149171/4194304 →
-≈ 0.999827`, `1/2 → 11/16 → 7117/8192 → 1072353284651/1099511627776 ≈ 0.975300`,
-`1/10 → 299/2000 → ≈ 0.222579 → ≈ 0.328356` (малые σ за 3 итерации не
-поднимаются). Граница T3: `(39/40)·(1 + 3/4 + 1/2) = 351/160 = 2.19375`.
-Внешний расчёт ℚ (не в Lean): `⟨G, X₃⟩ ≈ 2.270356`, `ssum G = 2.35`,
-отношение `≈ 0.96611`; `⟨G, G⟩ = 1.8225 < ⟨G, X₃⟩`. Аксиомы всех 5 теорем:
-propext, Classical.choice, Quot.sound. Freeze 9115 → 9122 (+7).
-
-Honest (границы):
-- ~~Гипотеза `∀ i, σ i ≤ 1` (T3, T4)~~ — СНЯТА в C675 для нормированного
-  градиента: `Hagi/Theory/MuonDescent.lean` (`smax_smul`, `sigma_le_smax`,
-  `normed_sigma_le_one`: `G ≠ 0 ⇒ ∀ i, σ i (G/‖G‖_F) ≤ 1`); сами T3/T4
-  остаются с гипотезой (применимы к любой `G` с `σ ≤ 1`).
-- T3 учитывает только `σ i ≥ 1/2` (масса `σ < 1/2` входит в `⟨G, X₃⟩` с
-  весом `ns_seq 3 σ i`, но без нижней границы `39/40`); доля
-  `Σ_{kept} σ / ssum G` — величина данных, не константа.
-- Квадратный вещественный `G` (носитель C672); прямоугольный `G`
-  (транспонирование core.py:1358) — не формализован; множитель шага
-  `η = cos_lr·0.7` и обновление `W1` (core.py:1755 ↔ lm.py:586) — вне теории.
-- `kept` определён через `realSingularValues G`; индексное множество в T3
-  не сопоставлено с сингулярными векторами `U` (для кратного спектра
-  выбор `U` не единственен) — на утверждение T3 не влияет.
-
-## Hagi/Theory/MuonDescent.lean (нормировка градиента, сертификат спуска Muon-шага, C675 — ИТОГ ЦЕПОЧКИ C668–C675)
-
-→ v3.5: зависимости делегатов (клоза своего нет); сборка — `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), C687.
-
-Код-якорь HAGI_v2: нормировка `G / (G.norm() + eps)` core.py:1353, итерация
-core.py:1363, обновление слоя `W1 -= (cos_lr*0.7)*newton_schulz_orthogonalize(m1,
-iters=3)` core.py:1755 @ca52eb4 (слой — lm.py:586). Цепочка: batch-градиент
-(C668/C669: `f'(W)[Δ] = −⟨batchGrad, Δ⟩`) → F-оптимальный SGD (C669) →
-rank-one спектральный оптимум (C670/671) → изометрический оптимум (C672) →
-NS-3 приближение (C673) → точное выравнивание (C674) → нормировка и спуск
-(C675, этот файл).
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `smax_smul` | S1: `smax (c • G) = |c|·smax G` (через `smax_eq_opNorm`) | Hagi/Theory/MuonDescent.lean:105 | — |
-| `sigma_le_smax` | `σ i ≤ smax G` | Hagi/Theory/MuonDescent.lean:115 | — |
-| `normed_sigma_le_one` | S1: `G ≠ 0 ⇒ ∀ i, σ i (G/‖G‖_F) ≤ 1` — гипотеза `σ ≤ 1` снята | Hagi/Theory/MuonDescent.lean:122 | — |
-| `muon_step_inner_ge_frob` | S1: `G ≠ 0 ⇒ 1 ≤ ⟨Ĝ, ns_iter k Ĝ⟩ ∧ ‖G‖_F ≤ ⟨G, ns_iter k Ĝ⟩` | Hagi/Theory/MuonDescent.lean:136 | — |
-| `normed_near_optimal` | S1: `G ≠ 0 ⇒ (39/40)·Σ_{kept(Ĝ)} σ ≤ ⟨Ĝ, ns_iter 3 Ĝ⟩` | Hagi/Theory/MuonDescent.lean:156 | — |
-| `useful_of_neg_fderiv` | S2: `HasFDerivAt f φ x`, `φ d < 0 ⇒ ∃ η > 0, f (x + η•d) < f x` (перенос `useful_step_of_fderiv` с `x + η•d`) | Hagi/Theory/MuonDescent.lean:164 | — |
-| `muon_step_useful` | S2: `HasFDerivAt f φ W`, `∀ Δ, φ Δ = ⟨g, Δ⟩`, `g ≠ 0 ⇒ ∃ η > 0, f (W − η•ns_iter k Ĝ) < f W` | Hagi/Theory/MuonDescent.lean:176 | — |
-| `muon_vs_sign_first_order` | S3: `G ≠ 0 ⇒ ‖G‖_F ≤ ⟨G, ns_iter k Ĝ⟩ ∧ ‖G‖_F ≤ ⟨G, sign G⟩` | Hagi/Theory/MuonDescent.lean:196 | — |
-
-Числа (witness `.tmp/C675/traj.lean`, rc = 0; `G = diag(3, 3/2, 1/2, 1/5)`):
-`frobSq G = 577/50` (Lean); sign-шаг `⟨G, sign G⟩ = 26/5`, `frobSq (sign G) = 4`
-(Lean). Внешний расчёт (не в Lean): `σ(Ĝ) = 0.883117, 0.441559, 0.147186,
-0.058874` (все `≤ 1`), `ns₃(σ) = 0.999999, 0.949373, 0.468339, 0.196808`,
-`⟨Ĝ, X₃⟩ = 1.38284 ≥ 1`, `‖X₃‖_F = 1.46948`; на единицу нормы шага (в
-единицах `Ĝ`): Muon `1.38284/1.46948 = 0.941038`, sign `2.6/3.39706 = 0.765368`.
-Аксиомы всех 8 теорем: propext, Classical.choice, Quot.sound.
-Freeze 9122 → 9139 (+17).
-
-Honest (границы):
-- ~~Носитель `muon_step_useful` — `Matrix n n ℝ` (sup-норма Mathlib); связь
-  `φ Δ = ⟨g, Δ⟩` — ГИПОТЕЗА~~ — СНЯТА в C676 для квадратного слоя:
-  `Hagi/Theory/MuonDescentW1.lean` (`w1_fderiv_apply`,
-  `w1Batch_fderiv_apply`, `muon_step_useful_w1`,
-  `muon_step_useful_w1_batch`). Исходная формулировка границы:
-  носитель `muon_step_useful` — `Matrix n n ℝ` (sup-норма Mathlib); связь
-  `φ Δ = ⟨g, Δ⟩` — ГИПОТЕЗА: C668/C669 доказали её для функционального
-  носителя `ι → δ → ℝ` в виде `f'(W)[Δ] = −⟨batchGrad, Δ⟩` (т.е. `g = −batchGrad`);
-  мост `Matrix` ↔ функциональный носитель и конструкция дифференциала слоя
-  `lm.py:586` не формализованы. Инстанс теоремы на слое — свидетельство
-  только для `f = x²` (абстрактная часть).
-- Существование `η` — локальное (без величины шага); `η = cos_lr·0.7`,
-  momentum-буфер `m1`, расписание, липшицева оценка `L(W − ηX) ≤ L(W) −
-  η⟨g,X⟩ + η²L/2‖X‖²` и сходимость — вне теории.
-- S3 — только first-order спуск (нижняя граница `‖G‖_F` для обоих шагов);
-  сравнение «на единицу нормы шага» (Muon `√n` vs sign `√(mn)`) НЕ доказано:
-  нужно `‖ns_iter k Ĝ‖_F` через SVD и `‖sign G‖_F = √(mn)`; witness-числа
-  выше — внешний расчёт, не теорема.
-- Квадратный вещественный `G`, `Nonempty n`; прямоугольный `G` — не формализован.
-- Внешние источники (ask.sciencemadereadable, 2026-11-25): Roy & Chakraborty
-  arXiv 2610.03306 (finite-step NS сохраняет выравнивание с momentum-буфером
-  при ограниченной спектральной норме — та же связка «выравнивание + спуск»,
-  но с momentum и для их набора коэффициентов); Shulgin et al. 2610.30280,
-  Wang et al. 2609.33152. Формализации не добавили, ссылок в Lean нет.
-## Hagi/Theory/MuonDescentW1.lean (мост «слой W1 → Muon-шаг», снятие гипотезы `φ`, C676)
-
-→ v3.5: зависимости делегатов (клоза своего нет); сборка — `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), C687.
-
-Код-якорь HAGI_v2: блок роста `h = h + relu(a @ W1 + b1) @ Wo` (hagi/lm.py:586
-@ca52eb4), лосс — кросс-энтропия со средним по батчу (lm.py:688), обновление
-`W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)`
-(hagi/core.py:1755). Задача C675: `muon_step_useful` носит гипотезу
-`∀ Δ, φ Δ = ⟨g, Δ⟩`. Здесь она выведена для слоя: носитель — функциональный
-`n → n → ℝ` (как в C668/C669), дифференциал `CE_t ∘ w1L` —
-`hasFDerivAt_w1L` (C668) + `fderiv_ceOneHot_comp_apply`, pairing —
-`w1_directional_derivative` (C668) / `batch_directional_derivative` (C669).
-Спуск — `useful_of_neg_fderiv`, направление — `muonStep` (C675).
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `fdot_neg_of` | `⟨−A, Δ⟩ = −Σ A i j·Δ i j` | Hagi/Theory/MuonDescentW1.lean:56 | — |
-| `w1_fderiv_apply` | вне kink: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −(g ⊗ x)`, `f = CE_t ∘ w1L` | Hagi/Theory/MuonDescentW1.lean:65 | — |
-| `w1Grad_ne` | `g ≠ 0`, `x ≠ 0 ⇒ G ≠ 0` | Hagi/Theory/MuonDescentW1.lean:79 | — |
-| `muon_step_useful_w1` | вне kink, `g ≠ 0`, `x ≠ 0 ⇒ ∃ η > 0, CE_t (w1L (W1 − η·ns_iter k Ĝ)) < CE_t (w1L W1)` | Hagi/Theory/MuonDescentW1.lean:104 | — |
-| `w1Batch_fderiv_apply` | по батчу: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −Σ_t g_t ⊗ x_t` | Hagi/Theory/MuonDescentW1.lean:156 | — |
-| `muon_step_useful_w1_batch` | вне kink, `G ≠ 0 ⇒ ∃ η > 0`, сумма CE по батчу строго убывает вдоль `W1 − η·ns_iter k Ĝ` | Hagi/Theory/MuonDescentW1.lean:193 | — |
-
-Носители: `onehot`, `w1Grad`, `w1BatchObj`, `w1BatchGrad`. Freeze 9139 → 9149 (+10).
-Witness `.tmp/C676/traj.lean`, rc = 0 (слой 1 нейрон, 2 класса, `x = 1`,
-`W1 = 1`): Lean проверяет `w1Pre + b = 1`, `w1Grad = −(g ⊗ x)`, для
-направления `Δ = 1` — `⟨G, Δ⟩ = −g 0` и `f'(W1)[1] = −g 0` (та же формула
-`w1_fderiv_apply` на конкретном слое); инстанс `muon_step_useful_w1` на
-этом слое — при посылке `g ≠ 0`. Аксиомы всех 5 теорем: propext,
-Classical.choice, Quot.sound.
-
-Гипотеза `φ` снята (полностью, в рамках носителя): ни в одной теореме файла
-нет посылки вида «дифференциал равен спариванию».
-
-Honest (границы):
-- Слой квадратный (`ι = δ = n`): `muonStep`/`ns_iter` (C674/C675) определены
-  для `Matrix n n ℝ`; в коде `W1 : dim × hidden`. Прямоугольный слой
-  (`ι → δ → ℝ`, кодовая размерность `dim × hidden`) — MuonDescentW1Rect
-  (C681): тот же мост с шагом `wide_iter k Ĝ` при `card ι ≤ card δ`.
-- В батче `G ≠ 0` — посылка (для одного входа выведена: `g ≠ 0`, `x ≠ 0`).
-- Mean-лосс lm.py:688: доказано для суммы CE по батчу; mean отличается
-  положительным множителем `1/|τ|` (неравенство сохраняется), отдельной
-  теоремы про mean нет.
-- `η` только существует; `cos_lr·0.7`, липшицева оценка, сходимость — вне теории;
-  momentum-буфер `m1` — с C686 граница через невязку `G − m1`
-  (`muon_momentum_bound`, MomentumAlign.lean:419), значение 0.85 не выводится. Условие «вне kink» (`w1Pre + b ≠ 0`) — посылка.
-- Внешний источник (ask.sciencemadereadable.com, 2026-11-25): Fu, Chi, Liang
-  (ISIT 2019) — локальная сильная выпуклость/гладкость CE у истинных весов
-  для one-hidden-layer сети (sigmoid, гауссовы входы) — релевантно только
-  следующему шагу (липшицева константа), в Lean-ссылки не добавлялось.
-
-## Hagi/Theory/NadyaOptimal.lean («Надя.txt» HAGI v2 Optimal: BitAlloc, Schedules, LCB, Bypass)
-
-Источник: `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY, 961 строк Python).
-
-| теорема | формулировка | file:line | Надя.txt @снимок 2026-11-24 |
-|---|---|---|---|
-| `trit5_unshift`, `trit5_roundtrip`, `trit5Pack_lt_243`, `int4_roundtrip`, `exists_best_mse_scale` | BitAlloc: unpack ∘ pack = id (5 тритов < 243; int4-пара < 256); ∃ минимизатор MSE на конечном списке. Родитель pack — `trit_roundtrip`/`tritPack_injective` TritCodec.lean:117, :132 | Hagi/Theory/NadyaOptimal.lean:72, :79, :87, :98, :126 | :390-440 |
-| `cosine_sched_bounds`, `cosine_sched_start`, `cosine_sched_end`, `cosine_sched_mono`, `muon_step_norm_bound` | HybridMuon: 3/20 ≤ sched ≤ 1, sched 0 = 1, sched T = 3/20, монотонно; ‖шаг Muon‖ ≤ a·c при ‖orth‖ ≤ c | Hagi/Theory/NadyaOptimal.lean:143, :151, :157, :166, :201 | :120-152 |
-| `paired_mean_dev_bound`, `paired_lcb_false_grow_bound` | LCB-гейт: paired Hoeffding через `holdout_concentration` Statistics.lean:178; P[ложный GROW] ≤ 2·exp(−2k(r/2B)²) при popMean d ≤ 0 | Hagi/Theory/NadyaOptimal.lean:221, :270 | :109-112, :884-890 |
-| `idealLen_eq_zero_of_prob_one`, `bypass_reaches_compression_limit` | EXACT_BYPASS: q = 1 на носителе p ⇒ ceBits = expLen = entBits = 0 (мост `ce_covered_zero` ExactBypass.lean:70 ↔ `idealLen_self_bounds` ArchiverCodeLength.lean:208) | Hagi/Theory/NadyaOptimal.lean:294, :304 | :695-750 |
-
-- Уже есть, не дублировано: auto_transfer_gate = `warm_better_char`
-  (NegativeTransfer.lean:127) + `auto_transfer_gate_sound`
-  (AutoTransferGate.lean:139); best-snapshot peeking = `holdout_gate_two_way_delta`.
-- Honest-остаток: радиус LCB в коде z·σ̂/√n случаен (детерминированный r в
-  теореме); iid-holdout и CE ∉ [0,B] — модель; list-level `_pack_int4`
-  (нечётный padding, срез `out[:length]`) не формализован; список
-  кандидатов `_best_mse_ternary` — нет; полярная норма c — гипотеза;
-  momentum/weight decay Muon вне утверждения; float32 ≠ ℝ; unseen-маска
-  градиента тривиальна (Adam с momentum — не
-  нулевое обновление); arithmetic coder — карточка ArchiverCodeLength.
-
-## Hagi/Theory/WidthGrowth.lean (function-preserving WIDTH-рост grow_width, C667; выделен из NadyaOptimal)
-
-Источник: `C:/HAGI_v2/checkpoints/Надя.txt` (READ-ONLY), grow_width.
-
-| теорема | формулировка | file:line | Надя.txt @снимок 2026-11-24 |
-|---|---|---|---|
-| `rmsOut`, `rmsMs_pad`, `rmsnorm_scale_inv`, `padTo`, `sum_pad`, `sum_pad_scale`, `eq_padTo`, `mulvec_rowPad`, `matPadS`, `mulvec_matPadS`, `padTo_castLE` | padding-леммы; rmsnorm gain ×√(d0/d1), eps ×(d0/d1) ⇒ первые d0 координат равны старым ТОЧНО | Hagi/Theory/WidthGrowth.lean:42, :46, :96, :125, :129, :164, :171, :190, :206, :210, :233 | :350-386 |
-| `rotIdx`, `rotMate`, `rotV`, `rotV_smul`, `rotary_old_pairs_unchanged` | T2 rotary: padTo-вектор × padTo-таблицы cos/sin ⇒ старые пары (2i, 2i+1) без изменения, новые — 0 | Hagi/Theory/WidthGrowth.lean:240, :244, :250, :256, :266 | rotary f1 = concat |
-| `attn_score_scale_preserved`, `attn_out_pad`, `h1_pad`, `wlogits_width_preserved` | T1 (K·Q)/√hd1 = старому при W_q ×`qScale`; T3 композиция: logits_new(padTo v, padTo c) = logits_old(v, c) — width-рост function-preserving (nh = 1) | Hagi/Theory/WidthGrowth.lean:329, :359, :375, :597 | grow_width |
-| `WParams`, `qScale`, `WGrowth`, forward `wX0`→`wN1`→`wQ`/`wK`/`wV`→`wKr`/`wQr`→`wScore`→`wW`→`wAttn`→`wH1`→`wN2`→`wG`/`wU`/`wSw`(`swish` NormAct.lean:166)→`wH2`→`wLogits` | носитель: параметры, правило роста (нулевые `matPadS`-блоки, компенсация нормировок, gain ×√(d0/d1)), одноголовый forward | Hagi/Theory/WidthGrowth.lean:412, :452, :548, :458–:541 | модель |
-
-- Honest-остаток: width: nh > 1, нечётная ширина, клип сигмоиды [−20, 20],
-  пулинг/emb/alibi — гипотезы `WGrowth`; float32 ≠ ℝ; с DEPTH-ростом
-  (FunctionPreservingGrowth) носители разные, унификации нет.
-
-## Hagi/Theory/AdaptiveMajorizer.lean (adaptive-step мост, секция «Code bridge»)
-
-Код-якорь HAGI_v2 @1ae924e: hagi/lm.py:1286-1324 (`R`, `C = kappa(R)*Var`,
-eta = 4A/r2·lr_scale); коммиты 4c70f7a (w252), 1ae924e (w254).
-
-| теорема | формулировка | file:line | код-якорь @sha |
-|---|---|---|---|
-| `ceDispRange`, `ceDispRange_nonneg`, `ce_direction_range` | точный диапазон направленного логит-смещения (sup' − inf') | Hagi/Theory/AdaptiveMajorizer.lean:1200, :1209, :1222 | lm.py:1286, :1293 |
-| `ceAdaptiveCurvRange`, `ceOneHot_next_le_adaptive_range` | канон `ceOneHot_next_le_adaptive_tight` (:764) на точном диапазоне | Hagi/Theory/AdaptiveMajorizer.lean:1246, :1258 | lm.py:1287-1300 |
-| `kappaClamp`, `kappaClamp_eq_kappa`, `ceAdaptiveCurvCode` | множитель кода (1/2 ниже 1e-5, иначе kappa(min R 50)); на окне (1e-5, 50] равен точному | Hagi/Theory/AdaptiveMajorizer.lean:1439, :1457, :1444 | lm.py:1298-1300 |
-| `ce_adaptive_code_drop` | CE после шага ≤ текущего − (eta·A − eta²·C), eta ∈ [0,1], C кода, диапазон в окне (majorizer — без привязки eta к A/2C) | Hagi/Theory/AdaptiveMajorizer.lean:1473 | lm.py:1313-1324 |
-| `ce_range_code_drop` | eta ≥ 0: claim eta·A − eta²·R²/8 ветки range без unit-cap (`ceOneHot_next_le` CEDescent.lean:282) | Hagi/Theory/AdaptiveMajorizer.lean:1497 | lm.py:1314, :1323-1324 |
-| `adaptive_claim_scaled`, `adaptive_claim_scaled_bounds` | defect 2: claim в точке s·A/2C = (2s − s²)·A²/4C ∈ [s², 1]·A²/4C; s = 0.05 → 39/400 | Hagi/Theory/AdaptiveMajorizer.lean:1513, :1525 | 4c70f7a «~10x» |
-
-- Honest: на конфиге теста w252 adaptive-ветка не берётся (eta* ~ 203-260 >
-  1) — сертификат реального кода это `ce_range_code_drop`; вне окна (1e-5,
-  50] C кода занижен, claim не сертифицирован (код полагается на post-step
-  rollback lm.py:1337-1344 @1ae924e); код строит majorizer на JVP-смещении,
-  теорема — о точном (нелинейная LM: rollback 2/5, вне моста); float-негатив
-  clamp ниже 1e-6; wave254 MGDA — BatchCEDescentMgdaCode.
-
-## Hagi/Model/BatchCEDescentMgdaCode.lean (код mgda_weights ↔ канон min-norm)
-
-Код-якорь HAGI_v2 @1ae924e: hagi/selfmodel.py:35-60 Frank-Wolfe по
-симплексу над нормированными градиентами, `gamma = 2/(2+t)`, ≤ 200 итераций,
-стоп `min_j ⟨G_j,d⟩ ≥ ‖d‖² − 1e-16`; вызов :113.
-
-| теорема | формулировка | file:line | код-якорь @sha |
-|---|---|---|---|
-| `mgdaCodeDirection`, `SimplexWeights`, `mgdaCodeDirection_mem_convexHull` | смесь кода `d = alpha @ G` на симплексе ∈ convex hull | Hagi/Model/BatchCEDescentMgdaCode.lean:44, :49, :91 | selfmodel.py:49, :55-60 |
-| `MgdaStationary`, `inner_le_of_mem_convexHull_range`, `mgda_norm_sq_le_of_stationary` | стоп-тест `∀j, ‖d‖² − ε ≤ ⟨v_j,d⟩`; ε-стационарная смесь ⇒ ‖d‖² − 2ε ≤ ‖c‖² ∀c ∈ hull | Hagi/Model/BatchCEDescentMgdaCode.lean:54, :60, :102 | selfmodel.py:50 |
-| `mgda_eq_of_stationary`, `batchGradientMinimizer_eq_mgdaCodeDirection_of_stationary` | ε = 0 ⇒ смесь = min-norm точке hull; инстанс канона `batchGradientMinimizer` (BatchCEDescent.lean:366, сырые `batchResidualGradient` :338; потребитель `evaluatedBatchMinimumNormPath_floor_kept_and_objective_lt` FixedBatch.lean:147) | Hagi/Model/BatchCEDescentMgdaCode.lean:126, :146 | selfmodel.py:113 |
-
-- Вердикт: ТОЧНО на остановке, ПРИБЛИЖЁННО (2ε) по допуску, РАЗНЫЕ ЗАДАЧИ
-  по нормировке. Witness: α = (1/2, 1/2) = `segmentMinNorm` e0 e1
-  (ProjectionDescent.lean:78); негативы [2,−1], [1,0]. Bench: нет.
-- Honest: код решает на g/‖g‖, канон — на raw (при разных нормах моста
-  нет; conflict-гейт считает на raw, selfmodel.py:114-123); FW без
-  стоп-теста — только симплекс, скорость O(1/k) не формализована;
-  float32 `1e-16` < eps(f32) — мост формализует вещественный тест.
-
-## Hagi/Contracts/BatchGlobalTelescope.lean (batch → global drop: телескоп, EB, union bound)
-
-Код-факт HAGI_v2 @ca52eb4: lm.py:978-1008 — 8 раундов permutation-срезов
-по 32, per-batch certified drop, ledger «per-batch-sum, no telescoping».
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `batch_telescope_fixed`, `fixedBatch_telescope` | T1: шаг t < T: f(t+1) ≤ f t − d t ⇒ f T + Σ d ≤ f 0 (клоз 3 `master_theorem_v3`: obj = `step` LogitGrowth.lean:62); на `fixedBatchState` (BatchCETrajectory/FixedBatch.lean:288; родня `fixedBatchObjective_sum_certifiedDrop_le_telescope` :368) | Hagi/Contracts/BatchGlobalTelescope.lean:46, :62 | refine train_guarded |
-| `ebGap`, `centeredSample`, `centeredSample_snoc`, `azumaSum_centeredSample`, `batch_drop_generalizes` | T2: iid-выборка n ⇒ P[mean δ < Σ q δ + ebGap] ≥ 1 − α через `empirical_bernstein_mean_bound` (EmpiricalBernstein.lean:286; посылки b, `sig` > 0 — взвешенная дисперсия; `azumaSum` Azuma.lean:169) | Hagi/Contracts/BatchGlobalTelescope.lean:76, :82, :89, :98, :122 | — |
-| `certified_batch_drop_global` | на сэмпле dropB ≤ фактического drop ⇒ obj_G θ' ≤ obj_G θ − dropB + ebGap, w.p. ≥ 1 − α | Hagi/Contracts/BatchGlobalTelescope.lean:178 | — |
-| `roundDens`, `roundP`, `roundP_isProb`, `round_marginal`, `rounds_union` | модель независимых раундов; union bound 1 − Σ eps ≤ P[∀ i, A i] (`prodPq_union_finset` CertifiedEstimator.lean:563) | Hagi/Contracts/BatchGlobalTelescope.lean:229, :234, :237, :252, :300 | — |
-| `rounds_telescope`, `roundGood`, `certified_rounds_union` | k раундов: obj k ≤ obj 0 − Σ dropB + k·ebGap(α/k) (8 раундов, α = 1/10 → α/8 = 1/80) | Hagi/Contracts/BatchGlobalTelescope.lean:341, :353, :367 | — |
-
-- Honest: (WOR) консервативность выборки без возвращения относительно
-  iid-EB НЕ доказана (finite population correction; в Mathlib леммы нет);
-  (iid раундов) независимость раундов от обновления θ — модель, bound
-  условный; коду надо считать b, sig и делить α по раундам (не делает).
-
-## Hagi/Theory/RepairForgetting.lean (repair старых доменов с rollback)
-
-Код-якорь HAGI_v2 @e9a96fc: unified.py:408-455 (вызов :256, gate
-`_old_domains_ce` :635-660, rollback `q.copy_(s0)` :450, бюджет 6).
-
-| теорема | формулировка | file:line | код-якорь @sha |
-|---|---|---|---|
-| `stepValue`, `stepValue_retrain`, `stepValue_rollback` | раунд: принятый шаг = кандидат, откаченный = прежнее значение ТОЧНО | Hagi/Theory/RepairForgetting.lean:42, :46, :52 | unified.py:450 |
-| `RepairRun`, `acceptedCount`, `accepted_le_budget` | индуктивное отношение «старт → финал» (done / retrain при w < v − tol / rollback + СТОП); #принятых ≤ r | Hagi/Theory/RepairForgetting.lean:61, :69, :93 | unified.py:408-455 |
-| `repair_drop_bound`, `repair_sound` | z ≤ v − tol·(#принятых); gate не растёт, линейная граница, бюджет | Hagi/Theory/RepairForgetting.lean:78, :105 | — |
-
-- Bridge: EXACT для потока управления; числа — из commit msg (не перемеряно):
-  +0.553 → +0.036 CE, 20/89 repair-шагов в rollback, цена ×10.
-- Honest: геометрической границы НЕТ (принимается любое улучшение > 1e-4,
-  post может остаться > pre); gate — выборочная CE (≤ 8 доменов × 256
-  позиций), не популяционное забывание; Repair пишет в общий trunk ⇒ клоз
-  (2) `master_theorem_v3` (замороженная ветка; `adapter_per_task_sound`
-  AdapterGrowth.lean:579, `gpm_multi_zero_forgetting` Continual.lean:145)
-  не инстанцируется.
-
-## Hagi/Theory/CoverageReading.lean — WindowOrder (порядок слотов окна)
-
-Код-якорь HAGI_v2: @b3740e0 unified.py:297-316 (контекст oldest-first, цель
-y = idx[p+k] — зазор k байт; CE 7.307 против 0.181 при y = idx[p]); @bab8aff
-lm.py:1041-1054, :905-907, :1126-1127 (holdout 3.59..4.23 против 8.13..11.56
-nats — commit msg).
-
-| теорема | формулировка | file:line | носитель кода @sha |
-|---|---|---|---|
-| `slot`, `slot_mono`, `slot_last` | oldest-first: slot k p j = p + j, query-слот k−1 = байт p+k−1 | Hagi/Theory/CoverageReading.lean:707, :716, :720 | lm.py:905-907 @bab8aff |
-| `slotRev`, `slotRev_first`, `slotRev_last` | реверс: слот 0 = новейший байт | Hagi/Theory/CoverageReading.lean:712, :732, :726 | до фикса |
-| `padSlot`, `padSlot_tail`, `padSlot_last`, `padSlot_full` | generation-путь: левый паддинг + `slot` со сдвигом; query в слоте k−1; n = k ⇒ окно = `slot k p` | Hagi/Theory/CoverageReading.lean:741, :746, :754, :763 | lm.py:1041-1054 @bab8aff |
-
-- `covStarts` (:45) — про начала окон, инвариант другой, не пересекается.
-- Honest: инвариант ТОЛЬКО порядка (смежность цели — не Lean-утверждение);
-  hagi/unified.py:1010 @bab8aff (neural-фолбэк `[::-1]`) всё ещё развёрнут;
-  второй `_read_all_windows` (lm.py:1569-1581) не менялся.
-
-## Hagi/Theory/ArchiverCodeLength.lean (длина кода ↔ энтропия; statement-audit archiver.py)
-
-Код-якорь HAGI_v2 @b3740e0: hagi/archiver.py — 32-бит range coder, 16-бит
-CDF, probs_to_cdf :33-39 (freq = max(1, round(P·65200))), encode_step
-:52-70, decode_step :96-118, stored-fallback :188.
-
-| теорема | формулировка | file:line | опора |
-|---|---|---|---|
-| `expLen`, `entBits`, `ceBits` | E_p[len], H(p) и CE в битах | Hagi/Theory/ArchiverCodeLength.lean:35, :38, :41 | — |
-| `codelength_ge_entropy_of_kraft`, `codelength_ge_entropy_of_uniquelyDecodable` | Kraft ⇒ H(p) ≤ E[len]; Kraft из uniquely decodable | Hagi/Theory/ArchiverCodeLength.lean:55, :106 | `ceDef_self_le_of_support` FiniteLogScore.lean:168; Mathlib KraftMcMillan |
-| `idealLen`, `idealLen_kraft`, `idealLen_ge_entropy`, `idealLen_le_ce_add_one` | len = ⌈−log₂ p̂⌉₊: Kraft, H(p) ≤ E[len] ≤ ceBits + 1 | Hagi/Theory/ArchiverCodeLength.lean:129, :150, :157, :164 | — |
-| `ceBits_eq_entBits_add_kl`, `idealLen_self_bounds` | CE = H + KL/log 2; при p̂ = p: H ≤ E[len] ≤ H + 1 | Hagi/Theory/ArchiverCodeLength.lean:194, :208 | `klDef_eq_ceDef_sub_of_support` FiniteLogScore.lean:97 |
-
-- Сэндвич: H(p) ≤ E_p[len] ≤ H(p) + KL(p‖p̂)/log 2 + 1.
-- Honest: (range-coder round-trip) lossless = тесты (6 passed
-  tests/test_archiver.py @b3740e0), Lean-модели интервального кодера НЕТ
-  (≥ 400 строк, прецедента нет); граница доказана для ИДЕАЛЬНОГО кодера
-  (+1 бит/символ; у range coder o(1) на поток — не доказано); p̂ —
-  квантованная CDF ≠ softmax; stored-mode и заголовок не учтены; числа
-  commit msg (5.16 b/B vs zlib 2.40) не перемеряны.
-
-## Hagi/Step/AdamDirection.lean (Adam: спуск только на первом шаге)
-
-Код-якорь HAGI_v2 @b3740e0: `torch.optim.Adam` без аргументов (β = 0.9/0.999,
-eps 1e-8) lm.py:349, :403, :779, :930, unified.py:473, :548.
-
-| теорема | формулировка | file:line |
-|---|---|---|
-| `ema_one_unbiased` | m̂₁ = g₁ (bias-corrected EMA) | Hagi/Step/AdamDirection.lean:67 |
-| `adam_first_step_dot_nonneg`, `adam_first_step_dot_pos` | T1: d_i = g_i/(|g_i|+eps) ⇒ ⟨g,d⟩ ≥ 0; строго > 0 при g ≠ 0 | Hagi/Step/AdamDirection.lean:74, :85 |
-| `adam_coord_sign_flip_neg`, `ema_sign_flip_negative`, `adam_step_not_always_descent` | T2: знак d_i — знак m̂_i; контрпример шага 2 (β₁ = 9/10, g₁ = 1, g₂ = −1/10, форма torch m̂₂ = 0.08/0.19) ⇒ ⟨g₂,d₂⟩ < 0 | Hagi/Step/AdamDirection.lean:106, :125, :116 |
-
-- Код не опирается на ⟨g, d_Adam⟩ ≥ 0: шаг принимается измерённым гейтом
-  `backtrackAccept` (selfmodel.py:134-169 @1ae924e) ⇒ h1 для Adam-шага
-  требует backtrack_accept. Bench: нет.
-
-## Hagi/Theory/HoldoutGateTwoWay.lean (holdout-гейт ↔ PAC-Bayes, two-way)
-
-Код-якорь HAGI_v2 @b3740e0: unified.py:536-543 (первые ≤ 512 окон
-последних 10% домена, детерминированный срез), peeking :563-567, гейт :577
-(GROW iff after < before − 1e-4, иначе rollback).
-
-| теорема | формулировка | file:line | bench / proposal |
-|---|---|---|---|
-| `holdout_gate_two_way`, `two_sided_union_budget`, `holdout_gate_two_way_delta` | потери ∈ [0,B], k iid: 1 − |Θ|·2·exp(−2k(ε/B)²) ≤ P[гейт принял ⇒ pop_new ≤ pop_old + 2ε − margin]; |Θ| ≤ N ⇒ P ≥ 1 − δ; union bound покрывает peeking | Hagi/Theory/HoldoutGateTwoWay.lean:52, :89, :109 | docs/PROPOSAL-holdout-size.md |
-
-- Опора: `holdout_uniform_codebook` (Statistics.lean:293),
-  `prodPq_compl`/`prodPq_mono` (CertifiedEstimator.lean:103, :119);
-  `anytime_catoni` (Statistics.lean:395) и `gibbs_variational`
-  (PACBayes.lean:99) не подходят (peeking по гипотезам, не по размеру
-  выборки); `block_admission_sound` (BlockAdmission.lean:315,
-  `RiskChannel` CertCEHoldout.lean:58) популяции не даёт.
-- Honest: (iid holdout) — МОДЕЛЬ: код — связный срез (окна
-  перекрываются на k−1); CE ∉ [0,B] — нормировка на `ceBound`
-  (CEHeldout.lean:200) не формализована; (k = 512 вакуумность) ε ≈ 0.12·B
-  ≫ margin 1e-4 ⇒ сертификат полезен при k ≫ 512 или малом B; N = 2 +
-  число checkpoint-оценок — из кода; связь с `GateCert`
-  (Unified/CommitGate.lean:37) не формализована.
-
-## Hagi/Theory/RollbackGate.lean (Armijo-подобный backtracking wave254 — фактический предикат)
-
-Код-якорь HAGI_v2 @1ae924e: selfmodel.py:78-180 guarded_optimizer_step.
-
-| теорема | формулировка | file:line | код-якорь @sha |
-|---|---|---|---|
-| `btScale`, `backtrack_scale_halves`, `backtrack_trials_bounded` | масштаб bt-й пробы (1/2)^bt; btScale 8 = 1/256; ровно 9 проб | Hagi/Theory/RollbackGate.lean:244, :270, :282 | selfmodel.py:133, :174 |
-| `backtrackAccept`, `backtrack_accept_drop` | приём: worst ≤ max_task_regression ∧ wb − wa > total_bound (НЕ Armijo: σ·γ·⟪g,d⟫ нет) ⇒ drop = wb − wa − errBound ≥ 0 | Hagi/Theory/RollbackGate.lean:252, :261 | selfmodel.py:164-169 |
-
-- Родня: `rollback_state_params` (:105), `rollback_gate_sound` (:100).
-- Honest: h1 для warm-up НЕ закрыт — `_maybe_grow` warm-up (unified.py:423-437
-  @ca52eb4) — голый Adam; guarded_optimizer_step зовётся только из
-  self-test (selfmodel.py:201, :214, :222); obj в предикате — holdout-лосс, не train-obj; лемма
-  adam_inner_nonneg не доказана.
-
-## Hagi/Theory/GrowTrunkBlock.lean (residual-блок роста из bench `--mode grow`)
-
-| теорема | формулировка | file:line |
-|---|---|---|
-| `benchResidualBlock`, `benchResidual_zero` | γ = 0 маскирует любую внутреннюю h (сильнее кода: нулевой гейт vs Wo = 0) | Hagi/Theory/GrowTrunkBlock.lean:85, :94 |
-| `grow_block_bench_sound`, `grow_block_obj_invariant`, `grow_blocks_repeat_sound` | глубина 2 → 3 сохраняет функцию и любой функционал ТОЧНО; повтор ≤ MAX_BLOCKS = 2 | Hagi/Theory/GrowTrunkBlock.lean:123, :134, :148 |
-
-- Код-якорь: lm.py:589-601, unified.py:381 @ca52eb4 (`CertifiedBlock`/
-  `lmTrunk` LMCompose.lean:114, :136). Гейт `_maybe_grow` (сигнал
-  `growthGate` 128·‖G‖²/2L vs c_add, NegativeTransfer.lean:570,
-  `growth_gate_sound` :677) сертифицирует только ветку stay; c_add в коде —
-  эвристика. `nl_obj_le_start` (NegativeTransfer.lean:322) — GD-носитель,
-  Adam в него не вписан.
-
-## Hagi/Theory/MuonDescentW1Rect.lean (мост «прямоугольный слой W1 → широкий Muon-шаг», C681–C682)
-
-→ v3.5 clause O5: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-ВЕРХНИЙ ИТОГ (C682): для слоя `W1 : ι → δ → ℝ` ЛЮБОЙ формы (широкий,
-квадратный, высокий), вне kink, `G ≠ 0`, любого `k` шаг кода
-`W1 − η·wide_iter k Ĝ` строго спускает CE (один вход и сумма по батчу) —
-`muon_step_useful_w1_rect'`, `muon_step_useful_w1_rect_batch'`. Посылка
-`card ι ≤ card δ` снята (`tall_alignment_ge_gradient`). Строки C681
-(таблица ниже) — исторические версии с посылкой размерности, не менялись (Freeze).
-
-Код-якорь тот же, что в карточке MuonDescentW1 (lm.py:586 @ca52eb4,
-core.py:1755), но слой — кодовой размерности: `W1 : ι → δ → ℝ`
-(`dim × hidden`, строки — нейроны блока, столбцы — вход `a`). Карточка
-MuonDescentW1 (C676) сужена к `ι = δ = n` только из-за квадратного
-`muonStep`. Здесь шаг — `wide_iter k Ĝ` (MuonWide, C678–C680) на
-`Matrix ι δ ℝ`, `Ĝ = wnormed G = G/‖G‖_F`. Исследование (B1): квадратность
-в C676 сидит только в `muonStep`/`fdot` — `w1_fderiv_apply`,
-`w1Batch_fderiv_apply` переносятся заменой `Matrix n n ℝ` →
-`Matrix ι δ ℝ` и `fdot` → `fdot_wide`; `useful_of_neg_fderiv` generic
-по `E`, носитель параметра — координатный `ι → δ → ℝ` (Pi-тип, как в
-FirstLayerGrad); проблемы sup vs ℓ² не возникает: лемма спуска
-одномерная вдоль луча `W1 − η·d` и нормы носителя не использует.
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `w1GradR` | `G = −(g ⊗ x)` на `Matrix ι δ ℝ` (тот же объект, что `w1Grad`) | Hagi/Theory/MuonDescentW1Rect.lean:47 | — |
-| `fdot_wide_neg_of` | `⟨−A, Δ⟩ = −Σ A i j·Δ i j` (широкое спаривание) | Hagi/Theory/MuonDescentW1Rect.lean:55 | — |
-| `w1_fderiv_apply_R` | вне kink: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −(g ⊗ x)`, `f = CE_t ∘ w1L` | Hagi/Theory/MuonDescentW1Rect.lean:63 | — |
-| `w1GradR_ne` | `g ≠ 0`, `x ≠ 0 ⇒ G ≠ 0` | Hagi/Theory/MuonDescentW1Rect.lean:77 | — |
-| `w1StepR` | `d = wide_iter k Ĝ` как элемент носителя `ι → δ → ℝ` | Hagi/Theory/MuonDescentW1Rect.lean:100 | — |
-| `fdot_wide_w1StepR_pos` | `G ≠ 0`, `card ι ≤ card δ ⇒ 0 < ⟨G, wide_iter k Ĝ⟩` | Hagi/Theory/MuonDescentW1Rect.lean:105 | — |
-| `fdot_transpose` | `⟨Gᵀ, Hᵀ⟩ = ⟨G, H⟩` (L1) | Hagi/Theory/MuonDescentW1Rect.lean:248 | — |
-| `wfrobSq_transpose` / `wnormed_transpose` | `‖Gᵀ‖_F = ‖G‖_F`; `wnormed Gᵀ = (wnormed G)ᵀ` (L2) | Hagi/Theory/MuonDescentW1Rect.lean:256/:264 | — |
-| `tall_alignment_ge_gradient` | высокий `G` (`card n ≤ card m`), `G ≠ 0 ⇒ ‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩` (L3) | Hagi/Theory/MuonDescentW1Rect.lean:276 | — |
-| `alignment_ge_gradient_any` | `G : m×n` любой формы, `G ≠ 0 ⇒ ‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩` | Hagi/Theory/MuonDescentW1Rect.lean:300 | — |
-| `fdot_wide_w1StepR_pos'` | `G ≠ 0 ⇒ 0 < ⟨G, wide_iter k Ĝ⟩` (без посылки размерности) | Hagi/Theory/MuonDescentW1Rect.lean:314 | — |
-| `w1StepR_eq_code_ns` | шаг теоремы = вывод кода `code_ns` (core.py:1358–1361 транспонирует) | Hagi/Theory/MuonDescentW1Rect.lean:321 | — |
-| `muon_step_rect_of_fderiv'` | ядро без посылки размерности: `f` дифф., `f'(W1)[Δ] = ⟨G, Δ⟩`, `G ≠ 0 ⇒ ∃ η > 0`, `f (W1 − η·d) < f W1` | Hagi/Theory/MuonDescentW1Rect.lean:328 | — |
-| `muon_step_useful_w1_rect'` | вне kink, `g ≠ 0`, `x ≠ 0`, слой любой формы ⇒ ∃ η > 0, CE_t строго убывает вдоль `W1 − η·wide_iter k Ĝ` | Hagi/Theory/MuonDescentW1Rect.lean:348 | — |
-| `muon_step_useful_w1_rect_batch'` | вне kink, `G ≠ 0`, слой любой формы ⇒ ∃ η > 0`, сумма CE по батчу строго убывает | Hagi/Theory/MuonDescentW1Rect.lean:369 | — |
-
-C682 (sha — в receipt `.tmp/C682/a-receipt.md`): Freeze 9207 → 9218 (+11, identity
-существующих, 0 lost/changed). Witness `.tmp/C682/traj.lean`, rc = 0:
-высокий слой `ι = Fin 4` (dim) × `δ = Fin 3` (hidden), `3 ≤ 4` и
-`¬(4 ≤ 3)`; аксиомы 16 теорем (10 новых + 6 старых) — propext,
-Classical.choice, Quot.sound; `fdot_transpose`,
-`tall_alignment_ge_gradient`, `w1StepR_eq_code_ns`, prime-сертификаты
-(один вход, батч `Fin 1`) инстанцированы без посылки размерности.
-Float-реплика (не теорема): высокий `G = −(g ⊗ x)`, `g = (.2, .4, .6, .8)`,
-`x = (1, 2, −1)`: `‖G‖_F² = 7.2`, `‖G‖_F = 2.683282`,
-`⟨G, wide_iter 3 Ĝ⟩ = 2.683282`.
-| `muon_step_rect_of_fderiv` | ядро: `f` дифф., `f'(W1)[Δ] = ⟨G, Δ⟩`, `G ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0, f (W1 − η·d) < f W1` | Hagi/Theory/MuonDescentW1Rect.lean:113 | — |
-| `muon_step_useful_w1_rect` | вне kink, `g ≠ 0`, `x ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0, CE_t (w1L (W1 − η·wide_iter k Ĝ)) < CE_t (w1L W1)` | Hagi/Theory/MuonDescentW1Rect.lean:134 | — |
-| `w1BatchObjR` / `w1BatchGradR` | батч-лосс и `G = −Σ_t g_t ⊗ x_t` на `Matrix ι δ ℝ` | Hagi/Theory/MuonDescentW1Rect.lean:154/:158 | — |
-| `w1Batch_fderiv_apply_R` | по батчу: `f'(W1)[Δ] = ⟨G, Δ⟩`, `G = −Σ_t g_t ⊗ x_t` | Hagi/Theory/MuonDescentW1Rect.lean:166 | — |
-| `muon_step_useful_w1_rect_batch` | вне kink, `G ≠ 0`, `card ι ≤ card δ ⇒ ∃ η > 0`, сумма CE по батчу строго убывает вдоль `W1 − η·wide_iter k Ĝ` | Hagi/Theory/MuonDescentW1Rect.lean:203 | — |
-
-Freeze 9195 → 9207 (+12, identity существующих). Witness
-`.tmp/C681/traj.lean`, rc = 0: аксиомы 7 теорем — propext,
-Classical.choice, Quot.sound. Слой `ι = Fin 3` (dim), `δ = Fin 4`
-(hidden): все три pre-activations вне kink (norm_num);
-поэлементно `w1GradR = −(g ⊗ x)`; `3 ≤ 4`;
-`fdot_wide_w1StepR_pos` и `muon_step_useful_w1_rect` инстанцируются на
-этом слое (при посылке `g ≠ 0`). Числовая Float-реплика муон-части
-(не теорема): `G = −(g ⊗ x)`, `g = (0.2, 0.4, 0.6)`,
-`x = (1, 2, −1, 0.5)`: `‖G‖_F² = 3.5`, `‖G‖_F = 1.870829`,
-`⟨G, wide_iter 3 Ĝ⟩ = 1.870829` (rank-one: шаг сходится к
-`±vᵀ`; `X₃ ≈ −0.1069·(1, 2, 3)ᵀ(1, 2, −1, 0.5)`).
-
-Honest (границы):
-- Посылка `card ι ≤ card δ` (строк не больше, чем столбцов: `dim ≤ hidden`)
-   СНЯТА в C682 (`tall_alignment_ge_gradient`, `alignment_ge_gradient_any`):
-   высокий слой сведён к широкой форме через `fdot_transpose`,
-   `wnormed_transpose`, `wide_iter_transpose` (C680); prime-сертификаты
-   без посылки размерности. У версий C681 посылка остаётся — они не менялись.
-
-- В батче `G ≠ 0` — посылка (для одного входа выведена: `g ≠ 0`, `x ≠ 0`).
-- Mean-лосс lm.py:688: доказано для суммы CE по батчу; mean отличается
-  положительным множителем (тот же аргмин, теоремы о mean нет).
-  C685: для plain batch-gradient шага mean-версия доказана —
-  `w1MeanCE_optimal_step_drop`, `w1BatchCE_descent_lemma` (FirstLayerLipBatch.lean);
-  шаг вдоль любого направления `d` — `w1BatchCE_dir_optimal_step_drop`
-  (MomentumAlign.lean:261, C686);
-  для Muon-шага по-прежнему сумма.
-- `η` только существует; `cos_lr·0.7`, momentum `m1` (код
-  ортогонализирует буфер, не градиент), zero-norm guard core.py:1355,
-  фиксированные `iters = 3` — вне теории. C686: момент `m1` — граница
-  `‖m1‖_F − ‖G−m1‖_F·‖X₃‖_F ≤ ⟨G,X₃⟩` (`muon_momentum_bound`).
-- Фон Нейман: оптимум доказан на строчных изометриях, не на шаре.
-
-## Hagi/Theory/FirstLayerLip.lean (константа L для CE relu-блока по W1: Lipschitz и гладкость, C684)
-
-→ v3.5 clause O2: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-Код-якорь HAGI_v2: слой `W1 : dim × hidden` hagi/lm.py:586/:594 @ca52eb4;
-growth-гейт подставляет значение CE в роль `L` (unified.py:400-405 @ca52eb4);
-certified-шаг измеряет кривизну направления denom = Q' + 4·curv_reg
-(core.py:1314-1319 @ca52eb4). Закрывает главный HONEST-GAP
-`docs/DERIVED-CONFIG.md` («Adam lr: `L` не измеряется»): для `γ* = 1/L`
-из `nl_drop_optimal` нужна ГЛАДКОСТЬ (Липшиц градиента), не липшицевость
-функции. Носитель — тот же, что FirstLayerGrad (`W1 : ι → δ → ℝ`,
-`w1L`, один вход `x`), норма параметра `parNorm W1 = √(Σᵢⱼ W1 i j²)`,
-цель `w1CE t b wo x W1 = ceOneHot t (w1L W1 b wo x)`. Гессиан CE по
-логитам в репо уже есть: `lse_descent` (CEGlobalConvergence.lean:407,
-`∇² lse ⪯ I`) — отдельный «∇²softmax ≤ ½» не потребовался (константа 1).
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `parNorm`, `w1CE`, `parDiff`, `parNorm_sq_parDiff`, `parNorm_sq` | `parNorm W1 = √(Σᵢⱼ W1 i j²)`; `parDiff W1 V1 = V1 − W1`; `parNorm f ^ 2 = Σ f i j²` | Hagi/Theory/FirstLayerLip.lean:52, :56, :61, :65, :71 | — |
-| `row_sq_le`, `sum_mul_sq_le` | Коши–Шварц: `Σᵢ (Δᵢ·x)² ≤ ‖Δ‖_F²‖x‖²`; `Σ_v (Σᵢ f i v·u i)² ≤ (Σᵢᵥ f²)(Σᵢ u²)` | Hagi/Theory/FirstLayerLip.lean:76, :91 | — |
-| `w1Logits_sq_le` | глобально (через kink): `Σ_v (w1L W1 − w1L V1) v² ≤ ‖wo‖_F²·‖W1 − V1‖_F²·‖x‖₂²` (relu 1-Lip: `relu_lip_abs`) | Hagi/Theory/FirstLayerLip.lean:111 | — |
-| `w1CE_lipschitz_param` | липшицевость ФУНКЦИИ по параметру, глобально: `|w1CE W1 − w1CE V1| ≤ 2·‖wo‖_F·‖W1 − V1‖_F·‖x‖₂` (`C_CE = 2` из `headCE_abs_sub_le_of_l2`) — Lfun; спуск из неё НЕ следует | Hagi/Theory/FirstLayerLip.lean:182 | — |
-| `w1L_eq_add_jac_of_mask_eq` | внутри области активации (маски `reluMask` равны) логиты линейны по `Δ`: `w1L V1 v = w1L W1 v + w1Jac Δ v` | Hagi/Theory/FirstLayerLip.lean:218 | — |
-| `w1CE_descent_lemma` | ГЛАДКОСТЬ по `W1` внутри области активации, `S = ‖wo‖_F²·‖x‖₂²`: `CE V1 ≤ CE W1 − Σᵢⱼ (gᵢxⱼ)Δᵢⱼ + S/2·‖Δ‖_F²` (`lse_descent` + Коши–Шварц; `⟨∇CE,Δ⟩ = −Σ(gᵢxⱼ)Δᵢⱼ` — `w1_directional_derivative`) | Hagi/Theory/FirstLayerLip.lean:258 | — |
-| `w1DescentDir` | направление спуска `D (i,j) = gᵢ·xⱼ` (rank-one, минус градиент в конвенции `chainGrad`) | Hagi/Theory/FirstLayerLip.lean:329 | — |
-| `w1CE_drop_of_step` | шаг `W1 + γ•D` внутри области активации: `CE' ≤ CE − nlDrop γ S ‖D‖_F` — посылка `nlDrop_le_optimal` выполнена | Hagi/Theory/FirstLayerLip.lean:339 | — |
-| `w1CE_optimal_step_drop` | `S > 0`: `γ* = 1/S`, certified drop `‖D‖²/(2S)` (`nl_drop_optimal`) — `S` вычисляется из `‖wo‖_F`, `‖x‖₂` | Hagi/Theory/FirstLayerLip.lean:392 | — |
-
-Witness: `.tmp/C684/traj.lean` (ι = Fin 3, δ = Fin 2, K = Fin 2; x = (1,2),
-wo = [[1,0],[0,2],[1,1]], b = 0, W1 = [[1,0],[0,1],[−1,1]],
-V1 = W1 − ½·e₀₀): Σx² = 5, Σwo² = 7 ⇒ S = 35, γ* = 1/35 = 0.0286,
-Lfun = 2√35 = 11.83; логиты W1 (2,5), V1 (3/2,5), ‖Δlogits‖² = 1/4 ≤ 35/4;
-маски равны (pre-активации (1,2,1) / (½,2,1)); rc = 0.
-Freeze 9221 → 9235 (+14: `parNorm`, `w1CE`, `parDiff`, `parNorm_sq_parDiff`,
-`parNorm_sq`, `row_sq_le`, `sum_mul_sq_le`, `w1Logits_sq_le`,
-`w1CE_lipschitz_param`, `w1L_eq_add_jac_of_mask_eq`, `w1CE_descent_lemma`,
-`w1DescentDir`, `w1CE_drop_of_step`, `w1CE_optimal_step_drop`).
-
-- Honest: глобальной гладкости по `W1` НЕТ (relu kink) — `S` действует
-  внутри области активации шага (посылка равенства масок); один вход — батч-версия
-  C685: `Hagi/Theory/FirstLayerLipBatch.lean` (`w1BatchCE_descent_lemma`,
-  `w1MeanCE_optimal_step_drop`); код не логирует `‖wo‖_F`, `‖x‖₂` ⇒ число `S` — только
-  на witness; Adam-шаг нормирован (`m̂/√v̂`), теорема — про `γ·∇`;
-  L_dir certified-шага (denom) — отдельная, диапазонная кривизна
-  (`ce_range_code_drop`, AdaptiveMajorizer.lean:1497), уже измеряется кодом.
-
-## Hagi/Theory/MuonWide.lean (прямоугольный шаг Muon: широкая форма, сингулярные базисы, оптимум на строчных изометриях, C678)
-
-→ v3.5 clause O3/O4: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-Код-якорь HAGI_v2: newton_schulz_orthogonalize core.py:1349 @ca52eb4 —
-если строк больше столбцов, транспонирует к широкой форме (core.py:1358),
-итерирует `X = 0.5 * (3.0 * I_m - X @ X.T) @ X` (core.py:1363), возвращает
-транспонированным обратно; iters по умолчанию 4, вызов с `iters=3`
-(core.py:1755). Здесь `X : Matrix m n ℝ` (m ≤ n неявно: `V : n×m`,
-`VᵀV = 1`), `G = U·diag σ·Vᵀ`, `U : m×m`, `UᵀU = 1`. Ключевая алгебра:
-`(3I − XXᵀ)X = 3X − XXᵀX = X(3I − XᵀX)` — строка кода РАВНА уже
-доказанному прямоугольному шагу `NewtonSchulzSigma.ns_step` (правая
-форма), и `XᵀX = V·diag σ²·Vᵀ` требует только `VᵀV = 1` (не `VVᵀ`).
-Оптимум (T5): `⟨G, Δ⟩ = Σ σ i·(UᵀΔV) i i`, а `(UᵀΔV) i i = ⟨Δᵀu_i, v_i⟩ ≤ 1`
-(Cauchy–Schwarz; `ΔΔᵀ = 1 ⇒ Δᵀ` — изометрия), поэтому максимум на
-строчных изометриях — `Σ σ i`, на `Δ = U Vᵀ`.
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `code_step` | строка кода core.py:1363: `(1/2)•((3•1 − XXᵀ)X)`, `X : m×n` | Hagi/Theory/MuonWide.lean:47 | — |
-| `code_step_eq_ns_step` | K: `code_step X = NewtonSchulzSigma.ns_step X` | Hagi/Theory/MuonWide.lean:52 | — |
-| `ns_step_wide_svd` | T1: `X = U·diag τ·Vᵀ, UᵀU = VᵀV = 1 ⇒ ns_step X = U·diag (ns_p∘τ)·Vᵀ` | Hagi/Theory/MuonWide.lean:61 | — |
-| `wide_iter` | k итераций кодового шага: `ns_step^[k] X` (m×n) | Hagi/Theory/MuonWide.lean:112 | — |
-| `ns_iter_wide_svd` | T1': `G = U·diag σ·Vᵀ ⇒ wide_iter k G = U·diag (ns_seq k∘σ)·Vᵀ` | Hagi/Theory/MuonWide.lean:116 | — |
-| `fdot_wide` | скалярное произведение на `m×n`: `Σ_i Σ_j G i j·Y i j` | Hagi/Theory/MuonWide.lean:131 | — |
-| `wide_alignment_exact` | T2: `⟨G, wide_iter k G⟩ = Σ_i σ i·ns_seq k (σ i)` | Hagi/Theory/MuonWide.lean:163 | — |
-| `wide_alignment_ge_gradient` | T3: `0 ≤ σ i ≤ 1 ⇒ ⟨G, G⟩ ≤ ⟨G, wide_iter k G⟩` | Hagi/Theory/MuonWide.lean:178 | — |
-| `wide_row_isometry` | T4: `UUᵀ = VᵀV = 1 ⇒ (UVᵀ)(UVᵀ)ᵀ = 1` | Hagi/Theory/MuonWide.lean:193 | — |
-| `wide_inner_le_sigma_sum` | T5: `ΔΔᵀ = 1, σ ≥ 0 ⇒ ⟨G, Δ⟩ ≤ Σ σ i` | Hagi/Theory/MuonWide.lean:210 | — |
-| `wide_step_optimal` | T5: граница + достижимость на `Δ = U Vᵀ` | Hagi/Theory/MuonWide.lean:245 | — |
-| `ns_step_transpose` | S2 (C680): `ns_step Xᵀ = (ns_step X)ᵀ` для любых форм `X : m×n` | Hagi/Theory/MuonWide.lean:261 | — |
-| `wide_iter_transpose` | S2: `wide_iter k Xᵀ = (wide_iter k X)ᵀ` | Hagi/Theory/MuonWide.lean:268 | — |
-| `code_ns_eq_wide_iter` | S2: `code_ns k G = wide_iter k G` для ЛЮБОЙ формы (высокой — через транспонирование) | Hagi/Theory/MuonWide.lean:286 | — |
-
-Носители: `fdot_wide_eq_trace`, `wide_inner_eq_sigma_weighted_diag`,
-`col_sq_eq_one`. Freeze 9149 → 9163 (+14).
-Witness `.tmp/C678/traj.lean`, rc = 0: широкий пример `2×3`, `U = 1`,
-`σ = (3/4, 1/2)`, `Vᵀ = [[1,0,0],[0,1,0]]`, `G = [[3/4,0,0],[0,1/2,0]]`.
-Lean проверяет: `VᵀV = 1`; T1 — `ns_step G = U·diag(117/128, 11/16)·Vᵀ`;
-`code_step G = ns_step G` (K); T2 при `k = 3` — `⟨G, X₃⟩ =
-(3/4)·ns_seq 3 (3/4) + (1/2)·ns_seq 3 (1/2)`; `ns_seq 3 (1/2) =
-1072353284651/1099511627776`; `⟨G, G⟩ = 13/16`; T4 — `(UVᵀ)(UVᵀ)ᵀ = 1`;
-T5 — `⟨G, UVᵀ⟩ = 3/4 + 1/2` и для любой `Δ` с `ΔΔᵀ = 1`: `⟨G, Δ⟩ ≤
-3/4 + 1/2`. Аксиомы всех 8 теорем: propext, Classical.choice, Quot.sound.
-
-ГИПОТЕЗА СНЯТА (C679): разложение `G = U·diag σ·Vᵀ` с `UᵀU = VᵀV = 1`
-существует — `exists_wide_svd` (Hagi/Theory/WideSVD.lean:155, pad-to-square
-из квадратного SVD). T1', T2, T4–T5 переформулированы без посылки
-разложения: `wide_iter_svd'`, `wide_alignment_exact'`,
-`wide_step_optimal'` (`∃ σ`). Остаются посылками: `σ i ≤ 1` (T3) и
-само разложения в исходных формулировках T1–T5 (API сохранён).
-
-ВЫСОКИЙ СЛУЧАЙ (C680): `ns_step_transpose` — шаг NS коммутирует с
-транспонированием для любых форм, поэтому кодовое транспонирование
-core.py:1358/1361 — только эффективность (I_m вместо I_n):
-`code_ns k G = wide_iter k G` для любой `G : m×n` (`code_ns_eq_wide_iter`).
-T3 без гипотез и сертификат спуска для широкой `G ≠ 0` — карточка
-WideSVD (C680).
-
-Honest (границы):
-- Проверка `norm < 1e-12 → return X` (core.py:1355) не формализована
-  (теоремы о `ns_step`, а не о функции целиком); iters = 4/3 — факт кода,
-  теоремы верны для любого `k`.
-- Оптимум доказан на СТРОЧНЫХ ИЗОМЕТРИЯХ `ΔΔᵀ = 1` (широкий аналог
-  `ΔᵀΔ = 1` из C672), не на всём шаре `‖Δ‖₂ ≤ 1`.
-- `σ ≤ 1` для нормированного `Ĝ` в широком случае доказано (C680,
-  `WideSVD.wnormed_sigma_le_one`); сходимость `σ → 1` — только
-  скалярная (C673).
-- Мост к слою формализован (C681, MuonDescentW1Rect): сертификат
-  спуска для прямоугольного слоя `ι → δ → ℝ` при `card ι ≤ card δ`;
-   высокий слой сведён в C682 (`tall_alignment_ge_gradient`, prime-теоремы
-   без посылки размерности) — посылка размерности снята.
-
-## Hagi/Theory/WideSVD.lean (вещественный прямоугольный SVD из квадратного: pad-to-square, C679)
-
-→ v3.5 clause O3/O4: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-Снимает гипотезу карточки MuonWide (C678): разложение `G = U·diag σ·Vᵀ`
-(`U : m×m`, `V : n×m`, `UᵀU = VᵀV = 1`, `σ ≥ 0`) для широкой
-вещественной `G : m×n` (`card m ≤ card n`) — теперь ТЕОРЕМА. Вывод
-(pad-to-square, путь A): `Ĝ = [G; 0] : n×n` (`padSquare`), квадратный SVD
-`Ĝ = U Σ Vᵀ` (`constructedU_real`, `rightOrthogonal`,
-`realSingularValues`, SVDReal.lean). Собственные значения `ĜᵀĜ = GᵀG`
-антонатонны (`eigenvalues₀_antitone` по нумерации `enum`), число
-ненулевых равно `rank (GᵀG) = rank G ≤ card m` (rank_eq_card_non_zero_eigs,
-rank_transpose_mul_self, rank_le_card_height), поэтому `σ x = 0` вне
-первых `card m` индексов (`zeros_outside_leading`). Тогда `G = K·V₀ᵀ`,
-где `V₀ : n×m` — первые `card m` столбцов `V` (изометрия), а `K := G·V₀`
-квадратная `m×m`; квадратный SVD `K = U·diag σ·Wᵀ` (`svd_decomposition`)
-даёт `G = U·diag σ·(V₀W)ᵀ` с `UᵀU = (V₀W)ᵀ(V₀W) = 1`. Второй SVD
-(для `K`) обязателен: подматрица `U[range, range]` при `rank G < card m`
-ортогональной не будет (столбцы с `σ = 0` — произвольное дополнение).
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `padSquare` | `Ĝ = [G; 0] : n×n`, строки вне `range e` нулевые | Hagi/Theory/WideSVD.lean:53 | — |
-| `padSquare_transpose_mul_self` | `ĜᵀĜ = GᵀG` | Hagi/Theory/WideSVD.lean:66 | — |
-| `enum` / `eigenvalues_enum` | нумерация `n ≃ Fin (card n)`, согласованная с `IsHermitian.eigenvalues` | Hagi/Theory/WideSVD.lean:83/:87 | — |
-| `leadingEmbedding` | первые `card m` индексов типа `n` | Hagi/Theory/WideSVD.lean:92 | — |
-| `zeros_outside_leading` | антонатонный `σ`, #ненулевых ≤ card m ⇒ `σ = 0` вне первых `card m` | Hagi/Theory/WideSVD.lean:119 | — |
-| `sum_leading` | `f = 0` вне `range e ⇒ Σ_j f (e j) = Σ_c f c` | Hagi/Theory/WideSVD.lean:135 | — |
-| `exists_wide_svd` | Т: `card m ≤ card n ⇒ ∃ U σ V, UᵀU = VᵀV = 1 ∧ σ ≥ 0 ∧ G = U·diag σ·Vᵀ` | Hagi/Theory/WideSVD.lean:155 | — |
-| `wide_iter_svd'` | T1' без гипотезы: `∃ U σ V, … ∧ wide_iter k G = U·diag (ns_seq k∘σ)·Vᵀ` | Hagi/Theory/WideSVD.lean:306 | — |
-| `wide_alignment_exact'` | T2 без гипотезы: `∃ σ ≥ 0, ⟨G, wide_iter k G⟩ = Σ σ i·ns_seq k (σ i)` | Hagi/Theory/WideSVD.lean:306 | — |
-| `wide_step_optimal'` | T5 без гипотезы: `∃ σ ≥ 0, P, PPᵀ = 1, ⟨G, P⟩ = Σ σ i ∧ ∀ ΔΔᵀ = 1, ⟨G, Δ⟩ ≤ Σ σ i` | Hagi/Theory/WideSVD.lean:317 | — |
-| `wfrobSq` / `wnormed` | (C680) `‖G‖_F²` и `Ĝ = G/‖G‖_F` для `m×n` (core.py:1353) | Hagi/Theory/WideSVD.lean:332/:335 | — |
-| `wfrobSq_eq_sum_sigma_sq` | `G = U·diag σ·Vᵀ, изометрии ⇒ ‖G‖_F² = Σ σ i²` | Hagi/Theory/WideSVD.lean:372 | — |
-| `wnormed_sigma_le_one` | S1: `G ≠ 0, Ĝ = U·diag σ·Vᵀ ⇒ 0 ≤ σ i² ≤ 1` | Hagi/Theory/WideSVD.lean:391 | — |
-| `wnormed_inner_eq_one` | S1: `⟨Ĝ, Ĝ⟩ = 1` | Hagi/Theory/WideSVD.lean:405 | — |
-| `wide_alignment_ge_gradient'` | S1: T3 без гипотез: `⟨Ĝ, Ĝ⟩ ≤ ⟨Ĝ, wide_iter k Ĝ⟩ ∧ ‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩` | Hagi/Theory/WideSVD.lean:418 | — |
-| `muon_step_useful_wide` | S3: `f'(W) = ⟨G, ·⟩`, `G ≠ 0 ⇒ ∃ η > 0, f (W − η·wide_iter k Ĝ) < f W` | Hagi/Theory/WideSVD.lean:446 | — |
-
-Freeze 9163 → 9179 (+16). Witness `.tmp/C679/traj.lean`, rc = 0:
-аксиомы 4 теорем — propext, Classical.choice, Quot.sound; `G = [[2,0,0],
-[0,1,0]]` (2×3): `exists_wide_svd` даёт `U σ V`; явный witness
-`U = 1`, `σ = (2,1)`, `Vᵀ = [[1,0,0],[0,1,0]]` проверен
-(`Gc = U·diag σ·Vᵀ`, `VᵀV = 1`); T2 без гипотезы при `k = 3`; T5 без
-гипотезы; вырожденный случай `G = 0` (rank 0 < m) — изометрии существуют.
-
-C680 (S1, S3): нормировка. Короткий путь — без оценок через `smax`
-дополненной матрицы (`padSquare`):
-`‖G‖_F² = tr(GᵀG) = tr(diag σ²·VᵀV) = Σ σ i²` (`wfrobSq_eq_sum_sigma_sq`),
-`‖Ĝ‖_F² = 1 ⇒ σ i² ≤ 1`. Отсюда T3 без посылок (`wide_alignment_ge_gradient'`,
-через `exists_wide_svd Ĝ` — тот же `σ` в обеих посылках) и сертификат
-спуска `muon_step_useful_wide` (по `MuonDescent.useful_of_neg_fderiv`;
-существующая декларация не менялась — Freeze identity).
-
-Freeze 9179 → 9195 (+16, identity существующих). Witness `.tmp/C680/traj.lean`, rc = 0: аксиомы
-7 теорем — propext, Classical.choice, Quot.sound; `G = [[3,0,0],[0,4,0]]`
-(2×3), `‖G‖_F² = 25`, `Ĝ = [[3/5,0,0],[0,4/5,0]]` = `1·diag(3/5, 4/5)·Vᵀ`:
-`wnormed_sigma_le_one` даёт `σ i ≤ 1`; `Σ σ² = ‖Ĝ‖_F² = 1`; T3 при `k = 3`
-(`1 ≤ ⟨Ĝ, X₃⟩`, `5 ≤ ⟨G, X₃⟩`); высокая `Gᵀ : 3×2`:
-`code_ns 3 Gᵀ = wide_iter 3 Gᵀ`.
-
-Honest (границы):
-- Порядок `σ` (↓) не утверждается: `σ` — спектр `K = G·V₀` из
-  `svd_decomposition` (по `realSingularValues`), MuonWide порядок не нужен.
-- S1/S3 — только широкая форма `card m ≤ card n`; «высокая» сводится
-  транспонированием (`MuonWide.code_ns_eq_wide_iter`, C680).
-- Сертификат `muon_step_useful_wide` — на координатном носителе
-  `m → n → ℝ` (нормированного пространства для прямоугольной
-  `Matrix m n ℝ` в репо нет); мост к слою `W1` (`dim × hidden`) —
-  MuonDescentW1Rect (C681), через `wide_alignment_ge_gradient'`.
-- `η` только существует; `cos_lr·0.7`, momentum `m1` — вне теории.
-- Пустой `m` разобран отдельно (`IsEmpty m`); witness для `m = 0` нет.
-
-## Hagi/Theory/FirstLayerLipBatch.lean (батч-версия гладкости CE-слоя W1: S_batch, γ*, mean-форма кода, C685)
-
-→ v3.5 clause O2: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-Код-якорь HAGI_v2: слой `W1 : dim × hidden` hagi/lm.py:586 @ca52eb4; лосс —
-`ce(reduction="mean")` hagi/lm.py:299 @ca52eb4 (батчное среднее). Батч-версия
-`Hagi/Theory/FirstLayerLip.lean` (C684, один вход): сумма CE по входам
-`x : τ → δ → ℝ` (`w1BatchCE` = `w1BatchObjR`), направление — батч-градиент
-`D_batch = Σ_t gₜ ⊗ x_t` (минус `w1BatchGradR`, `MuonDescentW1Rect.lean`),
-норма — `parNorm` (FirstLayerLip.lean), ряд gₜ — `rowGrad`
-(BatchRankOne.lean, FirstLayerGrad.lean).
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `w1BatchCE`, `xMaxSq`, `S_batch`, `w1BatchDescentDir` | `w1BatchCE y b wo x W1 = Σ_t w1CE (y t) b wo (x t) W1`; `xMaxSq x = max_t ‖x t‖₂²`; `S_batch wo x = ‖wo‖_F²·Σ_t ‖x t‖₂²`; `D_batch i j = Σ_t gₜ i·x t j` | Hagi/Theory/FirstLayerLipBatch.lean:44, :50, :56, :61 | — |
-| `w1BatchDescentDir_eq` | `w1BatchDescentDir i j = −(w1BatchGradR x y b wo W1) i j` — мост к Muon-батчу | Hagi/Theory/FirstLayerLipBatch.lean:70 | — |
-| `sum_xMaxSq_le`, `S_batch_le_max` | `Σ_t ‖x t‖₂² ≤ B·max_t ‖x t‖₂²`; `S_batch ≤ B·‖wo‖_F²·max_t ‖x t‖₂²` | Hagi/Theory/FirstLayerLipBatch.lean:77, :86 | — |
-| `w1BatchCE_eq` | `w1BatchCE = w1BatchObjR` (rfl) | Hagi/Theory/FirstLayerLipBatch.lean:95 | — |
-| `sum_sq_smul`, `parNorm_sq_smul` | `Σ (c·D)² = c²·Σ D²`; `parNorm (c • D)² = c²·parNorm D²` | Hagi/Theory/FirstLayerLipBatch.lean:101, :236 | — |
-| `w1BatchCE_descent_lemma` | ГЛАДКОСТЬ суммы CE по батчу внутри области активации КАЖДОГО входа (маски `reluMask` равны вдоль шага): `CE_batch V1 ≤ CE_batch W1 − Σᵢⱼ D_batch i j·Δ i j + S_batch/2·‖Δ‖_F²`, `S_batch = ‖wo‖_F²·Σ_t ‖x t‖₂²` (сумма лемм C684) | Hagi/Theory/FirstLayerLipBatch.lean:113 | — |
-| `w1BatchCE_drop_of_step` | шаг `W1 + γ•D_batch`: `CE_batch' ≤ CE_batch − nlDrop γ S_batch ‖D_batch‖_F` | Hagi/Theory/FirstLayerLipBatch.lean:186 | — |
-| `w1BatchCE_optimal_step_drop` | `S_batch > 0`: `γ*_batch = 1/S_batch`, drop `‖D_batch‖²/(2S_batch)` | Hagi/Theory/FirstLayerLipBatch.lean:218 | — |
-| `w1MeanCE_optimal_step_drop` | форма кода (mean CE): `B > 0`, шаг `W1 + (B/S_batch)•(D_batch/B)`: drop ≥ `‖D_batch/B‖²/(2·S_batch/B)`, т.е. `S_mean = S_batch/B`, `γ*_mean = B/S_batch` | Hagi/Theory/FirstLayerLipBatch.lean:247 | — |
-
-Witness: `.tmp/C685/traj.lean`, rc = 0 (ι = Fin 3, δ = Fin 2, K = Fin 2,
-τ = Fin 2; wo = [[1,0],[0,2],[1,1]], W1 как в C684; x₁ = (1,2), x₂ = (1,1)):
-‖x₁‖² = 5, ‖x₂‖² = 2, max = 5, Σ = 7 ⇒ S_batch = 7·7 = 49 ≤ B·7·5 = 70
-(`S_batch_le_max`), γ*_batch = 1/49 = 0.0204, γ*_mean = 2/49 = 0.0408.
-Freeze 9235 → 9249 (+14: `w1BatchCE`, `xMaxSq`, `S_batch`,
-`w1BatchDescentDir`, `w1BatchDescentDir_eq`, `sum_xMaxSq_le`, `S_batch_le_max`,
-`w1BatchCE_eq`, `sum_sq_smul`, `w1BatchCE_descent_lemma`,
-`w1BatchCE_drop_of_step`, `w1BatchCE_optimal_step_drop`, `parNorm_sq_smul`,
-`w1MeanCE_optimal_step_drop`); аксиомы [propext, Classical.choice, Quot.sound].
-
-- Honest: `S_batch` — СУММА констант C684 по входам, не максимум (для суммы CE
-  максимум даёт только границу с множителем `B` — `S_batch_le_max`; для mean
-  граница `‖wo‖_F²·max_t‖x t‖₂²`); глобальной гладкости нет (kink); шаг —
-  plain batch gradient, код применяет Muon/Adam к momentum `m1`; Adam-шаг
-  нормирован; код не логирует `‖wo‖_F²`, `‖x t‖₂²` ⇒ число — только на
-  witness (PROPOSAL `docs/PROPOSAL-smoothness-logging.md`, #11). C686:
-  шаг вдоль произвольного направления и момент `m1` — MomentumAlign.lean.
-
-## Hagi/Theory/MomentumAlign.lean (шаг вдоль направления, момент `m1`, Muon с моментом, C686)
-
-→ v3.5 clause O2/O6: `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458), контракт посылок `OptimizerPremises` (:428), C687.
-
-Код-якорь HAGI_v2 @ca52eb4, Muon-гибрид hagi/core.py:1715–1765: `m1 = 0.85·m1 + 0.15·(градиент W1)`
-(core.py:1754) — EMA, без nesterov-члена, без поправки смещения;
-`W1 -= (cos_lr * 0.7) * newton_schulz_orthogonalize(m1, iters=3)`
-(core.py:1755) — NS применяется к моменту `m1`, а не к градиенту слоя.
-Носитель: T1/T2 — любое `E` со скалярным произведением (как
-NegativeTransfer), слой — `ι → δ → ℝ` (FirstLayerLipBatch), T3 —
-`Matrix ι δ ℝ` (MuonDescentW1Rect/WideSVD).
-
-| теорема | формулировка | file:line | bench |
-|---|---|---|---|
-| `dir_drop_of_step` | `L`-smooth ⇒ шаг `z + γ•d` по ЛЮБОМУ `d`: `f (z + γ•d) ≤ f z − (γ·a − L·γ²·‖d‖²/2)`, `a = −⟪grad z, d⟫` | Hagi/Theory/MomentumAlign.lean:71 | — |
-| `dir_drop_le_optimal` | `0 < L`, `0 < D`: `γ·a − L·γ²·D²/2 ≤ a²/(2L·D²)` — полный квадрат, для любого `γ` | Hagi/Theory/MomentumAlign.lean:89 | — |
-| `dir_drop_is_nlDrop` | при `d = −c•grad`: drop `= nlDrop (cγ) L ‖g‖` (`nlDrop` — частный случай) | Hagi/Theory/MomentumAlign.lean:103 | — |
-| `dir_drop_optimal` | `d ≠ 0`: `γ* = a/(L‖d‖²)`, `f (z + γ*•d) ≤ f z − a²/(2L‖d‖²)` | Hagi/Theory/MomentumAlign.lean:112 | — |
-| `mom` | `mom μ mPrev G = μ•mPrev + (1−μ)•G` — буфер кода (core.py:1754) | Hagi/Theory/MomentumAlign.lean:136 | — |
-| `momentum_align` | `⟪G, mom μ mPrev G⟫ = (1−μ)‖G‖² + μ⟪G, mPrev⟫` — точно | Hagi/Theory/MomentumAlign.lean:140 | — |
-| `momentum_align_cs` | ВСЕГДА: `(1−μ)‖G‖² − |μ|·‖G‖·‖mPrev‖ ≤ ⟪G,m⟫` (Коши–Шварц) | Hagi/Theory/MomentumAlign.lean:149 | — |
-| `momentum_align_ge` | `0 ≤ μ`, `0 ≤ ⟪G,mPrev⟫` ⇒ `(1−μ)‖G‖² ≤ ⟪G,m⟫` | Hagi/Theory/MomentumAlign.lean:169 | — |
-| `momentum_align_ge_grad` | `0 ≤ μ`, `‖G‖² ≤ ⟪G,mPrev⟫` ⇒ `‖G‖² ≤ ⟪G,m⟫` | Hagi/Theory/MomentumAlign.lean:179 | — |
-| `momentum_residual` | `G − mom μ mPrev G = μ•(G − mPrev)` | Hagi/Theory/MomentumAlign.lean:187 | — |
-| `momentum_dir_drop` | цель с дифференциалом `⟪G,·⟫`: шаг вдоль `m ≠ 0` с `γ* = −⟪G,m⟫/(L‖m‖²)` даёт drop `⟪G,m⟫²/(2L‖m‖²)` | Hagi/Theory/MomentumAlign.lean:196 | — |
-| `momentum_dir_drop_le_gd` | certified drop вдоль `m` ≤ `‖G‖²/(2L)` — по гарантированной оценке момент не лучше оптимального GD | Hagi/Theory/MomentumAlign.lean:207 | — |
-| `w1BatchCE_dir_drop_of_step` | шаг `W1 + γ•d` (любое `d`, маски равны): `CE_batch' ≤ CE_batch − (γ·a − S_batch·γ²·‖d‖²/2)`, `a = Σᵢⱼ D_batch i j·d i j` | Hagi/Theory/MomentumAlign.lean:230 | — |
-| `w1BatchCE_dir_optimal_step_drop` | `S_batch > 0`, `d ≠ 0`: `γ* = a/(S_batch‖d‖²)`, drop `a²/(2·S_batch·‖d‖²)` | Hagi/Theory/MomentumAlign.lean:261 | — |
-| `parNorm_eq_sqrt_wfrobSq`, `fdot_wide_add_left`, `wfrobSq_neg`, `fdot_wide_comm`, `fdot_wide_self` | технические: одна норма; `⟨A+B,X⟩ = ⟨A,X⟩+⟨B,X⟩`; `‖−A‖_F = ‖A‖_F`; `⟨A,B⟩ = ⟨B,A⟩`; `⟨A,A⟩ = ‖A‖_F²` | Hagi/Theory/MomentumAlign.lean:311, :317, :323, :328, :333 | — |
-| `wfrob_cauchy`, `wfrob_abs_cauchy` | `⟨A,B⟩ ≤ ‖A‖_F‖B‖_F`; `|⟨A,B⟩| ≤ ‖A‖_F‖B‖_F` | Hagi/Theory/MomentumAlign.lean:340, :359 | — |
-| `wfrob_triangle` | `‖A+B‖_F ≤ ‖A‖_F + ‖B‖_F` | Hagi/Theory/MomentumAlign.lean:370 | — |
-| `momStep`, `momStep_apply` | `momStep m k = ns_k (m/‖m‖_F)` — шаг кода для буфера; `momStep m k i j = w1StepR m k i j` (rfl) | Hagi/Theory/MomentumAlign.lean:388, :391 | — |
-| `momStep_norm_ge_one` | `m ≠ 0` ⇒ `1 ≤ ‖ns_k m̂‖_F` | Hagi/Theory/MomentumAlign.lean:396 | — |
-| `muon_momentum_bound` | `m ≠ 0`, `X = ns_k m̂`: `‖m‖_F − ‖G−m‖_F·‖X‖_F ≤ ⟨G, X⟩` | Hagi/Theory/MomentumAlign.lean:419 | — |
-| `muon_momentum_third` | `‖G−m‖_F·‖X‖_F ≤ ‖m‖_F/2` ⇒ `‖G‖_F/3 ≤ ⟨G, X⟩` | Hagi/Theory/MomentumAlign.lean:442 | — |
-| `wfdot_mom_align` | матричная форма `momentum_align`: `⟨G, μ•m_prev + (1−μ)•G⟩ = (1−μ)‖G‖_F² + μ⟪G,m_prev⟫` | Hagi/Theory/MomentumAlign.lean:482 | — |
-
-Witness: `.tmp/C686/traj.lean`, rc = 0. Момент `G = (2,0)`, `μ = 0.9`:
-`m_prev = (1,0)` ⇒ `m = 1.1`, `⟪G,m⟫ = 2.2 = 0.4 + 0.9·2` (`< ‖G‖² = 4`);
-`m_prev = (5,0)` ⇒ `⟪G,m⟫ = 9.4 ≥ 4` (`momentum_align_ge_grad`);
-`m_prev = (−1,0)` ⇒ `⟪G,m⟫ = −1.4 < 0.4` — безусловное `(1−μ)‖G‖² ≤ ⟪G,m⟫`
-неверно. Muon с моментом 1×1, `k = 0`: `m = 1`, `G = 11/10`, `X = 1`,
-`‖G−m‖·‖X‖ = 1/10 ≤ 1/2` ⇒ `11/30 ≤ ⟨G,X⟩ = 11/10`. Аксиомы 7 главных
-теорем: [propext, Classical.choice, Quot.sound].
-
-Расхождение с ТЗ C686 (доказано, что утверждение ТЗ неверно):
-(1) «`a_m ≥ (1−β)‖G‖² ВСЕГДА» — ложно (пример выше); верна оценка с
-Коши–Шварцем `momentum_align_cs`; `(1−μ)‖G‖²` — при `⟪G,m_prev⟫ ≥ 0`
-(`momentum_align_ge`), `‖G‖²` — при `⟪G,m_prev⟫ ≥ ‖G‖²`
-(`momentum_align_ge_grad`), а не при `≥ 0` (пример: 2.2 < 4).
-(2) «`‖G‖/2`-следствие» — ложно: `‖G‖ ≤ ‖m‖ + ‖G−m‖ ≤ (3/2)‖m‖` ⇒ `‖G‖/3`.
-(3) «`γ* = a/(S‖d‖²)` выводится из `nl_drop_optimal` тривиально» — нет:
-`nlDrop γ L G = G²(γ − Lγ²/2)`, у общего направления `γa − Lγ²‖d‖²/2`
-(разные параболы); `nlDrop` — частный случай `d ∝ grad` (`dir_drop_is_nlDrop`),
-общий случай доказан полным квадратом.
-(4) Числа witness в ТЗ (`m = 1.9`, `a = 3.8`) — арифметическая ошибка:
-`0.9·1 + 0.1·2 = 1.1`.
-
-- Honest: знак `⟨G−m, X⟩` неизвестен ⇒ остаток — произведение норм
-  (`muon_momentum_bound`), а не нуль; условие `muon_momentum_third` код не
-  проверяет; глобальной гладкости нет (kink); `cos_lr·0.7` и связь `η` с `γ*`
-  вне утверждения; значение `μ = 0.85` не выводится; код не логирует
-  `⟨G,m1⟩`, `‖G−m1‖_F` (PROPOSAL `docs/PROPOSAL-muon-guards.md`, (e)).
-
-## History (C538–C687)
-
-- Era index: `.omc/analysis/era-index.md` (C591–C687, сводка `#c668-c687`, `#c684`, `#c685`, `#c686`, `#c687`
-  (заголовок эры C668–C682; старый якорь `#c668-c676` сохранён), якоря `#c638-c640`
-  … `#c665-c667`, `#c668`, `#c669`, `#c670`, `#c671`, `#c672`, `#c673`, `#c674`, `#c675`, `#c676`, `#c678`, `#c679`, `#c680`, `#c681`, `#c682`); более ранние per-beat файлы — `git log`. Журнал
-  C638–C667 (1248 строк, 20 `## Cxxx`) свёрнут в канон-карточки по файлу
-  (X2): `git show 555ff987:STATUS.md`; полный дожатый журнал —
-  `git show b3939aa5:STATUS.md`.
-
+## scripts/bench_bridge.py
+
+- Режимы: certified snap-GD (drop>0 COMMIT / HOLD), `forgetA=0` bit-exact asserts, drift-детект, EB-телеметрия, негативы.
+- `--mode universal-loop`: линейных законов на реальном корпусе нет (0/113); Lean: `universal_loop_corpus_mono`.
+- `--mode self-compress-loop`: `params ≤ 2·K·d`; Lean: `selfCompressParams`, `self_compress_params_bounded`, `self_compress_loop_sound`.
+- `--mode distill`: `distillAdapter`, `constant_distill_exact` (CE кластеров 0 бит-в-бит); контраст `symbolic_storage_cheaper`.
+- `--mode mini-hagi-v3`: Lean `v3_assembly_sound`.
+- `--mode adapter-transfer`, `--mode adapter-transfer-auto` (probe-A/B гейт с rollback): Lean `gate_char`, `auto_transfer_gate_sound` (Hagi/Theory/AutoTransferGate.lean:80, :139).
+- `--mode band-check`: Lean `softDef_shift`, `bandDescribes_of_pointwise`, `bernoulliBandDescribes` (Hagi/Theory/TrainerBenchmark.lean:140, :155, :169).
+- `--mode transfer-gate-certified` (bench_bridge.py:12442, :12450): warm допустим ⟺ `start_gap = f(θA) − f(0) ≤ n·nlBudget`; `L = 2·trace(H̄)`, `G` — измеренный `max ‖grad‖²` (посылка). Sufficient ≠ iff: adversarial — quad-iff cold, smooth-гейт допускает warm.
+- auto-LR (bench_bridge.py:12170): `γ = 1/(2·trace(H̄))` по `nl_drop_optimal`; телеметрия `steps_drop_vs_bound`.
+- `--mode generate-hier` (bench_bridge.py:13051): `hier_span`; `--cost-regime` (bench_bridge.py:13150): `cost_regime_w`.
+- growth gate (bench_bridge.py:5862, :5882): `growth_gate_measure` — `G²` сумма квадратов fd-градиентов, `L` — выборка кривизны (proxy), `L=0` → GROW fail-closed.
+- `--gate-test` (bench_bridge.py:5952): 6 синтетик STAY/GROW.
+- `--mode certified-warmup-sim` (`certified_warmup_sim_run`): certified warm-up против plain Adam на adapter-grow.

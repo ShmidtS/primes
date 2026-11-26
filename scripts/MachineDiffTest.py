@@ -1,19 +1,10 @@
 #!/usr/bin/env python3
-"""Differential tests of the reference machine (audit v7, stage 6,
-qwenputer fuzz.py pattern): Python port of ReferenceMachine
-(Hagi/Model/ReferenceMachine.lean) on random configurations.
-
-Checks the formally proven laws:
-  1. jointStep_energy:        E(w') == (1-eta)^2 * E(w)
-  2. jointStep_energy_decrease: 0<eta<2, w!=a => E(w') < E(w)
-  3. machine_quant_err_bound: quantErr <= sqrt(n)*Delta/2
-  4. machine_energy_bound:    E(machineStep) <= (sqrt(Sd)+sqrt(n)*Delta/2)^2/2
-  5. machine_advance_certified (bridge): under the ledger premise
-     (Em - Ep <= kappa*s*q) the certified drop holds:
-     E0 - Em >= eta*|d|^2 - eta^2*|d|^2/2 - kappa*s*q
-
-Numeric validation is NOT a substitute for the Lean proofs; it
-catches implementation divergence from the formal model.
+"""Differential tests of the reference machine: Python port of
+Hagi/Model/ReferenceMachine.lean on random configurations, checking the proven
+laws jointStep_energy, jointStep_energy_decrease, machine_quant_err_bound,
+machine_energy_bound and machine_advance_certified (E0 - Em >= eta*|d|^2 -
+eta^2*|d|^2/2 - kappa*s*q). Numeric only, not a substitute for the proofs.
+Run `python scripts/MachineDiffTest.py` -> MACHINEDIFF: PASS/FAIL.
 """
 import math
 import random

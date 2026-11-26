@@ -1,12 +1,10 @@
 #!/usr/bin/env python3
 """ReachLint: every Hagi source module must be reachable from
-the root import Hagi.lean (default lake build target).
-
-Audit #8 finding: modules can exist with fresh oleans (built
-ad hoc) while being INVISIBLE to lake build, TrivialLint,
-AllAxiomCheck and inventory. This gate fails CI if any module
-under Hagi/ is not in the transitive import closure of the
-root, so new files MUST be wired into Hagi.lean (or removed).
+the root import Hagi.lean (default lake build target); modules with fresh
+oleans but outside the root closure are invisible to lake build, TrivialLint,
+AllAxiomCheck and inventory. Run `python scripts/ReachLint.py`: REACHLINT: PASS
+when all modules are in the transitive import closure of the root, FAIL when
+a file must be wired into Hagi.lean (or removed). Quarantined prefixes excepted.
 """
 import re
 import sys
@@ -17,16 +15,16 @@ from _shared import BENCH_PREFIX, HAGI_MODULE, LEGACY_PREFIX, lean_files, RESEAR
 ROOT = Path(__file__).resolve().parent.parent
 HAGI_ROOT = ROOT / "Hagi.lean"
 
-# C217/C239/C240 quarantine: modules under the shared quarantine prefixes
+# Quarantine: modules under the shared quarantine prefixes
 # (see scripts/_shared.py) are intentionally outside the root import
 # closure (vacuous-stack and toy-witness quarantines). They must still
 # build (separate lean_lib Hagi.Research, not a default target).
-# C456: Legacy archived under Hagi/Research/Legacy/ (covered by
-# RESEARCH_PREFIX); legacy prefix kept for history, dir scan is a no-op.
+# Legacy is archived under Hagi/Research/Legacy/ (covered by
+# RESEARCH_PREFIX); the legacy prefix is kept, its dir scan is a no-op.
 
-# C347 quarantine (A14 QW7): speculative growth modules stay in repo at
+# Growth quarantine: speculative growth modules stay in repo at
 # their frozen FQNs (no dir move of DECLARATIONS), outside the root import
-# closure. A19.1 (C448): Ceilings, ChainUnification,
+# closure. Ceilings, ChainUnification,
 # RecursiveSelfDevelopment, RoundViability, RsiCriterion, SeedOnly moved
 # to Hagi/Research/ (Research-prefix quarantine; FQNs and namespaces
 # preserved, now compiled by the Hagi.Research target).
@@ -80,9 +78,8 @@ def main() -> int:
             print(f"  {m}")
         return 1
     print(f"REACHLINT: PASS — all {len(all_modules)} Hagi modules "
-          f"reachable ({len(legacy)} legacy/benchmark/research-exempt, "
-          f"quarantine C217/C239/C240; "
-          f"{len(QUARANTINED)} growth-quarantine-exempt, C347)")
+          f"reachable ({len(legacy)} legacy/benchmark/research-exempt; "
+          f"{len(QUARANTINED)} growth-quarantine-exempt)")
     return 0
 
 

@@ -1,11 +1,7 @@
 /-
-AllAxiomCheck v2 (аудит №5 H3, оптимизация такта №283):
-аксиоматические зависимости ВСЕХ Hagi.*-теорем.
-
-v1 (collectAxioms per-const) — 19 мин (транзитивный обход
-заново для каждой из 5463 теорем). v2: ЕДИНЫЙ обход графа
-зависимостей с visited-set — каждая константа посещается
-один раз, O(V+E): на порядок быстрее.
+AllAxiomCheck: axiomatic dependencies of ALL Hagi.* theorems.
+ONE traversal of the dependency graph with a visited set (O(V+E))
+instead of a fresh transitive walk per constant.
 
 Запуск: lake env lean --run scripts/AllAxiomCheck.lean
 Маркер: ALLAXIOMS: PASS/FAIL (последняя строка).

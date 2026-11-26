@@ -1,36 +1,33 @@
 # PROPOSAL: certified warm-up of a grown block via `_certified_finite_step` (HOLD semantics) instead of plain Adam
 
-**Status: theory implemented in primes (C657/C660/C663/C665); code-side pending in HAGI_v2.**
+**Status: theory implemented in primes; code-side pending in HAGI_v2.**
 
-For: the HAGI_v2 implementation agent. Written by the primes agent
-(C644; theory landed in primes, module `Hagi/Theory/FunctionPreservingGrowth.lean`,
-namespace `Hagi.Theory.FunctionPreservingGrowth`, section WarmUp).
-Self-contained: no primes-repo context needed. All Lean anchors are
-proved and frozen in primes. PRIORITY: HIGH — this
+For: the HAGI_v2 implementation agent. Module
+`Hagi/Theory/FunctionPreservingGrowth.lean`, namespace
+`Hagi.Theory.FunctionPreservingGrowth`, section WarmUp.
+Self-contained: no primes-repo context needed. PRIORITY: HIGH — this
 closes the only remaining uncertified gap of function-preserving
-growth (the h1 premise of C642). This document is a proposal only:
-primes does not edit HAGI_v2 code (user-push).
+growth (the h1 premise of `warmup_safe`). This document is a
+proposal only: primes does not edit HAGI_v2 code (user-push).
 
-## (a) Context (one line)
+## (a) Context
 
-Current (hagi/unified.py:423-436 @ca52eb4): after `m.grow()` the new
-block is warmed up by bare `torch.optim.Adam` (2 epochs, ≤ ~300
+Current (hagi/unified.py:423-436): after `m.grow()` the new block
+is warmed up by bare `torch.optim.Adam` (2 epochs, ≤ ~300
 steps/epoch, lr 3e-3, trunk frozen) and kept iff holdout CE did not
-get worse. primes C642 proves: IF every warm-up step is certified
+get worse. Proved in primes: IF every warm-up step is certified
 (obj decreases by a nonnegative drop) THEN train-objective ≤ fOld
 for any gate verdict. That premise is a hypothesis today — nothing
 in the warm-up checks it. The codebase already has a certified step:
-`ByteLM._certified_finite_step` (hagi/lm.py:826-879 @ca52eb4).
+`ByteLM._certified_finite_step` (hagi/lm.py:826-879).
 
 ## (b) The code contract and the Lean anchors
 
 Exact contract of `_certified_finite_step(self, ctx, nxt, lr_scale=1.0,
-max_backtracks=12) -> float` (hagi/lm.py:826 @ca52eb4; the task's
-":793" is the docstring line offset in the pinned listing; the `def`
-line is 826 at ca52eb4 and at HEAD):
+max_backtracks=12) -> float` (hagi/lm.py:826; the def line):
 
 - Operates on the LIVE trunk params `(emb, W1, b1, W2, b2)` only
-  (`q` excluded, wave 233); takes a snapshot.
+  (`q` excluded); takes a snapshot.
 - Direction: `−∇ CE(full_logits(ctx)[:, -1, :], nxt)` on that batch.
 - If `‖d‖² ≤ 1e-24` → return `0.0` (HOLD, params untouched).
 - Step size: `eta = lr_scale · 4·A/r2`, `A = ‖d‖²`, `r2` = mean over
@@ -42,8 +39,8 @@ line is 826 at ca52eb4 and at HEAD):
   stay at the trial point); else `eta *= 0.5`.
 - After the loop: restore snapshot, return `0.0` (HOLD, exact rollback).
 - Caller today: one place, `hagi/lm.py:999` (byte-LM refine loop,
-  8 rounds × batches of 32; ledger notes the bounds do NOT telescope
-  across batches). NOT called from `unified.py` at all.
+  8 rounds × batches of 32; the bounds do NOT telescope across
+  batches). NOT called from `unified.py` at all.
 
 What the certification rests on (`finite_displacement_ce_upper`,
 hagi/lm.py:235-248): the log-sum-exp range lemma
@@ -54,9 +51,9 @@ Lean anchors (all with axioms `[propext, Classical.choice, Quot.sound]`):
 - `stepEps` — admission threshold `1e-12`;
 - `CertifiedFiniteStep obj θ θ' drop` — the contract as an abstract predicate:
   COMMIT (`stepEps < drop ∧ obj θ' ≤ obj θ − drop`) ∨ HOLD (`θ' = θ ∧ drop = 0`);
-- `warmup_h1_of_certified_steps` — every step of the trajectory produced by a certified step ⇒ h1 of C642: `∀ t, obj (θ (t+1)) ≤ obj (θ t) − drop t ∧ 0 ≤ drop t`;
-- `warmup_safe_of_certified_steps` — with identity start `obj (θ 0) = fOld` ⇒ `obj (θ n) ≤ fOld` (C642 `warmup_safe`);
-- `post_warmup_growth_safe_of_certified_steps` — same through the rollback gate `_maybe_grow`, for BOTH verdicts (C642 `post_warmup_growth_safe_of_certified`);
+- `warmup_h1_of_certified_steps` — every step of the trajectory produced by a certified step ⇒ h1: `∀ t, obj (θ (t+1)) ≤ obj (θ t) − drop t ∧ 0 ≤ drop t`;
+- `warmup_safe_of_certified_steps` — with identity start `obj (θ 0) = fOld` ⇒ `obj (θ n) ≤ fOld` (`warmup_safe`);
+- `post_warmup_growth_safe_of_certified_steps` — same through the rollback gate `_maybe_grow`, for BOTH verdicts (`post_warmup_growth_safe_of_certified`);
 - `uncertified_step_not_certified` — NEGATIVE: a plain step that grows obj satisfies the contract for no `drop`;
 - `batch_drop_not_global` — NEGATIVE: a step certified on a batch objective `obj_b` (drop 1/2) can grow another objective `obj` by 1 — per-batch drops do not telescope onto a different functional.
 
@@ -144,23 +141,23 @@ Required properties, each mapping to a theorem hypothesis:
 With 1–7, the executed warm-up is literally a `CertifiedFiniteStep`
 trajectory with `obj = CE(Xo, yo)`, `θ` = block params, `n` = number
 of steps; `h0` holds because `Wo = 0` at step 0 makes the block an
-identity (C640/C642 anchors `function_preserving_growth`,
+identity (anchors `function_preserving_growth`,
 `lmLogits_grow_identity`) so `obj (θ 0) = fOld` on ANY batch.
 
 ## (d) What this gives (and what it costs)
 
 Gives:
 
-- obj ≤ fOld is now CERTIFIED, not hypothetical: C642 (`warmup_safe`)
-  + C644 (`warmup_h1_of_certified_steps`) on the executed loop, for
+- obj ≤ fOld is now CERTIFIED, not hypothetical: `warmup_safe`
+  + `warmup_h1_of_certified_steps` on the executed loop, for
   every verdict of the holdout gate.
 - A real HOLD semantics: a step that cannot be certified leaves the
   parameters exactly where they were (snapshot restore) — no silent
   ascent as plain Adam can do.
 - Ledger drop: the warm-up reports certified drops (sum ≥ 0) that the
-  C642 telescope consumes.
+  telescope consumes.
 
-Costs (structural, NOT measured in primes — see limits):
+Costs (structural, NOT measured — see limits):
 
 - Per trial: one forward on `(Xo, yo)` for `z1`, one for `z0` per step
   (reusable across trials), plus `finite_displacement_ce_upper` (one
@@ -171,7 +168,7 @@ Costs (structural, NOT measured in primes — see limits):
 - Objective must be the fixed `(Xo, yo)` each step; a larger fixed
   set costs proportionally more forward compute per step.
 
-## (e) Validation criterion (loop-5 style)
+## (e) Validation criterion
 
 On every warm-up step log `real_drop = obj_before − obj_after` (float64
 re-evaluated on `(Xo, yo)`) next to the returned `drop`. Accept the port iff:
@@ -181,9 +178,9 @@ re-evaluated on `(Xo, yo)`) next to the returned `drop`. Accept the port iff:
 - `obj_end ≤ obj_start` for the whole warm-up on every `_maybe_grow`
   call (train objective), independently of the holdout verdict;
 - holdout verdict distribution and grow rate reported (expected to
-  shift — report honestly, no target).
+  shift — report, no target).
 
-## (f) Honest limits
+## (f) Limits
 
 - (1) Float soundness: the range lemma is exact-arithmetic; the code
   evaluates it in float32. The validation loop (e) is the runtime
@@ -195,8 +192,8 @@ re-evaluated on `(Xo, yo)`) next to the returned `drop`. Accept the port iff:
 - (3) Single objective: the certificate is on `CE(Xo, yo)` only. No
   claim about the full train distribution, holdout, or other batches
   (`batch_drop_not_global`). fOld itself is the same objective at step 0.
-- (4) Growth of the FUNCTION is not preserved after step 0 (C640
-  verdict unchanged): the theorem bounds train-objective, not function
+- (4) Growth of the FUNCTION is not preserved after step 0 (verdict
+  unchanged): the theorem bounds train-objective, not function
   distance.
 - (5) Holdout gate stays a measured branch — ACCEPT is not a theorem.
 - (6) Plain Adam often descends faster per wall-clock than a

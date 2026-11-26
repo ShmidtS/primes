@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""ClosureReport (аудит v2 P0 / v3 Phase 4): какие модули лежат
-в транзитивном замыкании импортов капстоунов (используются
-итоговыми теоремами), а какие — библиотечные (вне замыкания).
-Отчёт, не гейт: библиотечные модули легальны, но должны быть
-осознанным выбором. Baseline-файл фиксирует текущее состояние.
+"""ClosureReport: which Hagi modules lie in the transitive import closure of
+the capstones below (used by the final theorems) and which are library-only.
+Report, not a gate: library modules are legal but must be a conscious choice.
+Run `python scripts/ClosureReport.py` (also scripts/report.sh); a baseline
+file pins the current state.
 """
 import os, re, sys, subprocess
 
@@ -13,17 +13,17 @@ ROOT = os.path.join(os.path.dirname(__file__), "..", "Hagi")
 CAPSTONES = [
     "Hagi.Unified.MasterHAGI", "Hagi.Unified.GrandSynthesis",
     "Hagi.Model.StageSemantics",
-    # semantic closure extensions (audit v3 Phase 4):
+    # semantic closure extensions:
     "Hagi.Unified.DerivAlong",        # operational bridges (joint/compress)
     "Hagi.Model.ConsolidationMirror",  # grow bridge + KL distillation
     "Hagi.Examples.Nonvacuity",        # merge bridge + obstruction theorems
     "Hagi.Probability.CertifiedEstimator",  # epistemic chain (Freedman/union)
-    # refactor-plan facades (P1.4-P2.11):
+    # plan facades:
     "Hagi.Unified.Master",         # master theorem hierarchy
     "Hagi.Unified.SafeStep",       # safe step contract
     "Hagi.Unified.GrowthTheory",   # dynamics/saturation theory
     "Hagi.Unified.Concentration",  # concentration layer
-    "Hagi.System.GrowthStateViews", # P2.9 entity decomposition
+    "Hagi.System.GrowthStateViews", # entity decomposition
     "Hagi.Unified.Budget",         # budget economy facade
     "Hagi.Unified.ArchitectureCore",  # architecture facade
     "Hagi.Unified.CoreAlgebra",      # core component algebra facade
@@ -58,7 +58,7 @@ CAPSTONES = [
     "Hagi.Unified.AnytimeMartingale",
     "Hagi.Unified.ArchitectureTheorem",
     "Hagi.Unified.CertifiedGrowth",
-    # Gen-3 canonical capstone + integration capstones (phase 3):
+    # Gen-3 canonical capstone + integration capstones:
     "Hagi.Unified.CertifiedLoop",
     "Hagi.Unified.CompressionArc",   # compression-quality arc facade
     "Hagi.Model.ModelArc",           # model catalog facade

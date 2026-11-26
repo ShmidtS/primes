@@ -39,106 +39,18 @@ name = "natural"
 git = "https://github.com/medovina/natural_lean.git"
 rev = "14305b83fab2ae2681c63605af4af8312084c55c"
 
-# One lean_lib per directory: the root `Hagi` lib builds only the
-# import closure of Hagi.lean; the per-directory libs are targets
-# for incremental builds.
+# `Hagi` covers the root import closure of Hagi.lean plus the quarantined
+# libraries (Research = research models and the Legacy archive, Benchmarks =
+# toy witnesses), which stay outside the default targets.
 [[lean_lib]]
 name = "Hagi"
+globs = ["Hagi", "Hagi.+"]
+exclude = ["Hagi.Research", "Hagi.Research.+", "Hagi.Benchmarks", "Hagi.Benchmarks.+"]
 
-[[lean_lib]]
-name = "Hagi.Architecture"
-globs = ["Hagi.Architecture.+"]
-[[lean_lib]]
-name = "Hagi.Audit"
-globs = ["Hagi.Audit.+"]
-[[lean_lib]]
-name = "Hagi.Autonomy"
-globs = ["Hagi.Autonomy.+"]
-[[lean_lib]]
-name = "Hagi.Budget"
-globs = ["Hagi.Budget.+"]
-[[lean_lib]]
-name = "Hagi.Cert"
-globs = ["Hagi.Cert.+"]
-[[lean_lib]]
-name = "Hagi.Challenge"
-globs = ["Hagi.Challenge.+"]
-[[lean_lib]]
-name = "Hagi.Core"
-globs = ["Hagi.Core.+"]
-[[lean_lib]]
-name = "Hagi.Data"
-globs = ["Hagi.Data.+"]
-[[lean_lib]]
-name = "Hagi.Dynamics"
-globs = ["Hagi.Dynamics.+"]
-[[lean_lib]]
-name = "Hagi.Energy"
-globs = ["Hagi.Energy.+"]
-[[lean_lib]]
-name = "Hagi.Ensemble"
-globs = ["Hagi.Ensemble.+"]
-[[lean_lib]]
-name = "Hagi.External"
-globs = ["Hagi.External.+"]
-[[lean_lib]]
-name = "Hagi.Generalization"
-globs = ["Hagi.Generalization.+"]
-[[lean_lib]]
-name = "Hagi.Geometry"
-globs = ["Hagi.Geometry.+"]
-[[lean_lib]]
-name = "Hagi.Growth"
-globs = ["Hagi.Growth.+"]
-[[lean_lib]]
-name = "Hagi.Information"
-globs = ["Hagi.Information.+"]
-[[lean_lib]]
-name = "Hagi.Math"
-globs = ["Hagi.Math.+"]
-[[lean_lib]]
-name = "Hagi.Model"
-globs = ["Hagi.Model.+"]
-[[lean_lib]]
-name = "Hagi.Numerics"
-globs = ["Hagi.Numerics.+"]
-[[lean_lib]]
-name = "Hagi.Optimization"
-globs = ["Hagi.Optimization.+"]
-[[lean_lib]]
-name = "Hagi.Planning"
-globs = ["Hagi.Planning.+"]
-[[lean_lib]]
-name = "Hagi.Pretraining"
-globs = ["Hagi.Pretraining.+"]
-[[lean_lib]]
-name = "Hagi.Probability"
-globs = ["Hagi.Probability.+"]
-[[lean_lib]]
-name = "Hagi.Runtime"
-globs = ["Hagi.Runtime.+"]
-[[lean_lib]]
-name = "Hagi.Sparsity"
-globs = ["Hagi.Sparsity.+"]
-[[lean_lib]]
-name = "Hagi.Spectral"
-globs = ["Hagi.Spectral.+"]
-[[lean_lib]]
-name = "Hagi.Step"
-globs = ["Hagi.Step.+"]
-[[lean_lib]]
-name = "Hagi.System"
-globs = ["Hagi.System.+"]
-[[lean_lib]]
-name = "Hagi.Unified"
-globs = ["Hagi.Unified.+"]
-
-# Quarantine: outside the root closure of Hagi.lean, kept for
-# provenance (README "Честные границы"). Hagi.Research is not a default
-# target; scripts/ci.sh builds it explicitly.
 [[lean_lib]]
 name = "Hagi.Benchmarks"
 globs = ["Hagi.Benchmarks", "Hagi.Benchmarks.+"]
+
 [[lean_lib]]
 name = "Hagi.Research"
 globs = ["Hagi.Research", "Hagi.Research.+"]

@@ -1,23 +1,13 @@
-"""Doc anchors: every `Hagi/…/File.lean:N` in the docs (plus the short `File.lean:N`
-and `(:N)` forms that inherit the last full path on the same doc line) is bound
-in scripts/docanchors.lock to the Lean declaration it points at.  The lock is
-keyed by the anchor itself, so neither editing the docs nor a Lean docstring
-pass can move an anchor silently: line numbers that no longer land on the same
-declaration fail the gate until they are re-mapped BY NAME.
-
+"""Doc anchors: every `Hagi/…/File.lean:N` in the docs is bound in
+scripts/docanchors.lock to the Lean declaration it points at (lock keyed by the
+anchor, short `File.lean:N` / `(:N)` forms inherit the last full path on the line).
   python scripts/DocAnchorCheck.py                          # check -> DOCANCHORS: PASS/FAIL
-  python scripts/DocAnchorCheck.py --reanchor BASE [--base2 B2] [--write]
-                                                            # old line numbers at git BASE
-                                                            # -> work tree, by declaration name
-  python scripts/DocAnchorCheck.py --update                 # rewrite the lock (after an
-                                                            # audited --reanchor --write)
-
-Re-anchoring never uses a line offset.  The declaration (or namespace / section
-line) found at the old line is looked up again in the work tree.  A line that
-pointed at a docstring opener or at the declaration keyword keeps that role; any
-other line of the same declaration keeps its line when its text is unique in the
-chunk (`text`), else falls back to the docstring opener / keyword
-(`coarsened` in the report)."""
+  python scripts/DocAnchorCheck.py --reanchor BASE [--base2 B2] [--write]  # by NAME
+  python scripts/DocAnchorCheck.py --update                 # rewrite the lock
+"""
+# Re-anchoring never uses a line offset: the declaration found at the old line is
+# looked up again by name; a line keeps its line only if its text is unique in the
+# chunk (`text`), else falls back to the docstring opener / keyword (`coarsened`).
 import argparse
 import pathlib
 import re
@@ -26,8 +16,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parents[1]
 LOCK = ROOT / "scripts" / "docanchors.lock"
-FIXED_DOCS = ["STATUS.md", "ALGORITHMS.md", "README.md", "RELATED.md",
-              ".omc/analysis/era-index.md"]
+FIXED_DOCS = ["STATUS.md", "ALGORITHMS.md", "README.md", "RELATED.md"]
 
 MOD = (r"(?:private |protected |noncomputable |unsafe |meta |partial |@\[[^\]]*\]\s*|"
        r"extern\s+\S+\s+)*")
@@ -187,7 +176,7 @@ def aim(lines, n):
         role = "inner"
     else:
         role = "doc" if c.doc == n else "decl" if c.decl == n else "inner"
-    if role == "inner" and c.end == n:
+    if role == "inner" and c is not None and c.end == n:
         role = "end"                      # last line of the declaration
     if c is None or not c.name:
         return None

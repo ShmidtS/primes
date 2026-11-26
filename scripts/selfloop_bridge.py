@@ -1,54 +1,42 @@
-#!/usr/bin/env python3
-"""Selfloop telemetry bridge (C461, beat C460 top-1): REAL
-self-development-loop telemetry (HAGI_v2 experiments/
-selfloop_result.json) fed to the executable Lean certificate
-checker (Hagi.Runtime.CertChecker) — the first non-synthetic
-validation of the telemetry → CertStepData (ℚ) → checkTrajectory
-pipeline (precedents: C434/C442/C443/C444/C446 in bench_bridge.py).
-
-Pure stdlib, exact fractions.Fraction arithmetic — no floats.
-
-Mapping (SSOT: .tmp/C461/research.md; semantics: C:\\HAGI_v2
-THEORY_ALIGNMENT.md §1, read-only):
-  T   = len(rounds) of the parsed json (the LIVE file has 4
-        rounds — 3 COMMIT + 1 LEVER_CHANGE; the 149/150 figure
-        in the docs belongs to a different 150-round run);
-  obj = T − #COMMITs before round r  — the processor's
-        `unsolved_objective` telescope counter;
-  drop = 1 EXACTLY per COMMIT round (THEORY_ALIGNMENT §1:
-        "unsolved_objective − 1.0 за коммит, без clamp") — a
-        COMMIT solves one generation; no fractional drop is
-        invented;
-  obj' = obj − 1 (the telescope stays additive);
-  budget/budget' = (rounds remaining incl./excl. this) / T;
-  risk/risk' = wasted_candidates pre/post ÷ base_budget —
-        waste-fraction telemetry read from the gate record
-        (string "a -> b"), the ONLY risk-like per-round field
-        actually present.
-
-HONESTY PINS (fail-closed, never fabricate):
-  - a round missing any required field (gate.action,
-    gate.wasted_candidates, base_budget) aborts the bridge;
-  - a LEVER_CHANGE / HOLD round has NO certified drop ⇒ it is
-    NOT a step (the C443 HOLD precedent: excluded from the
-    trajectory, logged in `holds` telemetry — checkStep demands
-    0 < drop);
-  - exact_accuracy / experts are present but NOT used as
-    objective readouts (they are gate preconditions, not
-    telescope levels);
-  - interpretation contract = Hagi.Runtime.CertChecker
-    `Describes`/`mkCertStep`: the rational readouts cast to the
-    real levels of the certified AdditiveLedger telescope.
-
-Modes:
-  default            parse, print the JSON trajectory + holds
-  --emit-lean PATH   write the Lean witness (literal
-                     selfloopTrajectory, #eval checkTrajectory,
-                     norm_num theorem selfloop_traj_valid)
-  --corrupt PATH     negative control: last drop inflated by 1
-                     (drop > obj − obj') so the checker MUST
-                     return false
+"""Selfloop telemetry bridge: REAL self-development-loop telemetry
+(HAGI_v2 experiments/selfloop_result.json) fed to the Lean certificate checker
+Hagi.Runtime.CertChecker as an exact-Fraction CertStepData trajectory.
+Run `python scripts/selfloop_bridge.py [INPUT]`: prints the JSON trajectory + holds.
+`--emit-lean PATH` writes a Lean witness (#eval checkTrajectory + norm_num theorem)
+that must pass; `--corrupt PATH` a negative control the checker must reject.
 """
+
+# Mapping (semantics: C:\\HAGI_v2 THEORY_ALIGNMENT.md §1, read-only):
+# T   = len(rounds) of the parsed json (the LIVE file has 4
+#       rounds — 3 COMMIT + 1 LEVER_CHANGE; the 149/150 figure
+#       in the docs belongs to a different 150-round run);
+# obj = T − #COMMITs before round r  — the processor's
+#       `unsolved_objective` telescope counter;
+# drop = 1 EXACTLY per COMMIT round (THEORY_ALIGNMENT §1:
+#       "unsolved_objective − 1.0 за коммит, без clamp") — a
+#       COMMIT solves one generation; no fractional drop is
+#       invented;
+# obj' = obj − 1 (the telescope stays additive);
+# budget/budget' = (rounds remaining incl./excl. this) / T;
+# risk/risk' = wasted_candidates pre/post ÷ base_budget —
+#       waste-fraction telemetry read from the gate record
+#       (string "a -> b"), the ONLY risk-like per-round field
+#       actually present.
+
+# HONESTY PINS (fail-closed, never fabricate):
+#  - a round missing any required field (gate.action,
+#    gate.wasted_candidates, base_budget) aborts the bridge;
+#  - a LEVER_CHANGE / HOLD round has NO certified drop => it is
+#    NOT a step (the cert-tern HOLD rule: excluded from the
+#    trajectory, logged in `holds` telemetry -- checkStep demands
+#    0 < drop);
+#  - exact_accuracy / experts are present but NOT used as
+#    objective readouts (they are gate preconditions, not
+#    telescope levels);
+#  - interpretation contract = Hagi.Runtime.CertChecker
+#    `Describes`/`mkCertStep`: the rational readouts cast to the
+#    real levels of the certified AdditiveLedger telescope.
+
 
 import argparse
 import json
@@ -137,8 +125,8 @@ def lean_step(d):
 
 
 def emit_lean(path, start, traj, name_suffix="", ok=True):
-    """C461 witness: literal trajectory from the REAL telemetry +
-    #eval + norm_num theorem (same pattern as C434/C442/C443)."""
+    """Witness: literal trajectory from the REAL telemetry +
+    #eval + norm_num theorem (same pattern as bench_bridge.py)."""
     with open(path, "w", encoding="utf-8") as f:
         f.write("import Hagi.Runtime.CertChecker\n\n"
                 "open Hagi.Runtime\n\n"

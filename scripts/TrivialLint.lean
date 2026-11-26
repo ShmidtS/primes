@@ -1,15 +1,11 @@
 /-
-Trivial-theorem linter for the `Hagi` namespace.
-
-Run AFTER `lake build`:
+Trivial-theorem linter for the `Hagi` namespace. Run AFTER `lake build`:
   lake env lean --run scripts/TrivialLint.lean
-
-Import strategy: the root aggregator module `Hagi` exists (E:/primes/Hagi.lean,
-`lean_lib Hagi` with default globs), so this script imports it directly. If the
-root module were absent, the fallback would be `import Hagi.Unified.MasterHAGI`
-(the deepest aggregator); both bring the full `Hagi.*` environment.
-`scripts/` is outside both `lean_lib`s (`Primes`, `Hagi`), so this file never
-enters `lake build`.
+Prints summary counts, then `flag | decl | module:line | detail` lines; the LAST
+output line is the machine-readable marker `LINT: PASS` / `LINT: FAIL` (`lean --run`
+does not reliably forward the exit code; `IO.Process.exit 1` is still issued).
+Imports the root aggregator `Hagi` (fallback: `Hagi.Unified.MasterHAGI`); `scripts/`
+is outside every `lean_lib` (`Hagi`, `Hagi.Benchmarks`, `Hagi.Research`).
 
 Checks (only `ConstantInfo.thmInfo` declarations in namespace `Hagi.*`):
   TRIV_RFL    proof term (after `instantiateMVars`, head found by walking the
@@ -34,14 +30,7 @@ Checks (only `ConstantInfo.thmInfo` declarations in namespace `Hagi.*`):
               full/partial delta) but NOT syntactically equal (that is
               TRIV_PREM). Legitimate bridges (deprecated-name shims) are
               suppressed via `scripts/unfold_echo_allowlist.txt` (WARN lines).
-  BAD_AXIOM   (removed 2026-10, perf: see comment at checkTheorem; gated
-              by lake build + AxiomCheck instead).
-
-Output: summary counts per flag, then `flag | decl | module:line | detail` lines.
-Exit code: `lean --run` does not reliably forward the script's exit code, so the
-LAST output line is the machine-readable marker `LINT: PASS` / `LINT: FAIL`;
-CI should check that marker. `IO.Process.exit 1` is still issued for callers
-that do honor exit codes.
+  BAD_AXIOM   (removed for perf: gated by lake build + AxiomCheck instead).
 -/
 
 import Hagi
@@ -323,7 +312,7 @@ private theorem okHonestConj (a b : Nat) (h : a = b) :
     a + 0 = b ∧ b = a := by constructor <;> omega
 private theorem okUnusedHypNamed (x : Nat) (hx : 0 < x) : True := trivial
 
--- UNFOLD_ECHO controls (audit A18.2 / C424)
+-- UNFOLD_ECHO controls
 private def EchoGate : Prop := 2 = 1 + 1
 private def EchoGate2 (a : Nat) : Prop := a + 0 = a
 private theorem unfoldEchoPos (h : EchoGate) : 2 = 1 + 1 := h
@@ -404,7 +393,7 @@ unsafe def main : IO Unit := do
     return (thms.size, acc)
   let findings := findings.qsort fun a b =>
     if a.flag != b.flag then a.flag < b.flag else a.decl.toString < b.decl.toString
-  -- UNFOLD_ECHO allowlist (audit A18.2 / C424): legitimate echo-bridges
+  -- UNFOLD_ECHO allowlist: legitimate echo-bridges
   -- (e.g. deprecated-name shims) listed one `Name` per line are suppressed
   -- from the gate and reported separately; everything else gates as usual.
   let allowTxt? : IO (Option String) := do

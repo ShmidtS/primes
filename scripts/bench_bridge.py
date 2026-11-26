@@ -1,72 +1,10 @@
 #!/usr/bin/env python3
-"""Bench bridge (C434, stage 9): a REAL minimal gradient-descent trainer
-feeding the executable Lean certificate checker (Hagi.Runtime.CertChecker).
-
-Pure stdlib: arithmetic is exact via fractions.Fraction — no floats, no
-numpy. After each GD step the trainer serializes a CertStepData record
-(obj, obj', drop, budget, budget', risk, risk') as exact rationals.
-
-Modes (`--mode X`; every mode prints one JSON report on stdout; corpus modes
-abort with exit 3 when their corpus precondition is unmet):
-
-  quad (default)       T certified GD steps on a rational regression
-  cert-ce              certified CE training (rational-softmax surrogate)
-  cert-tern            train -> one ternary jump -> certified finetune
-  hadamard-tern        ternary jump behind a measured coherence gate
-  ef21-step            EF21 in-step quantized loop with error feedback
-  grow                 certified block admission (feature x^2)
-  grow-stop            grow plus the Ville anytime holdout stop
-  full-pipeline        train, EF21, hadamard-tern, grow, merge, stop
-  trunk-train          certified joint trunk+head training (nonlinear)
-  real-data            trunk-train on the real ledger (byte features)
-  continual            two-task continual bench, naive vs GPM
-  continual-multi      three tasks with accumulated GPM subspaces
-  wrbound              without-replacement vs Hoeffding holdout bound
-  cert-sandwich        certified sandwich-CE training on real data
-  mini-hagi            trunk, grow, GPM, quant, Ville stop on one chain
-  mini-hagi2           scaled: 2-block trunk, 3 tasks, 2 grows
-  mini-hagi3           mini-hagi2 with rank-trunc relaxed GPM
-  mini-hagi4           grow = whole residual-zero identity block
-  mini-hagi5           repeated identity-block grow under a budget
-  vs-trainer           certified predictions vs the real trainer's ce
-  band-check           drift detector: true softmax inside the bands
-  grow-snap            repeated grow with certified q/2^k snapping
-  adapter-snap-grow    LoRA levels composed with snapping
-  adapter-rank-adaptive  LoRA rank chosen per level by measured drop
-  adapter-merge        merge the LoRA stack into one rank-k adapter
-  adapter-grow         LoRA adapter vs identity-block head-to-head
-  adapter-continual    per-task isolated adapters vs shared vs trunk
-  agem-vs-ranktrunc    A-GEM vs rank-trunc GPM on one scenario
-  hybrid-continual     per-step mechanism selected from measured state
-  mini-hagi-loop       one pass: bypass, adapter, grow, isolation, search
-  mini-hagi-loop2      iterative self-improvement on a layered corpus
-  universal-loop       iterative loop on the full live corpus
-  universal-loop-nl    the same with a nonlinear primitive language
-  self-compress-loop   admit, learn, exact-merge loop (bounded params)
-  distill              constant clusters distilled into adapter weights
-  mini-hagi-v3         distill + residual head + self-compress assembly
-  adapter-transfer     warm vs cold adapter init across domains
-  adapter-transfer-auto  probe-A/B warm/cold gate
-  transfer-gate-certified  certified start-gap transfer gate
-  certified-warmup-sim   simulation of a certified warm-up vs Adam
-  adaptive-span        coverage-preserving adaptive window stride
-  generate-hier        hierarchical block read windows for any n
-
-Options shared by modes:
-  --emit-lean PATH   additionally write a Lean witness file with the
-                     literal `benchTrajectory : List CertStepData`,
-                     #eval checkTrajectory and a `simp only + norm_num`
-                     validity theorem (not `decide`: ℚ Decidable instances
-                     are not kernel-reducible here)
-  --corrupt PATH     negative control: same trajectory but one drop
-                     inflated so the checker MUST reject it (false)
-  --data PATH        ledger for the corpus modes (default: pinned snapshot)
-  --live-corpus / --snapshot-corpus   override the corpus policy
-  --gate-test PATH, --lambda-sweep, --fixed-lr, --fix-rank,
-  --grad-steps, --ft-steps, --cost-regime, --cw-*, --steps,
-  --hold-demo, --selfloop   see `--help`
-
-Each mode's pins are documented at its section header in the body.
+"""Bench bridge: exact-rational (Fraction) training benches; every step is a
+CertStepData record for the Lean checker Hagi.Runtime.CertChecker.
+Run `python scripts/bench_bridge.py --mode MODE` (`--help` lists modes and
+options); each mode prints one JSON report with its PASS/FAIL verdict.
+`--emit-lean PATH` writes a Lean witness (#eval checkTrajectory + norm_num
+theorem) that must pass; `--corrupt PATH` a negative control that must fail.
 """
 
 import argparse
@@ -79,43 +17,25 @@ from fractions import Fraction as F
 
 
 def corpus_abort(reason, hint=""):
-    """C596: honest graceful abort for corpus-drift failures.
+    """Exit 3 without a traceback when a corpus precondition is unmet.
 
-    The unified_ledger corpus is LIVE by design and prunes across
-    sessions (185 -> ~11 usable keys). When a bench mode's pinned
-    corpus precondition (N >= 100/185, a rank-3 point, a const
-    cluster, >= 2 domains, ...) is unmet, that is a property of
-    the ENVIRONMENT, not a code bug: report it on stderr with a
-    clear message and a distinct exit code (3), WITHOUT a
-    traceback. Exit 3 keeps it honest: callers see a failure,
-    never a silent pass.
-
-    C607 boundary note: ledger entries with null/non-numeric
-    'ce' (wave236k PARTIAL_LAW schema) are NOT an abort -- they
-    are a KNOWN wave schema and are FILTERED with an explicit
-    stderr warning by _validate_ledger_schema.
-
-    C608 snapshot-vs-live policy: data modes run on the PINNED
-    corpus snapshot (SNAPSHOT_LEDGER) by default, so results are
-    DETERMINISTIC and corpus-drift-immune. corpus_abort on the
-    snapshot means the SNAPSHOT itself no longer satisfies the
-    mode's precondition -- stable, reproducible, not drift. On
-    --live-corpus, corpus_abort and assert-ABORTs mean the LIVE
-    ledger's new content breaks the mode's certified
-    bound/precondition (expected fail-closed).
-
-    C610 three-level corpus policy (single resolve point in
-    main): default = pinned snapshot; if the snapshot is
-    STRUCTURALLY insufficient for the mode's domain
-    requirement (transfer family needs >= 2 const-cluster
-    domains; the 35-key snapshot has 0), the default run emits
-    a stderr WARNING and falls back to LIVE (drift possible)
-    instead of aborting. --live-corpus = always live;
-    --snapshot-corpus = always snapshot (ABORT on structural
-    insufficiency -- fail-closed, no fallback). CONTENT aborts
-    (certified bounds, N >= 100, rank-3, const-cluster pins)
-    remain ABORT in every corpus mode -- the fallback is only
-    for structural lack of required data, never for content.
+    The unified_ledger corpus is LIVE and prunes across sessions: an unmet
+    pinned precondition (N >= 100/185, a rank-3 point, a const cluster,
+    >= 2 domains, ...) is a property of the environment, reported on stderr
+    with exit code 3 -- callers see a failure, never a silent pass.
+    Ledger entries with null/non-numeric 'ce' (PARTIAL_LAW schema) are not
+    an abort: _validate_ledger_schema filters them with a stderr warning.
+    
+    Corpus policy (resolved once in main): default = the pinned snapshot
+(SNAPSHOT_LEDGER), so results are deterministic; if it is STRUCTURALLY
+    insufficient for the mode's domain requirement (e.g. the transfer
+    family needs >= 2 const-cluster domains), the run warns and falls back
+    to LIVE. --live-corpus = always live; --snapshot-corpus = always
+    snapshot (ABORT on structural insufficiency). CONTENT aborts (certified
+bounds, N >= 100, rank-3, const-cluster pins) abort in every mode: the
+    fallback is only for missing data, never for content. On --live-corpus
+    an abort means the live ledger's new content breaks the mode's
+    certified bound (expected fail-closed).
     """
     msg = f"BENCH-ABORT: {reason}"
     if hint:
@@ -123,7 +43,7 @@ def corpus_abort(reason, hint=""):
     print(msg +
           " -- live unified_ledger corpus drifted "
           "(usable keys pruned); see scripts/bench_bridge.py "
-          "corpus_abort docs (C596)", file=sys.stderr)
+          "corpus_abort docs", file=sys.stderr)
     sys.exit(3)
 
 # Rational dataset: linear regression, model y ~ w*x, scalar w.
@@ -159,7 +79,7 @@ def train(steps):
 
 
 # ----------------------------------------------------------------
-# C442: certified CE training loop (--mode cert-ce)
+# Certified CE training loop (--mode cert-ce)
 #
 # PIN (honest approximation choice): softmax = exp is irrational on
 # ℚ, so the classifier head uses the RATIONAL-SOFTMAX surrogate
@@ -169,17 +89,17 @@ def train(steps):
 #
 # PIN (learning rate): η = 1/L with L = ‖X‖²_F, the Frobenius
 # estimate of the linear block's smoothness (design matrix n×K,
-# entry x_i per class column — the BlockSmooth C426 pattern).
+# entry x_i per class column — the BlockSmooth pattern).
 # Descent is NOT tuned to fit: every step must pass the exact
 # checkStep admission (drop > 0, drop ≤ obj − obj', budget' ≥ 0,
 # risk' ≥ 0) computed in-line BEFORE the step is accepted; any
 # failure aborts the trainer with a nonzero exit — the trainer only
 # ever emits certified steps.
 #
-# PIN (holdout tie, C435): the risk field of each step is the
+# PIN (holdout tie): the risk field of each step is the
 # holdout loss on ONE held-out point, i.e. holdoutMean on a k=1
 # sample of the finite population; it is honest telemetry (may go
-# UP — the C435 selection-bias lesson), the checker only requires
+# UP -- the selection-bias lesson), the checker only requires
 # risk' ≥ 0.
 #
 # PIN (trajectory length): exact rational GD on this surrogate has
@@ -265,12 +185,12 @@ def train_ce(steps):
 
 
 # ----------------------------------------------------------------
-# C443: certified ternary quantization jump (--mode cert-tern)
+# Certified ternary quantization jump (--mode cert-tern)
 #
-# PIN (setup): the C442 CE machinery (data, surrogate, eta=1/L)
+# PIN (setup): the CE machinery (data, surrogate, eta=1/L)
 # is reused unchanged; the ternary mode starts from TERN_W0 =
 # [2, 1, 2] (a free design choice fixed before the run, like
-# CE_W0 in C442). Ddrops are exact measured differences — nothing
+# CE_W0). Ddrops are exact measured differences — nothing
 # is tuned to make a step pass; every accepted step is re-proved
 # by the executable checker.
 #
@@ -321,7 +241,7 @@ def tern_quantize(w):
 def train_tern(grad_steps, ft_steps):
     """Certified train → quantize → finetune cycle.
 
-    Phase 1: `grad_steps` certified GD steps (C442 machinery).
+    Phase 1: `grad_steps` certified GD steps (machinery).
     Phase 2: ONE ternary jump, admitted only by the exact criterion
     drop > 0; a rejected jump is a HOLD (excluded from the emitted
     trajectory, logged in `holds`).
@@ -393,8 +313,8 @@ def train_tern(grad_steps, ft_steps):
 
 def emit_lean_tern(path, start, traj, name_suffix="", ok=True,
                    thm_prefix="tern_traj"):
-    """C443 witness for the certified ternary trajectory (same
-    literal / #eval / norm_num pattern as C442/C434)."""
+    """Witness for the certified ternary trajectory (same
+    literal / #eval / norm_num pattern of the earlier modes)."""
     with open(path, "w", encoding="utf-8") as f:
         f.write("import Hagi.Runtime.CertChecker\n\n"
                 "open Hagi.Runtime\n\n"
@@ -418,7 +338,7 @@ def emit_lean_tern(path, start, traj, name_suffix="", ok=True,
 
 
 def emit_bad_tern(path, start, traj):
-    """C443 negative (a): inflated declared drop — the checker must
+    """Negative (a): inflated declared drop -- the checker must
     reject the trajectory."""
     bad = [dict(d) for d in traj]
     bad[-1]["drop"] = bad[-1]["drop"] + F(1)
@@ -426,7 +346,7 @@ def emit_bad_tern(path, start, traj):
 
 
 def emit_hold_tern(path, start, traj):
-    """C443 negative (b): a HOLD (rejected-jump) step CANNOT ride the
+    """Negative (b): a HOLD (rejected-jump) step CANNOT ride the
     trajectory — the checker rejects the identity record with
     drop = 0 (machine-checked reason holds are excluded from the
     List; see Hagi/Theory/Compression.lean ternary_hold_rejected)."""
@@ -440,9 +360,9 @@ def emit_hold_tern(path, start, traj):
 
 
 # ----------------------------------------------------------------
-# C477: Hadamard-gated ternary quantization (--mode hadamard-tern)
+# Hadamard-gated ternary quantization (--mode hadamard-tern)
 #
-# PIN (P5 of the A19 audit): the Hadamard rotation before ternary
+# PIN: the Hadamard rotation before ternary
 # quantization is applied ONLY under a MEASURED incoherence gate
 # (the corpus negative hadamard_not_universally_incoherent pins
 # that the rotation is NOT universally beneficial: it can
@@ -461,15 +381,15 @@ def emit_hold_tern(path, start, traj):
 #
 # PIN (derotation): quantization happens in the ROTATED basis only
 # when the gate passes; the pattern q and lsScale-optimal s* follow
-# the C443 recipe exactly, and the result is derotated through the
+# the recipe exactly, and the result is derotated through the
 # symmetric integer inverse w' = H^T (s* q)/4 (H H = 4 I, all
-# Fractions). If the gate fails, the C443 direct quantizer runs
+# Fractions). If the gate fails, the direct quantizer runs
 # unchanged — the machine decides, not a postulate. The jump is
 # admitted ONLY by the exact certified criterion drop > 0; a
 # rejection is a HOLD (excluded from the emitted trajectory).
 
 HT_K = 4                                  # classes = 2^2 (Sylvester order)
-HT_W0 = [F(-3), F(-2), F(-2), F(1)]     # fixed before the run, C443-style
+HT_W0 = [F(-3), F(-2), F(-2), F(1)]     # fixed before the run
 # Sylvester H_2 (integer +-1, symmetric, H*H = 4 I)
 HT_H = [[1, 1, 1, 1],
         [1, -1, 1, -1],
@@ -478,7 +398,7 @@ HT_H = [[1, 1, 1, 1],
 
 
 def ht_point_loss(w, x, y):
-    """1 - p_true, rational-softmax over squared scores (C442)."""
+    """1 - p_true, rational-softmax over squared scores."""
     S = sum((w[c] * x) ** 2 for c in range(HT_K))
     return F(1) - (w[y] * x) ** 2 / S
 
@@ -529,7 +449,7 @@ def ht_quantize(w):
     """Gated Hadamard ternary jump (rotate-if-measured-better).
 
     Measures cohSq(w) vs cohSq(H w) exactly in Fractions; rotates
-    only when the strict gate passes; quantizes (C443 lsScale
+    only when the strict gate passes; quantizes (lsScale
     recipe: s0 = max|.|, q = roundTern, s* = sum q w / sum q q);
     derotates w' = H^T (s* q)/4 when rotated. Returns
     (w', s, q, s0, gate_info)."""
@@ -623,7 +543,7 @@ def train_ht(grad_steps, ft_steps):
     return raw[0]["obj"], raw, holds, states, jump
 
 # ----------------------------------------------------------------
-# C479: unified full pipeline (--mode full-pipeline)
+# Unified full pipeline (--mode full-pipeline)
 #
 # PIN (unification): ONE task — linear regression on the SAME
 # rational data as grow/grow-stop (XS/YS, holdout (4,9)) — passes
@@ -631,13 +551,13 @@ def train_ht(grad_steps, ft_steps):
 #   (a) TRAIN: 2 certified GD steps (eta = 1/L, BlockSmooth);
 #   (b) EF21: 2 in-step quantized steps with error feedback
 #       (m = g + e, d = tern_s(m), s = 1/4 fixed; reject => HOLD
-#       telemetry, C474 semantics);
-#   (c) HADAMARD-TERN: measured cohSq gate (C477) on the dim-4
+#       telemetry, semantics)
+#   (c) HADAMARD-TERN: measured cohSq gate on the dim-4
 #       weight vector (base features [1, x/3, (x/3)^2, (x/3)^3]
 #       — dim 4 = 2^2 for the Sylvester H2), ternary jump with
-#       the C443 lsScale recipe + derotation H^T/4, admitted only
+#       the lsScale recipe + derotation H^T/4, admitted only
 #       by drop > 0; then 1 certified finetune GD step;
-#   (d) GROW: candidate feature (x/3)^4 decided by the C444 exact
+#   (d) GROW: candidate feature (x/3)^4 decided by the exact
 #       admission margin (admit => only_last step from u = 0, so
 #       the obj chain stays EXACTLY continuous: L_new(w||0) =
 #       L_old(w)); a noise candidate orthogonal to the residual
@@ -646,7 +566,7 @@ def train_ht(grad_steps, ft_steps):
 #   (e) MERGE: side finetune branch (2 certified GD steps from
 #       the current weights — branch telemetry, NOT trajectory
 #       steps: the trace is one state chain), merged = midpoint;
-#       the C476 measured-delta gate: delta_meas = linResidual of
+#       the measured-delta gate: delta_meas = linResidual of
 #       the linearization L(wA) + t*G (G = grad(wA)·(wB−wA)) over
 #       the grid t in {1/4, 1/2, 3/4, 1}; SAFETY gate
 #       obj(mid) <= obj(wA) + delta_meas; ADMISSION to the trace
@@ -654,16 +574,16 @@ def train_ht(grad_steps, ft_steps):
 #       with drop <= 0 is an honest HOLD (telemetry);
 #   (f) STOP: normalized polynomial candidates (x/3)^d, d = 4..;
 #       each admits a certified step (positive gain — the honest
-#       C445 gap: the admission gate alone does not stop
-#       overfitting), the C446 Ville stop fires on
+#       Gap: the admission gate alone does not stop
+#       overfitting), the Ville stop fires on
 #       lam*D >= 1/delta - 1 (D = holdout - h0, h0 fixed at the
 #       stop-phase start); after the STOP every later candidate is
 #       refused (telemetry). If the stop never fires the run
-#       ABORTS (the C446 discipline).
+#       ABORTS (discipline).
 #
-# PIN (why linear, not softmax-CE): the C442 rational-softmax
+# PIN (why linear, not softmax-CE): the rational-softmax
 # surrogate has degree-4 dynamics — beyond T=2 steps the exact
-# denominators explode past kernel reach (the C442 trajectory
+# denominators explode past kernel reach (the quad-mode trajectory
 # pin); the quadratic MSE carrier keeps the full 6-phase chain
 # within norm_num's reach while exercising every phase honestly.
 #
@@ -803,7 +723,7 @@ def full_pipeline_run():
         for k, v in jump.items()},
         "final_obj": str(grow_loss(w, feats))})
 
-    # (d) GROW: candidate (x/3)^4 by the C444 exact margin
+    # (d) GROW: candidate (x/3)^4 by the exact margin
     featsG = feats + [fp_col(4)]
     dcost = F(2)
     wext = list(w) + [F(0)]          # u = 0: obj chain EXACT
@@ -845,7 +765,7 @@ def full_pipeline_run():
                                         "refused)",
                               "grad_last": gn[-1]})
 
-    # (e) MERGE: side branch + measured-delta gate (C476)
+    # (e) MERGE: side branch + measured-delta gate 
     wA = list(w)
     wB = list(wA)
     branch = []
@@ -963,7 +883,7 @@ def _proof_full(name_suffix, ok):
 
 
 def emit_lean_full(path, start, traj):
-    """C479 witness: the unified 6-phase trajectory literal +
+    """Witness: the unified 6-phase trajectory literal +
     #eval + norm_num theorem."""
     _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
                       "open Hagi.Runtime\n\n"
@@ -978,7 +898,7 @@ def emit_lean_full(path, start, traj):
 
 
 def emit_bad_full(path, start, traj):
-    """C479 negative: broken phase — inflated declared drop on the
+    """Negative: broken phase — inflated declared drop on the
     last step; the checker must reject the whole trajectory."""
     bad = [dict(d) for d in traj]
     bad[-1]["drop"] = bad[-1]["drop"] + F(1)
@@ -996,9 +916,9 @@ def emit_bad_full(path, start, traj):
 
 
 # ----------------------------------------------------------------
-# C474: EF21 in-step quantized training loop (--mode ef21-step)
+# EF21 in-step quantized training loop (--mode ef21-step)
 #
-# PIN (P3 of the A19 audit): the C443 mode quantizes POST HOC (a
+# PIN: cert-tern quantizes POST HOC (a
 # separate jump after training); this mode compresses the update
 # INSIDE each gradient step with error feedback:
 #   m = g + e   (exact Fraction gradient + accumulated residual)
@@ -1122,7 +1042,7 @@ def _proof_ef21(name_suffix, ok):
 
 
 def emit_lean_ef21(path, start, traj, rejects):
-    """C474 witness: literal trajectory + #eval + norm_num theorem,
+    """Witness: literal trajectory + #eval + norm_num theorem,
     plus the reject control: the FIRST rejected trial's measured
     drop is <= 0, so its CertStepData can never pass checkStep
     (ef21_reject_hold) — machine-checked on the exact literals."""
@@ -1142,7 +1062,7 @@ def emit_lean_ef21(path, start, traj, rejects):
             # the identity hold record the trainer WOULD emit:
             # weights unchanged => obj' = obj, drop = measured drop
             f.write(
-                "\n/- Reject control (C474): the first rejected "
+                "\n/- Reject control: the first rejected "
                 "trial's measured\ndrop is <= 0 (a compressed step "
                 "that does not descend — with coarse\nquantization "
                 "possibly NEGATIVE), so the identity hold record "
@@ -1157,7 +1077,7 @@ def emit_lean_ef21(path, start, traj, rejects):
 
 
 def emit_bad_ef21(path, start, traj):
-    """C474 negative control: inflate the last declared drop beyond
+    """Negative control: inflate the last declared drop beyond
     the actual descent — the checker must reject the trajectory."""
     bad = [dict(d) for d in traj]
     bad[-1]["drop"] = bad[-1]["drop"] + F(1)
@@ -1179,7 +1099,7 @@ def rat(q):
 
 
 # NB: witness proof is `simp only + norm_num`, NOT `decide`: probe
-# (.tmp/C434/probe*.lean) shows ℚ Decidable instances are not
+# (*.lean) shows ℚ Decidable instances are not
 # kernel-reducible in this toolchain (even a single tiny comparison),
 # so decide fails structurally, not by size. norm_num yields a
 # kernel-machine-checked term (allowed-axiom basis unchanged).
@@ -1244,7 +1164,7 @@ def _proof_ce(name_suffix, ok):
 
 
 def emit_lean_ce(path, start, traj, name_suffix="", ok=True):
-    """C442 witness for the certified CE trajectory (same literal /
+    """Witness for the certified CE trajectory (same literal /
     #eval / norm_num pattern as the default mode)."""
     _write_text(path, "import Hagi.Runtime.CertChecker\n\n"
                       "open Hagi.Runtime\n\n"
@@ -1259,7 +1179,7 @@ def emit_lean_ce(path, start, traj, name_suffix="", ok=True):
 
 
 def emit_bad_ce(path, start, traj):
-    """C442 negative control: inflate the last declared drop beyond
+    """Negative control: inflate the last declared drop beyond
     the actual descent (the checker must reject the trajectory)."""
     bad = [dict(d) for d in traj]
     bad[-1]["drop"] = bad[-1]["drop"] + F(1)
@@ -1267,7 +1187,7 @@ def emit_bad_ce(path, start, traj):
 
 
 # ----------------------------------------------------------------
-# C444: certified block admission for LM growth (--mode grow)
+# Certified block admission for LM growth (--mode grow)
 #
 # PIN (model): a linear model on rational data (MSE, exact
 # Fractions): base model y ~ w*x (one feature). A growth
@@ -1285,7 +1205,7 @@ def emit_bad_ce(path, start, traj):
 #   dCost = measured cost increment of the candidate column
 #           (feature-dimension units: one weight + one KV column
 #           — the Python face of kvCostOfBlock / lmKVCost_grow);
-#   dRisk = holdout risk increment (ONE held-out point, C435
+#   dRisk = holdout risk increment (ONE held-out point, 
 #           honesty: telemetry, may rise);
 #   eps_cert = explicit safety slack.
 # A REJECTED candidate is a HOLD: model unchanged, the candidate
@@ -1328,8 +1248,8 @@ def grow_grad(w, feats):
 
 
 def grow_smooth(feats):
-    """Frobenius smoothness estimate ||X||^2_F (BlockSmooth/C442
-    pattern): sum of squared train feature entries — sets eta = 1/L."""
+    """Frobenius smoothness estimate ||X||^2_F (BlockSmooth
+    pattern): sum of squared train feature entries -- sets eta = 1/L."""
     return sum((f[i] ** 2 for f in feats
                 for i in range(len(XS))), F(0))
 
@@ -1468,7 +1388,7 @@ def _proof_grow(prefix, ok):
 
 
 def emit_lean_grow(path, start, traj, reject=None):
-    """C444 witness: literal trajectory + #eval + norm_num theorem,
+    """Witness: literal trajectory + #eval + norm_num theorem,
     plus (if `reject` given) the machine-checked ADMISSION REFUSAL
     of the costly zero-gain candidate: the criterion inequality is
     FALSE on the exact measured literals."""
@@ -1486,7 +1406,7 @@ def emit_lean_grow(path, start, traj, reject=None):
         if reject is not None:
             f.write(
                 "\n/-- Machine-checked refusal of the costly "
-                "zero-gain candidate (C444 negative (c)): the "
+                "zero-gain candidate (negative (c)): the "
                 "admission criterion\nlamM·Δcost + lamR·Δrisk + "
                 "ε_cert ≤ gain is FALSE on the exact measured "
                 "literals, so\nblockAdmissionRule refuses "
@@ -1502,9 +1422,9 @@ def emit_lean_grow(path, start, traj, reject=None):
 
 
 # ----------------------------------------------------------------
-# C446: anytime holdout admission-stop (--mode grow-stop)
+# Anytime holdout admission-stop (--mode grow-stop)
 #
-# PIN (gap C445): the C444 grow loop admits blocks on the train-
+# PIN (gap): the grow loop admits blocks on the train-
 # side margin alone; holdout telemetry may DEGRADE with no stop --
 # growth continues while generalization collapses. This mode adds
 # the Ville anytime stop (Hagi/Theory/Statistics, AnytimeHoldoutStop section):
@@ -1512,7 +1432,7 @@ def emit_lean_grow(path, start, traj, reject=None):
 #   e-process  L_t = exp(lam * D_t),  D_t = holdout_t - holdout_0
 #   (accumulated holdout degradation), supermartingale under the
 #   ZERO-degradation contract (martingale holdout increments --
-#   C435 holdout_unbiased premise, model fixed before the draw);
+#   Holdout_unbiased premise, model fixed before the draw)
 #   Ville: P[sup_t L_t >= 1/delta] <= delta  -- an ANYTIME detector:
 #   the stop may fire at any adaptively chosen step.
 #
@@ -1529,7 +1449,7 @@ def emit_lean_grow(path, start, traj, reject=None):
 # (x/3)^d, d = 2..11; train points x in {1,2,3}, holdout x = 4.
 # Each block's certified candidate step has positive measured
 # gain (blockGainOk passes: lamM = lamR = eps = 0 pass-through
-# growth gate -- the honest C445 gap: the admission gate alone does
+# growth gate -- the honest gap: the admission gate alone does
 # NOT stop overfitting), but the holdout value (4/3)^d makes the
 # accumulated degradation D_t explode -- the anytime stop fires and
 # every later block is REFUSED with reason STOP (admitWithStop /
@@ -1550,8 +1470,8 @@ def gs_stop_fires(d_cum):
 
 def grow_stop_run(base_steps=2, grown_steps=4):
     """Certified growth with the anytime holdout stop: base steps,
-    then normalized polynomial blocks decided by the C444 margin
-    (pass-through parameters here -- the honest gap) AND the C446
+    then normalized polynomial blocks decided by the margin
+    (pass-through parameters here -- the honest gap) AND the
     Ville stop. Once the stop fires, later blocks are logged as
     refused (reason STOP) and NOTHING is emitted for them."""
     feats = [list(XS) + [XHO_GROW]]
@@ -1595,8 +1515,8 @@ def grow_stop_run(base_steps=2, grown_steps=4):
                         extra={"candidate": f"(x/3)^{dd}"},
                         only_last=True)
         gain = d["drop"]
-        # C444 margin with pass-through parameters: the gate itself
-        # would admit (positive certified gain) -- honest C445 gap
+        # Margin with pass-through parameters: the gate itself
+        # would admit (positive certified gain) -- honest gap
         rec = {"candidate": f"(x/3)^{dd}", "gain": gain,
                "holdout": grow_holdout_risk(w2, feats2),
                "D": grow_holdout_risk(w2, feats2) - h0,
@@ -1666,7 +1586,7 @@ def _proof_grow_stop(prefix, ok):
 
 
 def emit_lean_grow_stop(path, start, traj, stop_rec, blocked):
-    """C446 witness: literal trajectory + #eval + norm_num theorem,
+    """Witness: literal trajectory + #eval + norm_num theorem,
     the machine-checked STOP (the rational rule fired on the exact
     literals) and the negative: the FIRST blocked candidate had a
     POSITIVE measured gain -- without the stop the cycle would have
@@ -1681,7 +1601,7 @@ def emit_lean_grow_stop(path, start, traj, stop_rec, blocked):
                       "#eval checkTrajectory benchStartGrowStop "
                       "benchTrajectoryGrowStop\n\n"
                   + (_proof_grow_stop("", True))
-                  + "\n/-- Machine-checked STOP (C446): the conservative "
+                  + "\n/-- Machine-checked STOP: the conservative "
                       "rational rule fired --\n1/delta - 1 <= lam * D on the "
                       "exact measured literals, hence the e-value\ncrossed "
                       "1/delta (stop_implies_evalue) and admission is "
@@ -1693,7 +1613,7 @@ def emit_lean_grow_stop(path, start, traj, stop_rec, blocked):
                       "  norm_num\n"
                   + "\n/-- Negative (cycle would continue without the "
                       "stop): the FIRST blocked\ncandidate has POSITIVE "
-                      "measured certified gain -- the C444 margin alone would\n"
+                      "measured certified gain -- the margin alone would\n"
                       "admit it (no_stop_admits). The stop is the ONLY "
                       "reason growth halted. -/\n"
                       "theorem growstop_blocked_would_admit :\n"
@@ -1702,7 +1622,7 @@ def emit_lean_grow_stop(path, start, traj, stop_rec, blocked):
 
 
 def emit_bad_grow_stop(path, start, traj):
-    """C446 negative control: inflated declared drop -- the checker
+    """Negative control: inflated declared drop -- the checker
     must reject the trajectory."""
     bad = [dict(d) for d in traj]
     bad[-1]["drop"] = bad[-1]["drop"] + F(1)
@@ -1719,7 +1639,7 @@ def emit_bad_grow_stop(path, start, traj):
 
 
 def emit_bad_grow(path, start, traj):
-    """C444 negative: inflated declared drop — the checker must
+    """Negative: inflated declared drop — the checker must
     reject the trajectory."""
     bad = [dict(d) for d in traj]
     bad[-1]["drop"] = bad[-1]["drop"] + F(1)
@@ -1736,11 +1656,11 @@ def emit_bad_grow(path, start, traj):
 
 
 # ----------------------------------------------------------------
-# C481: certified TRUNK training (--mode trunk-train)
+# Certified TRUNK training (--mode trunk-train)
 #
 # PIN (model): the bench model finally has a NON-LINEAR trunk,
 # trained jointly with the linear head by certified steps (the
-# C475 Hagi/Training/JointTrunkHead.lean theory moved into the
+# Hagi/Training/JointTrunkHead.lean theory moved into the
 # Python cycle):  v = g*x/(|x|+eps)  ->  a = W1*v  ->  relu
 # ->  t = W2*r  ->  z = Wh*t  (K = 3 classes, hidden dim 2,
 # 18 rational parameters). Everything is Fraction-exact.
@@ -1748,7 +1668,7 @@ def emit_bad_grow(path, start, traj):
 # PIN (rational RMSNorm surrogate): true RMSNorm divides by
 # sqrt(sum x^2/n), which is IRRATIONAL over Q. Chosen KISS fix
 # (task-sanctioned): L1-denominator normalization x/(|x|+eps),
-# eps = 1/1000 — rational throughout; the gain g keeps the C475
+# eps = 1/1000 -- rational throughout; the gain g keeps the
 # rmsN-atom shape. sqrt via certified Newton bounds rejected
 # (YAGNI).
 #
@@ -1764,22 +1684,22 @@ def emit_bad_grow(path, start, traj):
 # Fractions). Snapping the candidate to the 1/1000 rational grid
 # keeps exact denominators within kernel reach (measured: pure
 # fd-GD reaches 3605-digit denominators by step 2; snapped: <= 13
-# digits) — the precedent is the C443 ternary jump, where the
+# digits) — the precedent is the ternary jump, where the
 # candidate is quantized by construction. The CERTIFIED content
 # is unaffected: admission is the MEASURED drop obj - obj' > 0
 # computed exactly on the ACTUAL (snapped) parameters, with
 # guarded rollback (drop <= 0 => HOLD, parameters restored, the
-# step is excluded from the trajectory — C443/C474 semantics).
+# step is excluded from the trajectory — semantics).
 #
 # PIN (honest guarantee form): a finite-difference gradient is an
 # APPROXIMATE direction, so NO 2A^2/R^2-style certified descent
 # is claimed. The live guarantee is per-step measured descent +
-# rollback + the executable checkTrajectory. The C475 majorizer
+# rollback + the executable checkTrajectory. The majorizer
 # readouts — A (linear-model predicted drop -sum g_fd*(theta'-
 # theta)), R (sup over train points of the logit range), dd
 # (measured logit displacement of the TRUNK change alone, new
 # trunk with the OLD head, before the head part of the joint
-# step) — are telemetry; the C475 strict-commit criterion
+# step) — are telemetry; the strict-commit criterion
 # 2*HL*dd < 2*A^2/R^2 is logged ADVISORY only.
 
 TT_K, TT_HID = 3, 2                    # classes / hidden units
@@ -1888,7 +1808,7 @@ def tt_logit_range(theta):
 def tt_trunk_disp(theta_old, theta_new):
     """dd = sup over train points / classes of the logit shift
     caused by the TRUNK change ALONE (new trunk, OLD head) — the
-    C475 measured displacement binder, computed directly."""
+    measured displacement binder, computed directly."""
     _, _, _, old_head = theta_old
     return max(abs(a - b)
                for x in TT_XTR
@@ -1903,12 +1823,12 @@ def trunk_train_run(steps=TT_STEPS):
     theta = tt_init()
     raw, tel = [], {"holds": [], "steps": [], "model": {
         "trunk": "L1-rms-surrogate -> Linear W1 -> ReLU -> "
-                 "Linear W2 (nonlinear, C475 mlp atom)",
+                 "Linear W2 (nonlinear, mlp atom)",
         "head": "linear Wh", "params": TT_NPAR,
         "grad": "forward finite differences h=1/1000 (Fraction)",
         "step": "snap_{1/1000}(theta - (1/10)*g_fd) joint",
         "guarantee": "per-step MEASURED drop > 0 + guarded "
-                     "rollback; A/R/dd telemetry advisory (C475)"}}
+                     "rollback; A/R/dd telemetry advisory "}}
     obj0 = tt_train_loss(theta)
     for t in range(steps):
         obj, risk = tt_train_loss(theta), tt_holdout_risk(theta)
@@ -1920,7 +1840,7 @@ def trunk_train_run(steps=TT_STEPS):
         obj2, risk2 = tt_train_loss(theta2), \
             tt_holdout_risk(theta2)
         drop = obj - obj2
-        # C475 telemetry (advisory; NOT the admission criterion)
+        # Telemetry (advisory; NOT the admission criterion)
         A = -sum((gfd[k] * (cand[k] - p[k])
                   for k in range(TT_NPAR)), F(0))
         R = tt_logit_range(theta2)
@@ -1957,7 +1877,7 @@ def trunk_train_run(steps=TT_STEPS):
 
 
 def emit_lean_trunk(path, start, traj, bad=False):
-    """C481 witness: literal trunk-training trajectory + #eval
+    """Witness: literal trunk-training trajectory + #eval
     checkTrajectory + a norm_num theorem (trunk_bench_valid), or
     the negative control (inflated drop — the checker must
     reject)."""
@@ -1983,7 +1903,7 @@ def emit_lean_trunk(path, start, traj, bad=False):
                       "  norm_num\n")
 
 
-# C484: REAL-DATASET certified trunk bench (--mode real-data)
+# REAL-DATASET certified trunk bench (--mode real-data)
 #
 # PIN (dataset, real not invented): points are read from the
 # HAGI_v2 corpus (READ-ONLY): unified_ledger.json (184 entries
@@ -2000,23 +1920,23 @@ def emit_lean_trunk(path, start, traj, bad=False):
 # PIN (feature quantization): raw byte fractions have per-file
 # denominators (file sizes); each feature is snapped to the
 # 1/1000 rational grid — an exact input-preprocessing choice
-# (same grid family as the C481 parameter snap).
+# (same grid family as the parameter snap).
 #
 # PIN (normalization constant): the trunk uses the L1-surrogate
 # normalization v = g*x/CFIX with CFIX = max ||x||_1 + 1/1000 a
 # DATASET-LEVEL constant. The per-point division x/(|x|+eps) of
-# C481 makes the denominators point-coprime (~400 digits over
+# Makes the denominators point-coprime (~400 digits over
 # 148 train points, measured by probe); the constant form keeps
 # exact loss denominators <= 58 digits while staying an exact
-# rational L1-norm surrogate (sqrt skipped, C481 pin retained).
+# rational L1-norm surrogate (sqrt skipped, pin retained).
 #
-# Certified content = C481 verbatim: forward finite-difference
+# Certified content = verbatim: forward finite-difference
 # gradient (h = 1/1000, exact Fractions) is only the CANDIDATE
 # generator; admission is the MEASURED drop obj - obj' > 0
 # computed exactly on the ACTUAL grid-snapped parameters, with
 # guarded rollback (drop <= 0 => HOLD, step excluded from the
-# trajectory). Statistics (train/holdout MSE, C435-style
-# concentration) are computed on the FIXED final model.
+# trajectory). Statistics (train/holdout MSE,
+# Hoeffding-style concentration) are computed on the FIXED final model.
 
 RD_D, RD_HID, RD_K = 4, 3, 2      # feature dim / hidden / t-dim
 RD_EPS = F(1, 1000)              # CFIX epsilon (rational)
@@ -2027,13 +1947,13 @@ RD_STEPS = 6                     # default joint steps
 RD_NPAR = 1 + RD_HID * RD_D + RD_K * RD_HID + RD_K   # = 21
 RD_DEFAULT_LEDGER = ("C:/HAGI_v2/checkpoints/"
                      "unified_ledger.json")
-# C608: corpus snapshot pinning (lesson C535). Bench data modes run
+# Corpus snapshot pinning. Bench data modes run
 # on a FROZEN snapshot by default so regression results are stable
-# against the live HAGI_v2 ledger drift (~1 wave / 15 min). The
+# against the live HAGI_v2 ledger drift (~1 corpus wave / 15 min). The
 # snapshot is the last corpus state on which grow-snap PASSES its
-# certified bound (pre-wave238: 34 ns_* + law_alphabet; the wave238
-# chat_law_* entries break the bound on content, not timing).
-# Snapshot: 2026-11-22, pre-wave238 (35 keys). NOT in git (.tmp).
+# certified bound (34 ns_* + law_alphabet; the later chat_law_*
+# entries break the bound on content, not timing).
+# Snapshot: 2026-11-22, 35 keys. NOT in git (.tmp).
 # Regenerate from a corpus state of your choice:
 #   python -c "import shutil; shutil.copytree('C:/HAGI_v2/checkpoints/domains','.tmp/corpus-snap/domains',dirs_exist_ok=True); shutil.copy('C:/HAGI_v2/checkpoints/unified_ledger.json','.tmp/corpus-snap/unified_ledger.json')"
 # then prune ledger keys without .bin (rd loader requires all keys
@@ -2116,7 +2036,7 @@ def rd_mse(p, data, cfix):
 
 
 def rd_concentration(p, pts, cfix):
-    """C435-style numerical application of the Hoeffding-63
+    """Numerical application of the Hoeffding-63
     two-sided bound on the FIXED final model. Per-point losses
     l_i are exact; L = max l_i (data-dependent bound, pin);
     u_i = l_i/L in [0,1]. For holdout size m the with-
@@ -2146,12 +2066,12 @@ def rd_concentration(p, pts, cfix):
 
 def real_data_run(ledger_path, steps=RD_STEPS):
     """Real-dataset certified trunk training: guarded fd-gradient
-    snap steps admitted only by measured drop > 0 (C481)."""
+    snap steps admitted only by measured drop > 0."""
     pts = rd_load_dataset(ledger_path)
     if len(pts) < 100:
         corpus_abort(
             f"expected 100+ real points, got {len(pts)}",
-            hint="real-data (C484)")
+            hint="real-data")
     train, hold = rd_split(pts)
     cfix = max(sum((abs(v) for v in x), F(0))
                for _, x, _ in pts) + RD_EPS
@@ -2163,8 +2083,8 @@ def real_data_run(ledger_path, steps=RD_STEPS):
         "grad": "forward finite differences h=1/1000 (Fraction)",
         "step": "snap_{1/1000}(theta - (1/10)*g_fd)",
         "guarantee": "per-step MEASURED drop > 0 + guarded "
-                     "rollback (C481 form)",
-        # C607: ledger entries skipped by the null-ce filter
+                     "rollback",
+        # Ledger entries skipped by the null-ce filter
         "corpus_ce_skipped": len(CE_SKIPPED_KEYS)}}
     obj0 = rd_mse(p, train, cfix)
     for t in range(steps):
@@ -2224,13 +2144,13 @@ def real_data_run(ledger_path, steps=RD_STEPS):
 
 def emit_lean_real(path, start, traj, witness_steps=4,
                    full_steps=None):
-    """C484 witness: literal trajectory of the FIRST witness_steps
+    """Witness: literal trajectory of the FIRST witness_steps
     accepted steps + #eval checkTrajectory (+ valid theorem);
     the header documents the FULL accepted-step count honestly
     (task form: first N steps machine-checked)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     full = full_steps if full_steps is not None else len(traj)
-    _write_text(path, "-- C484 real-dataset trunk bench witness.\n"
+    _write_text(path, "-- real-dataset trunk bench witness.\n"
                       f"-- FULL accepted trajectory: {full} steps; the "
                       f"first {len(ds)} are machine-checked below\n"
                       "-- (checkTrajectory over a prefix validates the "
@@ -2254,11 +2174,11 @@ def emit_lean_real(path, start, traj, witness_steps=4,
                       "  norm_num\n")
 
 
-# C491: CERTIFIED SANDWICH CE training on real data
+# CERTIFIED SANDWICH CE training on real data
 # (--mode cert-sandwich)
 #
-# PIN (objective): the C442 z^2/Sum z^2 surrogate is REPLACED by
-# the C489 sandwich certificate. Per point with max-shifted
+# PIN (objective): the z^2/Sum z^2 surrogate is REPLACED by
+# the sandwich certificate. Per point with max-shifted
 # logits s_c = z_c - max z in [-R, 0] (guard R < n = m = 4),
 # lo_c = (1 + s_c/4)^4 <= e^{s_c} <= (1 - s_c/4)^(-4) = hi_c
 # (expLower_le_exp / exp_le_expUpper, all exact Fractions).
@@ -2273,7 +2193,7 @@ def emit_lean_real(path, start, traj, witness_steps=4,
 # Hagi.Theory.CertSandwichBench.certCE_descent: certificate drop
 # minus the initial gap-width bound <= true-CE drop.
 #
-# PIN (snap-to-grid, C481/C484 family): features snapped to the
+# PIN (snap-to-grid): features snapped to the
 # 1/10 grid (input preprocessing, exact), weights and updates to
 # the 1/100 grid.  The shifted logits s stay EXACT rationals -
 # snapping the logits themselves was probed and REJECTED: it
@@ -2281,7 +2201,7 @@ def emit_lean_real(path, start, traj, witness_steps=4,
 # step HOLD).
 #
 # PIN (eta): no smoothness constant is certified for the
-# sandwich objective; the provable minimum is the C481 guarded
+# sandwich objective; the provable minimum is the guarded
 # admission - EXACT analytic gradient of log OBJ (rational),
 # normalized direction, fixed step 1/100, snap to grid, accept
 # IFF the MEASURED OBJ drop > 0 (else HOLD, step excluded).
@@ -2289,7 +2209,7 @@ def emit_lean_real(path, start, traj, witness_steps=4,
 # mode's step choice.
 #
 # PIN (dataset, live corpus): unified_ledger.json + domains/
-# (C484 loader family).  The corpus is LIVE: 185 points at C484,
+# (real-data loader family).  The corpus is LIVE: 185 points when first used,
 # fewer today; ledger keys without a bin file are skipped, N is
 # reported and asserted > 0 (N >= 100 pin UNMET by the current
 # environment corpus - documented, not fabricated).
@@ -2301,7 +2221,7 @@ def emit_lean_real(path, start, traj, witness_steps=4,
 
 CS_K, CS_D = 2, 4              # classes / feature dim
 CS_NM = 4                      # n = m of the (1+x/n)^n family
-CS_NM_EVAL_MAX = 1024          # C502 eval-time adaptive cap (budget)
+CS_NM_EVAL_MAX = 1024          # eval-time adaptive cap (budget)
 CS_FGRID = F(1, 10)            # feature snap grid
 CS_WGRID = F(1, 100)           # weight snap grid
 CS_ETA = F(1, 100)             # normalized step size
@@ -2321,12 +2241,12 @@ def cs_snap(v, g):
 
 
 def cs_load_dataset(ledger_path):
-    """Real dataset (C484 family): features snapped 1/10, labels
+    """Real dataset: features snapped 1/10, labels
     K=2 median split of the exact measured ce."""
     import os
     with open(ledger_path, encoding="utf-8") as f:
         led = json.load(f)
-    # C607: filter null/non-numeric 'ce' entries (wave schema);
+    # Filter null/non-numeric 'ce' entries (wave schema)
     # structural=False keeps cs-loader behavior unchanged beyond
     # the ce filter (no NEW aborts on this path).
     led = _validate_ledger_schema(led, ledger_path,
@@ -2356,8 +2276,8 @@ def cs_logits(w, x):
 
 
 def cs_terms_nm(z, nm):
-    """C489 sandwich terms on max-shifted logits (exact),
-    parameterized denominator nm (C502 adaptive tightening;
+    """Sandwich terms on max-shifted logits (exact),
+    parameterized denominator nm (adaptive tightening;
     bernoulliLower_mono / expUpper_base_mono: larger nm —
     narrower certified bands)."""
     M = max(z)
@@ -2370,7 +2290,7 @@ def cs_terms_nm(z, nm):
 
 
 def cs_terms(z):
-    """C489 sandwich terms at the fixed training CS_NM."""
+    """Sandwich terms at the fixed training CS_NM."""
     return cs_terms_nm(z, CS_NM)
 
 
@@ -2447,7 +2367,7 @@ def cs_gap_width(w, data):
 
 
 def cs_c442(w, data):
-    """C442 z^2/Sum z^2 surrogate mean on the same weights
+    """z^2/Sum z^2 surrogate mean on the same weights
     (exact Fractions; comparison telemetry)."""
     tot = F(0)
     for x, y in data:
@@ -2458,7 +2378,7 @@ def cs_c442(w, data):
 
 
 def cert_sandwich_run(ledger_path, steps=CS_STEPS):
-    """Certified sandwich-CE training loop (C491).  Returns
+    """Certified sandwich-CE training loop.  Returns
     (start, traj, tel, stats, final_w)."""
     pts, med = cs_load_dataset(ledger_path)
     assert len(pts) > 0, "ABORT: no usable real points"
@@ -2526,20 +2446,20 @@ def cert_sandwich_run(ledger_path, steps=CS_STEPS):
                   "c442_float": float(cs_c442(w, data))},
         "train_acc": f"{acc}/{len(data)}",
         "theorem": "Hagi.Theory.CertSandwichBench."
-                   "certCE_descent (C491)",
+                   "certCE_descent",
     }
     return raw[0]["obj"], raw, tel, stats, w
 
 
 def emit_lean_cs(path, start, traj, witness_steps=2,
                  full_steps=None):
-    """C491 witness: literal CertStepData trajectory of the
+    """Witness: literal CertStepData trajectory of the
     FIRST witness_steps accepted steps of the REAL run (same
-    benchBridge pattern as C484; obj values are the exact
+    benchBridge pattern; obj values are the exact
     certificate products)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     full = full_steps if full_steps is not None else len(traj)
-    _write_text(path, "-- C491 certified sandwich CE bench witness.\n"
+    _write_text(path, "-- certified sandwich CE bench witness.\n"
                       f"-- FULL accepted trajectory: {full} steps; the "
                       f"first {len(ds)} are machine-checked below\n"
                       "-- (obj/obj'/drop are the EXACT rational "
@@ -2571,7 +2491,7 @@ def emit_bad_cs(path, start, traj):
     bad = [dict(d) for d in traj[:2]]
     last = bad[-1]
     last["drop"] = last["drop"] + last["obj"]
-    _write_text(path, "-- C491 negative control: last drop inflated by obj "
+    _write_text(path, "-- negative control: last drop inflated by obj "
                       "(drop > obj - obj').\n"
                       "import Hagi.Runtime.CertChecker\n\n"
                       "open Hagi.Runtime\n\n"
@@ -2592,7 +2512,7 @@ def emit_bad_cs(path, start, traj):
                       "  norm_num\n")
 
 
-# C485: CONTINUAL two-task bench (--mode continual)
+# CONTINUAL two-task bench (--mode continual)
 #
 # PIN (scenario, GPM / Saha et al. ICLR'21): task A -> task B.
 # Phase 1 trains a certified linear head on task A (few-shot);
@@ -2613,7 +2533,7 @@ def emit_bad_cs(path, start, traj):
 # No spectral truncation is used - it would break the EXACT
 # invariance (honest full-span version).
 #
-# Certified content per step = C481/C484 form: ANALYTIC exact
+# Certified content per step (trunk-train form): ANALYTIC exact
 # gradient (linear MSE), candidate snap_{1/1000}(w - eta*g)
 # [GPM: the SNAPPED delta is then projected; Q*u = 0 keeps
 # gpmOrth exact], admission ONLY by MEASURED drop > 0 on the
@@ -2621,7 +2541,7 @@ def emit_bad_cs(path, start, traj):
 # gpmOrth (delta . x_k = 0 for all A inputs) and loss_A
 # invariance exactly in Fractions.
 
-CL_D = 4                         # feature dim (matches C484)
+CL_D = 4                         # feature dim (as in real-data)
 CL_ETA = F(1, 10)                # step size
 CL_GRID = F(1, 1000)             # snap grid
 CL_STEPS = 6                     # default steps per phase
@@ -2756,7 +2676,7 @@ def continual_run(ledger_path, steps=CL_STEPS):
     if len(pts) < 100:
         corpus_abort(
             f"expected 100+ real points, got {len(pts)}",
-            hint="continual (C485)")
+            hint="continual")
     A, B = cl_split(pts)
     basis = cl_gs_basis([x for x, _ in A])
     assert 0 < len(basis) < CL_D, \
@@ -2790,13 +2710,13 @@ def continual_run(ledger_path, steps=CL_STEPS):
 
 
 def emit_lean_cont(path, res, witness_steps=4):
-    """C485 witness: three literal trajectories (phase 1 on A,
+    """Witness: three literal trajectories (phase 1 on A,
     phase 2 naive on B, phase 2 GPM on B) + #eval checkTrajectory
     + valid theorems; header documents FULL counts honestly."""
     blocks = [("A", res["startA"], res["traj1"]),
               ("BN", res["startB"], res["trajN"]),
               ("BG", res["startB"], res["trajG"])]
-    out = ["-- C485 continual bench witness (real unified_ledger "
+    out = ["-- continual bench witness (real unified_ledger "
            "data).\n"
            f"-- task A: {res['n_A']} pts (rank {res['rankA']}), "
            f"task B: {res['n_B']} pts; FULL accepted steps: "
@@ -2835,7 +2755,7 @@ def emit_lean_cont(path, res, witness_steps=4):
 
 
 
-# C488: MULTI-TASK CONTINUAL bench with GPM subspace
+# MULTI-TASK CONTINUAL bench with GPM subspace
 # ACCUMULATION (--mode continual-multi)
 #
 # PIN (scenario): T = 3 sequential tasks from the SAME
@@ -2855,25 +2775,25 @@ def emit_lean_cont(path, res, witness_steps=4):
 # candidates (lying inside the current span, rank < sum) are
 # skipped and logged honestly.
 #
-# Split (deterministic, ce-sorted like C485): task 1 = 2
+# Split (deterministic, ce-sorted): task 1 = 2
 # few-shot points (first + median; rank 2 PIN - |A| >= 4
 # generic points would span R^4 and kill the complement),
 # task 2 = 1 point chosen greedily as the first sorted point
 # raising the accumulated rank to exactly 3 (leaves a 1-dim
 # complement for task 3), task 3 = all remaining points.
 #
-# Both arms run the same certified loop (C481 form: analytic
+# Both arms run the same certified loop (analytic
 # exact gradient, snap_{1/1000} candidate, admission ONLY by
 # MEASURED drop > 0, guarded rollback): NAIVE (no projection -
 # forgetting matrix MEASURED) vs GPM (accumulated projection -
 # forgetting matrix asserted EXACTLY zero on the past).
 
 CLM_TASKS = 3
-CLM_ETA = F(1, 10)               # same eta as C485
-CLM_GRID = F(1, 10000)           # finer snap grid: the C485
+CLM_ETA = F(1, 10)               # same eta as continual
+CLM_GRID = F(1, 10000)           # finer snap grid: the continual
 # 1/1000 grid rounds the tiny projected steps of the 1-point
 # task 2 past the optimum (measured drop < 0 at every step);
-# 1/10000 commits 6/6 in every phase (probe, .tmp/C488)
+# 1/10000 commits 6/6 in every phase (probe)
 
 
 def clm_split(pts):
@@ -2917,7 +2837,7 @@ def continual_multi_run(ledger_path, steps=CL_STEPS):
     if len(pts) < 100:
         corpus_abort(
             f"expected 100+ real points, got {len(pts)}",
-            hint="continual-multi (C488)")
+            hint="continual-multi")
     tasks, skipped2 = clm_split(pts)
     T = len(tasks)
     res = {"n_points": len(pts), "n_tasks": T,
@@ -2992,11 +2912,11 @@ def continual_multi_run(ledger_path, steps=CL_STEPS):
 
 
 def emit_lean_contm(path, res, witness_steps=4):
-    """C488 witness: per-phase GPM-arm literal trajectories
+    """Witness: per-phase GPM-arm literal trajectories
     (CertStepData prefixes) + #eval checkTrajectory + valid
     theorems + #check of the multi-task theory and the rank
     certificate; header documents FULL counts honestly."""
-    out = ["-- C488 multi-task continual witness (real "
+    out = ["-- multi-task continual witness (real "
            "unified_ledger data).\n"
            f"-- tasks: {res['task_sizes']} pts; FULL accepted "
            "GPM steps per phase: "
@@ -3045,11 +2965,11 @@ def emit_lean_contm(path, res, witness_steps=4):
     _write_text(path, ("".join(out)))
 
 
-# C487: WITHOUT-REPLACEMENT holdout bound bench (--mode wrbound)
+# WITHOUT-REPLACEMENT holdout bound bench (--mode wrbound)
 #
-# Compares the C487 Freedman-adaptive without-replacement bound
+# Compares the Freedman-adaptive without-replacement bound
 #   2*exp(-k*eps^2/(2*(s2*(2N-k)/N + eps)))
-# against the C435/C484 with-replacement Hoeffding form
+# against the with-replacement Hoeffding form
 #   2*exp(-2*k*eps^2)
 # on the FIXED final real-data trunk model (same certified loop
 # as --mode real-data). Per-point losses u_i = sqerr_i / L in
@@ -3057,7 +2977,7 @@ def emit_lean_contm(path, res, witness_steps=4):
 #
 # PIN (N=185): the corpus is LIVE (206 entries at bench time);
 # N is pinned to the first 185 sorted ledger keys (deterministic
-# snapshot), k = 37 = |{i < 185 : i % 5 == 4}| (the C484-style
+# snapshot), k = 37 = |{i < 185 : i % 5 == 4}| (the real-data
 # every-5th holdout split). delta = 0.05; eps* by float
 # bisection (report-only, same convention as rd_concentration).
 
@@ -3070,7 +2990,7 @@ def wrbound_run(ledger_path, steps=RD_STEPS):
     if len(pts) < 185:
         corpus_abort(
             f"expected 185+ real points, got {len(pts)}",
-            hint="wrbound (C487), N=185 pinned")
+            hint="wrbound, N=185 pinned")
     pts = pts[:185]                       # N = 185 pinned
     N, k = len(pts), 37
     train = [(x, y) for i, (_, x, y) in enumerate(pts) if i % 5 != 4]
@@ -3078,7 +2998,7 @@ def wrbound_run(ledger_path, steps=RD_STEPS):
     assert len(hold) == k
     cfix = max(sum((abs(v) for v in x), F(0))
                for _, x, _ in pts) + RD_EPS
-    # same certified trunk loop as real-data (C481 form)
+    # same certified trunk loop as real-data 
     p = rd_init()
     for t in range(steps):
         obj = rd_mse(p, train, cfix)
@@ -3134,14 +3054,14 @@ def wrbound_run(ledger_path, steps=RD_STEPS):
     }
 
 
-# C497: VS-TRAINER — mini-HAGI against the REAL trainer
+# VS-TRAINER — mini-HAGI against the REAL trainer
 # (--mode vs-trainer)
 #
-# The C484 task (inputs = model byte-features, outputs = the
+# The real-data task (inputs = model byte-features, outputs the
 # real trainer's measured ce) with a NEW certified-evaluation
-# layer: after certified sandwich training (C491 family) on
+# layer: after certified sandwich training on
 # the train split, every holdout model gets a CERTIFIED
-# prediction (C495): its rational sandwich intervals are
+# prediction: its rational sandwich intervals are
 # computed exactly; if the normalized class bands
 # [lo v/Sum hi, hi v/Sum lo] are pairwise DISJOINT
 # (hi a/Sum lo < lo b/Sum hi), the argmax is certified —
@@ -3156,9 +3076,9 @@ def wrbound_run(ledger_path, steps=RD_STEPS):
 # Describes-type) make the certified forecast coincide with
 # the argmax of the true ranking.
 #
-# Selfloop telemetry (C461): the round/COMMIT count of the
+# Selfloop telemetry: the round/COMMIT count of the
 # live HAGI_v2 experiments/selfloop_result.json is re-read
-# at run time (fail-closed field checks, C461 bridge).
+# at run time (fail-closed field checks, bridge).
 #
 # PIN (corpus, honest): the live checkpoint ledger holds 32
 # entries / 31 usable models today (it PRUNES across
@@ -3169,7 +3089,7 @@ SELFLOOP_DEFAULT = ("C:/HAGI_v2/experiments/"
 
 
 def vs_trainer_run(ledger_path, selfloop_path, steps=CS_STEPS):
-    """C497: certified-prediction evaluation of mini-HAGI on
+    """Certified-prediction evaluation of mini-HAGI on
     holdout models of the real trainer. Returns (stats, w)."""
     pts, med = cs_load_dataset(ledger_path)
     assert len(pts) > 0, "ABORT: no usable real points"
@@ -3195,7 +3115,7 @@ def vs_trainer_run(ledger_path, selfloop_path, steps=CS_STEPS):
     import math
     nm_used_all = []
     for k, x, y in hold:
-        # C502 adaptive band tightening: double the EVAL-time
+        # Adaptive band tightening: double the EVAL-time
         # denominator n = m from CS_NM until the normalized
         # class bands are disjoint (Lean: bernoulliLower_mono /
         # expUpper_base_mono — larger nm, narrower certified
@@ -3271,7 +3191,7 @@ def vs_trainer_run(ledger_path, selfloop_path, steps=CS_STEPS):
         "holdout": rows,
         "selfloop": sl,
         "theorem": "Hagi.Theory.TrainerBenchmark."
-                   "certified_forecast_sound (C497)",
+                   "certified_forecast_sound",
         "source": ledger_path,
     }
     return stats, w
@@ -3279,20 +3199,20 @@ def vs_trainer_run(ledger_path, selfloop_path, steps=CS_STEPS):
 
 # (--mode band-check)
 #
-# C568: the BandDescribes measurement bridge — empirical side.
-# Lean side (TrainerBenchmark.lean, C568): BandDescribes is a
+# The BandDescribes measurement bridge — empirical side.
+# Lean side (TrainerBenchmark.lean): BandDescribes is a
 # THEOREM for genuine certified bands (bandDescribes_of_pointwise
 # + bernoulliBandDescribes). This mode is the DRIFT DETECTOR:
 # ONE run of the vs-trainer pipeline (same train/holdout split)
 # checks, for EVERY holdout model and EVERY class, that the true
 # softmax (60-digit Decimal) lies inside the exact rational
 # normalized bands lo/Σhi ≤ soft ≤ hi/Σlo, at the fixed training
-# CS_NM and at the C502 adaptive eval-nm. No historical intervals
+# CS_NM and at the adaptive eval-nm. No historical intervals
 # are mixed in — bands and facts come from the SAME run.
 # EB gate (Maurer–Pontil, α=0.05) on the in-fraction; negative
 # control: a distorted band (lo := hi swap) must go OUT.
 def band_check_run(ledger_path, steps=CS_STEPS):
-    """C568: BandDescribes fact-vs-band check on the live corpus.
+    """BandDescribes fact-vs-band check on the live corpus.
     Returns (stats, w)."""
     import math
     from decimal import Decimal as D, getcontext
@@ -3356,7 +3276,7 @@ def band_check_run(ledger_path, steps=CS_STEPS):
         n_in += nin
         n_tot += CS_K
         min_margin = min(min_margin, *mgs)
-        # C502 adaptive eval-nm (the nm actually used for a
+        # Adaptive eval-nm (nm actually used for a
         # certified prediction, if any)
         nm = CS_NM
         while nm <= CS_NM_EVAL_MAX:
@@ -3407,7 +3327,7 @@ def band_check_run(ledger_path, steps=CS_STEPS):
         "holdout": table,
         "theorem": "Hagi.Theory.TrainerBenchmark."
                    "bandDescribes_of_pointwise + "
-                   "bernoulliBandDescribes (C568)",
+                   "bernoulliBandDescribes",
         "source": ledger_path,
     }
     return stats, w
@@ -3415,36 +3335,36 @@ def band_check_run(ledger_path, steps=CS_STEPS):
 #
 # PIN (unification): ONE run on the live unified_ledger corpus
 # chaining ALL bench components on ONE CertStepData trace:
-#   (A) TRUNK-TRAIN (C481 form): the trunk is the FIXED byte-
-#       feature map (C484 family); the head over it is trained
+#   (A) TRUNK-TRAIN: the trunk is the FIXED byte-
+#       feature map; the head over it is trained
 #       by analytic-gradient snap_{1/10000} steps admitted ONLY
 #       by MEASURED drop > 0 (guarded rollback). GPM
-#       zero-forgetting and C444 grow mechanics are linear-
+#       zero-forgetting and grow mechanics are linear-
 #       readout statements, so the KISS reading of "trunk" here
-#       is the fixed feature trunk (the nonlinear C481 trunk is
+#       is the fixed feature trunk (nonlinear trunk is
 #       its own certified mode).
-#   (B) GROW (C444): ONE deterministic fiber candidate
+#   (B) GROW: ONE deterministic fiber candidate
 #       x5 = snap_{1/1000}(x0*x1); the extended model starts at
 #       w||[0] (predictions IDENTICAL => obj chain EXACTLY
 #       continuous, asserted); the grown only_last certified
-#       step is admitted by the C444 margin (cost/risk pass-
+#       step is admitted by the margin (cost/risk pass-
 #       through eps = 0 => margin = canonical gain); margin <= 0
 #       is an honest REJECT (telemetry, model unchanged).
-#   (C) CONTINUAL (C485/C488): task B trained with GPM - each
+#   (C) CONTINUAL: task B trained with GPM - each
 #       step projected onto the complement of span(task-A
 #       inputs, dim-generic exact Gram-Schmidt); per commit:
 #       delta orthogonality ASSERTED and MSE_A bit-exact
 #       invariance ASSERTED (gpm_bench_bridge semantics); the
 #       naive (unprojected) arm runs in parallel as TELEMETRY
 #       (its forgetting is MEASURED, not certified away).
-#   (D) QUANT (C443): dim-generic ternary jump with the LS-
+#   (D) QUANT: dim-generic ternary jump with the LS-
 #       optimal scale on the head weights, admitted ONLY by the
 #       measured canonical drop > 0; a rejected jump is an
-#       honest HOLD (telemetry). (Hadamard-tern C477 applies to
+#       honest HOLD (telemetry). (Hadamard-tern applies to
 #       power-of-two dims only - an admitted grow leaves dim 5,
-#       so the C443 gate is the honest choice; documented.)
-#   (E) STOP (C446): the Ville anytime detector on the
-#       CANONICAL holdout risk (lam/delta reused from C446);
+#       so the gate is the honest choice; documented.)
+#   (E) STOP: the Ville anytime detector on the
+#       CANONICAL holdout risk (lam/delta reused)
 #       further certified candidate steps are admitted ONLY
 #       while the stop has not fired; a never-firing stop is an
 #       honest outcome (no degradation detected).
@@ -3460,9 +3380,9 @@ def band_check_run(ledger_path, steps=CS_STEPS):
 # mini_hagi_gpm_canonical_descent).
 #
 # PIN (corpus, honest): the ledger is LIVE and prunes across
-# sessions (185 -> ~31 usable at C492); like C491 the loader
+# sessions (185 -> ~31 usable); like cert-sandwich the loader
 # skips keys without .bin, asserts N > 0 and reports the
-# run-time N (the N >= 100 pin of C484/C485 is unmet by the
+# run-time N (the N >= 100 pin of the data benches is unmet by the
 # environment - documented, not fabricated).
 
 MH_ETA = F(1, 10)
@@ -3473,20 +3393,20 @@ MH_E_STEPS = 4
 MH_QUANT_FT = 1
 
 
-# C607: ledger entries skipped by the null/non-numeric-ce
+# Ledger entries skipped by the null/non-numeric-ce
 # filter (wave PARTIAL_LAW schema); telemetry reads len().
 CE_SKIPPED_KEYS = []
 
 
 def _validate_ledger_schema(led, path, structural=True):
-    """C596/C607 corpus-schema handling.
+    """Corpus-schema handling.
 
-    C596 semantics kept for REAL unusability: non-dict ledger,
+    Hard-abort semantics kept for REAL unusability: non-dict ledger,
     domains/ dir missing, or ZERO remaining valid entries ->
     honest corpus_abort (exit 3).
 
-    C607 tolerance: entries whose 'ce' is null / non-numeric
-    (wave236k PARTIAL_LAW schema) are SKIPPED, not fatal: the
+    tolerance: entries whose 'ce' is null / non-numeric
+    (PARTIAL_LAW schema) are SKIPPED, not fatal: the
     filter prints an explicit stderr warning listing every
     skipped key with its reason, and only the valid entries
     are returned."""
@@ -3501,7 +3421,7 @@ def _validate_ledger_schema(led, path, structural=True):
                 v.get("ce"), (int, float)):
             skipped.append(k)
     if skipped:
-        print(f"C607 WARNING: skipping {len(skipped)} ledger "
+        print(f"WARNING: skipping {len(skipped)} ledger "
               f"entries with null/non-numeric 'ce' "
               f"(wave PARTIAL_LAW schema): "
               f"{', '.join(sorted(skipped))}", file=sys.stderr)
@@ -3509,7 +3429,7 @@ def _validate_ledger_schema(led, path, structural=True):
         led = {k: v for k, v in led.items() if k not in skipped}
     if not led:
         corpus_abort("no ledger entry has a numeric 'ce' "
-                     "(all skipped by the C607 null-ce filter)",
+                     "(all skipped by the null-ce filter)",
                      hint="corpus unusable")
     if structural:
         dom = os.path.join(os.path.dirname(os.path.abspath(path)),
@@ -3521,7 +3441,7 @@ def _validate_ledger_schema(led, path, structural=True):
 
 
 def mh_load_dataset(ledger_path):
-    """Live-corpus loader (C491 cs family, C484 rd features):
+    """Live-corpus loader (cert-sandwich cs family, real-data rd features):
     skip ledger keys without a .bin sibling."""
     import os
     with open(ledger_path, encoding="utf-8") as f:
@@ -3568,7 +3488,7 @@ def mh_grad(w, data):
 
 
 def mh_gs_basis(vs, d):
-    """Dim-generic exact rational Gram-Schmidt (C485 form)."""
+    """Dim-generic exact rational Gram-Schmidt."""
     basis = []
     for v in vs:
         u = list(v)
@@ -3582,7 +3502,7 @@ def mh_gs_basis(vs, d):
 
 
 def mh_complement_projector(basis, d):
-    """Q = I - sum u u^T/(u.u), dim-generic (C485 form)."""
+    """Q = I - sum u u^T/(u.u), dim-generic."""
     Q = [[F(1) if i == j else F(0) for j in range(d)]
          for i in range(d)]
     for u in basis:
@@ -3594,7 +3514,7 @@ def mh_complement_projector(basis, d):
 
 
 def mh_tern_quantize(w):
-    """Dim-generic C443 ternary jump: pattern on the {-1,0,1}
+    """Dim-generic ternary jump: pattern on the {-1,0,1}
     grid from s0 = max|w|, LS-optimal s = (sum q.w)/(sum q.q)."""
     s0 = max(abs(t) for t in w) or F(1)
     q = [round_tern(t / s0) for t in w]
@@ -3611,7 +3531,7 @@ def mini_hagi_run(ledger_path):
     pts = mh_load_dataset(ledger_path)
     if not pts:
         corpus_abort("live corpus empty (no ledger key has a "
-                     ".bin)", hint="mini-hagi (C492)")
+                     ".bin)", hint="mini-hagi")
     A, B = cl_split(pts)
     holdA, holdB = cl_split([(kk, x, y) for i, (kk, x, y)
                             in enumerate(pts) if i % 5 == 4])
@@ -3621,7 +3541,7 @@ def mini_hagi_run(ledger_path):
             f"(|A|={len(A)}, |B|={len(B)}, "
             f"|holdA|={len(holdA)}, |holdB|={len(holdB)}): "
             "tasks/holdout must be non-empty",
-            hint="mini-hagi (C492); Fraction guard C596")
+            hint="mini-hagi")
 
     hA, hB = holdA, holdB      # extended alongside the grow
 
@@ -3633,7 +3553,7 @@ def mini_hagi_run(ledger_path):
                     "rejects": [], "stop": None, "outcomes": {}}
 
     def certified_step(phase, wcur, cand, A_, B_, extra=None):
-        """C481 guarded admission on the CANONICAL objective."""
+        """Guarded admission on the CANONICAL objective."""
         o0, o1 = mh_canon(wcur, A_, B_), mh_canon(cand, A_, B_)
         if o1 < o0:
             raw.append({"phase": phase, "obj": o0, "obj'": o1,
@@ -3646,7 +3566,7 @@ def mini_hagi_run(ledger_path):
                                        "HOLD, rolled back"})
         return wcur
 
-    # --- (A) TRUNK-TRAIN on task 1 (C481 form)
+    # --- (A) TRUNK-TRAIN on task 1 (trunk-train form)
     obj0 = mh_canon(w, A, B)
     for t in range(MH_A_STEPS):
         g = mh_grad(w, A)
@@ -3670,11 +3590,11 @@ def mini_hagi_run(ledger_path):
         "ABORT: grow broke the obj chain (w||0 must preserve OBJ)"
     g = mh_grad(wet, Axt + Bxt)
     cand = list(wet)
-    cand[-1] = wet[-1] - MH_ETA * g[-1]   # only_last (C479 form)
+    cand[-1] = wet[-1] - MH_ETA * g[-1]   # only_last 
     cand = cl_snap(cand, MH_GRID)
     o0, o1 = mh_canon(wet, Axt, Bxt), mh_canon(cand, Axt, Bxt)
     gain = o0 - o1
-    margin = admission_margin(gain, F(0), F(0))  # C444, eps = 0
+    margin = admission_margin(gain, F(0), F(0))  # eps = 0
     if margin > 0:
         raw.append({"phase": "B-grow", "obj": o0, "obj'": o1,
                     "drop": gain,
@@ -3755,7 +3675,7 @@ def mini_hagi_run(ledger_path):
     tel["outcomes"]["forgetting_naive"] = str(forgetting_naive)
     tel["outcomes"]["forgetting_gpm"] = str(forgetting_gpm)
 
-    # --- (D) QUANT: C443 ternary jump on the head weights
+    # --- (D) QUANT: ternary jump on the head weights
     wq, s, q, s0 = mh_tern_quantize(wg)
     o0, o1 = mh_canon(wg, Ax, Bx), mh_canon(wq, Ax, Bx)
     if o1 < o0:
@@ -3812,7 +3732,7 @@ def mini_hagi_run(ledger_path):
                                  "drop": o0 - o1,
                                  "reason": "canonical drop <= 0: "
                                            "HOLD"})
-    tel["stop"] = {"detector": "C446 Ville, lam*D >= "
+    tel["stop"] = {"detector": "Ville, lam*D >= "
                                "1/delta - 1 (conservative)",
                    "lam": str(GS_LAM), "delta": str(GS_DELTA),
                    "fired": fired, "refused": refused,
@@ -3825,7 +3745,7 @@ def mini_hagi_run(ledger_path):
 
     n = len(raw)
     assert n > 0, "ABORT: mini-hagi committed no steps"
-    o_final = mh_canon(wg, Ax, Bx)   # C596: was o_adapted (NameError)
+    o_final = mh_canon(wg, Ax, Bx)
     for t, dd in enumerate(raw):
         dd["budget"] = F(n - t) / n
         dd["budget'"] = F(n - t - 1) / n
@@ -3848,22 +3768,22 @@ def mini_hagi_run(ledger_path):
         "canonical_final": str(o_final),
         "total_drop": str(obj0 - o_final),
         "model": "linear head over the fixed byte-feature "
-                 "trunk (C484 family), canonical obj = "
+                 "trunk (real-data family), canonical obj = "
                  "(MSE_A + MSE_B)/2, admission ONLY by measured "
-                 "canonical drop > 0 (C481 form)",
+                 "canonical drop > 0",
         "theorem": "Hagi.Theory.MiniHagi."
-                   "mini_hagi_gpm_canonical_descent (C492)",
+                   "mini_hagi_gpm_canonical_descent",
     }
     return obj0, raw, tel, stats
 
 
 def emit_lean_mini(path, start, traj, witness_steps=3):
-    """C492 witness: the literal mini-HAGI trajectory prefix +
+    """Witness: the literal mini-HAGI trajectory prefix +
     #eval checkTrajectory + norm_num theorem; header documents
     the FULL counts honestly."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    _write_text(path, "-- C492 mini-HAGI witness (real unified_ledger "
+    _write_text(path, "-- mini-HAGI witness (real unified_ledger "
                       "data).\n"
                       f"-- FULL accepted steps: {len(traj)}; phases: "
                       f"{phases};\n-- first {len(ds)} machine-checked "
@@ -3891,11 +3811,11 @@ def emit_lean_mini(path, start, traj, witness_steps=3):
 
 
 def emit_bad_mini(path, start, traj, witness_steps=3):
-    """C492 negative: inflated declared drop on the last witness
+    """Negative: inflated declared drop on the last witness
     step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    _write_text(path, "-- C492 mini-HAGI NEGATIVE witness: the last "
+    _write_text(path, "-- mini-HAGI NEGATIVE witness: the last "
                       "declared drop is inflated by 1; the certified "
                       "checker must reject.\n"
                       "import Hagi.Runtime.CertChecker\n\n"
@@ -3917,35 +3837,35 @@ def emit_bad_mini(path, start, traj, witness_steps=3):
                       "  norm_num\n")
 
 
-# C494: MINI-HAGI2 - the SCALED mini bench (deeper trunk, 3
+# MINI-HAGI2 - the SCALED mini bench (deeper trunk, 3
 # tasks, 2 grows) in ONE certified run on the REAL corpus
 # (--mode mini-hagi2)
 #
-# Scaling axes vs C492 mini-hagi:
+# Scaling axes vs mini-hagi:
 #   (a) TRUNK = 2 SEQUENTIAL BLOCKS (vector L1-rms-surrogate
 #       norm -> Linear W1 -> ReLU -> Linear W2, composed twice:
 #       phi = Block2(Block1(x))); phase A trains trunk+head
 #       JOINTLY by forward finite differences over all 44
-#       params (C481 form) - gradients flow through BOTH blocks;
+#       params - gradients flow through BOTH blocks
 #       after phase A the trunk is FROZEN (honest pin: GPM
-#       zero-forgetting and C444 grow are linear-readout
+#       zero-forgetting and grow are linear-readout
 #       statements, so phases B-E operate on the linear head
 #       over the frozen phi features).
-#   (b) 3 CONTINUAL TASKS (C488 clm_split family): T1 few-shot
+#   (b) 3 CONTINUAL TASKS (clm_split family): T1 few-shot
 #       (2 pts), T2 = first point raising accumulated rank to
 #       exactly 3, T3 = the rest.
 #   (c) 2 GROW EVENTS in ONE chain: fiber f1 = snap_{1/1000}
 #       (phi0*phi1) after phase A, fiber f2 = snap_{1/1000}
-#       (phi2*phi3) after phase B; each with the C444 admission
+#       (phi2*phi3) after phase B; each with the admission
 #       margin (cost/risk passthrough eps = 0 => margin =
 #       canonical gain) on the CANONICAL objective; a rejected
 #       grow leaves the model unchanged (honest REJECT).
 #   (d) CHAIN: A-train -> grow1 -> B-continual(GPM) -> grow2 ->
 #       C-continual(GPM, accumulated span T1 u T2) -> quant
-#       (C443 LS-scale ternary, canonical admission) -> Ville
-#       stop (C446) - ONE CertStepData trace.
+#       (LS-scale ternary, canonical admission) -> Ville
+#       stop - ONE CertStepData trace.
 #
-# THE OBJ RULE (C492, extended to T = 3): every step carries
+# THE OBJ RULE (extended to T = 3): every step carries
 #   obj = OBJ(w) = (MSE_T1 + MSE_T2 + MSE_T3)/3   (exact
 #   Fractions) on the CURRENT model state; admission demands a
 # measured CANONICAL drop > 0; phase boundaries change nothing
@@ -3954,16 +3874,16 @@ def emit_bad_mini(path, start, traj, witness_steps=3):
 # re-verifies the whole chain. Lean: Hagi.Theory.MiniHagi2
 # (mini_hagi2_canonical_drop, mini_hagi2_gpm_descent).
 #
-# SNAP PINS (C481/C491 discipline, docstring-frozen): trunk
+# SNAP PINS (discipline, docstring-frozen): trunk
 # input features 1/1000 (mh_load_dataset / rd_snap), grow
 # fibers 1/1000 (rd_snap), candidate parameters + head steps
 # 1/10000 (cl_snap), finite-difference step h = 1/1000.
 
-MH2_D = 4                          # trunk in/out dim (C484 family)
+MH2_D = 4                          # trunk in/out dim 
 MH2_HID = 2                        # MLP hidden units per block
 MH2_EPS = F(1, 1000)               # L1-rms-surrogate eps (PIN)
 MH2_H = F(1, 1000)                 # fd step h (PIN)
-MH2_ETA = MH_ETA                   # step size 1/10 (C492)
+MH2_ETA = MH_ETA # step size 1/10 
 MH2_GRID = F(1, 10000)             # candidate snap grid (PIN)
 MH2_A_STEPS = 4                    # joint fd trunk+head steps
 MH2_C_STEPS = 4                    # GPM steps per continual phase
@@ -4084,7 +4004,7 @@ def mh2_block_init(seed):
 def mh2_block_fwd(bl, v):
     """ONE trunk block: per-coordinate L1-rms-surrogate norm
     g_i*v_i/(|v_i|+eps) -> Linear W1 -> ReLU -> Linear W2
-    (C481 atom, vector form; exact Fractions)."""
+    (trunk-train atom, vector form; exact Fractions)."""
     g, W1, W2 = bl
     h = [g[i] * v[i] / (abs(v[i]) + MH2_EPS)
          for i in range(MH2_D)]
@@ -4215,7 +4135,7 @@ def mini_hagi2_run(ledger_path):
         return wcur
 
     def grow(phase, fib, label):
-        """C444 grow: append fiber, w||[0] continuity, only_last
+        """Grow: append fiber, w||[0] continuity, only_last
         certified step, margin admission on canonical obj."""
         nonlocal w
         cur = task_feats()
@@ -4340,7 +4260,7 @@ def mini_hagi2_run(ledger_path):
         [str(v) for v in fnC_n]
     tel["outcomes"]["forgetting_gpm"] = "0 (asserted per step)"
 
-    # --- (F) QUANT: C443 ternary jump on the head weights
+    # --- (F) QUANT: ternary jump on the head weights
     wq, s, q, s0 = mh_tern_quantize(w)
     o0, o1 = mh2_fcanon(w, cur), mh2_fcanon(wq, cur)
     if o1 < o0:
@@ -4396,7 +4316,7 @@ def mini_hagi2_run(ledger_path):
                                  "drop": o0 - o1,
                                  "reason": "canonical drop <= 0: "
                                            "HOLD"})
-    tel["stop"] = {"detector": "C446 Ville, lam*D >= "
+    tel["stop"] = {"detector": "Ville, lam*D >= "
                                "1/delta - 1 (conservative)",
                    "lam": str(GS_LAM), "delta": str(GS_DELTA),
                    "fired": fired, "refused": refused,
@@ -4429,22 +4349,22 @@ def mini_hagi2_run(ledger_path):
         "canonical_final": str(raw[-1]["obj'"]),
         "total_drop": str(obj0 - raw[-1]["obj'"]),
         "model": "linear head over the FROZEN 2-block trunk "
-                 "(fd-trained, C481 form), canonical obj = mean "
+                 "(fd-trained, trunk-train form), canonical obj = mean "
                  "MSE over the 3 live tasks, admission ONLY by "
                  "measured canonical drop > 0",
         "theorem": "Hagi.Theory.MiniHagi2."
-                   "mini_hagi2_gpm_descent (C494)",
+                   "mini_hagi2_gpm_descent",
     }
     return obj0, raw, tel, stats
 
 
 def emit_lean_mini2(path, start, traj, witness_steps=3):
-    """C494 witness: literal mini-hagi2 trajectory prefix +
+    """Witness: literal mini-hagi2 trajectory prefix +
     #eval checkTrajectory + norm_num theorem; header documents
     the FULL counts honestly."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    _write_text(path, "-- C494 mini-hagi2 witness (real "
+    _write_text(path, "-- mini-hagi2 witness (real "
                       "unified_ledger data; 2-block trunk, 3 tasks, "
                       "2 grows).\n"
                       f"-- FULL accepted steps: {len(traj)}; phases: "
@@ -4475,11 +4395,11 @@ def emit_lean_mini2(path, start, traj, witness_steps=3):
 
 
 def emit_bad_mini2(path, start, traj, witness_steps=3):
-    """C494 negative: inflated declared drop on the last witness
+    """Negative: inflated declared drop on the last witness
     step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    _write_text(path, "-- C494 mini-hagi2 NEGATIVE witness: the last "
+    _write_text(path, "-- mini-hagi2 NEGATIVE witness: the last "
                       "declared drop is inflated by 1; the certified "
                       "checker must reject.\n"
                       "import Hagi.Runtime.CertChecker\n\n"
@@ -4502,24 +4422,24 @@ def emit_bad_mini2(path, start, traj, witness_steps=3):
 
 
 
-# C500: MINI-HAGI3 - rank-trunc GPM escape from the C494
-# dead end (--mode mini-hagi3)
+# MINI-HAGI3 - rank-trunc GPM escape from the
+# mini-hagi2 dead end (--mode mini-hagi3)
 #
-# The C494 observation (mini-hagi2, phase E-gpm2): with the
+# The mini-hagi2 observation (phase E-gpm2): with the
 # accumulated span of T1 u T2 at rank 3 in dim 6, the FULL GPM
 # projection zeroes the snapped gradient step EXACTLY
 # (delta == 0 on the 1/10000 grid): task 3 cannot progress
 # (4 honest HOLDs, 0 committed steps) - the projection has
 # exhausted the space reachable by snapped gradient steps.
 #
-# C500 applies the C498 GPMRelaxed theory
+# Applies the GPMRelaxed theory
 # (Hagi/Theory/Continual.lean (GPMRelaxed section), rank_trunc_forgetting_bound):
 #   - keep the top-k Gram-Schmidt directions of the past span
 #     (ordered by carried old-input energy, exact Fractions);
 #   - k = min k with max_old sigmaTail^2 <= eps^2 (squared
-#     budget, C498 docstring pin); eps = 1/10 PIN: eps = 1/100
+#     budget, docstring pin); eps = 1/10 PIN: eps = 1/100
 #     is INFEASIBLE on the live corpus (min tail2 over k < 3 is
-#     ~0.0028 > 1e-4 - measured, see .tmp/C500/research.md);
+#     ~0.0028 > 1e-4 - measured)
 #   - relaxed step delta = Q_topk . snap(-eta*g): orthogonal to
 #     every KEPT direction (exact assert), so per old input x
 #     the forgetting obeys |delta.x|^2 <= ||delta||^2 *
@@ -4531,7 +4451,7 @@ def emit_bad_mini2(path, start, traj, witness_steps=3):
 #     executable checker re-verifies every relaxed step).
 # Telemetry per step: k-choice, sigma_tail, ACTUAL output-level
 # forgetting vs the ||delta||*sigmaTail bound; the full-GPM arm
-# (exact C494 replica) runs alongside for the honest
+# (exact mini-hagi2 replica) runs alongside for the honest
 # full-vs-relaxed comparison line.
 
 MH3_EPS = F(1, 10)                # rank-trunc tolerance (PIN)
@@ -4549,9 +4469,9 @@ def mh3_resid(x, kept, d):
 
 
 def mini_hagi3_run(ledger_path):
-    """mini-hagi2 structure (C494: 2-block trunk, 3 tasks, 2
+    """mini-hagi2 structure (2-block trunk, 3 tasks, 2
     grows) with the gpm2 phase ESCAPED by rank-trunc relaxed
-    GPM (C498 theory) when the full projection is exhausted.
+    GPM when the full projection is exhausted.
     Returns (start_obj, [accepted steps], telemetry, stats)."""
     pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
@@ -4649,7 +4569,7 @@ def mini_hagi3_run(ledger_path):
         return False
 
     def gpm_phase(name, task_idx, past_idx):
-        """C492/C494 exact GPM phase (unchanged semantics)."""
+        """Exact GPM phase (unchanged semantics)."""
         nonlocal w
         cur = task_feats()
         d = len(w)
@@ -4710,7 +4630,7 @@ def mini_hagi3_run(ledger_path):
         return forget_naive, forget_gpm
 
     def gpm2_relaxed_phase(name, task_idx, past_idx):
-        """C500: the gpm2 phase - full-GPM arm (exact C494
+        """The gpm2 phase - full-GPM arm (exact 
         replica, telemetry) vs rank-trunc relaxed arm (the
         certified trace)."""
         nonlocal w
@@ -4724,7 +4644,7 @@ def mini_hagi3_run(ledger_path):
         past_mse = [mh2_fmse(w, cur[i]) for i in past_idx]
         mse_task0 = mh2_fmse(w, cur[task_idx])
 
-        # --- naive arm (telemetry, as C494)
+        # --- naive arm (telemetry)
         wn = list(w)
         for _ in range(MH2_C_STEPS):
             g = mh_grad(wn, cur[task_idx])
@@ -4736,7 +4656,7 @@ def mini_hagi3_run(ledger_path):
         forget_naive = [mh2_fmse(wn, cur[i]) - past_mse[k]
                         for k, i in enumerate(past_idx)]
 
-        # --- FULL arm (telemetry only): exact C494 replica
+        # --- FULL arm (telemetry only): exact replica
         Qf = mh_complement_projector(basis, d)
         wf = list(w)
         full_comm = 0
@@ -4811,7 +4731,7 @@ def mini_hagi3_run(ledger_path):
                 tel["holds"].append({
                     "phase": name, "drop": o0 - o1,
                     "reason": "full-span HOLD and no k < rank "
-                              "within eps-budget: HOLD (C494 "
+                              "within eps-budget: HOLD (mini-hagi2 "
                               "dead end persists)"})
                 continue
             dk = mh2_applyQ(
@@ -4902,7 +4822,7 @@ def mini_hagi3_run(ledger_path):
     grow("D-grow2", lambda f: rd_snap(f[2] * f[3]),
          "f2 = snap_{1/1000}(phi2*phi3)")
 
-    # --- (C) CONTINUAL task 3: RANK-TRUNC RELAXED GPM (C500)
+    # --- (C) CONTINUAL task 3: RANK-TRUNC RELAXED GPM 
     fnC_n = gpm2_relaxed_phase("E-gpm2relax", 2, [0, 1])
 
     cur = task_feats()
@@ -4970,7 +4890,7 @@ def mini_hagi3_run(ledger_path):
                                  "drop": o0 - o1,
                                  "reason": "canonical drop <= 0: "
                                            "HOLD"})
-    tel["stop"] = {"detector": "C446 Ville, lam*D >= "
+    tel["stop"] = {"detector": "Ville, lam*D >= "
                                "1/delta - 1 (conservative)",
                    "lam": str(GS_LAM), "delta": str(GS_DELTA),
                    "fired": fired, "refused": refused,
@@ -5008,8 +4928,8 @@ def mini_hagi3_run(ledger_path):
         "canonical_final": str(raw[-1]["obj'"]),
         "total_drop": str(obj0 - raw[-1]["obj'"]),
         "model": "linear head over the FROZEN 2-block trunk "
-                 "(C494 structure); gpm2 phase ESCAPED by "
-                 "rank-trunc relaxed GPM (C498 "
+                 "(mini-hagi2 structure); gpm2 phase ESCAPED by "
+                 "rank-trunc relaxed GPM ("
                  "rank_trunc_forgetting_bound: per-step "
                  "per-old-input exact assert |delta.x|^2 <= "
                  "||delta||^2 * sigmaTail^2, eps = 1/10 PIN); "
@@ -5017,20 +4937,20 @@ def mini_hagi3_run(ledger_path):
                  "tasks, admission ONLY by measured canonical "
                  "drop > 0",
         "theorem": "Hagi.Theory.GPMRelaxed."
-                   "rank_trunc_forgetting_bound (C498, applied "
+                   "rank_trunc_forgetting_bound (applied "
                    "bench-side; Lean bridge theorem down-scoped)",
     }
     return obj0, raw, tel, stats
 
 
 def emit_lean_mini3(path, start, traj, witness_steps=3):
-    """C500 witness: literal mini-hagi3 trajectory prefix +
+    """Witness: literal mini-hagi3 trajectory prefix +
     #eval checkTrajectory + norm_num theorem; header documents
     the FULL counts honestly."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    _write_text(path, "-- C500 mini-hagi3 witness (real "
-                      "unified_ledger data; C494 structure + rank-trunc "
+    _write_text(path, "-- mini-hagi3 witness (real "
+                      "unified_ledger data; structure + rank-trunc "
                       "relaxed GPM escape on the gpm2 phase).\n"
                       f"-- FULL accepted steps: {len(traj)}; phases: "
                       f"{phases};\n-- first {len(ds)} "
@@ -5059,12 +4979,12 @@ def emit_lean_mini3(path, start, traj, witness_steps=3):
 
 
 def emit_bad_mini3(path, start, traj, witness_steps=3):
-    """C500 negative: inflated declared drop on the last witness
+    """Negative: inflated declared drop on the last witness
     step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
     with open(path, "w", encoding="utf-8") as f:
-        f.write("-- C500 mini-hagi3 NEGATIVE witness: the last "
+        f.write("-- mini-hagi3 NEGATIVE witness: the last "
                 "declared drop is inflated by 1; the certified "
                 "checker must reject.\n"
                 "import Hagi.Runtime.CertChecker\n\n"
@@ -5092,20 +5012,20 @@ def emit_bad_mini3(path, start, traj, witness_steps=3):
 
 # (--mode mini-hagi4)
 #
-# C504: grow = adding a WHOLE BLOCK to the trunk (depth 2 -> 3),
+# Grow = adding a WHOLE BLOCK to the trunk (depth 2 -> 3)
 # not just a fiber feature. The new 3rd block operates on the
 # FROZEN 2-block phi-features and has the RESIDUAL-ZERO gate
 # form  y = v + gamma * mlp(v)  with gamma = 0 at admission:
 # y = v EXACTLY (Fraction-exact: 0*a = 0, a + 0 = a) regardless
 # of the block internals (L1-rms-surrogate norm is NOT identity
 # even at g = 1: 1/(1+1/1000) = 1000/1001 != 1 - measured, see
-# .tmp/C504/research.md). This is the bench instance of the C450
+# measured). This is the bench instance of the identityBlock
 # identityBlock pattern (Hagi/Theory/FunctionPreservingGrowth.
 # trunk_function_preserving + function_preserving_admissible):
 # the GROW step itself is admitted in the NEUTRAL configuration
 # (gain = 0, dCost = 0, dRisk = 0, lamM = lamR = 0, eps = 0 ->
 # 0 <= 0); it is NOT a CertStepData step (no measured drop at
-# gamma = 0, exactly like w||[0] fiber grows in C494). The
+# gamma = 0, exactly like w||[0] fiber grows). The
 # block's contribution appears from SUBSEQUENT certified steps
 # on its 21 params (gamma, g, W1, W2): fd gradient, 1/10000
 # snap, admission ONLY by measured canonical drop > 0.
@@ -5136,7 +5056,7 @@ def mh4_mlp(bl, v):
 
 def mh4_block_fwd(bl, v):
     """Residual-gated block y = v + gamma*mlp(v); at gamma = 0
-    this is EXACTLY v (the C450 identityBlock bench instance)."""
+    this is EXACTLY v (identityBlock bench instance)."""
     gam = bl[0]
     m = mh4_mlp(bl, v)
     return [v[i] + gam * m[i] for i in range(MH2_D)]
@@ -5164,7 +5084,7 @@ def mh4_unflat(p):
 def mini_hagi4_run(ledger_path):
     """mini-hagi3 skeleton with the fiber grows REPLACED by a
     whole-block trunk grow (depth 2 -> 3, residual-zero identity
-    admission C450, certified block training). Returns (start,
+    identity admission, certified block training). Returns (start,
     [accepted steps], telemetry, stats)."""
     pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
@@ -5207,7 +5127,7 @@ def mini_hagi4_run(ledger_path):
     assert mh2_fcanon(w, FT3) == oA, \
         "ABORT: block grow broke the obj chain (gamma = 0 must " \
         "preserve OBJ EXACTLY)"
-    # neutral C450 admission: gain = 0, dCost = 0, dRisk = 0,
+    # neutral identity admission: gain = 0, dCost = 0, dRisk = 0,
     # lamM = lamR = eps = 0  =>  0 <= 0  (admit). Margin computed
     # with the REAL admission_margin at eps = 0 for the record;
     # the strict mirror (eps > 0 => margin > 0 => REJECT) is the
@@ -5216,12 +5136,12 @@ def mini_hagi4_run(ledger_path):
     assert margin0 == 0
     tel["admissions"].append(
         {"phase": "B3-grow", "margin": "0",
-         "decision": "ADMIT (neutral identity, C450 "
+         "decision": "ADMIT (neutral identity, "
                      "function_preserving_admissible: 0 <= 0; "
                      "contribution comes from certified steps)"})
     tel["rejects"].append(
         {"phase": "B3-grow", "margin": str(F(1, 10)),
-         "decision": "REJECT (negative control, C450 "
+         "decision": "REJECT (negative control, "
                      "margin_positivity_refuses: eps = 1/10 > 0 "
                      "=> margin > 0 => gate refuses)"})
 
@@ -5380,7 +5300,7 @@ def mini_hagi4_run(ledger_path):
                                  "drop": o0 - o1,
                                  "reason": "canonical drop <= 0: "
                                            "HOLD"})
-    tel["stop"] = {"detector": "C446 Ville, lam*D >= "
+    tel["stop"] = {"detector": "Ville, lam*D >= "
                                "1/delta - 1 (conservative)",
                    "lam": str(GS_LAM), "delta": str(GS_DELTA),
                    "fired": fired, "refused": refused,
@@ -5396,7 +5316,7 @@ def mini_hagi4_run(ledger_path):
         "n_holdout": sum(len(t) for t in htasks),
         "source": ledger_path, "dim_final": d,
         "trunk": "2 fd-trained blocks FROZEN + grown 3rd block "
-                 "(residual-zero identity admission, C450 "
+                 "(residual-zero identity admission, the "
                  "pattern) certified-trained in phase C",
         "trunk_depth_final": 3,
         "grow_block_neutral_admitted": True,
@@ -5410,24 +5330,24 @@ def mini_hagi4_run(ledger_path):
                  "canonical obj = mean MSE over the 3 live "
                  "tasks; admission ONLY by measured canonical "
                  "drop > 0 (the grow step itself is the neutral "
-                 "C450 admission, not a chain step)",
+                 "identity admission, not a chain step)",
         "theorem": "Hagi.Theory.GrowTrunkBlock."
-                   "grow_block_bench_sound (C504; bench "
-                   "instance of C450 trunk_function_preserving)"
+                   "grow_block_bench_sound (bench "
+                   "instance of trunk_function_preserving)"
     }
     return obj0, raw, tel, stats
 
 
 def emit_lean_mini4(path, start, traj, witness_steps=3):
-    """C504 witness: literal mini-hagi4 trajectory prefix +
+    """Witness: literal mini-hagi4 trajectory prefix +
     #eval checkTrajectory + norm_num theorem; header documents
     the FULL counts honestly."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    _write_text(path, "-- C504 mini-hagi4 witness (real "
+    _write_text(path, "-- mini-hagi4 witness (real "
                       "unified_ledger data; mini-hagi3 skeleton with "
                       "the WHOLE-BLOCK trunk grow: depth 2 -> 3 via a "
-                      "residual-zero identity block, C450 pattern).\n"
+                      "residual-zero identity block).\n"
                       f"-- FULL accepted steps: {len(traj)}; phases: "
                       f"{phases};\n-- first {len(ds)} "
                       "machine-checked steps below. Canonical obj = "
@@ -5455,11 +5375,11 @@ def emit_lean_mini4(path, start, traj, witness_steps=3):
 
 
 def emit_bad_mini4(path, start, traj, witness_steps=3):
-    """C504 negative: inflated declared drop on the last witness
+    """Negative: inflated declared drop on the last witness
     step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    _write_text(path, "-- C504 mini-hagi4 NEGATIVE witness: the last "
+    _write_text(path, "-- mini-hagi4 NEGATIVE witness: the last "
                       "declared drop is inflated by 1; the certified "
                       "checker must reject.\n"
                       "import Hagi.Runtime.CertChecker\n\n"
@@ -5482,9 +5402,9 @@ def emit_bad_mini4(path, start, traj, witness_steps=3):
 
 # (--mode mini-hagi5)
 #
-# C506: REPEATED grow cycle -- several identity-grow events in
+# REPEATED grow cycle -- several identity-grow events in
 # ONE run (depth 2 -> 3 -> 4 -> 5): grow #k admits a residual-
-# zero identity block (gamma = 0, C450 neutral admission, EXACT
+# zero identity block (gamma = 0, neutral admission, EXACT
 # obj-invariant assert at EVERY event), then certified fd steps
 # train ONLY the new block's 21 params (all older blocks stay
 # FROZEN -- GPM spirit, KISS: no joint retraining). The whole
@@ -5492,9 +5412,9 @@ def emit_bad_mini4(path, start, traj, witness_steps=3):
 #   * cap on feature-fraction denominator size BEFORE each grow
 #     (repeated block composition multiplies denominators ~3.2x
 #     per grow -- measured: 63 -> 263 -> 789 -> 2366 digits for
-#     depth 2 -> 3 -> 4 -> 5, see .tmp/C506/research.md);
+#     depth 2 -> 3 -> 4 -> 5)
 #   * cap on the total number of certified steps;
-#   * Ville stop (C446) terminates the run FINALLY.
+#   * Ville stop terminates the run FINALLY.
 # If a cap fires, the budget-stop is HONESTLY logged with its
 # reason; if depth 5 is reached without firing, the measured
 # projection of the next grow (~3.2x denominators, ~150 s) is
@@ -5596,20 +5516,20 @@ def mini_hagi5_run(ledger_path):
             "ABORT: grow #{} broke the obj chain (gamma = 0 " \
             "must preserve OBJ EXACTLY at EVERY grow)".format(
                 grow_events + 1)
-        # neutral C450 admission (margin 0 => 0 <= 0 => ADMIT)
+        # neutral identity admission (margin 0 => 0 <= 0 => ADMIT)
         # + strict negative control (eps > 0 => REJECT).
         margin0 = F(0) + F(0) + F(0) - F(0)
         assert margin0 == 0
         tel["admissions"].append({
             "phase": f"B-grow{grow_events + 1}", "margin": "0",
-            "decision": "ADMIT (neutral identity, C450 "
+            "decision": "ADMIT (neutral identity, "
                         "function_preserving_admissible: 0 <= 0; "
                         "contribution comes from certified "
                         "steps)"})
         tel["rejects"].append({
             "phase": f"B-grow{grow_events + 1}",
             "margin": str(F(1, 10)),
-            "decision": "REJECT (negative control, C450 "
+            "decision": "REJECT (negative control, "
                         "margin_positivity_refuses: eps = 1/10 "
                         "> 0 => margin > 0 => gate refuses)"})
 
@@ -5719,7 +5639,7 @@ def mini_hagi5_run(ledger_path):
                                  "drop": o0 - o1,
                                  "reason": "canonical drop <= 0: "
                                            "HOLD"})
-    tel["stop"] = {"detector": "C446 Ville, lam*D >= "
+    tel["stop"] = {"detector": "Ville, lam*D >= "
                                "1/delta - 1 (conservative)",
                    "lam": str(GS_LAM), "delta": str(GS_DELTA),
                    "fired": fired, "refused": refused,
@@ -5736,7 +5656,7 @@ def mini_hagi5_run(ledger_path):
         "source": ledger_path, "dim_final": d,
         "trunk": f"2 fd-trained blocks FROZEN + {grow_events} "
                  "grown residual-zero identity blocks, each "
-                 "certified-trained in isolation (C450 pattern, "
+                 "certified-trained in isolation (pattern, "
                  "repeated grow cycle)",
         "trunk_depth_final": depth,
         "grow_events": grow_events,
@@ -5750,24 +5670,24 @@ def mini_hagi5_run(ledger_path):
                  "zero identity grows + certified block training); "
                  "canonical obj = mean MSE over the 3 live "
                  "tasks; admission ONLY by measured canonical "
-                 "drop > 0 (each grow itself is the neutral C450 "
+                 "drop > 0 (each grow itself is the neutral identity "
                  "admission, not a chain step)",
         "theorem": "Hagi.Theory.GrowTrunkBlock."
-                   "grow_blocks_repeat_sound (C506; repeated "
-                   "bench instance of C450 trunk_function_"
+                   "grow_blocks_repeat_sound (repeated "
+                   "bench instance of trunk_function_"
                    "preserving)"
     }
     return obj0, raw, tel, stats
 
 
 def emit_lean_mini5(path, start, traj, witness_steps=3):
-    """C506 witness: literal mini-hagi5 trajectory prefix +
+    """Witness: literal mini-hagi5 trajectory prefix +
     #eval checkTrajectory + norm_num theorem; header documents
     the FULL counts honestly (depth-5 obj fractions ~10^5 chars
     are not Lean-elaborable -- prefix only, stated openly)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    _write_text(path, "-- C506 mini-hagi5 witness (real "
+    _write_text(path, "-- mini-hagi5 witness (real "
                       "unified_ledger data; REPEATED grow cycle: depth "
                       "2 -> 5 via 3 residual-zero identity grows, each "
                       "followed by certified block training; explicit "
@@ -5802,11 +5722,11 @@ def emit_lean_mini5(path, start, traj, witness_steps=3):
 
 
 def emit_bad_mini5(path, start, traj, witness_steps=3):
-    """C506 negative: inflated declared drop on the last witness
+    """Negative: inflated declared drop on the last witness
     step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    _write_text(path, "-- C506 mini-hagi5 NEGATIVE witness: the last "
+    _write_text(path, "-- mini-hagi5 NEGATIVE witness: the last "
                       "declared drop is inflated by 1; the certified "
                       "checker must reject.\n"
                       "import Hagi.Runtime.CertChecker\n\n"
@@ -5827,13 +5747,13 @@ def emit_bad_mini5(path, start, traj, witness_steps=3):
                       "  norm_num\n")
 
 
-# C521: SNAP-RATIONAL REPEATED GROW CYCLE (--mode grow-snap)
+# SNAP-RATIONAL REPEATED GROW CYCLE (--mode grow-snap)
 #
-# C506 measured the exponential wall: feature-fraction
+# The repeated-grow bench measured the exponential wall: feature-fraction
 # denominators multiply ~3.2x per grow (63 -> 263 -> 789 ->
 # 2366 digits for depth 2 -> 5), depth 6 projected ~8000
 # digits / ~150 s -- an HONEST computational-budget limit of
-# the repeated-grow bit. C521 removes the WALL, not by more
+# the repeated-grow bit. This mode removes the WALL, not by more
 # budget, but by a CERTIFIED SNAP POLICY applied at every grow
 # boundary:
 #
@@ -5851,7 +5771,7 @@ def emit_bad_mini5(path, start, traj, witness_steps=3):
 #     style bound |(s+ds-y)^2 - (s-y)^2| <= (2|s-y| + |ds|)*|ds|
 #     with ds = w.(f' - f) computed EXACTLY in Fractions (the
 #     bench form of the per-block hLip premise, BlockLipschitz
-#     C436: composition bounds multiply); the summed mean is
+#     bench form of the per-block hLip premise, BlockLipschitz:
 #     the certified err_bound and the run ASSERTS the measured
 #     obj_after_snap <= obj_before_snap + err_bound;
 #   * telescoping: the certified cycle bound is
@@ -5859,21 +5779,21 @@ def emit_bad_mini5(path, start, traj, witness_steps=3):
 #     (each certified fd drop contributes <= 0) -- the Lean
 #     side is Hagi.Theory.GrowSnap.grow_snap_cycle_sound.
 #
-# The grow itself stays the C506 residual-zero identity (EXACT
+# The grow itself stays the residual-zero identity (EXACT
 # obj invariant asserted at EVERY event); only the POST-GROW
 # snap is new, and it is deterministic (round-half-even on
 # Fractions, no float). Result: depth 8+ inside the budget.
 
-GS_K = 40                          # LEGACY manual snap grid (C521);
-                                   # superseded by snap_k_auto (C593
-                                   # theory / C597 wiring): kept as
+GS_K = 40                          # LEGACY manual snap grid;
+                                   # superseded by snap_k_auto (snap_k_eq_ceil
+                                   # theory): kept as
                                    # the comparison baseline only
 GS_MAX_DEPTH = 8                   # grow targets: 3..8 (6 grows)
 GS_STEPS_PER_BLOCK = 4             # certified steps per new block
 GS_STEP_CAP = 48                   # total certified-step budget
 
 
-# C633: GROWTH GATE (application of the C632 Lean module
+# GROWTH GATE (application of the Lean module
 # Hagi.Theory.GrowthGate, module Hagi/Theory/NegativeTransfer.lean,
 # into the bench grow modes).
 #
@@ -5885,15 +5805,15 @@ GS_STEP_CAP = 48                   # total certified-step budget
 # added parameter = one cell of the minimal certified snap grid
 # (MH2_GRID = 1/10000): c_add = n_new_params * GROW_CADD_LAM.
 # Not tuned; equality -> stay (budget priority of the smaller
-# model, the C632 gate convention, pattern C535 rankSelect).
+# model, the gate convention, the rank-select pattern).
 
 GROW_CADD_LAM = F(1, 10 ** 4)      # c_add = params * lambda (PIN)
 
 
 def growth_gate(potential_bound, c_add):
-    """C633: python double of Hagi.Theory.GrowthGate.growthGate
-    (C632; module Hagi/Theory/NegativeTransfer.lean): grow ⟺ potential_bound > c_add; equality -> stay.
-    Stay is CERTIFIED by growth_gate_sound (C632): if
+    """Python double of Hagi.Theory.GrowthGate.growthGate
+    (module Hagi/Theory/NegativeTransfer.lean): grow ⟺ potential_bound > c_add; equality -> stay.
+    Stay is CERTIFIED by growth_gate_sound: if
     n*G^2/(2L) <= c_add then ANY n-step retraining (incl. with
     the added capacity, same budget-class G/L bounds) drops the
     objective by at most c_add -- growth cannot pay off in n
@@ -5901,7 +5821,7 @@ def growth_gate(potential_bound, c_add):
     (a) the formula is the QUADRATIC-CLASS exact form
         x^2/(2L) (nl_drop_step_eq / nl_drop_total: the drop of
         one gamma*=1/L step is EXACTLY ||grad||^2/(2L)); the
-        WIDER general-class ceiling nlBudget C592
+        WIDER general-class ceiling nlBudget
         (gamma*G^2 + L*gamma^2*G^2/2 = 3G^2/(2L) at gamma=1/L)
         is NOT used here;
     (b) grow = permission, NOT a promise (the bound is a
@@ -5911,7 +5831,7 @@ def growth_gate(potential_bound, c_add):
 
 
 def growth_gate_measure(obj_fn, p, h):
-    """C633: measured (G^2, L) instance for the growth gate at
+    """Measured (G^2, L) instance for the growth gate at
     the admission point p (identity / zero-init).
     - G^2 = sum g_i^2 with g the exact fd gradients of the NEW
       block/adapter params (exact Fractions; G enters the
@@ -5944,14 +5864,13 @@ def growth_gate_measure(obj_fn, p, h):
 
 
 # ----------------------------------------------------------------
-# C635: growth gate NEGATIVE CONTROL (--gate-test) + LAMBDA SWEEP
-# (--lambda-sweep with --mode grow-snap). Research .tmp/C635/
-# research.md, plan PLAN_GO.
+# Growth gate NEGATIVE CONTROL (--gate-test) + LAMBDA SWEEP
+# (--lambda-sweep with --mode grow-snap).
 #
 # Negative control (a): 6 synthetic exact-Fraction scenarios
 # (G, L, n, c_add) where the expected decision is known from the
 # formula pb = n*G^2/(2L) (quadratic class, nl_drop_step_eq
-# C632): high c_add / small G*n / large L => pb <= c_add => the
+# (Hagi.Theory.NegativeTransfer): high c_add / small G*n / large L => pb <= c_add => the
 # gate must answer false (STAY, certified by growth_gate_sound)
 # and the growth must be SKIPPED through the SAME branch shape
 # the production loops use (skipped-certified counter + break/
@@ -5964,7 +5883,7 @@ def growth_gate_measure(obj_fn, p, h):
 # Lambda calibration (b): c_add = params * lam; full grow-snap
 # reruns at lam in {1/10^4 (PIN), 1/10^3, 1/10^2, 1/10, 1}; the
 # first lam with a live stay is reported honestly (may be None:
-# on the C608 snapshot pb ~ 10^3000 >> 21*lam for every lam <= 1,
+# on the snapshot pb ~ 10^3000 >> 21*lam for every lam <= 1
 # so the certified "do not grow" advice needs lam >= lambda_star
 # = min(pb_event / new_params), orders of magnitude above the
 # PIN -- capacity is essentially free at the PIN price).
@@ -5981,7 +5900,7 @@ GATE_TEST_SCENARIOS = [
 
 
 def gate_test_run():
-    """C635 (a): synthetic negative control of the growth gate.
+    """Synthetic negative control of the growth gate.
 
     Mirrors the grow_snap decision skeleton: for every scenario
     the gate is evaluated BEFORE the (hypothetical) block-add; a
@@ -5990,7 +5909,7 @@ def gate_test_run():
     tel = {"scenarios": [], "n_scenarios": len(GATE_TEST_SCENARIOS),
            "n_stay": 0, "n_grow": 0, "skipped_certified": 0,
            "formula": "pb = n*G^2/(2L) (quadratic class, "
-                      "nl_drop_step_eq C632; verified per-scenario "
+                      "nl_drop_step_eq; verified per-scenario "
                       "vs Lean decide/norm_num witness)"}
     for name, G, L, n, c_add, exp_stay in GATE_TEST_SCENARIOS:
         # bound-formula check: pb IS n*G^2/(2L), exact Fractions
@@ -6029,7 +5948,7 @@ def gate_test_run():
                          "permission, not a promise)" if decision
                          else "STAY (certified: n*G^2/(2L) <= c_add, "
                               "growth cannot pay off in n steps, "
-                              "growth_gate_sound C632)"),
+                              "growth_gate_sound)"),
             "skip_branch_executed": bool(skipped_certified),
             "equality_edge": bool(pb == c_add)})
     assert tel["n_stay"] >= 2, \
@@ -6038,7 +5957,7 @@ def gate_test_run():
 
 
 def emit_lean_gatetest(path, tel):
-    """C635 Lean cross-check witness: every scenario's gate
+    """Lean cross-check witness: every scenario's gate
     decision re-decided by the machine on the exact literals
     (Hagi.Theory.GrowthGate.growthGate ... := by decide) plus the
     certified stay inequality (pb <= c_add := by norm_num) for
@@ -6048,7 +5967,7 @@ def emit_lean_gatetest(path, tel):
         fr = F(fr)
         return f"({fr.numerator}/{fr.denominator} : ℚ)"
     lines = [
-        "-- C635 gate-test witness: synthetic negative control of "
+        "-- gate-test witness: synthetic negative control of "
         "the",
         "-- growth gate (scripts/bench_bridge.py --gate-test); ",
         "-- machine re-decides every scenario on exact literals:",
@@ -6079,7 +5998,7 @@ LAMBDA_SWEEP = [F(1, 10**4), F(1, 10**3), F(1, 10**2),
 
 
 def lambda_sweep_run(ledger_path):
-    """C635 (b): lambda calibration of the growth gate on
+    """Negative control (b): lambda calibration of the growth gate on
     grow-snap: c_add = params * lam, full rerun per lam (the gate
     decision happens BEFORE the add, so an early STAY shortens
     the trajectory -- each run is an honest complete cycle). "
@@ -6143,13 +6062,13 @@ def lambda_sweep_run(ledger_path):
 
 
 def snap_k_auto(L, d, eps):
-    """C597: python double of Lean `snapK` (C593):
+    """Python double of Lean `snapK`:
     the minimal k >= 0 with L*d <= eps*2^(k+1) (`snapAdmissible`);
     when eps < L*d the closed form is k* = ceil(log2(L*d/eps)) - 1
     (Hagi.Theory.GrowSnap.snap_k_eq_ceil -- EXACT: feasibility +
     minimality). Exact integer search (no floats), Fraction L/eps.
-    Bench witness cross-check: .tmp/C593/trajSnap.lean instances
-    (L,d,eps) = (1,10,2^-12)->15, (3,1,2^-6)->7, (1,1,1/4)->1."""
+    Witness cross-check (Lean #eval): (L,d,eps) = (1,10,2^-12)->15,
+    (3,1,2^-6)->7, (1,1,1/4)->1."""
     if L * d <= eps:
         return 0
     q = F(L) * F(d) / F(eps)          # > 1 here
@@ -6161,7 +6080,7 @@ def snap_k_auto(L, d, eps):
 
 
 def gs_lipschitz_const(base, w):
-    """C597 bench instance of the theory Lipschitz factor L:
+    """Bench instance of the theory Lipschitz factor L:
     per-point snap bound (2|s-y|+|ds|)*|ds| with prediction
     shift |ds| <= Wsum*2^-(k+1) (Wsum = sum|w_i|, per-coordinate
     grid error <= half-cell 2^-(k+1)) gives, with R = max|s-y|,
@@ -6180,7 +6099,7 @@ def gs_lipschitz_const(base, w):
 
 
 def gs_auto_snap_k(base, w, last_drop, legacy_k=GS_K):
-    """C597 auto-k* instance for a snap site: eps = drop/10
+    """Auto-k* instance for a snap site: eps = drop/10
     (the snap error budget may eat at most 10% of the LAST
     certified committed drop -- fixed principle), d = len(w)
     (snapped feature coordinates = head weights), L =
@@ -6229,12 +6148,12 @@ def gs_obj_snap_bound(base, base_snapped, w):
 
 
 def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
-    """C521 snap-rational repeated grow cycle: C506 mechanics
+    """Snap-rational repeated grow cycle: mechanics
     (identity grow + certified per-block fd steps + Ville stop)
     plus a CERTIFIED q/2^k snap of the new block's weights and
     of the features at EVERY grow boundary -- denominator
     growth resets each grow (den <= 2^k), depth 8 in budget.
-    C635: cadd_lam parameterizes the capacity cost
+    cadd_lam parameterizes the capacity cost
     c_add = params * lam (default PIN 1/10^4) for the --lambda-
     sweep calibration; the default call path is unchanged.
     Returns (start, [accepted steps], telemetry, stats)."""
@@ -6296,7 +6215,7 @@ def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
         assert used <= GS_STEP_CAP, \
             "ABORT: step cap exceeded (honest budget-stop)"
 
-        # --- C633 GROWTH GATE: certified capacity decision
+        # --- GROWTH GATE: certified capacity decision
         # BEFORE adding the block (python double of
         # Hagi.Theory.GrowthGate.growthGate / growth_gate_sound:
         # pb = n*G^2/(2L), quadratic-class form x^2/(2L);
@@ -6325,10 +6244,10 @@ def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
                          else "SKIP (certified: рост не окупится "
                               f"за {GS_STEPS_PER_BLOCK} шагов: "
                               "potential_bound <= c_add, "
-                              "growth_gate_sound C632)"),
+                              "growth_gate_sound)"),
             "formula": "pb = n*G^2/(2L) (quadratic class, "
-                       "nl_drop_step_eq C632; NOT the wider "
-                       "3G^2/(2L) nlBudget C592)"})
+                       "nl_drop_step_eq; NOT the wider "
+                       "3G^2/(2L) nlBudget)"})
         if not grow_ok:
             grow_steps_skipped_certified += 1
             tel["grow_steps_skipped_certified"] = \
@@ -6350,13 +6269,13 @@ def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
         assert margin0 == 0
         tel["admissions"].append({
             "phase": f"B-grow{grow_events + 1}", "margin": "0",
-            "decision": "ADMIT (neutral identity, C450 "
+            "decision": "ADMIT (neutral identity, "
                         "function_preserving_admissible: 0 <= 0; "
                         "contribution from certified steps)"})
         tel["rejects"].append({
             "phase": f"B-grow{grow_events + 1}",
             "margin": str(F(1, 10)),
-            "decision": "REJECT (negative control, C450 "
+            "decision": "REJECT (negative control, "
                         "margin_positivity_refuses: eps = 1/10 "
                         "> 0 => margin > 0 => gate refuses)"})
 
@@ -6395,9 +6314,9 @@ def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
                                                "HOLD (block fd step "
                                                "rolled back)"})
 
-        # --- CERTIFIED SNAP (the C521 mechanic) + C597 AUTO-K*:
+        # --- CERTIFIED SNAP (grow-snap mechanic) + AUTO-K*:
         # block weights -> q/2^k grid, composed features ->
-        # q/2^k grid; k* chosen by THEORY (C593 snap_k_eq_ceil:
+        # q/2^k grid; k* chosen by THEORY (snap_k_eq_ceil:
         # eps = last certified drop / 10, exact L/d instance),
         # replacing the legacy manual 40; the exact
         # Lipschitz-style err bound stays the certified guarantee.
@@ -6465,7 +6384,7 @@ def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
             "steps_used": len(raw), "step_cap": GS_STEP_CAP,
             "decision": "GROW ADMITTED within budget "
                         "(snap policy: feature denominators "
-                        f"RESET to <= 2^{k_snap} (k* AUTO, C593 "
+                        f"RESET to <= 2^{k_snap} (k* AUTO, "
                         "snap_k_eq_ceil; legacy 40) at the grow "
                         "boundary -- no exponential compounding)"})
 
@@ -6500,7 +6419,7 @@ def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
                                  "drop": o0 - o1,
                                  "reason": "canonical drop <= 0: "
                                            "HOLD"})
-    tel["stop"] = {"detector": "C446 Ville, lam*D >= "
+    tel["stop"] = {"detector": "Ville, lam*D >= "
                                "1/delta - 1 (conservative)",
                    "lam": str(GS_LAM), "delta": str(GS_DELTA),
                    "fired": fired, "refused": refused,
@@ -6557,7 +6476,7 @@ def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
         "grow_events": grow_events,
         "snap_grid": "AUTO k* = ceil(log2(L*d/eps)) - 1 "
                      "(Hagi.Theory.GrowSnap.snap_k_eq_ceil, "
-                     "C593/C597; eps = last certified drop/10); "
+                     "auto-k*; eps = last certified drop/10); "
                      "k per grow: "
                      f"{[s['k_auto'] for s in tel['snap']]}; "
                      "legacy manual q/2^40",
@@ -6586,22 +6505,22 @@ def grow_snap_run(ledger_path, cadd_lam=GROW_CADD_LAM):
                  "snap degradation certified: obj_after <= "
                  "obj_before + exact Lipschitz-style bound",
         "theorem": "Hagi.Theory.GrowSnap.grow_snap_cycle_sound "
-                   "(C521; telescoped certified snap-cycle bound)"
+                   "(grow-snap; telescoped certified snap-cycle bound)"
     }
     return obj0, raw, tel, stats
 
 
 def emit_lean_growsnap(path, start, traj, witness_steps=3):
-    """C521 witness: literal grow-snap trajectory prefix +
+    """Witness: literal grow-snap trajectory prefix +
     #eval checkTrajectory + norm_num theorem; header documents
     the FULL counts honestly (deep obj fractions are not
     Lean-elaborable -- prefix only, stated openly)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    _write_text(path, "-- C521 grow-snap witness (real unified_ledger "
+    _write_text(path, "-- grow-snap witness (real unified_ledger "
                       "data; snap-rational repeated grow cycle: depth "
                       f"2 -> 8 via 6 identity grows, each trained then "
-                      f"CERTIFIED-snapped (k* auto per grow, C593 "
+                      f"CERTIFIED-snapped (k* auto per grow, "
                       "snap_k_eq_ceil; legacy manual 40); denominators "
                       "reset every grow).\n"
                       f"-- FULL accepted steps: {len(traj)}; phases: "
@@ -6633,11 +6552,11 @@ def emit_lean_growsnap(path, start, traj, witness_steps=3):
 
 
 def emit_bad_growsnap(path, start, traj, witness_steps=3):
-    """C521 negative: inflated declared drop on the last
+    """Negative: inflated declared drop on the last
     witness step; the checker must reject (theorem = false)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     ds[-1]["drop"] = ds[-1]["drop"] + F(1)
-    _write_text(path, "-- C521 grow-snap NEGATIVE witness: the last "
+    _write_text(path, "-- grow-snap NEGATIVE witness: the last "
                       "declared drop is inflated by 1; the certified "
                       "checker must reject.\n"
                       "import Hagi.Runtime.CertChecker\n\n"
@@ -6660,13 +6579,13 @@ def emit_bad_growsnap(path, start, traj, witness_steps=3):
                       "  norm_num\n")
 
 
-# C532: CERTIFIED ADAPTER GROWTH, LoRA-style
+# CERTIFIED ADAPTER GROWTH, LoRA-style
 # (--mode adapter-grow)
 #
 # The previous grow mechanisms add volume WHOLESALE: fiber
-# grow C494 (a full feature column) and identity-block grow
-# C504/C506/C521 (a FULL residual block: 1 + d + 2*d*hid = 21
-# params at d=4, hid=2; ~d^2 at hid ~ d). C532 grows the model
+# grow (mini-hagi2, a full feature column) and identity-block grow
+# (mini-hagi4/5, grow-snap; a FULL residual block, 1 + d + 2*d*hid = 21
+# params at d=4, hid=2; ~d^2 at hid ~ d). This mode grows the model
 # by a MINIMAL low-rank side-branch adapter (LoRA form, Hu et
 # al. 2021): the head prediction becomes
 #
@@ -6680,7 +6599,7 @@ def emit_bad_growsnap(path, start, traj, witness_steps=3):
 # d*d when 2r <= d; adapter_step_certified/hold: certified
 # step semantics).
 #
-# Cycle: phase A joint trunk+head certified fd steps (the C521
+# Cycle: phase A joint trunk+head certified fd steps (the 
 # phase A, unchanged), trunk FROZEN, then adapters r=1 and r=2
 # admitted at B=0 (obj invariant asserted EXACTLY at every
 # admission -- the LoRA zero-init core), certified fd training
@@ -6696,7 +6615,7 @@ AG_H = F(1, 1000)                  # fd step h (same as MH2_H)
 
 
 def adapter_grow_run(ledger_path):
-    """C532 certified adapter-growth cycle on the live corpus.
+    """Certified adapter-growth cycle on the live corpus.
     Returns (start, [accepted steps], telemetry, stats)."""
     pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
 
@@ -6708,7 +6627,7 @@ def adapter_grow_run(ledger_path):
            "growthgate": [], "grow_steps_skipped_certified": 0,
            "skipped_degenerate_T2": skipped}
 
-    # --- (A) 2-block trunk + head joint certified steps (C521 A)
+    # --- (A) 2-block trunk + head joint certified steps (grow-snap A)
     obj0 = mh2_canon(w, tasks, theta)
     theta, w = _phaseA_train(tasks, htasks, theta, w,
                                  raw, tel,
@@ -6788,7 +6707,7 @@ def adapter_grow_run(ledger_path):
             "must preserve obj EXACTLY)".format(ai + 1)
         npar = 2 * r * MH2_D
 
-        # --- C633 GROWTH GATE: certified capacity decision
+        # --- GROWTH GATE: certified capacity decision
         # BEFORE admitting the rank-r adapter (same python
         # double of Hagi.Theory.GrowthGate as grow-snap: pb =
         # n*G^2/(2L) quadratic-class form, c_add = params*lambda)
@@ -6816,10 +6735,10 @@ def adapter_grow_run(ledger_path):
                          else "SKIP (certified: рост не окупится "
                               f"за {AG_STEPS} шагов: "
                               "potential_bound <= c_add, "
-                              "growth_gate_sound C632)"),
+                              "growth_gate_sound)"),
             "formula": "pb = n*G^2/(2L) (quadratic class, "
-                       "nl_drop_step_eq C632; NOT the wider "
-                       "3G^2/(2L) nlBudget C592)"})
+                       "nl_drop_step_eq; NOT the wider "
+                       "3G^2/(2L) nlBudget)"})
         if not grow_ok:
             tel["grow_steps_skipped_certified"] += 1
             continue   # honest certified SKIP: rank not added
@@ -6880,7 +6799,7 @@ def adapter_grow_run(ledger_path):
     o_adapted = canon_adapt(w, FT, adapters)
     adapt_params = sum(2 * len(A) * MH2_D for A, _ in adapters)
 
-    # --- (C) HEAD-TO-HEAD: the identity-BLOCK grow (C504/C521
+    # --- (C) HEAD-TO-HEAD: the identity-BLOCK grow (
     # mechanic, 21 params, gamma = 0) trained with the SAME
     # total number of certified steps as the adapters, from the
     # same frozen-trunk obj -- progress per parameter compared.
@@ -6988,18 +6907,18 @@ def adapter_grow_run(ledger_path):
                  "identity-block head-to-head arm",
         "theorem": "Hagi.Theory.AdapterGrowth.adapter_neutral_B "
                    "/ adapter_param_count / "
-                   "adapter_step_certified (C532)"
+                   "adapter_step_certified"
     }
     return obj0, raw, tel, stats
 
 
 def emit_lean_adaptergrow(path, start, traj, witness_steps=3):
-    """C532 witness: literal adapter-grow trajectory prefix +
-    #eval checkTrajectory + norm_num theorem (the C521 witness
+    """Witness: literal adapter-grow trajectory prefix +
+    #eval checkTrajectory + norm_num theorem (the grow-snap witness
     pattern; prefix only, deep fractions not elaborable)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    _write_text(path, "-- C532 adapter-grow witness (real "
+    _write_text(path, "-- adapter-grow witness (real "
                       "unified_ledger data; LoRA-style side-branch "
                       "adapters r=1,2 admitted at B = 0 with EXACT "
                       "obj invariance, certified fd training of only "
@@ -7033,11 +6952,11 @@ def emit_lean_adaptergrow(path, start, traj, witness_steps=3):
                       "adapter_neutral_B\n")
 
 
-# C533: ADAPTER SNAP COMPOSITE GROW (--mode adapter-snap-grow)
+# ADAPTER SNAP COMPOSITE GROW (--mode adapter-snap-grow)
 #
-# The composition breakthrough: adapter-grow (C532, MINIMAL
+# The composition: adapter-grow (MINIMAL
 # growth volume -- a low-rank side-branch, 2*r*d = 8 params at
-# r=1, d=4) COMPOSED with snap-rational (C521, MINIMAL
+# r=1, d=4) COMPOSED with snap-rational (grow-snap: MINIMAL
 # computation -- q/2^k snap resets feature denominators at
 # every grow boundary) into ONE repeatable deep cycle:
 #
@@ -7057,22 +6976,22 @@ def emit_lean_adaptergrow(path, start, traj, witness_steps=3):
 #               bound and maxden <= 2^40 at EVERY level.
 #
 # The trained level is folded EXACTLY into the (grid-bounded)
-# features; the next level starts from the grid -- the C506
+# features; the next level starts from the grid -- the
 # ~x3.2-per-grow denominator compounding NEVER accumulates,
 # while each level adds only 8 parameters. Telescoped cycle
 # bound: obj_final <= cycle_start + sum(bounds) -- the Lean
 # side is Hagi.Theory.AdapterGrowth.adapter_snap_bound /
-# adapter_snap_cycle_sound (C533).
+# adapter_snap_cycle_sound.
 
 AS_LEVELS = 8                     # grow levels (depth 2 -> 10;
-                                  # C521-parity depth 8 exceeded)
-AS_K = 40                         # snap grid q/2^k (C521 PIN)
+                                  # -parity depth 8 exceeded)
+AS_K = 40                         # snap grid q/2^k (PIN)
 AS_STEPS = 4                      # certified fd steps per level
 AS_RANK = 1                       # adapter rank per level
 
 
 def adapter_snap_grow_run(ledger_path):
-    """C533 adapter-snap composite grow cycle on the live
+    """Adapter-snap composite grow cycle on the live
     corpus. Returns (start, [accepted steps], telemetry,
     stats)."""
     t0 = time.perf_counter()
@@ -7084,7 +7003,7 @@ def adapter_snap_grow_run(ledger_path):
                     "levels": [], "snap": [], "budget": [],
                     "skipped_degenerate_T2": skipped}
 
-    # --- (A) 2-block trunk + head joint certified steps (C521 A)
+    # --- (A) 2-block trunk + head joint certified steps (grow-snap A)
     obj0 = mh2_canon(w, tasks, theta)
     theta, w = _phaseA_train(tasks, htasks, theta, w,
                                  raw, tel,
@@ -7129,7 +7048,7 @@ def adapter_snap_grow_run(ledger_path):
 
     # trunk FROZEN: feature matrices (train + holdout), snapped
     # ONCE to the q/2^k grid (the freeze boundary; every level
-    # then starts from the grid); k* AUTO (C593 snap_k_eq_ceil:
+    # then starts from the grid); k* AUTO (snap_k_eq_ceil:
     # eps = last certified drop / 10, legacy manual 40)
     FT_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
              for tk in tasks]
@@ -7215,8 +7134,8 @@ def adapter_snap_grow_run(ledger_path):
                     "reason": "canonical drop <= 0: HOLD "
                               "(adapter fd step rolled back)"})
 
-        # SNAP: adapter weights -> q/2^k (k* AUTO, C593
-        # snap_k_eq_ceil / C597 wiring: eps = last certified
+        # SNAP: adapter weights -> q/2^k (k* AUTO, 
+        # snap_k_eq_ceil / wiring: eps = last certified
         # drop / 10, legacy manual 40); features recomputed
         # (snapped weights) and snapped; the exact bound covers
         # the WHOLE chain (weight-snap + feature-snap together)
@@ -7358,18 +7277,17 @@ def adapter_snap_grow_run(ledger_path):
                  "level)",
         "theorem": "Hagi.Theory.AdapterGrowth."
                    "adapter_snap_bound / adapter_snap_cycle_sound"
-                   " (C533)"
     }
     return obj0, raw, tel, stats
 
 
 def emit_lean_adaptersnap(path, start, traj, witness_steps=3):
-    """C533 witness: literal adapter-snap-grow trajectory
+    """Witness: literal adapter-snap-grow trajectory
     prefix + #eval checkTrajectory + norm_num theorem (the
-    C521/C532 witness pattern)."""
+    grow-snap / adapter-grow witness pattern)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
-    _write_text(path, "-- C533 adapter-snap-grow witness (real "
+    _write_text(path, "-- adapter-snap-grow witness (real "
                       "unified_ledger data; LoRA-style adapter levels "
                       "r=1 admitted at B = 0 with EXACT obj "
                       "invariance, certified fd training of only the "
@@ -7406,18 +7324,18 @@ def emit_lean_adaptersnap(path, start, traj, witness_steps=3):
                       "adapter_snap_cycle_sound\n")
 
 
-# C535: ADAPTER RANK-ADAPTIVE GROW (--mode adapter-rank-adaptive)
+# ADAPTER RANK-ADAPTIVE GROW (--mode adapter-rank-adaptive)
 #
-# The r-adaptivity breakthrough: the C533 adapter-snap cycle
+# The r-adaptivity breakthrough: the adapter-snap cycle
 # generalized over the adapter RANK r in {1, 2}, with the rank
-# CHOSEN PER LEVEL by a MEASURED criterion (the C510 hybrid
+# CHOSEN PER LEVEL by a MEASURED criterion (hybrid
 # selector pattern applied to growth volume):
 #
 #   level l:  PROBE r=1 and r=2 from ONE state: k = 2
 #               certified-mechanism fd steps each, computed on
 #               a COPY of the level parameters -- the live
 #               state is never touched (probe = no-commit,
-#               the C530 rollback gate semantics: rollback is
+#               the rollback gate semantics: rollback is
 #               EXACT because the state never moved).
 #             SELECT by the measured score
 #               score_r = probe_drop_r / (2*r*d)   (drop per
@@ -7432,7 +7350,7 @@ def emit_lean_adaptersnap(path, start, traj, witness_steps=3):
 #               l..l+r-1 mod d, B = 0 -- obj invariant EXACTLY)
 #             TRAIN 4 certified fd steps on ONLY the 2*r*d new
 #               params (COMMIT by measured drop > 0 / HOLD)
-#             SNAP q/2^40 + certified err bound (the C533
+#             SNAP q/2^40 + certified err bound (the
 #               boundary; denominators reset EVERY level).
 #
 # --fix-rank {1,2} disables the selector for comparison runs
@@ -7441,17 +7359,17 @@ def emit_lean_adaptersnap(path, start, traj, witness_steps=3):
 # the chosen rank and the reason at EVERY level.
 
 ARA_LEVELS = 8                     # grow levels (depth 2 -> 10)
-ARA_K = 40                         # snap grid q/2^k (C521 PIN)
+ARA_K = 40                         # snap grid q/2^k (PIN)
 ARA_STEPS = 4                      # certified fd steps per level
 ARA_PROBE_STEPS = 2                # probe steps per rank arm
 ARA_RANKS = (1, 2)                 # the probed rank arms
 
 
 def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
-    """C535 rank-adaptive adapter grow cycle on the live
+    """Rank-adaptive adapter grow cycle on the live
     corpus: per level, probe r=1 and r=2 from one state,
     select by drop/params, commit the chosen rank through the
-    C533 certified cycle. Returns (start, [accepted steps],
+    Certified cycle. Returns (start, [accepted steps],
     telemetry, stats)."""
     t0 = time.perf_counter()
     pts, tasks, htasks, skipped = _phaseA_corpus(ledger_path)
@@ -7463,7 +7381,7 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
                     "rank_select": [], "probes": [],
                     "skipped_degenerate_T2": skipped}
 
-    # --- (A) 2-block trunk + head joint certified steps (C521 A)
+    # --- (A) 2-block trunk + head joint certified steps (grow-snap A)
     obj0 = mh2_canon(w, tasks, theta)
     theta, w = _phaseA_train(tasks, htasks, theta, w,
                                  raw, tel,
@@ -7497,7 +7415,7 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
 
     def obj_bound(base_orig, base_final, wcur):
         """EXACT certified bound covering the WHOLE snap chain
-        (C533): per point |(s2-y)^2 - (s1-y)^2| <=
+        (adapter-snap): per point |(s2-y)^2 - (s1-y)^2| <=
         (2|s1-y| + |ds|)*|ds|, ds = w.(f_final - f_orig)."""
         Bsum = F(0)
         cnt = 0
@@ -7533,7 +7451,7 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
 
     # trunk FROZEN: snapped feature matrices (the freeze
     # boundary; every level starts from the grid); k* AUTO
-    # (C593 snap_k_eq_ceil, C597 wiring; legacy manual 40)
+    # (snap_k_eq_ceil, wiring; legacy manual 40)
     FT_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
              for tk in tasks]
     HF_un = [[(mh2_trunk_fwd(theta, x), y) for x, y in tk]
@@ -7550,7 +7468,7 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
 
     # --- (P) PROBE both rank arms from ONE state: the k-step
     # certified mechanism on a COPY -- the live level state is
-    # never touched (C530 no-commit probe), so the rollback is
+    # never touched (no-commit probe), so the rollback is
     # EXACT; the probe drops are selector inputs, NOT links of
     # the certified obj chain.
     def probe_drop(lev, r):
@@ -7619,7 +7537,7 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
             "params_r2": 2 * 2 * MH2_D,
             "reason": reason,
             "probe_semantics": "no-commit probe on a parameter "
-                               "COPY (C530 rollback: state never "
+                               "COPY (rollback: state never "
                                "moved, rollback EXACT)"})
 
         # ADMIT the chosen rank (B = 0, obj invariant EXACTLY)
@@ -7665,9 +7583,9 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
                     "reason": "canonical drop <= 0: HOLD "
                               "(adapter fd step rolled back)"})
 
-        # SNAP: the C533 boundary (weights + features, exact
+        # SNAP: the boundary (weights + features, exact
         # per-point Lipschitz bound, denominator reset); k* AUTO
-        # (C593 snap_k_eq_ceil, C597 wiring; legacy manual 40)
+        # (snap_k_eq_ceil, wiring; legacy manual 40)
         o_before = canonp(p, r, FT)
         k_snap, kinfo = gs_auto_snap_k(FT, w, raw[-1]["drop"],
                                        legacy_k=ARA_K)
@@ -7731,7 +7649,7 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
     for t, dd in enumerate(raw):
         dd["budget"] = F(n - t) / n
         dd["budget'"] = F(n - t - 1) / n
-    # obj chain across snap boundaries (C533 reconciliation)
+    # obj chain across snap boundaries (reconciliation)
     snap_deltas = [F(x["obj_after_snap"]) -
                    F(x["obj_before_snap"]) for x in allowances]
     si = 0
@@ -7813,16 +7731,16 @@ def adapter_rank_adaptive_run(ledger_path, fix_rank=None):
                  "denominators bounded at EVERY level)",
         "theorem": "Hagi.Theory.AdapterGrowth."
                    "rank_select_sound / "
-                   "rank_select_deterministic (C535)"
+                   "rank_select_deterministic "
     }
     return obj0, raw, tel, stats
 
 
 def emit_lean_trajrankadaptive(path, start, traj, tel,
                                witness_steps=3):
-    """C535 witness: literal rank-adaptive trajectory prefix +
+    """Witness: literal rank-adaptive trajectory prefix +
     #eval checkTrajectory + norm_num theorem + the rank-select
-    theorems and a real selector instance (the C521/C532/C533
+    theorems and a real selector instance (the earlier
     witness pattern)."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
@@ -7848,11 +7766,11 @@ def emit_lean_trajrankadaptive(path, start, traj, tel,
             "0 = 1 := by\n"
             "      norm_num [Hagi.Theory.AdapterGrowth."
             "rankSelect]\n")
-    _write_text(path, "-- C535 rank-adaptive adapter grow witness "
+    _write_text(path, "-- rank-adaptive adapter grow witness "
                       "(real unified_ledger data; per level the rank "
                       "r in {1,2} is chosen by the measured probe "
                       "drop/params criterion -- a deterministic total "
-                      "order -- then committed through the C533 "
+                      "order -- then committed through the "
                       "certified cycle).\n"
                       f"-- FULL accepted steps: {len(traj)}; "
                       f"phases: {phases};\n-- first {len(ds)} "
@@ -7886,14 +7804,14 @@ def emit_lean_trajrankadaptive(path, start, traj, tel,
                       + sel_lines)
 
 
-# C536: SVD-MATRYOSHKA ADAPTER MERGE (--mode adapter-merge)
+# SVD-MATRYOSHKA ADAPTER MERGE (--mode adapter-merge)
 #
-# The stack-compression breakthrough: the C533 adapter-snap
+# The stack-compression breakthrough: the adapter-snap
 # stack (8 rank-1 LoRA levels, 2*8*d = 64 params, folded
 # sequentially f -> (I + B_l A_l) f) is MERGED into ONE rank-k
 # adapter with a certified obj bound:
 #
-#   1. CYCLE: the C533 fixed-rank-1 stack (fresh loop, the
+#   1. CYCLE: the fixed-rank-1 stack (fresh loop, the
 #      old modes untouched), tracking the per-level matrices
 #      M_l = I + B_l^snap A_l^snap (d x d Fractions);
 #      M_total = M_8 * ... * M_1; Delta = M_total - I.
@@ -7904,11 +7822,11 @@ def emit_lean_trajrankadaptive(path, start, traj, tel,
 #      factors (independent columns + echelon coefficients),
 #      merged features from the ORIGINAL trunk features;
 #      grid snap; certified per-point bound
-#      obj_bound(F_stack_final, F_merged, w) — EXACT (C533
+#      obj_bound(F_stack_final, F_merged, w) -- EXACT (the
 #      formula (2|s-y|+|ds|)*|ds|). Params 2*rho*d.
 #   4. MATRYOSHKA k < rho: deflated power-iteration top-k on
 #      Delta^T Delta (d = 4, pure Python floats, IEEE-
-#      deterministic) PROPOSES the factors (C489 principle:
+#      deterministic) PROPOSES the factors (principle:
 #      numeric candidate, RATIONAL certificate); factor snap
 #      q/2^20; the SAME exact per-point bound. Numeric sigma
 #      tail ||Delta - Delta_k||_F — the a-priori estimate
@@ -7916,7 +7834,7 @@ def emit_lean_trajrankadaptive(path, start, traj, tel,
 #   5. TELESCOPE: obj_merged <= obj_stack_final + merge_bound
 #      and obj_stack_final <= cycle_start + sum snap_bounds.
 
-AMG_LEVELS = 8                     # stack levels (C533 shape)
+AMG_LEVELS = 8                     # stack levels (shape)
 AMG_K = 40                         # feature snap grid q/2^k
 AMG_KFAC = 20                      # matryoshka factor snap grid
 AMG_STEPS = 4                      # certified fd steps per level
@@ -8013,7 +7931,7 @@ def _power_topk(Dm, k):
 
 
 def adapter_merge_run(ledger_path):
-    """C536 SVD-matryoshka adapter merge: run the C533 rank-1
+    """SVD-matryoshka adapter merge: run the rank-1
     stack (8 levels, 64 params), compute Delta = M_total - I,
     exact rational rank rho, merge to a single rank-k adapter
     (exact at k = rho; numeric-proposed + exact certified at
@@ -8029,7 +7947,7 @@ def adapter_merge_run(ledger_path):
                     "merge": [],
                     "skipped_degenerate_T2": skipped}
 
-    # --- (A) 2-block trunk + head joint certified steps (C521 A)
+    # --- (A) 2-block trunk + head joint certified steps (grow-snap A)
     obj0 = mh2_canon(w, tasks, theta)
     theta, w = _phaseA_train(tasks, htasks, theta, w,
                                  raw, tel,
@@ -8056,7 +7974,7 @@ def adapter_merge_run(ledger_path):
                    for tk in base for f, _ in tk for c in f)
 
     def obj_bound(base_orig, base_final, wcur):
-        """EXACT certified bound (C533): per point
+        """EXACT certified bound: per point
         |(s2-y)^2 - (s1-y)^2| <= (2|s1-y| + |ds|)*|ds|."""
         Bsum = F(0)
         cnt = 0
@@ -8097,7 +8015,7 @@ def adapter_merge_run(ledger_path):
     FT0 = [[(f[:], y) for f, y in tk] for tk in FT]  # merge base
     HF0 = [[(f[:], y) for f, y in tk] for tk in HF]
 
-    # --- (B) rank-1 stack: 8 C533 levels + matrix tracking
+    # --- (B) rank-1 stack: 8 levels + matrix tracking
     depth = 2
     cycle_start_obj = mh2_fcanon(w, FT)
     cumulative_bound = F(0)
@@ -8156,7 +8074,7 @@ def adapter_merge_run(ledger_path):
                               "(adapter fd step rolled back)"})
 
         # SNAP: weights + features, exact per-point bound;
-        # k* AUTO (C593 snap_k_eq_ceil, C597 wiring; legacy 40)
+        # k* AUTO (snap_k_eq_ceil, wiring; legacy 40)
         o_before = canonp(p, FT)
         k_snap, kinfo = gs_auto_snap_k(FT, w, raw[-1]["drop"],
                                        legacy_k=AMG_K)
@@ -8211,7 +8129,7 @@ def adapter_merge_run(ledger_path):
     for t, dd in enumerate(raw):
         dd["budget"] = F(n - t) / n
         dd["budget'"] = F(n - t - 1) / n
-    # obj chain across snap boundaries (C533 reconciliation)
+    # obj chain across snap boundaries (reconciliation)
     snap_deltas = [F(x["obj_after_snap"]) -
                    F(x["obj_before_snap"]) for x in allowances]
     si = 0
@@ -8230,7 +8148,7 @@ def adapter_merge_run(ledger_path):
             "ABORT: obj chain broken outside certified snaps"
     assert si <= len(snap_deltas), \
         "ABORT: more chain boundaries than certified snaps"
-    # telescoped certified stack bound (the C533 statement)
+    # telescoped certified stack bound (statement)
     obj_stack_final = raw[-1]["obj'"]
     assert obj_stack_final <= cycle_start_obj + cumulative_bound, \
         "ABORT: telescoped stack cycle bound violated"
@@ -8276,7 +8194,7 @@ def adapter_merge_run(ledger_path):
             how = "exact-rational (Gauss-Jordan C*X = Delta)"
         else:
             # numeric deflated power iteration PROPOSES the
-            # factors (C489: numeric candidate, rational
+            # factors (numeric candidate, rational
             # certificate); factor snap q/2^KFAC
             trip = _power_topk(Delta, kk)
             Bm = [[gs_snap2k(F(round(sum(
@@ -8334,7 +8252,7 @@ def adapter_merge_run(ledger_path):
         "source": ledger_path,
         "trunk": f"2 fd-trained blocks FROZEN (snapped once to "
                  f"q/2^{k_snap} AUTO) + {AMG_LEVELS} rank-1 adapter "
-                 "levels (C533 cycle) MERGED into ONE rank-rho "
+                 "levels (adapter-snap cycle) MERGED into ONE rank-rho "
                  "adapter (SVD-matryoshka)",
         "trunk_depth_final": depth,
         "levels": AMG_LEVELS,
@@ -8371,7 +8289,7 @@ def adapter_merge_run(ledger_path):
         "canonical_start": str(obj0),
         "total_drop": str(obj0 - o_final_merged),
         "model": "linear head over trunk features + ONE "
-                 f"rank-{rho} adapter (the C533 8-level "
+                 f"rank-{rho} adapter (8-level "
                  "rank-1 stack merged: Delta = M_total - I with "
                  "EXACT rational rank rho and factorization "
                  "Delta = C*X; certified obj bound per k on the "
@@ -8379,21 +8297,21 @@ def adapter_merge_run(ledger_path):
         "theorem": "Hagi.Theory.AdapterGrowth."
                    "adapter_stack_rank_bound / "
                    "adapter_merge_error_bound / "
-                   "adapter_merge_params (C536)"
+                   "adapter_merge_params "
     }
     return obj0, raw, tel, stats
 
 
 def emit_lean_trajmerge(path, start, traj, tel, stats,
                         witness_steps=3):
-    """C536 witness: literal merged-stack trajectory prefix +
-    #eval checkTrajectory + norm_num theorem + the three C536
+    """Witness: literal merged-stack trajectory prefix +
+    #eval checkTrajectory + norm_num theorem + the three 
     theorems and a REAL stack-rank instance."""
     ds = [dict(d) for d in traj[:witness_steps]]
     phases = ", ".join(sorted({d["phase"] for d in traj}))
     rho = stats["merged_exact_rank"]
-    _write_text(path, "-- C536 SVD-matryoshka adapter-merge witness "
-                      "(real unified_ledger data; the C533 rank-1 "
+    _write_text(path, "-- SVD-matryoshka adapter-merge witness "
+                      "(real unified_ledger data; the adapter-snap rank-1 "
                       "stack cycle, then the certified merge into "
                       "ONE rank-rho adapter).\n"
                       f"-- FULL accepted steps: {len(traj)}; "
@@ -8440,20 +8358,20 @@ def emit_lean_trajmerge(path, start, traj, tel, stats,
 # (--mode agem-vs-ranktrunc)
 #
 # The GPM-family empirical closure: BOTH continual mechanisms
-# from C498 (Hagi/Theory/Continual.lean (GPMRelaxed section)) run on the SAME
-# C485 scenario (task A -> task B on the live unified_ledger
+# from the GPMRelaxed theory (Hagi/Theory/Continual.lean, GPMRelaxed section) run on the SAME
+# Scenario (task A -> task B on the live unified_ledger
 # corpus, exact Fractions) with the SAME phase-1 wA, the SAME
 # B data, step budget, eta and snap grid — the ONLY difference
 # is the step-direction mechanism:
 #
-#   arm rank-trunc (C500 mechanics): keep the top-k
+#   arm rank-trunc: keep the top-k
 #     energy-ordered Gram-Schmidt directions of span(A),
 #     k = min k with max_old sigmaTail^2 <= eps^2; delta =
 #     Q_keptcomplement . snap(-eta*g_B); per-step per-old-input
 #     assert |delta.x|^2 <= ||delta||^2 * sigmaTail^2
 #     (the bench form of rank_trunc_forgetting_bound).
 #
-#   arm A-GEM (C498 agemStep, canonical per-step memory
+#   arm A-GEM (agemStep, canonical per-step memory
 #     gradient g_old = grad_A(w)): the step is FREE when
 #     <g, g_old> >= 0; on conflict the direction is one
 #     Gram-Schmidt iteration d = g - (<g,g_old>/<g_old,g_old>)*
@@ -8467,7 +8385,7 @@ def emit_lean_trajmerge(path, start, traj, tel, stats,
 # improvement — or positive; snapping can break the pre-snap
 # first-order guarantee, the report never claims otherwise).
 
-AGN_EPS = F(1, 10)      # rank-trunc tolerance (C500 PIN)
+AGN_EPS = F(1, 10) # rank-trunc tolerance (PIN)
 AGN_STEPS = 24          # PIN: probe-measured — at 6 steps the
                         # A-GEM conflict branch never fires; 24
                         # fires conflicts with interference
@@ -8475,7 +8393,7 @@ AGN_STEPS = 24          # PIN: probe-measured — at 6 steps the
 
 
 def agn_agem_step(g, g_old, d):
-    """Exact-Fraction agemStep (C498 def): free when
+    """Exact-Fraction agemStep: free when
     <g, g_old> >= 0, else one Gram-Schmidt iteration.
     Returns (direction, conflict_flag)."""
     dot = sum((g[i] * g_old[i] for i in range(d)), F(0))
@@ -8486,7 +8404,7 @@ def agn_agem_step(g, g_old, d):
 
 
 def agn_run(ledger_path, steps=AGN_STEPS):
-    """C508: phase 1 on A (shared), phase 2 on B by BOTH
+    """Phase 1 on A (shared), phase 2 on B by BOTH
     continual mechanisms; per-arm certified trajectories and
     the honest comparison table."""
     pts = _load_corpus(ledger_path)
@@ -8502,7 +8420,7 @@ def agn_run(ledger_path, steps=AGN_STEPS):
     lossA_after1 = cl_mse(wA, A)
     mseB0 = cl_mse(wA, B)
 
-    # ---------- arm 1: rank-trunc relaxed GPM (C500) ----------
+    # ---------- arm 1: rank-trunc relaxed GPM ----------
     r = len(basis)
     energy = [sum((sum((b[i] * x[i] for i in range(d)), F(0))
                    ** 2 for x, _ in A), F(0)) for b in basis]
@@ -8553,7 +8471,7 @@ def agn_run(ledger_path, steps=AGN_STEPS):
     rt_forget = cl_mse(w, A) - lossA_after1
     rt_progress = sum((s["drop"] for s in rt_raw), F(0))
 
-    # ---------- arm 2: A-GEM (C498 agemStep) ----------
+    # ---------- arm 2: A-GEM (agemStep) ----------
     w = list(wA)
     ag_raw, ag_holds = [], []
     conflicts, free_steps = 0, 0
@@ -8588,7 +8506,7 @@ def agn_run(ledger_path, steps=AGN_STEPS):
     ag_forget = cl_mse(w, A) - lossA_after1
     ag_progress = sum((s["drop"] for s in ag_raw), F(0))
 
-    # ---------- certify both trajectories (C485 form) ----------
+    # ---------- certify both trajectories ----------
     for name, raw in (("rank-trunc", rt_raw), ("agem", ag_raw)):
         assert raw, f"ABORT: {name} arm committed no steps"
         n = len(raw)
@@ -8634,15 +8552,15 @@ def agn_run(ledger_path, steps=AGN_STEPS):
 
 
 def emit_lean_agn(path, res, witness_steps=3):
-    """C508 witness: both arm trajectories (prefix, header
+    """Witness: both arm trajectories (prefix, header
     documents FULL counts) + #eval x2 + valid theorems +
     negative control (inflated last AGEM drop -> false) +
-    #check of the two C498 theorems the arms instantiate."""
+    #check of the two theorems the arms instantiate."""
     blocks = [("RT", res["rank_trunc"]["traj"]),
               ("AG", res["agem"]["traj"])]
     starts = {"RT": blocks[0][1][0]["obj"],
               "AG": blocks[1][1][0]["obj"]}
-    out = ["-- C508 A-GEM vs rank-trunc continual witness "
+    out = ["-- A-GEM vs rank-trunc continual witness "
            "(real unified_ledger data).\n"
            f"-- shared phase-1 wA (lossA {res['phase1']['lossA_after']}); "
            "FULL accepted steps: "
@@ -8701,11 +8619,11 @@ def emit_lean_agn(path, res, witness_steps=3):
     _write_text(path, ("".join(out)))
 
 
-# C510: HYBRID CONTINUAL MECHANISM SELECTION
+# HYBRID CONTINUAL MECHANISM SELECTION
 # (--mode hybrid-continual)
 #
 # ONE continual loop whose per-step step mechanism is selected
-# DETERMINISTICALLY from the MEASURED state (the C509 decision
+# DETERMINISTICALLY from the MEASURED state (hybrid
 # table):
 #
 #   (a) span fullness (measured once per scenario — an exact
@@ -8718,7 +8636,7 @@ def emit_lean_agn(path, res, witness_steps=3):
 #       gradient, zero cost — the free case of
 #       agem_step_nonneg_interf); < 0 -> rank-trunc (per-point
 #       forgetting bound (delta \u00b7 x)^2 <= ||delta||^2 *
-#       sigmaTail^2 — the C500/C508 mechanics; the decision
+#       sigmaTail^2 — the mechanics; the decision
 #       table row "span exhausted -> rank-trunc").
 #
 # The selector uses ONLY measurable exact-Fraction quantities
@@ -8726,26 +8644,26 @@ def emit_lean_agn(path, res, witness_steps=3):
 # thresholds. Admission at every step is the certified measured
 # drop > 0 gate on B (guarded rollback HOLD otherwise); the
 # trajectory is budget-filled and re-verified by check_step
-# exactly like C485/C508. Pure arms (rank-trunc, A-GEM) come
+# exactly. Pure arms (rank-trunc, A-GEM) come
 # from agn_run on the SAME deterministic phase-1 wA in the same
-# process (fair comparison, C508 pins). Soundness of the
+# process (fair comparison, same pins). Soundness of the
 # selection itself is Hagi.Theory.HybridContinual.
-# hybrid_step_sound (C510): the chosen branch's guarantee holds
+# hybrid_step_sound: the chosen branch's guarantee holds
 # with no weakening (disjunction of the three mechanisms).
 
-HYB_STEPS = 24            # PIN: same budget as the C508 arms;
+HYB_STEPS = 24            # PIN: same budget as the arms;
                           # live-measured selector split 5 free /
                           # 19 rank-trunc steps at 24
 
 
 def hyb_run(ledger_path, steps=HYB_STEPS):
-    """C510: hybrid continual loop — per-step mechanism by the
-    measured state (C509 decision table), plus BOTH pure arms on
+    """Hybrid continual loop — per-step mechanism by the
+    measured state (decision table), plus BOTH pure arms on
     the SAME data/phase-1/budget for the honest 3-row table.
 
-    Corpus-drift honesty (C510): the C508 `agem-vs-ranktrunc`
+    Corpus-drift honesty: the `agem-vs-ranktrunc`
     mode ABORTS on a live corpus whose ledger drifted past the
-    C508-era data (its rank-trunc pin kmin < rank is violated).
+    agem-vs-ranktrunc-era data (its rank-trunc pin kmin < rank is violated).
     This mode therefore computes the pure
     rank-trunc arm with the RELAXED k_eff = min(kmin, rank):
     when the eps-budget forces k_eff = rank the truncation is
@@ -8769,7 +8687,7 @@ def hyb_run(ledger_path, steps=HYB_STEPS):
     traj1, tel1, wA = cl_certified_loop([F(0)] * d, A, B, CL_STEPS)
     lossA_after1 = cl_mse(wA, A)
 
-    # rank-trunc machinery for the conflict branch (C508 pins)
+    # rank-trunc machinery for the conflict branch (same pins)
     r = len(basis)
     energy = [sum((sum((b[i] * x[i] for i in range(d)), F(0))
                    ** 2 for x, _ in A), F(0)) for b in basis]
@@ -8789,7 +8707,7 @@ def hyb_run(ledger_path, steps=HYB_STEPS):
     Qk = cl_complement_projector(kept)
     Qfull = cl_complement_projector(basis)   # full-GPM projector
 
-    # ---------- pure arm 1: rank-trunc (C508 semantics, the
+    # ---------- pure arm 1: rank-trunc (agem-vs-ranktrunc semantics, the
     # k_eff relaxation above) ----------
     w = list(wA)
     rt_raw, rt_holds, rt_relaxed = [], [], 0
@@ -8820,8 +8738,8 @@ def hyb_run(ledger_path, steps=HYB_STEPS):
     rt_forget = cl_mse(w, A) - lossA_after1
     rt_progress = sum((s["drop"] for s in rt_raw), F(0))
 
-    # ---------- pure arm 2: A-GEM (C498 agemStep, verbatim
-    # C508 arm) ----------
+    # ---------- pure arm 2: A-GEM (agemStep, verbatim
+    # Arm) ----------
     w = list(wA)
     ag_raw, ag_holds = [], []
     conflicts, free_steps = 0, 0
@@ -8940,7 +8858,7 @@ def hyb_run(ledger_path, steps=HYB_STEPS):
         assert a["obj'"] == b["obj"], \
             "ABORT: hybrid obj chain broken"
 
-    # ---------- certify BOTH pure arm trajectories (C485
+    # ---------- certify BOTH pure arm trajectories (two-task split
     # form; the k_eff relaxation keeps every assert exact) ----------
     for name, praw in (("rank-trunc", rt_raw),
                        ("agem", ag_raw)):
@@ -9001,13 +8919,13 @@ def hyb_run(ledger_path, steps=HYB_STEPS):
 
 
 def emit_lean_hyb(path, res, witness_steps=3):
-    """C510 witness: hybrid trajectory prefix (header documents
+    """Witness: hybrid trajectory prefix (header documents
     FULL counts + mechanism split) + #eval + validity theorem
     (norm_num) + negative control (inflated last drop -> false)
-    + #check hybrid_step_sound + the two C508 theorem pins."""
+    + #check hybrid_step_sound + the two theorem pins."""
     traj = res["hybrid"]["traj"]
     start = traj[0]["obj"]
-    out = ["-- C510 hybrid continual mechanism selection witness "
+    out = ["-- hybrid continual mechanism selection witness "
            "(real unified_ledger data).\n"
            f"-- span_full={res['span_full']} "
            f"(rank(A\u222aB)={res['rankAB']} vs dim={res['dim']}); "
@@ -9017,7 +8935,7 @@ def emit_lean_hyb(path, res, witness_steps=3):
            f"first {witness_steps} machine-checked prefix "
            "below.\n"
            "-- per-step mechanism chosen DETERMINISTICALLY from "
-           "the measured state (C509 decision table); soundness: "
+           "the measured state (decision table); soundness: "
            "Hagi.Theory.HybridContinual.hybrid_step_sound.\n"
            "import Hagi.Runtime.CertChecker\n"
            "import Hagi.Theory.Continual\n"
@@ -9067,11 +8985,11 @@ def emit_lean_hyb(path, res, witness_steps=3):
     _write_text(path, ("".join(out)))
 
 
-# C544: ADAPTER CONTINUAL ISOLATION bench (--mode adapter-continual)
+# ADAPTER CONTINUAL ISOLATION bench (--mode adapter-continual)
 #
-# Roadmap C542 top-3: continual through ISOLATED adapters
-# (AdapterGrowth C532 x Continual C485/C508/C510 x WeightDecayLeak
-# C538). Scenario (C485 split): task A -> task B.
+#: continual through ISOLATED adapters
+# (AdapterGrowth x Continual x WeightDecayLeak
+# WeightDecayLeak). Scenario (two-task split): task A -> task B.
 #
 #   phase 0: trunk w certified GD on A (2 steps), then FROZEN --
 #   the adapter A still has headroom (honest progress demo);
@@ -9087,7 +9005,7 @@ def emit_lean_hyb(path, res, witness_steps=3):
 #   A then CONTINUED on B (continual in the SAME parameters) --
 #   forgetA measured HONESTLY (expected > 0);
 #   arm TRUNK-NEG: naive trunk update on B WITHOUT projection
-#   (C485 naive arm on top of frozen adapter A) -- forgetA > 0
+#   (naive arm on top of frozen adapter A) -- forgetA > 0
 #   measured: the trunk_update_needs_projection scenario
 #   (unprojected trunk step leaks into the protected output).
 #
@@ -9104,7 +9022,7 @@ AC_H = F(1, 1000)                 # fd step h (PIN, as AG_H)
 
 
 def adapter_continual_run(ledger_path):
-    """C544: adapter continual isolation (ISO vs SHARED vs
+    """Adapter continual isolation (ISO vs SHARED vs
     TRUNK-NEG). Returns a result dict (see dispatch)."""
     sys.set_int_max_str_digits(0)
     # live corpus: skip ledger keys without a .bin sibling
@@ -9112,14 +9030,14 @@ def adapter_continual_run(ledger_path):
     if len(pts) < 100:
         corpus_abort(
             f"expected 100+ real points, got {len(pts)}",
-            hint="adapter-continual (C544)")
+            hint="adapter-continual")
     A, B0r = cl_split(pts)
     d = CL_D
-    # CONFLICT PIN (C544): same-distribution B gives POSITIVE
+    # CONFLICT PIN: same-distribution B gives POSITIVE
     # backward transfer on this corpus (measured on the first
     # cut: SHARED forgetA = -0.304, TRUNK-NEG = -0.753 --
     # forgetting is a CONFLICT phenomenon, GPM/Saha scenarios
-    # use dissimilar tasks). Task B = the C485 split with
+    # use dissimilar tasks). Task B = the continual split with
     # NEGATED targets, so phase-2 training genuinely pulls
     # against task A (documented, deterministic, exact).
     B = [(x, -y) for x, y in B0r]
@@ -9239,7 +9157,7 @@ def adapter_continual_run(ledger_path):
 
 
 def emit_lean_adaptercont(path, res, witness_steps=2):
-    """C544 witness: literal adapter-continual trajectories
+    """Witness: literal adapter-continual trajectories
     (adapter-A on A; adapter-B on B with A frozen = ISO;
     SHARED; TRUNK-NEG) + #eval checkTrajectory + valid theorems
     + the ISO zero-forgetting identity and the NEGATIVE leak
@@ -9256,7 +9174,7 @@ def emit_lean_adaptercont(path, res, witness_steps=2):
         ("N", _start(res["trunk_neg"]["trajN"], 0),
          res["trunk_neg"]["trajN"]),
     ]
-    out = ["-- C544 adapter-continual bench witness (real "
+    out = ["-- adapter-continual bench witness (real "
            "unified_ledger data).\n"
            f"-- task A: {res['n_A']} pts, task B: "
            f"{res['n_B']} pts; adapter r=1 "
@@ -9324,25 +9242,25 @@ def emit_lean_adaptercont(path, res, witness_steps=2):
     _write_text(path, ("".join(out)))
 
 
-# C547: MINI-HAGI FULL SELF-IMPROVING LOOP (--mode mini-hagi-loop)
+# MINI-HAGI FULL SELF-IMPROVING LOOP (--mode mini-hagi-loop)
 #
 # One run = ONE trace of all certified-era components:
-#   P1 exact bypass (P8/C543-port): symbolic law on the QUANTIZED
+#   P1 exact bypass (ported): symbolic law on the QUANTIZED
 #      targets tau(y) = snap(y, 1/2) — a position is covered when
 #      the law reproduces tau(y) EXACTLY (Fraction ==), so the
 #      covered CE-contribution is EXACTLY 0 (Hagi.Theory.
 #      ExactBypass.exact_gate_sound semantics: p = 1 on covered).
-#   P2 adapter on the GapBuffer (task A, C532/C481 form): linear
+#   P2 adapter on the GapBuffer (task A): linear
 #      head, certified snap-GD steps (measured drop > 0 or HOLD).
-#   P3 grow (C521 snap-rational + C504/C532 neutral-init): new
+#   P3 grow (snap-rational + neutral-init): new
 #      feature x4 = snap(x0*x1, 1/1000), weight 0 appended — obj
 #      invariant BIT-EXACT assert — then the new coordinate is
 #      trained by certified steps; snap determinism asserted.
-#   P4 continual isolation (C544): task B gets its OWN adapter;
+#   P4 continual isolation: task B gets its OWN adapter
 #      task A's adapter is frozen, so predictions on A are
 #      BIT-EXACT unchanged (forgetA = 0 assert); the SHARED-step
 #      negative arm demonstrates the leak the theorem forbids.
-#   P5 OE primitive search (C540) + EB gate (C539): space = grid
+#   P5 OE primitive search  + EB gate: space = grid
 #      constant laws on [min tau, max tau] of the uncovered gap;
 #      probes = first 8 uncovered points; obsV = the exact-match
 #      vector on the probes; oeFirsts dedup; a candidate is
@@ -9397,7 +9315,7 @@ def fl_eb_costs(errs):
     the measured sigma-hat instead of the worst-case range).
     eps is chosen adaptively as R/k with k growing until the EB
     radius is feasible at n_H (EB beats Hoeffding only for
-    eps << R — the C539 lesson: 0.04 vs R = 11.09)."""
+    eps << R — the lesson: 0.04 vs R = 11.09)."""
     import math
     R = float(max(errs))
     if R <= 0:
@@ -9426,7 +9344,7 @@ def fl_eb_costs(errs):
 
 
 def mini_hagi_loop_run(ledger_path):
-    """The C547 full self-improving loop: ONE trace, per-phase
+    """The full self-improving loop: ONE trace, per-phase
     bit-exact asserts, telemetry for the final metrics JSON."""
     pts = _load_corpus(ledger_path)
     data = [(k, x, fl_tau(y)) for k, x, y in pts]
@@ -9464,7 +9382,7 @@ def mini_hagi_loop_run(ledger_path):
         "theorem": "Hagi.Theory.ExactBypass.exact_gate_sound"})
 
     # ---------------- P2 task-A adapter (certified) ----------
-    # deterministic split of the gap buffer (C485 form, on (x,t))
+    # deterministic split of the gap buffer (two-task split, on (x,t))
     gs = sorted(gap, key=lambda p: (p[1], p[0]))
     A = [p for i, p in enumerate(gs) if i % 2 == 0]
     B = [p for i, p in enumerate(gs) if i % 2 == 1]
@@ -9516,7 +9434,7 @@ def mini_hagi_loop_run(ledger_path):
     assert inv0 == inv1, \
         f"ABORT P3: grow broke obj invariance ({inv0} != {inv1})"
     assert cl_snap(we) == cl_snap(cl_snap(we)), \
-        "ABORT P3: snap is not deterministic (C521)"
+        "ABORT P3: snap is not deterministic "
     gsteps = 0
     for _ in range(FL_GROW_STEPS):
         g = mh_grad(we, Ax)
@@ -9541,9 +9459,9 @@ def mini_hagi_loop_run(ledger_path):
         "ceA_end": str(objA2),
         "obj_invariant_exact": str(inv0 == inv1),
         "theorem": "Hagi.Theory.AdapterGrowth.adapter_obj_"
-                   "invariant (C532) + snap (C521)"})
+                   "invariant  + snap "})
 
-    # ---------------- P4 continual isolation (C544) ----------
+    # ---------------- P4 continual isolation ----------
     predA_before = [mh_pred(we, x) for x, _ in Ax]
     wb = [F(0)] * len(we)
     trajB = []
@@ -9657,13 +9575,13 @@ def mini_hagi_loop_run(ledger_path):
 
 
 def emit_lean_fullloop(path, res, witness_steps=2):
-    """C547 witness: literal certified trajectories of the FULL
+    """Witness: literal certified trajectories of the FULL
     loop (P2 adapter-A, P3 grow, P4 adapter-B) + #eval
     checkTrajectory + the P1 bypass zero-CE identity + negatives
     (wrong-const error != 0, shared leak != 0) + #check of the
     composed theory (Hagi.Theory.MiniHagiLoop.full_loop_sound
     and its five component theorems)."""
-    out = ["-- C547 mini-hagi full-loop witness (real "
+    out = ["-- mini-hagi full-loop witness (real "
            "unified_ledger data, ONE trace).\n"
            f"-- P1 bypass const {res['cstar']}: covered "
            "CE-contribution EXACTLY 0; P2/P3 certified steps: "
@@ -9723,19 +9641,19 @@ def emit_lean_fullloop(path, res, witness_steps=2):
     _write_text(path, ("".join(out)))
 
 
-# C549: ITERATIVE SELF-IMPROVEMENT LOOP (--mode mini-hagi-loop2)
+# ITERATIVE SELF-IMPROVEMENT LOOP (--mode mini-hagi-loop2)
 #
-# C547 ran ONE pass of the phases. A real self-improving loop is
+# Ran ONE pass of the phases. A real self-improving loop is
 # a CYCLE: iteration k = OE primitive search (space GROWN from
 # the accepted primitives) -> coverage expands (EXACT, additive)
 # -> adapter retrained on the SHRINKING residual (certified
 # steps) -> EB telemetry; stop = EB-gate (no new primitive
 # accepted) or budget (MAX_ITER).
 #
-# COMPOSITIONAL CORPUS (probe-validated, .tmp/C549/probe.py):
+# COMPOSITIONAL CORPUS (probe-validated):
 # real byte-features x (mh_load_dataset, 113 pts), synthesized
-# targets on the tau grid 1/16 (PIN: C549 corpus grid is 1/16,
-# NOT the C547 1/2 — the finer grid separates the clustered
+# targets on the tau grid 1/16 (PIN: corpus grid is 1/16
+# NOT the 1/2 — the finer grid separates the clustered
 # byte-feature values):
 #   L1 (i%2==0, 57 pts): t = c1 = 0 — constant level.
 #   L2 (i%3==0, 19 pts): t = snap(c1 + 256*x0 + 32*x3, 1/16) —
@@ -9756,7 +9674,7 @@ def emit_lean_fullloop(path, res, witness_steps=2):
 # building-block primitive (the compositional chain
 # p3 <- p2 <- p1 is real: see neg-compos-L2 / neg-compos-L3).
 
-FL2_QGRID = F(1, 16)              # C549 corpus tau grid
+FL2_QGRID = F(1, 16) # corpus tau grid
 FL2_ETA = F(1, 10)                # certified step size
 FL2_A_STEPS = 10                  # per-iteration adapter steps
 FL2_MIN_NEW = 5                   # min NEW positions per primitive
@@ -9812,7 +9730,7 @@ def fl2_law_pred(prim, x):
 
 
 def mini_hagi_loop2_run(ledger_path):
-    """The C549 iterative loop: N>=3 iterations of (OE search on
+    """The iterative loop: N>=3 iterations of (OE search on
     a primitive-grown space -> exact coverage expansion -> adapter
     retrained on the residual -> EB telemetry), one telemetry,
     per-iteration bit-exact asserts, stop on EB-gate/budget."""
@@ -10021,7 +9939,7 @@ def mini_hagi_loop2_run(ledger_path):
     err_wrong = (wrong - data[cov_any]["t"]) ** 2
     assert err_wrong > 0, "ABORT neg: wrong-const err must be > 0"
     tel["negatives"]["wrong_const"] = str(err_wrong)
-    # (4) HOLD leaves the state unchanged (C547 discipline)
+    # (4) HOLD leaves the state unchanged (grow-stop discipline)
     tel["negatives"]["hold_unchanged"] = True
 
     tel["final"] = {
@@ -10040,13 +9958,13 @@ def mini_hagi_loop2_run(ledger_path):
 
 
 def emit_lean_loop2(path, res, witness_steps=2):
-    """C549 witness: literal certified trajectories of iterations
+    """Witness: literal certified trajectories of iterations
     1-3 + #eval checkTrajectory + negatives (wrong-const error
     != 0; the no-progress stop) + #check of the iterative theory
     (iterative_loop_sound, coverage_append_monotone,
     full_loop_sound)."""
     tel = res["tel"]
-    out = ["-- C549 iterative-loop witness (layered corpus, ONE "
+    out = ["-- iterative-loop witness (layered corpus, ONE "
            "run).\n"
            f"-- {len(tel['iterations'])} iterations, stop: "
            f"{res['stop_reason']}; coverage "
@@ -10106,27 +10024,27 @@ def emit_lean_loop2(path, res, witness_steps=2):
     _write_text(path, ("".join(out)))
 
 
-# C551: UNIVERSAL-LOOP ON THE FULL LIVE CORPUS
+# UNIVERSAL-LOOP ON THE FULL LIVE CORPUS
 # (--mode universal-loop)
 #
-# C549 ran its iterative loop on a LAYERED corpus: real byte
+# Ran its iterative loop on a LAYERED corpus: real byte
 # features, but SYNTHESIZED 3-level targets (i%2/%3/%5) with a
 # 30-point real residual — the honest compromise "the found
 # laws are corpus-synthetic". The universal loop removes it:
 # the corpus is the FULL live ledger (EVERY domain key with a
 # .bin sibling — 113 domains, no manual subsampling), and the
-# targets are the REAL ce values snapped on the C549 grid 1/16.
+# targets are the REAL ce values snapped on the grid 1/16.
 #
 # HONESTY PINS (fail-closed):
 # - OE search is HONEST: constants = the distinct real target
 #   values; linear laws p + a*x_j (a on the power-of-two grid
 #   1/16..256, j = 0..3) appear ONLY anchored on an accepted
-#   const primitive p (the C549 compositional discipline). If
+#   const primitive p (compositional discipline). If
 #   no real law is found, that IS the result: the universal
 #   complexity of the corpus is measured, not papered over.
 # - acceptance is EXACT (err == 0 asserted per position, >= 5
 #   NEW positions, oeFirsts-dedup).
-# - adapters are PER-DOMAIN (C544 isolation): each domain has
+# - adapters are PER-DOMAIN (isolation): each domain has
 #   its own snap-GD parameters trained only on its OWN
 #   uncovered points; forgetA is a REAL assert — the parameter
 #   snapshots of all other domains are compared bit-exact after
@@ -10134,7 +10052,7 @@ def emit_lean_loop2(path, res, witness_steps=2):
 # - drift detect: coverage is recomputed on a deep frozen copy
 #   of the loaded corpus and asserted bit-equal (the run's
 #   numbers describe the corpus it loaded, not a moving file).
-# - C549 stability: the C549 accepted laws are evaluated on the
+# - law stability: the accepted laws are evaluated on the
 #   REAL targets of the SAME full corpus — do the synthetic-era
 #   discoveries survive the corpus extension? (probe: the
 #   affine law matches 0/8 — instability is an honest result).
@@ -10156,7 +10074,7 @@ def ul_pred(prim, x):
 
 
 def universal_loop_run(ledger_path):
-    """C551: the C549 iterative loop on the FULL live corpus
+    """The iterative loop on the FULL live corpus
     (all domains, real snapped targets, per-domain adapters,
     honest OE). One run, one telemetry, bit-exact asserts."""
     import copy
@@ -10214,7 +10132,7 @@ def universal_loop_run(ledger_path):
 
     def adapters_on_residual(tag):
         """Per-domain snap-GD on each domain's OWN uncovered
-        points (C544 isolation). Returns (traj, ce_before,
+        points (isolation). Returns (traj, ce_before,
         ce_after, params_total) and asserts forgetA = 0: the
         parameter snapshots of every OTHER domain are unchanged
         bit-exact after each domain's training."""
@@ -10246,7 +10164,7 @@ def universal_loop_run(ledger_path):
                         {"phase": tag, "drop": o0 - o1,
                          "reason": "drop <= 0: HOLD"})
             ad[dk] = w
-            # FORGETA = 0 (C544 isolation, REAL assert): after
+            # FORGETA = 0 (isolation, REAL assert): after
             # training domain dk, every OTHER domain's params
             # are bit-identical to the pre-phase snapshot.
             for k2, v2 in snap_all.items():
@@ -10335,7 +10253,7 @@ def universal_loop_run(ledger_path):
         "note": "bit-equal: the run describes the corpus it "
                 "loaded"}
 
-    # ---- C549 law stability on the REAL full-corpus targets
+    # ---- law stability on the REAL full-corpus targets
     c549 = {"const0": lambda x: F(0),
             "aff_256x0_32x3": lambda x: fl2_snap(
                 F(256) * x[0] + F(32) * x[3]),
@@ -10392,14 +10310,14 @@ def universal_loop_run(ledger_path):
 
 
 def emit_lean_universal(path, res, witness_steps=2):
-    """C551 witness: literal certified adapter trajectories of
+    """Witness: literal certified adapter trajectories of
     the full-corpus run + forgetA=0 instance (the domain's
     adapter params differ from ANOTHER domain's frozen snapshot
     only via its OWN training — asserted equal-across-phases)
     + coverage monotonicity on the run's numbers + #check of
     iterative_loop_sound / universal_loop_corpus_mono."""
     tel = res["tel"]
-    out = ["-- C551 universal-loop witness (FULL live corpus, "
+    out = ["-- universal-loop witness (FULL live corpus, "
            "ONE run).\n"
            f"-- {len(tel['iterations'])} iterations, stop: "
            f"{res['stop_reason']}; coverage "
@@ -10408,7 +10326,7 @@ def emit_lean_universal(path, res, witness_steps=2):
            f"{tel['final']['domains_total']}, fully covered "
            f"{tel['final']['domains_fully_covered']}.\n"
            "-- NEGATIVES: wrong-const error != 0; the no-progress "
-           "iteration stops (EB-gate); C549 synthetic-era laws "
+           "iteration stops (EB-gate); layered-corpus laws "
            "checked on the real targets (stability telemetry).\n"
            "import Hagi.Runtime.CertChecker\n"
            "import Hagi.Theory.MiniHagiLoop\n\n"
@@ -10468,7 +10386,7 @@ def emit_lean_universal(path, res, witness_steps=2):
         if same else \
         (f"theorem universal_forgetA_isolated_instance:\n"
          f"    \u00ac [{ea}] = [{eb}] := by norm_num\n")
-    out.append("-- forgetA = 0 (C544 isolation, bit-exact "
+    out.append("-- forgetA = 0 (isolation, bit-exact "
                "snapshots; the run asserts this for EVERY "
                "domain pair after every phase).\n" + th + "\n")
     out.append(
@@ -10489,10 +10407,10 @@ def emit_lean_universal(path, res, witness_steps=2):
     _write_text(path, ("".join(out)))
 
 
-# C555: SELF-COMPRESSING ADAPTER LOOP (--mode self-compress-loop)
+# SELF-COMPRESSING ADAPTER LOOP (--mode self-compress-loop)
 #
-# The H2 answer to C554's roadmap: with no laws in the corpus
-# (C551/C553), growth runs through neuro-adaptation — and the
+# With no laws in the corpus
+# (universal-loop, linear or nonlinear), growth runs through neuro-adaptation -- and the
 # self-compress loop keeps its parameter volume BOUNDED while
 # the certified knowledge accumulates. One iteration =
 #
@@ -10525,8 +10443,8 @@ SC_MIN_NEW = 5                    # min positions per const law
 
 
 def self_compress_loop_run(ledger_path):
-    """C555: self-compressing adapter loop on the FULL live
-    corpus (C551 mechanics: const clusters + adapter residual).
+    """Self-compressing adapter loop on the FULL live
+    corpus (mechanics: const clusters + adapter residual).
     Params stay <= 2*K*d while the cumulative certified drop
     grows monotonically. One run, one telemetry, bit-exact
     asserts."""
@@ -10543,7 +10461,7 @@ def self_compress_loop_run(ledger_path):
            "phase0": {}, "iterations": [], "holds": [],
            "negatives": {}, "matryoshka": []}
 
-    # ---- phase 0: const clusters (C551 honest OE, consts only)
+    # ---- phase 0: const clusters (honest OE, consts only)
     covered, laws = set(), []
     while True:
         best, bestlen = None, -1
@@ -10595,7 +10513,7 @@ def self_compress_loop_run(ledger_path):
         return tot / len(res_pts)
 
     def obj_bound(Da, Db):
-        """EXACT certified per-point bound (C533 formula):
+        """EXACT certified per-point bound (formula):
         mean (2|s-y|+|ds|)*|ds|."""
         s = F(0)
         for f, y in res_pts:
@@ -10803,11 +10721,11 @@ def self_compress_loop_run(ledger_path):
 
 
 def emit_lean_selfcomp(path, res, witness_steps=2):
-    """C555 witness: literal certified trajectories of the run +
+    """Witness: literal certified trajectories of the run +
     params-bounded instance + the no-merge count contrast +
-    #check of the C555 theorems."""
+    #check of the theorems."""
     tel = res["tel"]
-    out = ["-- C555 self-compress-loop witness (FULL live "
+    out = ["-- self-compress-loop witness (FULL live "
            "corpus, ONE run).\n"
            f"-- {len(tel['iterations'])} iterations, stop: "
            f"{tel['final']['stop_reason']}; obj "
@@ -10871,7 +10789,7 @@ def emit_lean_selfcomp(path, res, witness_steps=2):
         "(0/1 : \u211a) := by norm_num\n\n")
     pb2 = pb // 2 if pb % 8 == 0 else pb
     out.append(
-        "-- generic C555 theorems (the run instantiates them "
+        "-- generic theorems (run instantiates them "
         "with k = 4, d = 4, L = "
         f"{len(tel['iterations'])}):\n"
         "#check @Hagi.Theory.AdapterGrowth.selfCompressParams\n"
@@ -10886,10 +10804,10 @@ def emit_lean_selfcomp(path, res, witness_steps=2):
     _write_text(path, ("".join(out)))
 
 
-# C556: CONSTANT CLUSTER DISTILLATION (--mode distill)
+# CONSTANT CLUSTER DISTILLATION (--mode distill)
 #
-# The C554 roadmap top-2 answer: distill the 6 constant
-# clusters (C551/C553, 106/113 exact coverage) out of the
+# Motivation: distill the 6 constant
+# clusters (106/113 exact coverage) out of the
 # symbolic exact-gate and INTO rank-1 adapter weights
 #
 #   theta(c) = (A := 0, B := const c)
@@ -10901,7 +10819,7 @@ def emit_lean_selfcomp(path, res, witness_steps=2):
 # involved, certified init IS the answer). After distillation
 # the exact-bypass BRANCHING is switched off: the unified
 # contour is a single adapter path over the whole corpus
-# (clusters via theta(c_j), residual via the C555-style
+# (clusters via theta(c_j), residual via the self-compress
 # certified head), and the cluster CE is 0 BIT-EXACT
 # (distill_coverage_preserved: exact_gate_sound composition).
 #
@@ -10918,7 +10836,7 @@ DS_PROBES = 4                     # extra probe inputs per cluster
 
 
 def distill_run(ledger_path):
-    """C556: distill the C551 constant clusters into rank-1
+    """Distill the constant clusters into rank-1
     adapter weights. CE before (head-only on clusters) > 0,
     CE after (adapter path) = 0 BIT-EXACT, 0 branches left.
     One run, one telemetry, bit-exact asserts."""
@@ -10934,7 +10852,7 @@ def distill_run(ledger_path):
     tel = {"n_points": n, "d": D,
            "clusters": [], "negatives": {}, "holds": []}
 
-    # ---- phase 0: the SAME C551 constant clusters (greedy OE)
+    # ---- phase 0: the SAME constant clusters (greedy OE)
     covered, clusters = set(), []
     while True:
         best, bestlen = None, -1
@@ -11066,11 +10984,11 @@ def distill_run(ledger_path):
 
 
 def emit_lean_distill(path, res):
-    """C556 witness: distilled cluster CE = 0 instances (run
+    """Witness: distilled cluster CE = 0 instances (run
     numbers, norm_num), the honest param contrast, negatives,
-    #check of the C556 theorems."""
+    #check of the theorems."""
     tel = res["tel"]
-    out = ["-- C556 distill witness (FULL live corpus, ONE run).\n"
+    out = ["-- distill witness (FULL live corpus, ONE run).\n"
            f"-- {tel['final']['clusters']} clusters distilled "
            f"({tel['final']['coverage']} coverage); cluster CE "
            "before (head-only) "
@@ -11111,7 +11029,7 @@ def emit_lean_distill(path, res):
         "theorem distill_params_instance :\n"
         f"    ({ps} : \u2115) < ({pd} : \u2115) := by norm_num\n\n")
     out.append(
-        "-- generic C556 theorems (the run instantiates them "
+        "-- generic theorems (run instantiates them "
         f"with J = {res['J']}, d = {res['D']}):\n"
         "#check @Hagi.Theory.AdapterGrowth.distillAdapter\n"
         "#check @Hagi.Theory.AdapterGrowth."
@@ -11127,20 +11045,20 @@ def emit_lean_distill(path, res):
     _write_text(path, ("".join(out)))
 
 
-# C558: MINI-HAGI V3 — UNIVERSAL SELF-COMPRESSING DISTILL LOOP
+# MINI-HAGI V3 — UNIVERSAL SELF-COMPRESSING DISTILL LOOP
 # (--mode mini-hagi-v3)
 #
-# The FINAL ASSEMBLY (roadmap C557 top-1): every certified
-# component of C547-C556 in ONE bench run on the FULL live
-# corpus (a snapshot frozen per run — the C535 lesson: the
+# The FINAL ASSEMBLY: every certified
+# component of the loop modes in ONE bench run on the FULL live
+# corpus (a snapshot frozen per run: the
 # live ledger may grow BETWEEN runs, never WITHIN one):
 #
-#   P1 exact-bypass   const clusters (C551 OE gate)      106/113-class coverage, now n-7
-#   P2 distill        theta(c) rank-1 adapters (C556)    cluster CE = 0 BIT-EXACT, branches n -> 0
-#   P3 adapter residual certified fd head (C555 0b)      7-point residual, drop>0 commits only
+#   P1 exact-bypass   const clusters (universal-loop OE gate)       106/113-class coverage, now n-7
+#   P2 distill        theta(c) rank-1 adapters (distill)            cluster CE = 0 BIT-EXACT, branches n -> 0
+#   P3 adapter residual certified fd head (self-compress 0b)        7-point residual, drop>0 commits only
 #   P4 self-compress  admit r=1 -> learn -> exact merge   params <= 2*K*d after EVERY merge
-#                     loop (C555), obj telescope          cumulative drop monotone
-#   P5 EB-stop        commit=0 => STOP (C555 gate)        stop_reason telemetry
+#                     loop (self-compress), obj telescope           cumulative drop monotone
+#   P5 EB-stop        commit=0 => STOP (self-compress gate)          stop_reason telemetry
 #
 # One call, one telemetry, one trace: every phase asserts its
 # invariant on the frozen snapshot; any violation aborts the
@@ -11161,7 +11079,7 @@ V3_PROBES = 4                       # probe inputs per distilled cluster
 
 
 def mini_hagi_v3_run(ledger_path):
-    """C558: the full certified assembly in ONE trace on a
+    """The full certified assembly in ONE trace on a
     per-run frozen corpus snapshot. Bit-exact asserts at every
     phase boundary; forget=0 drift detect at the end."""
     import copy
@@ -11172,7 +11090,7 @@ def mini_hagi_v3_run(ledger_path):
     data = [{"key": k, "x": x, "t": fl2_snap(F(str(y)))}
             for (k, x, y) in pts]
     n = len(data)
-    frozen = copy.deepcopy(data)         # per-run SNAPSHOT (C535)
+    frozen = copy.deepcopy(data)         # per-run SNAPSHOT
     D, K = CL_D, V3_K
     tel = {"n_points": n, "d": D, "K": K,
            "params_budget": 2 * K * D,
@@ -11180,7 +11098,7 @@ def mini_hagi_v3_run(ledger_path):
            "negatives": {}}
 
     def theta_apply(c, x):
-        """distillAdapter theta(c) x — EXACT (C556): A = 0 so
+        """distillAdapter theta(c) x — EXACT: A = 0 so
         the inner coordinate is 1, B_i = c lifts it to c."""
         return [c * F(1) for _ in range(D)]
 
@@ -11219,7 +11137,7 @@ def mini_hagi_v3_run(ledger_path):
     # ---------------- P2: distill clusters into adapters ------
     ce_before = {}
     # (the P3 head does not exist yet; the honest CE-before
-    # base is the ZERO head on the clusters — same C556 form,
+    # base is the ZERO head on the clusters — same form
     # computed after P3 trains w, see below)
     probes = [[F((3 * i + 1) % 7 - 3) for i in range(D)]
               for _ in range(V3_PROBES)]
@@ -11298,7 +11216,7 @@ def mini_hagi_v3_run(ledger_path):
         return tot / len(res_pts)
 
     def obj_bound(Da, Db):
-        """EXACT certified per-point bound (C533/C555)."""
+        """EXACT certified per-point bound (adapter-snap formula)."""
         s = F(0)
         for f, y in res_pts:
             fa = [f[i] + sum((Da[i][j] * f[j]
@@ -11502,12 +11420,12 @@ def mini_hagi_v3_run(ledger_path):
 
 
 def emit_lean_v3(path, res, witness_steps=2):
-    """C558 witness: phase-invariant #eval instances on the
+    """Witness: phase-invariant #eval instances on the
     run numbers — P2 CE=0, P3/P4 certified trajectories, P4
     params bounded + telescope, negatives, #check of the
     assembly theorem and its components."""
     tel = res["tel"]
-    out = ["-- C558 mini-HAGI v3 witness (ONE trace, FULL live\n"
+    out = ["-- mini-HAGI v3 witness (ONE trace, FULL live\n"
            "-- corpus snapshot, "
            f"{tel['n_points']} pts).\n"
            f"-- Phases: {', '.join(p['phase'] for p in tel['phases'])}"
@@ -11592,7 +11510,7 @@ def emit_lean_v3(path, res, witness_steps=2):
         "(0/1 : \u211d) := by norm_num\n\n")
     # the assembly theorem + its components
     out.append(
-        "-- the C558 reference composition (the run "
+        "-- the reference composition (run "
         f"instantiates it with J = {res['J']}, "
         f"k = d = {res['D']}):\n"
         "#check @Hagi.Theory.AdapterGrowth.v3_assembly_sound\n"
@@ -11607,17 +11525,17 @@ def emit_lean_v3(path, res, witness_steps=2):
     _write_text(path, ("".join(out)))
 
 
-# C553: NONLINEAR PRIMITIVE OE-SEARCH ON THE FULL LIVE CORPUS
+# NONLINEAR PRIMITIVE OE-SEARCH ON THE FULL LIVE CORPUS
 # (--mode universal-loop-nl)
 #
-# C551 found ONLY constant clusters on the real full-corpus
+# Found ONLY constant clusters on the real full-corpus
 # targets (93.8% coverage; zero linear laws). The honest open
 # question: are the real dependencies simply NONLINEAR (H1),
 # absent altogether (H2), or was the probe budget too small
 # (H3)? This mode extends the primitive language v2:
 #
-#   const c                     (as C551)
-#   lin    snap(c + a*x_j)      (as C551: anchored on an
+#   const c
+#   lin    snap(c + a*x_j)      (anchored on an
 #                               ACCEPTED const only)
 #   prod   snap(c + a*x_i*x_j)  (pairs i <= j, squares incl.)
 #   mm     snap(c + a*op(x_i,x_j)), op in {min, max}
@@ -11625,7 +11543,7 @@ def emit_lean_v3(path, res, witness_steps=2):
 #
 # Anchor discipline: prod/mm anchor on {0} + accepted consts
 # (zero-anchor bootstrap — const 0 is a legitimate primitive
-# value; documented deviation from the C551 lin discipline,
+# value; documented deviation from the lin discipline
 # which is kept unchanged for lin); thr anchors on PAIRS of
 # accepted consts, q ranges over the distinct rational values
 # of x_j (the exact branch-flip points — a precise narrowing,
@@ -11633,7 +11551,7 @@ def emit_lean_v3(path, res, witness_steps=2):
 #
 # FEATURE BUDGET (measured, not assumed): CL_D = 4 features ->
 # 10 unordered pairs (incl. squares); <= ~12.7k candidates per
-# iteration at k = 7 accepted consts (research .tmp/C553 §3).
+# iteration at k = 7 accepted consts (measured).
 # top-k correlation truncation is therefore NOT applied
 # (k = CL_D = the whole feature set). If CL_D ever grows, the
 # documented criterion is top-k features by |Pearson
@@ -11642,10 +11560,10 @@ def emit_lean_v3(path, res, witness_steps=2):
 # Acceptance is EXACT and unchanged (err == 0 asserted, >= 5
 # NEW positions, oeFirsts-dedup on 8 probes); coverage is
 # monotone bit-exact; per-domain adapters + forgetA = 0
-# bit-exact asserts + drift detect are inherited from C551.
+# bit-exact asserts + drift detect are inherited from the universal loop.
 #
 # H-VERDICT (computed by code from telemetry, criteria fixed
-# BEFORE the run — research .tmp/C553 §4):
+# BEFORE the run).
 #   H1  >= 1 accepted primitive of kind prod/mm/thr;
 #   H3  stopped with a near-miss (a candidate with exactly
 #       UL_MIN_NEW - 1 = 4 exact new matches) — probes were
@@ -11697,7 +11615,7 @@ def ulnl_law(c):
 
 
 def universal_loop_nl_run(ledger_path):
-    """C553: C551 universal loop with the NONLINEAR primitive
+    """Universal loop with the NONLINEAR primitive
     language v2 on the FULL live corpus. One run, one
     telemetry, bit-exact asserts, code-computed H-verdict."""
     import copy
@@ -11725,7 +11643,7 @@ def universal_loop_nl_run(ledger_path):
         cands = [{"kind": "const", "c": c, "deps": []}
                  for c in sorted({d["t"] for d in data})]
         anchors = [p for p in prims if p["kind"] == "const"]
-        # lin: EXACTLY the C551 discipline (accepted consts)
+        # lin: EXACTLY the discipline (accepted consts)
         for pc in anchors:
             for j in range(CL_D):
                 for a in UL_SLOPES:
@@ -11914,7 +11832,7 @@ def universal_loop_nl_run(ledger_path):
         "note": "bit-equal: the run describes the corpus it "
                 "loaded"}
 
-    # ---- the C551 linear-language residual, itemized ----
+    # ---- the linear-language residual, itemized ----
     c551_consts = [F(11, 8), F(25, 16), F(13, 8), F(27, 16),
                    F(3, 2), F(23, 16)]
     lin_cov = {i for i, d in enumerate(data)
@@ -11993,17 +11911,17 @@ def universal_loop_nl_run(ledger_path):
 
 
 def emit_lean_universal_nl(path, res, witness_steps=2):
-    """C553 witness: (1) TOY nonlinear instance — a product
+    """Witness: (1) TOY nonlinear instance — a product
     law on probes (x0,x1) = (0,5),(1,7),(2,11) with target
     x0*x1: a UNIVERSAL negative (no c a : Q reproduce the obs
     vector with c + a*x0 — three distinct x0 kill linearity)
     and a positive (snap(0+1*x0*x1) matches exactly), plus
-    #check oe_search_complete (C540 applies to ANY space, so
+    #check oe_search_complete (applies to ANY space, so
     language v2 needs no new theorem); (2) literal certified
     adapter trajectories of the full-corpus run + forgetA=0
     instance + coverage monotonicity + negatives."""
     tel = res["tel"]
-    out = ["-- C553 universal-loop-nl witness (NONLINEAR "
+    out = ["-- universal-loop-nl witness (NONLINEAR "
            "primitive language v2, FULL live corpus, ONE run).\n"
            f"-- {len(tel['iterations'])} iterations, stop: "
            f"{res['stop_reason']}; coverage "
@@ -12034,7 +11952,7 @@ def emit_lean_universal_nl(path, res, witness_steps=2):
            "theorem nl_product_matches :\n"
            "    [(0:ℚ) * 5, 1 * 7, 2 * 11] = [0, 7, 22] := "
            "by norm_num\n\n"
-           "-- C540 applies to ANY program space: with the "
+           "-- applies to ANY program space: with the "
            "product program in the space, OE-dedup search "
            "keeps a representative with the same obs vector.\n"
            "#check @Hagi.Theory.OEComplete.oe_search_complete\n"
@@ -12090,7 +12008,7 @@ def emit_lean_universal_nl(path, res, witness_steps=2):
         if same else \
         (f"theorem universal_forgetA_isolated_instance:\n"
          f"    \u00ac [{ea}] = [{eb}] := by norm_num\n")
-    out.append("-- forgetA = 0 (C544 isolation, bit-exact "
+    out.append("-- forgetA = 0 (isolation, bit-exact "
                "snapshots; the run asserts this for EVERY "
                "domain pair after every phase).\n" + th + "\n")
     out.append(
@@ -12108,18 +12026,18 @@ def emit_lean_universal_nl(path, res, witness_steps=2):
     _write_text(path, ("".join(out)))
 
 
-# C560: CROSS-DOMAIN ADAPTER TRANSFER (--mode adapter-transfer)
+# CROSS-DOMAIN ADAPTER TRANSFER (--mode adapter-transfer)
 #
-# Roadmap C557 top-2 (the last unexplored contour; external
-# demand wave205): can an adapter trained on domain A ACCELERATE
+# The last unexplored contour: can an adapter trained on domain A
+# ACCELERATE
 # training on domain B (warm start) vs the neutral cold start
-# (C532)? Hypotheses: T1 positive transfer on close domains,
+# (cold start)? Hypotheses: T1 positive transfer on close domains,
 # T2 negative on far ones, T3 no effect. Any outcome is an
 # honest measured result.
 #
 # HONESTY PINS (fail-closed):
 # - DOMAINS = const clusters of the snapped ce target (the
-#   C551/C558 "constant clusters" of the live corpus), each
+#   "constant clusters" of the live corpus), each
 #   with >= TR_MIN_PTS points; the adapter is a 4-param linear
 #   head, obj = exact cluster MSE (mh_mse).
 # - Pair closeness is PRE-REGISTERED and computed BEFORE any
@@ -12144,36 +12062,36 @@ TR_STEPS = 30                  # equal certified budget per arm
 TR_ETA = UL_ETA                # certified adapter step size
 TR_MIN_PTS = 5                 # min cluster size to be a domain
 
-# C577: AUTO WARM/COLD TRANSFER GATE (--mode adapter-transfer-auto)
+# AUTO WARM/COLD TRANSFER GATE (--mode adapter-transfer-auto)
 #
-# Practical application of the C572 rule via a deterministic
-# probe-A/B gate (roadmap C575 top-3): before task B, run
+# Practical application of the H-metric boundary rule via a deterministic
+# probe-A/B gate: before task B, run
 # PROBE_STEPS (2-4) certified snap-GD steps from the warm init
-# theta = w_A (a COPY - rollback semantics C530: the source
+# theta = w_A (COPY - rollback semantics: the source
 # slot is never touched, bit-exact assert) and from the cold
 # init 0; choose the arm with the STRICTLY smaller probe AUC
 # (exact Fractions, no thresholds, no estimates - the
-# hybridSelect C510 pattern on two measured numbers; tie goes
+# hybridSelect pattern on two measured numbers; tie goes
 # to cold). Then run the FULL certified cycle of the CHOSEN
-# arm (cold reference arm kept for the C560 T1/T2/T3 verdict).
+# arm (cold reference arm kept for the T1/T2/T3 verdict).
 #
-# HONESTY PINS (fail-closed, inherited from C560):
+# HONESTY PINS (fail-closed, inherited):
 # - mh_mse is QUADRATIC in w: err(theta) - err(0) =
 #   theta.H.theta - 2 theta.b with H = mean(xx^T) PSD,
 #   b = mean(t x) = H t_hat - so the k=0 gate IS EXACTLY the
-#   C572 boundary 2<theta, t_hat> > |theta|^2 in the H-metric
+#   Boundary 2<theta, t_hat> > |theta|^2 in the H-metric
 #   (Hagi.Theory.AutoTransferGate.gate_char: at |1-2*eta| > 0
 #   the probe budget does NOT blur the boundary,
 #   transfer_helps_budget). Telemetry reports the exact
 #   boundary gap 2*theta.b - theta.H.theta per pair.
 # - probe NEVER commits: state w_A is snapshotted and asserted
-#   bit-exact after probing (C530 rollback: state never moved).
+#   bit-exact after probing (rollback: state never moved).
 # - corpus: the live C:/HAGI_v2 ledger has since shrunk
 #   (116 -> 35 live points); the default --data is the pinned
-#   C566 snapshot that reproduces the exact C560 6-domain
+#   Snapshot that reproduces the exact 6-domain
 #   corpus (pre-registered honesty pin, telemetry field
-#   "corpus": "C566-snapshot").
-# - adversarial pair (C572-style synthetic): targets
+#   "corpus": "pinned-snapshot").
+# - adversarial pair (synthetic): targets
 #   t = -1 * (w_A . x) on the closest pair's xs - the boundary
 #   gap is (1 + 2c) * theta.H.theta > 0 (theta.H.theta >= 0,
 #   H PSD), so the gate MUST choose cold (gate_adversarial_cold).
@@ -12181,24 +12099,24 @@ ATG_PROBE_STEPS = 2            # probe steps per arm (2-4)
 ATG_ADV_C = F(1)               # adversarial scale c (t = -c*theta.x)
 ATG_LEDGER = (".tmp/C566/corpus/unified_ledger.json")
 
-# C609: AUTO LR from the certified optimal step (C606).
+# AUTO LR from the certified optimal step.
 # Lean: Hagi.Theory.NegativeTransfer.nl_drop_optimal
 #   (L G : R) (hL : 0 < L) :
 #   nlDrop (1 / L) L G = G ^ 2 / (2 * L)
 # - the guaranteed per-step drop is MAXIMAL at the optimal
 #   step gamma* = 1/L (full square in nlDrop); bench rule:
 #   take the step from the MEASURED L (2*trace(Hbar), the
-#   same conservative exact rational bound C601 telemeters
+#   same conservative exact rational bound telemeters
 #   as L_bound_2traceH) instead of a manual constant.
 #   --fixed-lr keeps the old constant path (golden A/B).
 FIXED_LR = False                # set by --fixed-lr in main()
 
 
 def auto_lr(dts):
-    """C609: certified auto step gamma* = 1/L on the
+    """Certified auto step gamma* = 1/L on the
     quadratic mh_mse objective (exact Fractions). Python
     twin of Hagi.Theory.NegativeTransfer.nl_drop_optimal
-    (C606): nlDrop (1/L) L G = G^2/(2*L) - the guaranteed
+    Guaranteed drop: nlDrop (1/L) L G = G^2/(2*L) - the guaranteed
     drop is maximal at gamma* = 1/L. L = 2*trace(Hbar),
     Hbar = mean(xx^T) PSD (lambda_max <= trace, never
     tuned). Returns (gamma, L); fail-closed on L = 0 (the
@@ -12213,7 +12131,7 @@ def auto_lr(dts):
 
 
 def atg_quadratic_form(dts, w):
-    """Exact H-metric values for the C572 boundary telemetry:
+    """Exact H-metric values for the boundary telemetry:
     (w.H.w, w.b) with H = mean(xx^T), b = mean(t x) - so
     err(w) = w.H.w - 2 w.b + const and the boundary gap
     2 w.b - w.H.w decides warm (gap > 0) vs cold (gap <= 0)."""
@@ -12228,8 +12146,8 @@ def atg_quadratic_form(dts, w):
 
 
 def adapter_transfer_auto_run(ledger_path):
-    """C577: probe-A/B auto warm/cold transfer gate on the same
-    pre-registered C560 pairs + one adversarial (C572) pair;
+    """Probe-A/B auto warm/cold transfer gate on the same
+    pre-registered pairs + one adversarial pair;
     full certified cycle of the CHOSEN arm; forgetA bit-exact
     assert; boundary telemetry."""
     data = [{"x": x, "t": fl2_snap(F(str(y)))}
@@ -12244,7 +12162,7 @@ def adapter_transfer_auto_run(ledger_path):
     doms = sorted(t for t in by_t if len(by_t[t]) >= TR_MIN_PTS)
     if len(doms) < 2:
         corpus_abort(f"need >=2 domains, got {len(doms)}",
-                     hint="adapter-transfer-auto (C577)")
+                     hint="adapter-transfer-auto")
     pts = {t: [(d["x"], d["t"]) for d in data if d["t"] == t]
            for t in doms}
     mean_x = {t: [sum((x[i] for x in by_t[t]), F(0))
@@ -12263,10 +12181,10 @@ def adapter_transfer_auto_run(ledger_path):
 
     def train(w0, dts, steps=TR_STEPS):
         """K certified snap-GD steps (commit only drop > 0).
-        C609: step gamma = 1/L measured (auto_lr, the
-        certified optimal step of nl_drop_optimal C606)
+        Step gamma = 1/L measured (auto_lr, the
+        certified optimal step of nl_drop_optimal)
         unless --fixed-lr keeps the old constant TR_ETA.
-        Per-step telemetry: measured drop vs the C606 bound
+        Per-step telemetry: measured drop vs the bound
         G^2/(2L) (G = ||grad|| at step start; the bound may
         be loose - shown, honest)."""
         gamma, lr_l = ((TR_ETA, None) if FIXED_LR
@@ -12293,13 +12211,13 @@ def adapter_transfer_auto_run(ledger_path):
         return w, o0, traj
 
     def lr_tel(dts):
-        """C609 telemetry: gamma_auto = 1/L (nl_drop_optimal)
+        """Telemetry: gamma_auto = 1/L (nl_drop_optimal)
         vs the old constant TR_ETA = 1/10 on this domain."""
         if FIXED_LR:
             return {"mode": "fixed-lr (--fixed-lr)",
                     "gamma_used": str(TR_ETA)}
         gamma_d, lr_l = auto_lr(dts)
-        return {"mode": "auto 1/L (C609, nl_drop_optimal)",
+        return {"mode": "auto 1/L (nl_drop_optimal)",
                 "gamma_used": str(gamma_d),
                 "gamma_old_constant": str(TR_ETA),
                 "L_2traceH": str(lr_l)}
@@ -12307,18 +12225,18 @@ def adapter_transfer_auto_run(ledger_path):
 
     def probe(w0, dts):
         """ATG_PROBE_STEPS rollback probe steps on a COPY of w0
-        (C530: no commit, the source state never moves)."""
+        (no commit, the source state never moves)."""
         _, _, traj = train(list(w0), dts, ATG_PROBE_STEPS)
         return sum((d["obj"] for d in traj), F(0))
 
     tel = {"mode": "adapter-transfer-auto",
-           "corpus": ("C566-snapshot" if ledger_path == ATG_LEDGER
+           "corpus": ("pinned-snapshot" if ledger_path == ATG_LEDGER
                       else ledger_path),
            "n_points": len(data), "n_domains": len(doms),
            "probe_steps": ATG_PROBE_STEPS,
            "gate_rule": ("warm iff probe_auc_warm < "
                          "probe_auc_cold (exact Fractions, "
-                         "tie->cold; C572 boundary at k=0)"),
+                         "tie->cold; H-metric boundary at k=0)"),
            "steps_budget": TR_STEPS, "pairs": []}
 
     for d0, A, B in sel:
@@ -12326,15 +12244,15 @@ def adapter_transfer_auto_run(ledger_path):
         # source adapter A trained ONCE per pair, frozen
         wA = train([F(0)] * CL_D, ptsA, TR_STEPS)[0]
         snapA = list(wA)
-        # --- PROBE A/B (rollback, C530): no commit, no mutation
+        # --- PROBE A/B (rollback): no commit, no mutation
         auc_pw = probe(wA, ptsB)
         auc_pc = probe([F(0)] * CL_D, ptsB)
         gate = "warm" if auc_pw < auc_pc else "cold"
         hww, wb = atg_quadratic_form(ptsB, wA)
-        gap0 = 2 * wb - hww          # k=0 boundary (C572 form)
+        gap0 = 2 * wb - hww # k=0 boundary 
         assert wA == snapA, \
             "ABORT probe rollback: source adapter A mutated " \
-            "during probe (C530 broken)"
+            "during probe (rollback broken)"
         # --- FULL certified cycle: chosen arm + cold reference
         _, fc, cc, tc = (lambda r: (r[0], r[1], len(r[2]), r[2]))(
             train([F(0)] * CL_D, ptsB))
@@ -12370,7 +12288,7 @@ def adapter_transfer_auto_run(ledger_path):
                          "auc": str(cold_auc)},
             "verdict": verdict})
 
-    # --- adversarial pair (C572-style synthetic: t = -c*theta.x)
+    # --- adversarial pair (synthetic: t = -c*theta.x)
     d0, A, B = sel[0]
     wA = train([F(0)] * CL_D, pts[A], TR_STEPS)[0]
     pts_adv = [(x, -ATG_ADV_C * mh_pred(wA, x))
@@ -12407,7 +12325,7 @@ def adapter_transfer_auto_run(ledger_path):
                                     "drop_bound_G2_over_2L")}
                            for d in tS]},
         "cold_ref": {"final_ce": str(fc), "auc": str(cold_auc)},
-        "verdict": ("gate-cold (expected, C572 synthetic)"
+        "verdict": ("gate-cold (expected, synthetic)"
                     if gate == "cold" else
                     "UNEXPECTED warm (H degenerate?)")})
 
@@ -12422,29 +12340,29 @@ def adapter_transfer_auto_run(ledger_path):
     return {"tel": tel}
 
 
-# C601: CERTIFIED TRANSFER GATE (--mode transfer-gate-certified)
+# CERTIFIED TRANSFER GATE (--mode transfer-gate-certified)
 #
-# Roadmap C599 top-2: HAGI_v2 wave232 (hagi/unified.py, READ-ONLY)
+# HAGI_v2 (hagi/unified.py, READ-ONLY)
 # warm-starts a fresh adapter from the best source domain by a
 # PROXY (source ce <= 0.5, "a measured proxy for a small start
-# gap"). C601 replaces/complements that decision on OUR side
+# gap"). This gate replaces that decision on OUR side
 # with an HONEST start-gap meter against the CERTIFIED budget
-# threshold from Lean (C592):
+# threshold from Lean:
 #
 #   warm allowed  iff  start_gap = f(thetaA) - f(0) <= n*nlBudget
 #   otherwise: CERTIFIED negative transfer -> cold
 #
 # where nlBudget gamma L G = gamma*G^2 + L*gamma^2*G^2/2 is
 # Hagi.Theory.NegativeTransfer.nlBudget (verbatim formula) and
-# the semantics are sufficient_negative_transfer (C592: start
+# the semantics are sufficient_negative_transfer (start
 # gap > n*nlBudget => warm strictly worse than cold after the
 # equal n-step budget; smooth_obj_transfer_bound gives the
 # two-sided start +/- budget sandwich). CONSERVATIVE (NOT iff)
 # in the smooth world: start_gap <= n*nlBudget permits warm
 # but does not promise benefit; the exact iff lives in the
-# quadratic world (C572 boundary, reported alongside).
+# quadratic world (boundary, reported alongside).
 #
-# HONESTY PINS (fail-closed, inherited from C577/C560):
+# HONESTY PINS (fail-closed, inherited):
 # - start_gap is EXACT (Fractions): mh_mse(wA, ptsB) minus
 #   mh_mse(0, ptsB) - the measured f(thetaA) - f(0), no
 #   estimates, no proxies.
@@ -12458,16 +12376,16 @@ def adapter_transfer_auto_run(ledger_path):
 #   run (honest measured premise, not an estimate).
 # - gamma = TR_ETA (the certified adapter step size); the
 #   premise gamma <= 2/L is checked and telemetered.
-# - Two-level gate semantics: quad-iff (C572: gap0 =
+# - Two-level gate semantics: quad-iff (gap0 =
 #   2*w.b - w.H.w decides warm exactly for the quadratic
-#   bench obj) AND smooth-sufficient (C592 certified budget
+#   bench obj) AND smooth-sufficient (certified budget
 #   threshold). The certified gate runs the FULL certified
 #   cycle of ITS chosen arm; cold reference kept for verdict.
-# - forgetA bit-exact asserts (C577/C530 rollback).
+# - forgetA bit-exact asserts (rollback).
 
 
 def nl_budget(gamma, L, G):
-    """C601: the certified per-step budget, the VERBATIM Lean
+    """The certified per-step budget, the VERBATIM Lean
     formula Hagi.Theory.NegativeTransfer.nlBudget:
     nlBudget gamma L G = gamma*G^2 + L*gamma^2*G^2/2
     (exact Fractions)."""
@@ -12475,10 +12393,10 @@ def nl_budget(gamma, L, G):
 
 
 def certified_transfer_gate(start_gap, n, gamma, L, G):
-    """C601: certified warm/cold transfer decision on the
+    """Certified warm/cold transfer decision on the
     MEASURED start gap.
 
-    Lean grounding (Hagi.Theory.NegativeTransfer, C592):
+    Lean grounding (Hagi.Theory.NegativeTransfer):
     - smooth_obj_transfer_bound: for an L-smooth objective with
       gradient bound G along the trajectory, after n GD steps
       f(z) - n*nlBudget <= f(nlRun n z) <= f(z);
@@ -12490,7 +12408,7 @@ def certified_transfer_gate(start_gap, n, gamma, L, G):
     otherwise certified-cold (the warm arm is CERTIFIED to end
     worse). Conservative in the smooth world (NOT iff):
     start_gap <= threshold permits warm without promising
-    benefit; the exact quadratic iff is the C572 boundary.
+    benefit; the exact quadratic iff is the boundary.
     """
     budget = nl_budget(gamma, L, G)
     threshold = F(n) * budget
@@ -12501,17 +12419,17 @@ def certified_transfer_gate(start_gap, n, gamma, L, G):
         "budget": budget,
         "certified_negative_transfer": certified_neg,
         "rule": ("warm iff start_gap <= n*nlBudget "
-                 "(sufficient_negative_transfer C592; "
+                 "(sufficient_negative_transfer; "
                  "nlBudget gamma L G = gamma*G^2 "
                  "+ L*gamma^2*G^2/2)"),
     }
 
 
 def transfer_gate_certified_run(ledger_path):
-    """C601: certified start-gap transfer gate on the C577
+    """Certified start-gap transfer gate on the 
     pre-registered pairs + adversarial pair; exact measured
     start_gap vs the Lean-budget threshold; two-level
-    (quad-iff C572 + smooth-sufficient C592) telemetry;
+    (quad-iff + smooth-sufficient) telemetry;
     full certified cycle of the gate-chosen arm; forgetA
     bit-exact assert."""
     data = [{"x": x, "t": fl2_snap(F(str(y)))}
@@ -12526,7 +12444,7 @@ def transfer_gate_certified_run(ledger_path):
     doms = sorted(t for t in by_t if len(by_t[t]) >= TR_MIN_PTS)
     if len(doms) < 2:
         corpus_abort(f"need >=2 domains, got {len(doms)}",
-                     hint="transfer-gate-certified (C601)")
+                     hint="transfer-gate-certified")
     pts = {t: [(d["x"], d["t"]) for d in data if d["t"] == t]
            for t in doms}
     mean_x = {t: [sum((x[i] for x in by_t[t]), F(0))
@@ -12545,10 +12463,10 @@ def transfer_gate_certified_run(ledger_path):
 
     def train(w0, dts, steps=TR_STEPS):
         """K certified snap-GD steps (commit only drop > 0).
-        C609: step gamma = 1/L measured (auto_lr, the
-        certified optimal step of nl_drop_optimal C606)
+        Step gamma = 1/L measured (auto_lr, the
+        certified optimal step of nl_drop_optimal)
         unless --fixed-lr keeps the old constant TR_ETA.
-        Per-step telemetry: measured drop vs the C606 bound
+        Per-step telemetry: measured drop vs the bound
         G^2/(2L) (G = ||grad|| at step start; the bound may
         be loose - shown, honest)."""
         gamma, lr_l = ((TR_ETA, None) if FIXED_LR
@@ -12579,17 +12497,17 @@ def transfer_gate_certified_run(ledger_path):
         return sum((c * c for c in g), F(0))
 
     tel = {"mode": "transfer-gate-certified",
-           "corpus": ("C566-snapshot" if ledger_path == ATG_LEDGER
+           "corpus": ("pinned-snapshot" if ledger_path == ATG_LEDGER
                       else ledger_path),
            "n_points": len(data), "n_domains": len(doms),
            "lr_mode": ("fixed-lr" if FIXED_LR
-                        else "auto 1/L (C609)"),
+                        else "auto 1/L"),
            "gamma_old_constant": str(TR_ETA),
            "n": TR_STEPS,
            "gate_rule": ("warm iff start_gap = f(thetaA) - f(0) "
-                         "<= n*nlBudget (C592 certified; nlBudget "
+                         "<= n*nlBudget (certified; nlBudget "
                          "gamma L G = gamma*G^2 + L*gamma^2*G^2/2 "
-                         "verbatim from Lean); quad level: C572 "
+                         "verbatim from Lean); quad level: "
                          "iff gap0 = 2*w.b - w.H.w"),
            "steps_budget": TR_STEPS, "pairs": []}
 
@@ -12606,7 +12524,7 @@ def transfer_gate_certified_run(ledger_path):
         traceH = sum((sum((x[i] * x[i] for x, _ in ptsB), F(0))
                       for i in range(CL_D)), F(0)) / nB
         L_bound = F(2) * traceH
-        # C609: gamma actually used by train() on this pair's
+        # Gamma actually used by train on this pair's
         # domain points (auto 1/L unless --fixed-lr)
         gamma_b, _ = ((TR_ETA, None) if FIXED_LR
                       else auto_lr(ptsB))
@@ -12632,8 +12550,8 @@ def transfer_gate_certified_run(ledger_path):
         certified_neg = start_gap > threshold
         gate = "cold-certified" if certified_neg else "warm"
         assert wA == snapA, \
-            "ABORT gate rollback: source adapter A mutated (C530)"
-        # --- quad level (C572 iff) telemetry
+            "ABORT gate rollback: source adapter A mutated "
+        # --- quad level (H-metric iff) telemetry
         hww, wb = atg_quadratic_form(ptsB, wA)
         gap0 = 2 * wb - hww
         quad_gate = "warm" if gap0 > 0 else "cold"
@@ -12663,7 +12581,7 @@ def transfer_gate_certified_run(ledger_path):
                 "gamma_le_2_over_L": prem_ok,
                 "n": TR_STEPS, "gamma": str(gamma_b)},
             "lr": {"mode": ("fixed-lr" if FIXED_LR
-                              else "auto 1/L (C609, "
+                              else "auto 1/L ("
                                    "nl_drop_optimal)"),
                    "gamma_used": str(gamma_b),
                    "gamma_old_constant": str(TR_ETA)},
@@ -12686,7 +12604,7 @@ def transfer_gate_certified_run(ledger_path):
             "cold_ref": {"final_ce": str(fc), "auc": str(cold_auc)},
             "verdict": verdict})
 
-    # --- adversarial pair (C572-style synthetic: t = -c*theta.x)
+    # --- adversarial pair (synthetic: t = -c*theta.x)
     d0, A, B = sel[0]
     wA = train([F(0)] * CL_D, pts[A], TR_STEPS)[0]
     pts_adv = [(x, -ATG_ADV_C * mh_pred(wA, x))
@@ -12732,7 +12650,7 @@ def transfer_gate_certified_run(ledger_path):
             "gamma_le_2_over_L": prem_ok,
             "n": TR_STEPS, "gamma": str(gamma_adv)},
         "lr": {"mode": ("fixed-lr" if FIXED_LR
-                          else "auto 1/L (C609, "
+                          else "auto 1/L ("
                                "nl_drop_optimal)"),
                "gamma_used": str(gamma_adv),
                "gamma_old_constant": str(TR_ETA)},
@@ -12746,7 +12664,7 @@ def transfer_gate_certified_run(ledger_path):
         "chosen": {"arm": gate, "final_ce": str(fS),
                    "auc": str(chosen_auc)},
         "cold_ref": {"final_ce": str(fc), "auc": str(cold_auc)},
-        "verdict": ("gate-cold (expected, C572 synthetic)"
+        "verdict": ("gate-cold (expected, synthetic)"
                     if gate != "warm" else
                     "UNEXPECTED warm (H degenerate?)")})
 
@@ -12765,7 +12683,7 @@ def transfer_gate_certified_run(ledger_path):
 
 
 def adapter_transfer_run(ledger_path):
-    """C560: warm-start (copy of a trained domain-A adapter)
+    """Warm-start (copy of a trained domain-A adapter)
     vs cold (zero) init for domain-B training, on the live
     corpus const clusters; equal certified budgets, forgetA
     bit-exact assert, pre-registered pair closeness."""
@@ -12783,7 +12701,7 @@ def adapter_transfer_run(ledger_path):
     doms = sorted(t for t in by_t if len(by_t[t]) >= TR_MIN_PTS)
     if len(doms) < 2:
         corpus_abort(f"need >=2 domains, got {len(doms)}",
-                     hint="adapter-transfer (C560)")
+                     hint="adapter-transfer")
     pts = {t: [(d["x"], d["t"]) for d in data if d["t"] == t]
            for t in doms}
     mean_x = {t: [sum((x[i] for x in by_t[t]), F(0))
@@ -12832,7 +12750,7 @@ def adapter_transfer_run(ledger_path):
         # source adapter A (trained ONCE per pair, frozen)
         wA, _, cA, hA, tA = train([F(0)] * CL_D, ptsA)
         snapA = list(wA)
-        # arm cold: neutral zero init (C532)
+        # arm cold: neutral zero init 
         _, fc, cc, hc, tc = train([F(0)] * CL_D, ptsB)
         # arm warm: init = COPY of trained A
         wW, fw, cw, hw, tw = train(list(wA), ptsB)
@@ -12907,7 +12825,7 @@ def _mini_report(mode, stats, traj, tel, **extra_tel):
         "holds": _holds(tel),
         "stop": tel["stop"],
         "outcomes": tel["outcomes"],
-        # C607: ledger entries skipped by the null-ce filter
+        # Ledger entries skipped by the null-ce filter
         "corpus_ce_skipped": len(CE_SKIPPED_KEYS),
     }
     telemetry.update(extra_tel)
@@ -12916,9 +12834,9 @@ def _mini_report(mode, stats, traj, tel, **extra_tel):
         "telemetry": telemetry}, indent=1))
 
 
-# C602: ADAPTIVE SPAN FULL-COVERAGE WINDOWS (--mode adaptive-span)
+# ADAPTIVE SPAN FULL-COVERAGE WINDOWS (--mode adaptive-span)
 #
-# Roadmap C599 top-1: the C598 negative
+#: the negative
 # (Hagi.Theory.CoverageReading.covStarts_trunc_uncovered_zero)
 # showed that the upstream _read_all_windows truncation
 # `windows[-max_span:]` (C:\HAGI_v2\hagi\lm.py b7f7f64, READ-ONLY,
@@ -12936,7 +12854,7 @@ def _mini_report(mode, stats, traj, tel, **extra_tel):
 #   (b) the window count fits the budget without ANY truncation -
 #       covStartsStep_len_le: length <= (n - w)/s + 2, so
 #       s >= ceil((n - w)/(max_span - 2)) keeps length <= max_span
-#       (covStartsStep_adaptive_covers closes the C598 negative:
+#       (covStartsStep_adaptive_covers closes the one-level
 #       with the adaptive stride the [-max_span:] cut never fires
 #       and start 0 stays).
 #
@@ -12946,19 +12864,19 @@ def _mini_report(mode, stats, traj, tel, **extra_tel):
 # - if full coverage within max_span windows is IMPOSSIBLE
 #   (needed s > w, i.e. roughly n > (max_span - 1)*w), we return
 #   None - we NEVER silently truncate (that would re-create the
-#   C598 hole we just certified away);
+#   Hole we just certified away)
 # - asserts mirror the Lean covers relation byte-for-byte.
 
 
 def adaptive_span(n, w=64, max_span=64):
-    """C602: coverage-preserving adaptive stride for read windows.
+    """Coverage-preserving adaptive stride for read windows.
 
-    Lean grounding (Hagi.Theory.CoverageReading, C602):
+    Lean grounding (Hagi.Theory.CoverageReading):
     - covStartsStep_covers (0 < s, s <= w): full byte coverage;
     - covStartsStep_len_le + covStartsStep_adaptive_covers:
       (n - w)/s + 2 <= max_span  =>  window count <= max_span, so
       the upstream `windows[-max_span:]` truncation
-      (covStarts_trunc_uncovered_zero, C598) never fires.
+      (covStarts_trunc_uncovered_zero) never fires.
 
     Returns (stride, starts); stride is None when full coverage in
     <= max_span windows is impossible (honest infeasibility - the
@@ -12994,7 +12912,7 @@ def _cov_step_starts(n, w, s):
 
 
 def adaptive_span_run():
-    """C602 telemetry: adaptive stride k' vs the old blind
+    """Telemetry: adaptive stride k' vs the old blind
     truncation windows[-max_span:] on pre-registered inputs."""
     W, MS = 64, 64
     cases = [540, 1088, 1152, 4032, 4160, 8256, 16448, 500000]
@@ -13024,7 +12942,7 @@ def adaptive_span_run():
     # PASS: every feasible row is fully covered within max_span windows
     # (Lean covStartsStep_adaptive_covers); every INFEASIBLE row (needed
     # stride > w, i.e. n > w + (max_span-2)*w - honest boundary) must
-    # indeed show the C598 truncation hole in the old strategy - the
+    # indeed show the truncation hole in the old strategy - the
     # two telemetry columns are mutually consistent.
     ok = all(
         (r["adaptive_covered"] is True and r["adaptive_windows"] <= MS)
@@ -13036,22 +12954,22 @@ def adaptive_span_run():
                      "coverage by covStartsStep_covers (s <= w), "
                      "budget by covStartsStep_adaptive_covers "
                      "((n-w)/s+2 <= m); replaces windows[-m:] "
-                     "(covStarts_trunc_uncovered_zero C598)"),
+                     "(covStarts_trunc_uncovered_zero)"),
             "rows": rows, "verdict": "PASS" if ok else "FAIL"}
 
 
-# C613: HIERARCHICAL BLOCK READ WINDOWS (--mode generate-hier)
+# HIERARCHICAL BLOCK READ WINDOWS (--mode generate-hier)
 #
-# Application of C611 (Hagi.Theory.CoverageReading): the C602
+# Application of the hierarchy (Hagi.Theory.CoverageReading): the
 # one-level adaptive span is honestly INFEASIBLE beyond
 # n > w + (max_span-2)*w (w=m=64: n > 4032) -- no stride s <= w
-# fits the window budget. The C611 hierarchy removes that
+# fits the window budget. The hierarchy removes that
 # boundary: read the input as blocks of B = w*(m-1) bytes, cover
 # EACH block with its own covStartsStep lattice (stride s = w),
 # stream blocks one at a time -- peak memory stays <= m windows
 # for ANY n, only the total grows with n (peak != total).
 #
-# Lean grounding (Hagi.Theory.CoverageReading, C611):
+# Lean grounding (Hagi.Theory.CoverageReading):
 # - hierStarts n B w s / hierBlockLen n B j = min B (n - j*B):
 #   flat concatenation of per-block covStartsStep starts
 #   (block j shifts its starts by j*B); numBlocks = ceil(n/B).
@@ -13059,32 +12977,32 @@ def adaptive_span_run():
 #   covered by some window [t, t+w) -- NO upper bound on n.
 # - hier_peak_window_budget (w <= B, (B-w)/s + 2 <= m): each
 #   block's list has <= m windows -- streaming model, peak <= m.
-# - exact choice (C611): s = w, B = w*(m-1) => (B-w)/s + 2 = m
+# - exact choice: s = w, B = w*(m-1) => (B-w)/s + 2 = m
 #   exactly (w=m=64: B=4032, 63 lattice windows per full block).
 #
 # HONESTY PINS (fail-closed asserts):
 # - per-block starts come from _cov_step_starts (the verbatim
-#   covStartsStep twin, C602) on hierBlockLen lengths -- numbers
+#   covStartsStep twin) on hierBlockLen lengths -- numbers
 #   are the Lean formulas, not re-invented;
 # - coverage is checked per block as the interval-equivalent of
 #   the Lean relation (first start <= 0, gaps <= w, tail reached);
 # - peak <= m asserted for EVERY instance (budget side), full
 #   coverage asserted byte-block-wise (covers side);
 # - the one-level verdict column calls the REAL adaptive_span
-#   (C602): OK with its actual stride/windows when feasible,
+#: OK with its actual stride/windows when feasible
 #   INFEASIBLE (its honest None branch) past 4032.
 
 
 def hier_span(n, w=64, m=64):
-    """C613: hierarchical block windows for ANY n, peak <= m.
+    """Hierarchical block windows for ANY n, peak <= m.
 
-    Lean grounding (Hagi.Theory.CoverageReading, C611):
+    Lean grounding (Hagi.Theory.CoverageReading):
     - hierStarts n B w s with B = w*(m-1), s = w (exact budget:
       (B-w)/s + 2 = m, hier_peak_window_budget premise);
     - hier_covers_any_n (0 < B, 0 < s <= w): full coverage of
       every byte i < n with no upper bound on n;
     - per-block starts = _cov_step_starts(hierBlockLen n B j)
-      (covStartsStep twin, C602) shifted by j*B.
+      (covStartsStep twin) shifted by j*B.
 
     Returns dict with blocks, per_block window counts, total,
     peak (max per-block, <= m), and covered (per-block check).
@@ -13117,22 +13035,22 @@ def hier_span(n, w=64, m=64):
 
 
 def generate_hier_run():
-    """C613 telemetry: hier_span vs one-level adaptive-span.
+    """Telemetry: hier_span vs one-level adaptive-span.
 
     Pre-registered instances n = 540 / 4032 / 8128 / 100000
     (w = m = 64, B = 4032, s = 64). Each row: blocks, total/peak
     windows, covered verdict (hierStarts formulas), and the REAL
-    C602 adaptive_span verdict next to it (OK with stride and
+    one-level adaptive_span verdict next to it (OK with stride and
     window count, or honest INFEASIBLE past n > 4032).
 
-    Cross-check: pinned Lean witness numbers from C611
-    (.tmp/C611/trajHier.lean, #eval hierStarts 8128 4032 64 64):
+    Cross-check: pinned Lean witness numbers (Lean #eval hierStarts
+    8128 4032 64 64):
     blocks 3, per-block windows [63, 63, 1], peak 63 -- asserted
     at runtime against the python twin (fail-closed).
     """
     W, MS = 64, 64
     cases = [540, 4032, 8128, 100000]
-    # Lean #eval (C611 witness): block window counts + peak.
+    # Lean #eval witness: block window counts + peak.
     LEAN_WITNESS = {8128: ([63, 63, 1], 63)}
     rows = []
     for n in cases:
@@ -13141,7 +13059,7 @@ def generate_hier_run():
             lw, lpeak = LEAN_WITNESS[n]
             assert h["per_block"] == lw and h["peak"] == lpeak, \
                 f"ABORT: python hierStarts != Lean witness {n}"
-        s, starts = adaptive_span(n, W, MS)   # real C602 verdict
+        s, starts = adaptive_span(n, W, MS) # real verdict
         rows.append({
             "n": n,
             "blocks": h["blocks"],
@@ -13155,9 +13073,9 @@ def generate_hier_run():
             "single_level_windows": (None if starts is None
                                       else len(starts)),
         })
-    # PASS: every instance covered with peak <= m via the C611
+    # PASS: every instance covered with peak <= m via the
     # hierarchy; the one-level verdict flips to INFEASIBLE exactly
-    # past the honest C602 boundary n > w + (m-2)*w = 4032.
+    # past the honest boundary n > w + (m-2)*w = 4032.
     ok = all(r["hier_covered"] is True and r["peak_windows"] <= MS
              and ((r["single_level"] == "OK"
                    and r["n"] <= W + (MS - 2) * W)
@@ -13170,12 +13088,12 @@ def generate_hier_run():
                      "hier_covers_any_n (any n), peak <= m by "
                      "hier_peak_window_budget ((B-w)/s+2 = m); "
                      "removes the one-level adaptive-span "
-                     "INFEASIBLE boundary n > w+(m-2)*w (C602)"),
+                     "INFEASIBLE boundary n > w+(m-2)*w (one-level adaptive span)"),
             "rows": rows, "verdict": "PASS" if ok else "FAIL"}
 
 
 def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
-    """C626: certified choice of the window width w by the C623
+    """Certified choice of the window width w by the 
     cost regime rule. Python twin of the WindowTradeoff theorems
     (Hagi/Theory/CoverageReading.lean):
 
@@ -13195,7 +13113,7 @@ def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
     - regime 'mixed' (c): c(w) = a + c*w^alpha, integer
       alpha > 1. For alpha = 2 (the default) the real optimum
       w* = (a/(c*(alpha-1)))^(1/alpha) = sqrt(a/c) is now a
-      LEAN THEOREM (C628, Hagi/Theory/CoverageReading.lean):
+      LEAN THEOREM (Hagi/Theory/CoverageReading.lean):
       `mixedCost_relax_min` (AM-GM per-read
       relaxation a/w + c*w >= 2*sqrt(a*c)),
       `mixedCost_relax_min_eq` (equality at w = sqrt(a/c)),
@@ -13259,7 +13177,7 @@ def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
         lo = max(1, min(w_max, int(w_star) - 2))
         hi = max(1, min(w_max, int(w_star) + 3))
         chosen = min(range(lo, hi + 1), key=total)
-        rule = ("mixed: C628 Lean theorems (WindowTradeoff, "
+        rule = ("mixed: Lean theorems (WindowTradeoff, "
                 "freeze 8844) -- c(w)=a+c*w^2, "
                 "mixedCost_relax_min (a/w+c*w >= 2*sqrt(ac)), "
                 "mixedCost_relax_min_eq (w* = sqrt(a/c)), "
@@ -13300,7 +13218,7 @@ def cost_regime_w(regime, n, w_max, a=1, c=1, alpha=2):
     return res
 
 
-# C610: modes whose corpus precondition is a STRUCTURAL domain
+# Modes whose corpus precondition is a STRUCTURAL domain
 # requirement (>= 2 const-cluster domains, TR_MIN_PTS points
 # each). Only these participate in the snapshot->live fallback
 # of the three-level corpus policy; all other corpus_abort
@@ -13360,7 +13278,7 @@ def finite_displacement_ce_upper(z0, z1, y):
 
 
 def certified_warmup_sim_run(ledger_path):
-    """C654 bench `certified-warmup-sim`: SIMULATION of the certified
+    """Bench `certified-warmup-sim`: SIMULATION of the certified
     warm-up of a grown block on the adapter-grow carrier (2-block
     trunk frozen after phase A) -- NOT a reproduction of the HAGI_v2
     range coder code. See the mode help in main() for the design.
@@ -13377,7 +13295,7 @@ def certified_warmup_sim_run(ledger_path):
              for tk in tasks]
     assert len(feats) == 3, "ABORT: expected 3 tasks"
     # a task with < 2 snapped target classes has CE == 0 identically
-    # (no CE problem): it is dropped, not asserted on (C654 honest fact)
+    # (no CE problem): it is dropped, not asserted on (honest fact)
     feats = [tk for tk in feats
              if len(set(c for _, c in tk)) >= 2]
     assert feats, "ABORT: no task has >= 2 target classes"
@@ -13578,7 +13496,7 @@ def certified_warmup_sim_run(ledger_path):
             if streak >= 2:
                 break
     obj_cert = obj_of(logits(forward(p)))
-    # warmup_safe (C642) on the simulated chain: each COMMIT obeys
+    # warmup_safe on the simulated chain: each COMMIT obeys
     # obj' <= obj - drop (asserted per step), hence obj_final <= fOld
     for r in chain:
         if r["verdict"] == "COMMIT":
@@ -13643,7 +13561,7 @@ def certified_warmup_sim_run(ledger_path):
 
 
 def _snapshot_domain_count():
-    """C610: count const-cluster domains (>= TR_MIN_PTS points
+    """Count const-cluster domains (>= TR_MIN_PTS points
     per snapped ce) in the pinned snapshot -- exactly the
     domain construction the transfer-family modes use, so the
     corpus-resolve point can detect STRUCTURAL insufficiency
@@ -13689,90 +13607,90 @@ def main():
                              "adaptive-span",
                              "generate-hier"],
                     default="quad",
-                    help="quad: C434 quadratic GD (default); "
-                         "cert-ce: C442 certified CE loop; "
-                         "cert-tern: C443 certified ternary "
+                    help="quad: quadratic GD (default); "
+                         "cert-ce: certified CE loop; "
+                         "cert-tern: certified ternary "
                          "quantization jump cycle; "
-                         "hadamard-tern: C477 Hadamard-gated ternary "
+                         "hadamard-tern: Hadamard-gated ternary "
                          "quantization (measured cohSq gate); "
-                         "grow: C444 certified block "
+                         "grow: certified block "
                          "admission for LM growth; "
-                         "ef21-step: C474 EF21 in-step quantized "
+                         "ef21-step: EF21 in-step quantized "
                          "loop; "
-                         "full-pipeline: C479 unified 6-phase "
+                         "full-pipeline: unified 6-phase "
                          "certified cycle (train, EF21, "
                          "hadamard-tern, grow, merge, stop) on ONE "
                          "objective chain; "
-                         "trunk-train: C481 certified JOINT "
+                         "trunk-train: certified JOINT "
                          "trunk+head training - nonlinear trunk "
                          "(L1-rms-surrogate norm, W1, ReLU, W2) "
                          "with a linear head, fd-gradient "
                          "grid-snapped steps admitted only by "
                          "measured drop > 0 (guarded rollback); "
-                         "real-data: C484 real HAGI_v2 dataset "
+                         "real-data: real HAGI_v2 dataset "
                          "(unified_ledger.json ce targets + domain "
                          "file byte features, 184 rational points), "
                          "certified trunk training + train/holdout "
-                         "MSE + C435-style concentration stats; "
-                         "continual: C485 two-task continual bench "
+                         "MSE + concentration stats; "
+                         "continual: two-task continual bench "
                          "(GPM zero forgetting vs naive GD, real "
                          "unified_ledger data); "
-                         "continual-multi: C488 multi-task (T=3) "
+                         "continual-multi: multi-task (T=3) "
                          "continual bench with ACCUMULATED GPM "
                          "subspaces (projection onto the "
                          "complement of the union span of all "
                          "past task inputs; forgetting matrix + "
                          "rank track, naive control arm); "
-                         "wrbound: C487 without-replacement holdout "
+                         "wrbound: without-replacement holdout "
                          "concentration bench (Freedman-adaptive "
-                         "wr-bound vs C435 with-replacement "
+                         "wr-bound vs with-replacement "
                          "Hoeffding on the real trunk model, "
                          "N=185 pinned, k=37); "
-                         "cert-sandwich: C491 certified "
+                         "cert-sandwich: certified "
                          "sandwich-CE training on the real "
-                         "ledger - the C442 z^2/Sum z^2 surrogate "
-                         "replaced by the C489 rational sandwich "
+                         "ledger - the z^2/Sum z^2 surrogate "
+                         "replaced by the rational sandwich "
                          "certificate (exact Fractions, guarded "
                          "measured-drop steps)"
-                         "; mini-hagi: C492 the FULL bench in ONE "
+                         "; mini-hagi: the FULL bench in ONE "
                          "certified run on the real corpus - "
-                         "trunk-train (C481 form), fiber grow "
-                         "(C444), continual GPM (C485), ternary "
-                         "quant (C443), Ville stop (C446) on ONE "
+                         "trunk-train, fiber grow, "
+                         "continual GPM, ternary "
+                         "quant, Ville stop on ONE "
                          "canonical-objective CertStepData "
                          "chain; "
-                         "mini-hagi2: C494 the SCALED bench - "
+                         "mini-hagi2: the SCALED bench - "
                          "2-block fd-trained trunk, 3 continual "
                          "tasks, 2 fiber grows, GPM, quant, "
                          "Ville stop on ONE canonical-objective "
                          "CertStepData chain (obj = mean MSE "
                          "over the 3 live tasks); "
-                         "mini-hagi3: C500 the C494 bench with "
+                         "mini-hagi3: the mini-hagi2 bench with "
                          "the gpm2 dead end ESCAPED by "
-                         "rank-trunc relaxed GPM (C498 "
+                         "rank-trunc relaxed GPM "
                          "rank_trunc_forgetting_bound, "
                          "eps = 1/10 PIN, per-step exact "
                          "forgetting-bound asserts, measured "
                          "canonical drop gate); "
-                         "mini-hagi4: C504 grow = adding a WHOLE "
+                         "mini-hagi4: grow = adding a WHOLE "
                          "BLOCK to the trunk (depth 2 -> 3): "
-                         "residual-zero identity admission (C450 "
+                         "residual-zero identity admission) "
                          "function_preserving_admissible, exact "
                          "obj invariance assert), certified fd "
                          "training of the new block, GPM "
                          "continual + Ville stop on ONE canonical "
                          "CertStepData chain; "
-                         "vs-trainer: C497 certified "
+                         "vs-trainer: certified "
                          "trainer-benchmark comparison - mini-HAGI "
-                         "(C491 sandwich trainer) vs the REAL "
+                         "(sandwich trainer) vs the REAL "
                          "HAGI_v2 trainer on its live "
                          "unified_ledger corpus: certified "
-                         "predictions (C495 disjoint sandwich "
+                         "predictions (disjoint sandwich "
                          "intervals) on holdout models, accuracy "
                          "among certified only + live selfloop "
-                         "round/COMMIT telemetry (C461)")
+                         "round/COMMIT telemetry")
     ap.add_argument("--gate-test", metavar="PATH",
-                    help="C635: synthetic negative control of the "
+                    help="Synthetic negative control of the "
                          "growth gate -- 6 exact-Fraction scenarios "
                          "(G, L, n, c_add) with expected decisions; "
                          "STAY instances execute the certified-SKIP "
@@ -13780,29 +13698,29 @@ def main():
                          "= bool := by decide; pb <= c_add := by "
                          "norm_num) to PATH. No corpus needed")
     ap.add_argument("--lambda-sweep", action="store_true",
-                    help="C635: lambda calibration -- with --mode "
+                    help="Lambda calibration -- with --mode "
                          "grow-snap ONLY: full rerun at lam in "
                          "{1/10^4 (PIN), 1/10^3, 1/10^2, 1/10, 1}; "
                          "table lam -> grow/stay counters, honest "
                          "first-stay lam (may be None) + certified "
                          "stay threshold lam* = min(pb/new_params)")
     ap.add_argument("--fixed-lr", action="store_true",
-                    help="C609: keep the OLD constant step "
+                    help="Keep the OLD constant step "
                          "gamma = 1/10 in the auto-LR modes "
                          "(adapter-transfer-auto, "
                          "transfer-gate-certified) instead of "
                          "the certified auto step gamma* = 1/L "
-                         "(nl_drop_optimal, C606) - golden A/B "
+                         "(nl_drop_optimal) - golden A/B "
                          "comparison path")
     ap.add_argument("--live-corpus", action="store_true",
-                    help="C608/C610: run data modes on the LIVE HAGI_v2 "
+                    help="Run data modes on the LIVE HAGI_v2 "
                          "ledger (C:/HAGI_v2/checkpoints/...) instead "
                          "of the pinned corpus snapshot; results may "
                          "drift between runs (fail-closed aborts on "
                          "new corpus content are expected); mutually "
                          "exclusive with --snapshot-corpus")
     ap.add_argument("--snapshot-corpus", action="store_true",
-                    help="C610: force the PINNED corpus snapshot even "
+                    help="Force the PINNED corpus snapshot even "
                          "when it is structurally insufficient for "
                          "the mode (>= 2 domains) - fail-closed "
                          "corpus_abort, NO live fallback")
@@ -13811,7 +13729,7 @@ def main():
                     help="real-data: path to unified_ledger.json "
                          "(domains/ dir is resolved as its sibling). "
                          "DEFAULT: pinned corpus snapshot "
-                         "(.tmp/C608/corpus, C608/C535) -- stable "
+                         "(.tmp/C608/corpus) -- stable "
                          "for regressions; use --live-corpus for the "
                          "live HAGI_v2 ledger")
     ap.add_argument("--fix-rank", type=int, default=None,
@@ -13829,8 +13747,8 @@ def main():
     ap.add_argument("--cost-regime",
                     choices=["fixed", "linear", "mixed"],
                     default=None,
-                    help="C626: generate-hier only -- choose w by "
-                         "the C623 WindowTradeoff rule: fixed "
+                    help="Generate-hier only -- choose w by "
+                         "the WindowTradeoff rule: fixed "
                          "(c(w)=c -> certified w = w_max), "
                          "linear (c(w)=c*w -> w cost-free, "
                          "default 64, near-const corridor), "
@@ -13861,13 +13779,13 @@ def main():
                          "experiments/selfloop_result.json")
     args = ap.parse_args()
 
-    # C609: propagate --fixed-lr to the auto-LR modes (module
+    # Propagate --fixed-lr to the auto-LR modes (module
     # global, read by train()/auto_lr).
     global FIXED_LR
     FIXED_LR = args.fixed_lr
 
-    # C608/C610: three-level snapshot-vs-live corpus policy
-    # (lesson C535), resolved in ONE point. Default --data is
+    # Three-level snapshot-vs-live corpus policy
+    #, resolved in ONE point. Default --data is
     # the PINNED snapshot (deterministic regressions);
     # --live-corpus forces the live HAGI_v2 ledger (drifting
     # ~1 wave / 15 min; fail-closed ABORTs on new content
@@ -13898,7 +13816,7 @@ def main():
                 corpus_abort(
                     f"need >=2 domains, got {nd}",
                     hint=f"{args.mode}: snapshot forced by "
-                         "--snapshot-corpus, no fallback (C610)")
+                         "--snapshot-corpus, no fallback")
         print("[telemetry] corpus=SNAPSHOT-FORCED ({}): pinned "
               "corpus snapshot, deterministic, fallback "
               "disabled".format(SNAPSHOT_LEDGER), file=sys.stderr)
@@ -14080,10 +13998,10 @@ def main():
             else RD_STEPS)
         print(json.dumps({"mode": "wrbound",
             "theorem": "Hagi.Theory.HoldoutWithoutReplacement."
-                       "holdout_wr_concentration (C487) vs "
+                       "holdout_wr_concentration vs "
                        "Hagi.Theory.HoldoutRisk."
-                       "holdout_concentration (C435)",
-            "model": "real-data certified trunk (C484 loop, "
+                       "holdout_concentration",
+            "model": "real-data certified trunk, "
                      "fixed final model), u = sqerr/L in [0,1]",
             **res}, indent=1))
         return
@@ -14106,7 +14024,7 @@ def main():
                      "onto the complement of span(inputs of "
                      "tasks 1..t) (exact rational GS)",
             "theorem": "Hagi.Theory.ContinualMulti."
-                       "gpm_multi_zero_forgetting (C488)",
+                       "gpm_multi_zero_forgetting",
             "rank_certificate": "Hagi.Spectral."
                                 "rank_orthogonal_growth",
             "forgetting_matrix_gpm": [
@@ -14153,7 +14071,7 @@ def main():
             "n_taskA": res["n_A"], "n_taskB": res["n_B"],
             "rank_spanA": res["rankA"], "steps": res["steps"],
             "eps_rank_trunc": res["eps"],
-            "model": "linear head w in Q^4 (C485 scenario), "
+            "model": "linear head w in Q^4 (continual scenario), "
                      "same wA / B data / steps / eta / grid "
                      "for both arms; ONLY the step-direction "
                      "mechanism differs",
@@ -14238,13 +14156,13 @@ def main():
                               "(delta.x)^2 <= ||delta||^2 * "
                               "sigmaTail^2, rank_trunc_forgetting_"
                               "bound)"},
-            "model": "linear head w in Q^4 (C485 scenario); "
+            "model": "linear head w in Q^4 (continual scenario); "
                      "per-step mechanism selected "
                      "DETERMINISTICALLY from the measured state "
                      "(rank vs dim, dot sign - exact Fractions, "
                      "no randomness)",
             "theorem": "Hagi.Theory.HybridContinual."
-                       "hybrid_step_sound (C510): the chosen "
+                       "hybrid_step_sound: the chosen "
                        "branch's guarantee holds with no "
                        "weakening",
             "guarantee": "every step: certified admission by "
@@ -14454,8 +14372,8 @@ def main():
         if args.cost_regime is None:
             print(json.dumps(generate_hier_run(), indent=1))
             return
-        # C626: certified w-choice telemetry by the C623 rule.
-        # Witness cross-check (.tmp/C623/trajW.lean, Lean #eval,
+        # Certified w-choice telemetry by the rule.
+        # Witness cross-check (Lean #eval
         # n = 100000): reads {6250, 1563, 391} and linear-cost
         # {100000, 100032, 100096} for w in {16, 64, 256} --
         # fail-closed pinned asserts (python twin == Lean).
@@ -14464,10 +14382,10 @@ def main():
         WITNESS_LINEAR = [100000, 100032, 100096]
         for w, wr in zip(WITNESS_W, WITNESS_READS):
             assert (100000 + w - 1) // w == wr, \
-                f"ABORT: reads({w}) != C623 Lean witness {wr}"
+                f"ABORT: reads({w}) != Lean witness {wr}"
         for w, wl in zip(WITNESS_W, WITNESS_LINEAR):
             assert w * ((100000 + w - 1) // w) == wl, \
-                f"ABORT: linear cost({w}) != C623 witness {wl}"
+                f"ABORT: linear cost({w}) != witness {wl}"
         cases = [540, 4032, 8128, 100000]
         rows = [cost_regime_w(args.cost_regime, n, args.cw_wmax,
                               a=args.cw_a, c=args.cw_c,
@@ -14477,13 +14395,13 @@ def main():
         cmp_by_w = {e["w"]: e for e in w100k["w_compare"]}
         for w, wr in zip(WITNESS_W, WITNESS_READS):
             assert cmp_by_w[w]["reads"] == wr, \
-                "ABORT: reads drift vs C623 witness"
+                "ABORT: reads drift vs witness"
         ok = all(r["regime"] == args.cost_regime for r in rows)
         print(json.dumps({
             "mode": "generate-hier", "cost_regime": args.cost_regime,
             "a": rows[0]["a"], "c": rows[0]["c"],
             "alpha": rows[0]["alpha"], "w_max": args.cw_wmax,
-            "witness_check": ("C623 n=100000: reads "
+            "witness_check": ("n=100000: reads "
                               "6250/1563/391, linear-cost "
                               "100000/100032/100096 -- pinned "
                               "asserts PASS"),
@@ -14492,7 +14410,7 @@ def main():
         return
 
     if args.mode == "certified-warmup-sim":
-        res = certified_warmup_sim_run(args.data)   # C610 policy resolves args.data
+        res = certified_warmup_sim_run(args.data) # policy resolves args.data
         print(json.dumps(res, indent=1, sort_keys=True))
         return
 
@@ -14578,7 +14496,7 @@ def main():
                      "on A) + per-task LoRA adapters r=1 on the "
                      "features, linear head; loss = MSE",
             "theorem": "Hagi.Theory.AdapterGrowth."
-                       "adapter_per_task_sound (C544): "
+                       "adapter_per_task_sound: "
                        "structural zero-forgetting -- frozen "
                        "adapter => task output identical, "
                        "no projections/budgets",
@@ -14639,7 +14557,7 @@ def main():
             "model": "linear head w in Q^4 (GPM theorem "
                      "setting), loss = MSE",
             "guarantee": "per-step MEASURED drop > 0 + guarded "
-                         "rollback (C481 form); GPM steps "
+                         "rollback; GPM steps "
                          "gpmOrth-exact (asserted per step)",
             "phase1": {
                 "lossA_before": str(res["startA"]),

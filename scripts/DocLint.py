@@ -1,20 +1,10 @@
 #!/usr/bin/env python3
-"""DocLint — правила 4 и 5 рецензии (round-52).
-
-R4: каждое имя в обратных кавычках (`name`) внутри docstring
-    обязано быть объявлением репозитория (Hagi/Primes: theorem/
-    lemma/def/structure/abbrev/instance) либо внешним qualified
-    именом (с точкой), либо тактикой/ключевым словом прозы
-    (допускается оговорённый список PROSE).
-    Ссылки на имена других файлов проекта — легальны (глобальный
-    пул), но проверяются на существование.
-R5: числа в docstring (>= 2 значащих цифр) должны быть либо
-    помечены словом «измерено»/«measured» в том же предложении,
-    либо сопровождаться `#eval`-ссылкой в файле, либо входить в
-    код файла (объявлены как literal в Lean-коде ниже).
-
-Report-only по R5 (эвристика), strict по R4.
-Выход: последний маркер DOCLINT: PASS / DOCLINT: FAIL.
+"""DocLint: R4 (strict) — каждое имя в обратных кавычках (`name`) внутри
+docstring обязано быть объявлением репозитория (theorem/lemma/def/structure/
+abbrev/instance) либо внешним qualified именем, либо словом из списка PROSE;
+R5 (report-only) — числа (>= 2 значащих цифр) должны быть помечены «измерено»/
+«measured», сопровождаться `#eval`-ссылкой или входить в код файла.
+Run `python scripts/DocLint.py` (после NamePool.lean): DOCLINT: PASS / DOCLINT: FAIL.
 """
 import os
 import re

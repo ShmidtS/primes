@@ -1,18 +1,9 @@
 #!/usr/bin/env python3
-"""ChallengeCheck (audit v6, step 2): Comparator-challenges.
-
-For each challenge in Challenge/challenges.json:
-  1. the named theorem exists and its axioms are a subset of
-     the allowed list (propext, Classical.choice, Quot.sound);
-  2. every pinned type (canonical #check string, whitespace-
-     normalized) still matches — a silent change of the premise
-     contract or the statement fails the gate.
-
-The challenge statement itself is pinned by the build: the
-conclusion is spelled out in the challenge file and proven by
-delegation, so any change of meaning breaks compilation.
-
-Output: "CHALLENGE: PASS n/n" or "CHALLENGE: FAIL" + reasons.
+"""ChallengeCheck: for each challenge in Challenge/challenges.json the named
+theorem must exist with axioms ⊆ {propext, Classical.choice, Quot.sound} and its
+pinned types (canonical #check strings) must still match; the conclusion itself
+is pinned by the build (spelled out in the challenge file and proven there).
+Run `python scripts/ChallengeCheck.py`: CHALLENGE: PASS n/n or CHALLENGE: FAIL.
 """
 import json, re, subprocess, sys, tempfile, os
 

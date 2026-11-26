@@ -1,18 +1,17 @@
 # PROPOSAL: simultaneous trunk+head certified step (replace per-cycle alternation)
 
-For: the HAGI_v2 implementation agent. Written by the primes agent
-(C480; theory landed in primes C475). Self-contained. All Lean
-anchors are proved and frozen in primes (Freeze 8462, module
+For: the HAGI_v2 implementation agent. Self-contained. All Lean
+anchors are proved and frozen in primes (module
 `Hagi/Training/JointTrunkHead.lean`, namespace
 `Hagi.Training.JointTrunkHead`).
 
-## (a) Context (one line)
+## (a) Context
 
-Current: HAGI_v2 alternates extractor-freeze phases with head-only
-phases (primes twin: `Hagi.Training.AlternatingJoint`,
-`alternating_trajectory_bound_derived`) — the trunk moves only on
-admission boundaries, and a SIMULTANEOUS (trunk, head) step had no
-certificate (pin `crmsm_joint_separation`); primes C475 proved one.
+HAGI_v2 alternates extractor-freeze phases with head-only phases
+(primes twin: `Hagi.Training.AlternatingJoint`,
+`alternating_trajectory_bound_derived`): the trunk moves only on
+admission boundaries. A SIMULTANEOUS (trunk, head) step had no
+certificate (pin `crmsm_joint_separation`).
 
 ## (b) Formulas and Lean anchors
 
@@ -32,12 +31,12 @@ Main theorem (`Hagi.Training.JointTrunkHead`):
   (`trunk_disp_logit_le`, `Hagi.Model.LMCompose.headLip`), with dd
   a MEASURED trunk displacement
   (`∀ v, |lmTrunk bs' − lmTrunk m.blocks| ≤ dd` — binder, not
-  derived; honest pin).
+  derived).
 - `joint_step_commit_strict` — if `2·HL·dd < 2A²/R²` the joint step
   STRICTLY decreases CE: the drop>0 acceptance criterion for
-  `commit_drop_checked` (C463 interface, unchanged).
-- Parametric trunk-displacement constants (derivable for the C465
-  atoms, honest: no formula for arbitrary trunks):
+  `commit_drop_checked` (interface unchanged).
+- Parametric trunk-displacement constants (derivable for the
+  atoms below; no formula for arbitrary trunks):
   - `rms_gain_param_disp` / `provenTrunk_gain_param_disp` —
     RMSNorm-gain move: displacement ≤ √n·Σ|Δg| (saturation
     `rmsN_coord_le`: normalized output ≤ √n per coordinate);
@@ -45,15 +44,14 @@ Main theorem (`Hagi.Training.JointTrunkHead`):
     `provenTrunk_mlp_param_disp` — MLP weight move:
     ≤ n·Z·(F₁‖ΔW₂‖ + F₂‖ΔW₁‖) per position (Z = input norm,
     F₁,F₂ = Frobenius norms of the OLD/NEW weight matrices).
-- Trade-off (when joint beats alternating) —
-  `joint_bound_beats_alternating_bound`: over k steps, joint
-  guarantee `L0 − k(2A²/R²) + k·2·HL·dd` beats the alternating
+- Trade-off — `joint_bound_beats_alternating_bound`: over k steps,
+  joint guarantee `L0 − k(2A²/R²) + k·2·HL·dd` beats the alternating
   guarantee `L0 − k·Δh + damageB` exactly when
   `k·(2A²/R² − 2·HL·dd) > k·Δh − damageB` (Δh = per-step head drop
   in the frozen-extractor regime, damageB = the alternating
   boundary damage, cf. `alternating_trajectory_bound_derived`).
   Both compared quantities are UPPER bounds on guarantees, not
-  trajectories (honest pin in the docstring).
+  trajectories.
 
 ## (c) Minimal Python diff
 
@@ -64,10 +62,9 @@ def joint_certified_step(self, batch, trunk_upd, head_upd):
     eta = 4 * A / (R * R) if R > 0 else 1.0      # safeStepSize
     cert_head = 2 * A * A / (R * R)              # ceOneHot_safeStep_le_residual
     # 2) MEASURE the trunk displacement dd (do NOT derive it):
+    HL = self.head_lip(head_upd)                 # sum |headW * theta| per token
     logits_old = self.forward_trunk(self.blocks, batch)
     logits_new = self.forward_trunk(trunk_upd, batch)
-    dd = (logits_new - logits_old).abs().amax().item() / max(HL, 1e-12)
-    HL = self.head_lip(head_upd)                 # sum |headW * theta| per token
     dd = (logits_new - logits_old).abs().amax().item() / HL   # logit shift <= HL*dd
     # 3) joint certificate:
     damage = 2.0 * HL * dd
@@ -77,7 +74,7 @@ def joint_certified_step(self, batch, trunk_upd, head_upd):
     return 0.0                                   # HOLD: keep alternating this cycle
 ```
 
-## (d) Sanity numbers (primes C480, `.tmp/C480/sanity-joint-step.py`)
+## (d) Sanity numbers
 
 Toy LM, 4-vocab head over 2 features, measured trunk displacement
 (shifts feature 2 by 1/20):
@@ -96,19 +93,18 @@ Toy LM, 4-vocab head over 2 features, measured trunk displacement
 
 Per joint-step attempt, measure the REAL CE change and require
 `real_drop ≥ cert_head − damage` on EVERY committed step of a full
-run (loop-5 style, same as §9). Additionally log the HOLD branch:
-whenever `damage ≥ cert_head` the step must be skipped (HOLD) and
-the alternating path used — count HOLDs; if HOLDs dominate (>50%
-of cycles), the joint mode is not paying for this workload (honest
-signal, see limits).
+run. Additionally log the HOLD branch: whenever `damage ≥ cert_head`
+the step must be skipped (HOLD) and the alternating path used —
+count HOLDs; if HOLDs dominate (>50% of cycles), the joint mode is
+not paying for this workload (see limits).
 
-## (f) Honest limits
+## (f) Limits
 
 - dd is a MEASURED binder, not a derived quantity: no parametric
   trunk-displacement formula exists for arbitrary trunks (pin
-  `crmsm_joint_separation` stays); only the C465 atoms
-  (RMSNorm-gain, MLP weights) have derived constants — and those
-  are derivable-but-not-tight.
+  `crmsm_joint_separation` stays); only the RMSNorm-gain and MLP
+  weight atoms have derived constants — and those are
+  derivable-but-not-tight.
 - The cross-term (head step × trunk move interaction) is ABSORBED
   into 2·HL·dd by the triangle inequality, not cancelled: the
   damage is paid on EVERY joint step, whereas alternating pays its
@@ -121,3 +117,4 @@ signal, see limits).
 - The trunk-displacement measurement needs one extra forward per
   step (old-trunk vs new-trunk logits) — 2× trunk forward cost on
   joint-step batches.
+- Anchors are frozen in primes; re-verify before port.

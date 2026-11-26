@@ -1,31 +1,29 @@
 # PROPOSAL: holdout slice large enough for a non-trivial growth-gate certificate
 
-**Status: theory implemented in primes (C657/C660/C663/C665); code-side pending in HAGI_v2.**
+**Status: theory implemented in primes; code-side pending in HAGI_v2.**
 
-For: the HAGI_v2 implementation agent. Written by the primes agent
-(C662; theory landed in primes, module `Hagi/Theory/HoldoutGateTwoWay.lean`,
-namespace `Hagi.Theory.HoldoutGateTwoWay`, C660; consolidated as clause (14)
-of `hagi_master_v34`, `Hagi/Theory/MasterTheoremV3.lean`).
-Self-contained: no primes-repo context needed. All Lean anchors are
-proved and frozen in primes (Freeze 8959 at C660; v3.4 adds one
-theorem). PRIORITY: MEDIUM — the gate certificate already exists
-(`holdout_gate_two_way_delta`, C660); this proposal is about the
-SAMPLE SIZE the code must hold for it to say something non-vacuous.
-This document is a proposal only: primes does not edit HAGI_v2 code
-(user-push).
+For: the HAGI_v2 implementation agent. Module
+`Hagi/Theory/HoldoutGateTwoWay.lean`, namespace
+`Hagi.Theory.HoldoutGateTwoWay`; consolidated as clause (14)
+of `hagi_master_v34`, `Hagi/Theory/MasterTheoremV3.lean`.
+Self-contained: no primes-repo context needed. PRIORITY: MEDIUM — the
+gate certificate already exists (`holdout_gate_two_way_delta`); this
+proposal is about the SAMPLE SIZE the code must hold for it to say
+something non-vacuous. This document is a proposal only: primes does
+not edit HAGI_v2 code (user-push).
 
-## (a) Context (one line)
+## (a) Context
 
-The growth gate (`hagi/unified.py:504-581` @b3740e0) keeps a grown
+The growth gate (`hagi/unified.py:504-581`) keeps a grown
 block iff `holdoutMean(new) < holdoutMean(old) - 1e-4`, where the
 holdout is the first ≤ 512 windows of the last 10% of the fresh
-domain (fixed slice, both sides on the same windows). C660 proves
-the two-way certificate: IF the slice is an iid sample of size `k`
+domain (fixed slice, both sides on the same windows). The two-way
+certificate: IF the slice is an iid sample of size `k`
 and `|Θ| ≤ N` states were scored on it, THEN with probability
 ≥ 1 − δ every accepted candidate satisfies
 `popMean(new) ≤ popMean(old) + 2ε − margin` whenever
-`log(2N/δ) ≤ 2k(ε/B)²`. At `k = 512` the bound is near-vacuous
-(C660, "Open"). This proposal states the `k` the certificate needs.
+`log(2N/δ) ≤ 2k(ε/B)²`. At `k = 512` the bound is near-vacuous.
+This proposal states the `k` the certificate needs.
 
 ## (b) The Lean anchor and the budget formula
 
@@ -45,7 +43,7 @@ Solving the budget for `k` (the requirement this proposal adds):
     k ≥ ln(2N / δ) / (2 · (ε/B)²)
 
 with `N` = number of block states scored on the holdout slice
-(`N ≥ 2 + number of checkpoint evaluations` — C660: choosing the
+(`N ≥ 2 + number of checkpoint evaluations` — choosing the
 best state by holdout CE is peeking over hypotheses).
 
 ## (c) Numbers (ε = 0.05·B, δ = 0.05)
@@ -53,12 +51,11 @@ best state by holdout CE is peeking over hypotheses).
 | N | k required (ceiling) | code holds | ε that k = 512 does certify | 2ε |
 |---|---|---|---|---|
 | 2 (old + one candidate, no peeking) | ln(40/0.05)/0.005 = 876.4 → **877** | ≤ 512 | 0.0654·B | 0.131·B |
-| 10 (C661 working figure for |Θ|) | ln(400/0.05)/0.005 = 1198.3 → **1199** | ≤ 512 | 0.0765·B | 0.153·B |
+| 10 (working figure for |Θ|) | ln(400/0.05)/0.005 = 1198.3 → **1199** | ≤ 512 | 0.0765·B | 0.153·B |
 
 So at `k ≤ 512` the certificate is "population risk of the accepted
 block is no worse than old by more than ≈ 0.13–0.15·B with
-probability 0.95" — the same near-vacuous figure C660 reported
-(2ε = 0.25·B there was at ε = 1/8·B). Interpolation: with
+probability 0.95" — near-vacuous. Interpolation: with
 `k = 512` the 5% budget is met only at ε/B ≈ 0.065 (N = 2) /
 0.076 (N = 10); at `k = 1200` it is met at ε/B = 0.05 (N = 10) and
 at ε/B ≈ 0.0427 (N = 2).
@@ -78,7 +75,7 @@ Either one of, in order of preference:
    and `k` grows only logarithmically in `N`, so this is the
    cheaper lever ONLY when the checkpoint count dominates `N`.
    For `N = 10 → N = 2` the requirement drops from 1199 to 877.
-3. **Report the honest ε.** If neither is done, log the ε the
+3. **Report the ε.** If neither is done, log the ε the
    current `k` certifies: `eps_cert = B · sqrt(ln(2N/δ) / (2k))`,
    so the gate's guarantee is stated, not implied.
 
@@ -108,28 +105,26 @@ carries a number a reader can compare with the measured gain.
 
 ## (f) Validation criterion
 
-In loop-5 (`real ≥ certified` every step), log `holdout_cert_eps`
-for every gate verdict; assert `2·eps_cert ≤ 0.10·B` on at least
-one growth event after item 1 (or assert the logged value equals
-the formula's value to 1e-12 — the criterion is the log line, not
-the threshold).
+Log `holdout_cert_eps` for every gate verdict; assert
+`2·eps_cert ≤ 0.10·B` on at least one growth event after item 1
+(or assert the logged value equals the formula's value to 1e-12 —
+the criterion is the log line, not the threshold).
 
-## (g) Honest limits
+## (g) Limits
 
 - iid holdout is a MODEL: the code's slice is contiguous and
-  overlapping windows of one domain tail (C660, "Open"). The
-  formula bounds the iid deviation; serial correlation makes the
-  TRUE effective k smaller. Nothing here is proved about
-  overlapping windows.
+  overlapping windows of one domain tail. The formula bounds the
+  iid deviation; serial correlation makes the TRUE effective k
+  smaller. Nothing here is proved about overlapping windows.
 - CE is not bounded by a known `B`; `hℓ` is a hypothesis the code
   does not check. The numbers are per-unit-loss (ε/B).
 - `N` for the code is a count of evaluated states, not of `Θ` as
   a Lean type; if more states are scored than counted, `hcardΘ`
   fails silently.
 - The link from `holdout_gate_two_way_delta` to `CommitGate.gen`
-  is not formalised (C660, "Open"); this proposal does not close it.
+  is not formalised; this proposal does not close it.
 - Lean does NOT prove the table in (c): `k ≥ 877 / 1199` are
-  computed from the budget inequality in Python (rounded up); the
-  C662 witness (.tmp/C662/traj.lean) checks one instance
-  (`ln 400 ≤ 2·1200·0.05²`, Mathlib `log_two_lt_d9`,
-  `log_five_lt_d9`).
+  computed from the budget inequality in Python (rounded up); a
+  Lean witness checks one instance (`ln 400 ≤ 2·1200·0.05²`,
+  Mathlib `log_two_lt_d9`, `log_five_lt_d9`).
+- Anchors are frozen in primes; re-verify before port.

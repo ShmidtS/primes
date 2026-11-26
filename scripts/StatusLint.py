@@ -34,14 +34,14 @@ RUNTIME_NAMES = {
     "not_latest_is_best_allowed", "increment_envelope",
     "sum_w_pair_mid", "AssumptionScan", "AssumptionScan.py",
     "assumptions.lock",
-    "certified_transfer_gate", "nl_budget",  # C601 bench_bridge.py
-    "steps_drop_vs_bound",                 # C609 bench_bridge.py
-    "adaptive_span", "_cov_step_starts",   # C602 bench_bridge.py
-    "hier_span",                           # C613 bench_bridge.py
+    "certified_transfer_gate", "nl_budget",  # bench_bridge.py
+    "steps_drop_vs_bound",
+    "adaptive_span", "_cov_step_starts",
+    "hier_span",
     "certified_warmup_sim_run", "finite_displacement_ce_upper",
-    "tangent_range_sq",                 # C654 bench_bridge.py
-    "cost_regime_w",                       # C626 bench_bridge.py
-    "growth_gate_measure",                 # C633 bench_bridge.py
+    "tangent_range_sq",
+    "cost_regime_w",
+    "growth_gate_measure",
 }
 
 # Baseline of KNOWN doc/code mismatches (2026-10-05 snapshot,
@@ -56,7 +56,7 @@ SKIP_WORDS = {
 
 IDENT = re.compile(r"`([A-Za-z_][A-Za-z0-9_'′?]*)`")
 
-# C244 (A7): doc links / headings must reference REAL repo files.
+# doc links / headings must reference REAL repo files.
 # Markdown link targets [`name`](Hagi/Foo/Bar.lean) and `## Hagi/…​.lean`
 # headings; anchors and queries stripped before the disk check.
 PATH_RE = re.compile(r"(?:\]\(|^##\s+)(Hagi/[A-Za-z0-9_/]+\.lean)(?:[)#]|$)",

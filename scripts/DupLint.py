@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
-"""DupLint: exact-duplicate statement gate.
-
-Groups declarations by their Freeze `stmt` hash (kind + statement
-whitespace-normalized, name-independent). A stmt hash carried by
-more than one declaration is a duplicated statement.
-
-Delta-gate, same pattern as the StatusLint baseline:
-- `--update` writes duplint_baseline.txt:  group_count <TAB> dup_decls
-- verify: group count must not EXCEED baseline. Shrinking below the
-  baseline is fine (that is the point of the dedup campaign).
+"""DupLint: groups declarations by their Freeze `stmt` hash; a hash carried by
+more than one declaration is a duplicated statement. Delta-gate against
+scripts/duplint_baseline.txt (group_count <TAB> dup_decls): the group count must
+not exceed the baseline. Run `python scripts/DupLint.py` -> DUPLINT: PASS/FAIL;
+`--update` rewrites the baseline (shrinking below it is the point).
 """
 import hashlib
 import os

@@ -1,21 +1,19 @@
 # PROPOSAL: curvature-based (Fisher) quantization for the ternary jump and self-edit weight prune
 
-For: the HAGI_v2 implementation agent. Written by the primes agent
-(C480; theory landed in primes C472). Self-contained. All Lean
-anchors are proved and frozen in primes (Freeze 8462, module
-`Hagi/Theory/MergeQuant.lean` (v4 T4 merge, namespace `Hagi.Theory.FisherQuant` preserved), namespace `Hagi.Theory.FisherQuant`).
+For: the HAGI_v2 implementation agent. Self-contained. All Lean
+anchors are proved and frozen in primes (module
+`Hagi/Theory/MergeQuant.lean`, namespace `Hagi.Theory.FisherQuant`).
 
-## (a) Context (one line)
+## (a) Context
 
-Current: both HAGI_v2 quantization surfaces — the ternary jump
-(primes twin: `Hagi.Theory.CertTernaryJump`, `ternJumpStep` /
+Both HAGI_v2 quantization surfaces — the ternary jump (primes twin:
+`Hagi.Theory.CertTernaryJump`, `ternJumpStep` /
 `ternary_jump_checkStep` / `ternary_jump_energy`) and the self-edit
 weight-prune gate (primes twin: `Hagi.Theory.SelfEditGate`,
 `adoptGate` / `applyPatch` / `noop_not_adopted`) — treat the
-per-coordinate error budget as UNIFORM; primes C472 proved that a
-per-coordinate curvature (Fisher/Gershgorin) budget is quadratic,
-not linear, in the error and that the optimal allocation is
-monotone in curvature.
+per-coordinate error budget as UNIFORM. A per-coordinate curvature
+(Fisher/Gershgorin) budget is quadratic, not linear, in the error,
+and the optimal allocation is monotone in curvature.
 
 ## (b) Formulas and Lean anchors
 
@@ -26,19 +24,18 @@ Second-order machinery (all in `Hagi.Theory.FisherQuant`):
   Hessian `AᵀA`;
 - `colCurv a j = ∑ k, |crossCurv a j k|` — the GERSHGORIN diagonal
   `c_j = Σ_k |⟨col j, col k⟩|` (the naive diagonal `H_jj` claim is
-  FALSE — off-diagonal mass is honestly priced in);
+  FALSE — off-diagonal mass is priced in);
 - `quadLoss_second_order` — the EXACT second-order identity
   `L(θ+δ) = L(θ) + Σ_j g_j δ_j + Σ_{j,k} crossCurv jk · δ_j δ_k / 2`
   (no inequality, no measurement);
 - `hess_le_colCurv` — `δᵀ(AᵀA)δ ≤ Σ_j c_j δ_j²`;
 - `fisher_quant_loss_bound` — MAIN abstract bound: under a
   coordinatewise curvature premise and per-coordinate quantization
-  `|δ_j| ≤ ε_j`:
-  `ΔL ≤ Σ_j |g_j| ε_j + Σ_j c_j ε_j² / 2`;
+  `|δ_j| ≤ ε_j`: `ΔL ≤ Σ_j |g_j| ε_j + Σ_j c_j ε_j² / 2`;
 - `fisher_quant_loss_bound_opt` — at a stationary point (g = 0):
   pure curvature `ΔL ≤ ½ Σ_j c_j ε_j²`;
 - `quadLoss_curv_le`, `quad_fisher_quant_bound(_opt)` — the
-  curvature premise DERIVED (discharged) for the quadratic carrier;
+  curvature premise DERIVED for the quadratic carrier;
 - `fisher_beats_lipschitz`, `fisher_tolerance_mono` — anisotropy:
   flat coordinates (small c) tolerate a `c_max/c_min` factor more
   error (tolerance `ε_j ≤ 2L/c_j` regime);
@@ -46,13 +43,13 @@ Second-order machinery (all in `Hagi.Theory.FisherQuant`):
   the closed-form optimal exp-budget allocation is MONOTONE in the
   curvature weight c — coordinates where quantization hurts most
   get MORE bits; `fisher_alloc_isotropic_uniform` pins: isotropic
-  curvature ⇒ uniform allocation, NO gain (honest).
+  curvature ⇒ uniform allocation, NO gain.
 
 ## (c) Minimal Python diff
 
 Where: (i) the ternary-jump scale selection and (ii) the self-edit
-weight-prune ranking. Both currently use uniform ε. Replace with
-per-coordinate ε derived from a cheap diagonal curvature proxy:
+weight-prune ranking (both use uniform ε). Replace with
+per-coordinate ε from a cheap diagonal curvature proxy:
 
 ```python
 import math
@@ -74,7 +71,7 @@ eps = fisher_eps(c, eps_total)         # was: uniform eps_total/d
 price = float((g.abs() * eps).sum() + 0.5 * (c * eps ** 2).sum())
 ```
 
-## (d) Sanity numbers (primes C480, `.tmp/C480/sanity-fisher-quant.py`)
+## (d) Sanity numbers
 
 Exact-rational (Fraction) dataset, 3 samples × 3 coordinates,
 A = [[1,0,0],[1,2,0],[0,1,3]], y = [1,4,3], θ = (1,1,1),
@@ -99,14 +96,13 @@ Instrument each quantization event (ternary jump, self-edit prune):
 measure the REAL loss change `ΔL_real` before/after and the
 certified price `Σ|g_j|ε_j + ½Σ c_j ε_j²` computed with the SAME
 c, ε. Accept: `ΔL_real ≤ certified price` on EVERY event of a full
-run (real ≥ certified in the safe direction), and end-task metrics
-(puzzle accuracy / holdout CE) not worse than the uniform-ε
-baseline — the Fisher allocation should strictly reduce the total
-certified price whenever c is anisotropic (`fisher_alloc_mono`
-regime; isotropic case is a no-op by
+run, and end-task metrics (puzzle accuracy / holdout CE) not worse
+than the uniform-ε baseline — the Fisher allocation should strictly
+reduce the total certified price whenever c is anisotropic
+(`fisher_alloc_mono` regime; isotropic case is a no-op by
 `fisher_alloc_isotropic_uniform`).
 
-## (f) Honest limits
+## (f) Limits
 
 - The abstract bound keeps the FIRST-order term Σ|g_j|ε_j; the
   pure quadratic form holds only near stationary points
@@ -125,3 +121,4 @@ regime; isotropic case is a no-op by
   batches give NO gain (pinned by
   `fisher_alloc_isotropic_uniform`) — do not expect improvement on
   flat, decorrelated layers.
+- Anchors are frozen in primes; re-verify before port.

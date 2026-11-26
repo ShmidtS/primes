@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
-"""Triviality linter for Hagi (round-52 rules, R332 hardening).
-
-T0: no `axiom` declarations, no `native_decide`, no bare
-    `sorry` anywhere in project sources (fail-closed: the
-    project must not declare axioms at all — R303 lesson:
-    rg "sorry" misses `axiom` declarations).
-T1: theorem proof must not be bare `rfl` / `trivial` / `sorry`
-T2: conclusion must not literally coincide with a hypothesis
-Reports the non-trivial share (lower bound) over all theorems.
+"""Triviality linter for Hagi. T0: no `axiom` declarations, `native_decide` or
+bare `sorry` (rg "sorry" misses `axiom` declarations); T1: proof not bare
+`rfl` / `trivial` / `sorry`; T2: conclusion not equal to a hypothesis.
+Run `python scripts/triviality_lint.py`: reports `flags: N` (0 = clean) and the
+non-trivial share over all theorems.
 """
 import os
 import re
@@ -16,7 +12,7 @@ import sys
 ROOT = os.path.join(os.path.dirname(__file__), "..", "Hagi")
 
 THEO = re.compile(r"^\s*(?:private\s+)?(?:theorem|lemma)\s+([A-Za-z0-9_']+)", re.M)
-# T0 (R332): local axiom declarations and proof bypasses
+# T0: local axiom declarations and proof bypasses
 AXIOM_DECL = re.compile(r"^\s*(?:private\s+)?axiom\s+([A-Za-z0-9_']+)", re.M)
 SORRY_ANY = re.compile(r"sorry")
 NATIVE_DECIDE = re.compile(r"native_decide")
@@ -53,7 +49,7 @@ def sig_hyps_and_concl(sig):
 
 def findings(path, text):
     out = []
-    # T0 pass (R332): axiom declarations / sorry / native_decide
+    # T0 pass: axiom declarations / sorry / native_decide
     for m in AXIOM_DECL.finditer(text):
         out.append((path, m.group(1), "T0-AXIOM-DECLARATION", "axiom"))
     for m in SORRY_ANY.finditer(text):

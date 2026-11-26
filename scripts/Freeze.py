@@ -1,20 +1,10 @@
 #!/usr/bin/env python3
-"""Freeze declarations by elaborated Lean types, not lexical types.
-
-The lock has name, declaration hash, statement hash and kind columns.
-Structure/class/inductive hashes also cover constructor and projection names.
-Proof bodies are ignored.
-Batteries.alias entries retain their elaborated types, but are excluded
-from statement-duplicate counts: they are compatibility links, not
-independent assertions.
-
-A missing or ambiguous source-to-ConstantInfo match is a hard error. A
-name that disappeared passes only if its statement survives under a NEW
-name (a rename). Other edits and real deletions fail.
-
-Usage:
-  python scripts/Freeze.py            # verify (exit 1 on drift)
-  python scripts/Freeze.py --update   # regenerate after review
+"""Freeze declarations by elaborated Lean types, not lexical types: the lock
+(name, declaration hash, statement hash, kind) ignores proof bodies; hashes of
+structures/classes/inductives also cover constructor and projection names.
+Run `python scripts/Freeze.py`: FREEZE: PASS when nothing is lost or changed
+(a name that survives under a new name counts as a rename; Batteries.alias entries
+are excluded from duplicate counts), FREEZE: FAIL otherwise; `--update` regenerates.
 """
 import collections
 import functools
@@ -24,7 +14,7 @@ import re
 import subprocess
 import sys
 
-from _shared import strip_comments  # canonical home (v5 W5); re-exported
+from _shared import strip_comments  # re-exported
 
 DECL_RE = re.compile(
     r'^(?:@\[[^\]]*\]\s*)?'

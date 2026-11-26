@@ -1,20 +1,17 @@
 # PROPOSAL: measured (δ-gated) expert merge for the MDL-prune loop
 
-For: the HAGI_v2 implementation agent. Written by the primes agent
-(C480; theory landed in primes C476). Self-contained. All Lean
-anchors are proved and frozen in primes (Freeze 8462, module
-`Hagi/Theory/MergeQuant.lean` (v4 T4 merge, namespace preserved), namespace
-`Hagi.Theory.NonlinearMerge`).
+For: the HAGI_v2 implementation agent. Self-contained. All Lean
+anchors are proved and frozen in primes (module
+`Hagi/Theory/MergeQuant.lean`, namespace `Hagi.Theory.NonlinearMerge`).
 
-## (a) Context (one line)
+## (a) Context
 
-Current: HAGI_v2 MDL-prune merges experts through a purely
-quadratic gate (primes twin: `Hagi.Ensemble.MergePrice`,
+HAGI_v2 MDL-prune merges experts through a purely quadratic gate
+(primes twin: `Hagi.Ensemble.MergePrice`,
 `MergeApproved` / `merge_gate_certified` with `sigmaPrice`) which
-has NO residual term — it is sound only for the quadratic loss
-model; primes C476 proved the measured (δ-gated) version for
-ARBITRARY nonlinear merge losses and a NEGATIVE theorem showing
-the unmeasured gate is unsafe.
+has NO residual term — sound only for the quadratic loss model. The
+measured (δ-gated) version holds for ARBITRARY nonlinear merge
+losses; a NEGATIVE theorem shows the unmeasured gate is unsafe.
 
 ## (b) Formulas and Lean anchors
 
@@ -30,8 +27,7 @@ Measured-residual machinery (`Hagi.Theory.NonlinearMerge`):
   point's deviation ≤ the sum);
 - `nonlinear_merge_bound` — MAIN: two measured residuals
   (δ at t=1/2, δ₂ at t=1) give, for ANY L (no convexity, no
-  linearity):
-  `L(mid) ≤ ½(L(w1) + L(w2)) + δ + δ₂/2`;
+  linearity): `L(mid) ≤ ½(L(w1) + L(w2)) + δ + δ₂/2`;
 - quadratic twin (when the loss IS the quadratic model):
   `quadLossDiag / quadGradDiag / curvRemainder`,
   `quad_merge_exact` (exact identity), `quad_merge_le_mean`,
@@ -45,7 +41,7 @@ Measured-residual machinery (`Hagi.Theory.NonlinearMerge`):
   MUST carry a residual δ ≥ B; the δ-free
   `Hagi.Ensemble.MergePrice.merge_gate_certified` is exactly the
   quadratic-model case (its `MergeApproved` has no δ-term — the
-  forms are distinct by DupLint pin).
+  forms are distinct).
 
 Replacement: in the MDL-prune merge decision, substitute
 `MergeApprovedMeas` for the δ-free gate: keep the price sum
@@ -56,7 +52,7 @@ ADD the measured δ_bound from the `linResidualGrid` procedure.
 
 ```python
 def merge_gate_measured(self, w1, w2, prices, w, two_gap, kappa, s, n_prime):
-    # ---- linResidualGrid (C476): finite rational t-grid ----
+    # ---- linResidualGrid: finite rational t-grid ----
     ts = [F(1,4), F(1,2), F(3,4), F(1)]         # rational grid points
     g1 = grad(self.loss, w1)                     # linearization at w1
     L1 = self.loss(w1)
@@ -72,7 +68,7 @@ def merge_gate_measured(self, w1, w2, prices, w, two_gap, kappa, s, n_prime):
     return lhs < two_gap, lhs                    # True => merge certified BY MEASUREMENT
 ```
 
-## (d) Sanity numbers (primes C480, `.tmp/C480/sanity-merge-meas.py`)
+## (d) Sanity numbers
 
 Exact-rational (Fraction) 1D losses, experts w1 = 0, w2 = 1:
 
@@ -97,10 +93,10 @@ gradients beyond g1), then require BOTH (i) the δ-gate
 loss change `L(mid) − min(L(w1),L(w2))` measured post-hoc ≤
 `½|L(w1) − L(w2)| + δ + δ₂/2` on every executed merge of a full
 prune cycle. Log rejected-by-δ candidates separately from
-rejected-by-price: δ-rejections are the honest nonlinear-loss
-rescue that the old gate silently ignored.
+rejected-by-price: δ-rejections are the nonlinear-loss rescue that
+the old gate silently ignored.
 
-## (f) Honest limits
+## (f) Limits
 
 - The grid is FINITE: `linResidualGrid` bounds deviations only AT
   the sampled t-points; between grid points the residual can exceed
@@ -119,3 +115,4 @@ rescue that the old gate silently ignored.
 - twoGap, prices are measured quantities (ensemble gap law,
   σ-metric) — the gate is only as good as those measurements; the
   Lean certificate composes them, it does not re-derive them.
+- Anchors are frozen in primes; re-verify before port.

@@ -17,17 +17,16 @@ ROOT = Path(__file__).resolve().parent.parent / "Hagi"
 LAYERS = {
     # HagiCert/HagiModel/HagiLoop/HagiRecipes have no directory in the
     # tree; their entries are inert until one is created.
-    # C348 (A14 QW8): Hagi/Math activated — canonical math carrier
-    # at layer 0 (renamed from the inert A7 "HagiMath" entry; the
-    # dir chosen by QW8 is Hagi/Math, namespaces stay file-declared).
+    # Math is the canonical math carrier at layer 0 (Hagi/Math dir;
+    # namespaces stay file-declared).
     "Math": 0,
     "HagiCert": 1,
     "HagiModel": 2,
     "HagiLoop": 3,
     "HagiRecipes": 4,
     "Prelude": -1,
-    "Cert": 2,        # C224: canonical certification kernel (master plan v3 S1+S2)
-    "Information": 1,   # R200: information-theoretic capacity layer      # R198: the information-theory prelude below everything
+    "Cert": 2,        # canonical certification kernel
+    "Information": 1,   # information-theoretic capacity layer
     "Foundations": 0,
     "Audit": 0,          # de-facto foundations (to be split)
     "Core": 1,           # component algebra (Spec-to-be)
@@ -46,10 +45,10 @@ LAYERS = {
     "Step": 3,
     "Optimization": 3,
     "Runtime": 3,
-    "System": 3,   # R331: state layer (GrowthState) per audit v3 3
-    "State": 3,     # audit TD-05: canonical TrainState layer (was silently skipped)
-    "Contracts": 7,  # audit TD-05: certificate contracts above Unified/State
-    "Challenge": 7,  # audit TD-05: capstone consumers above Unified
+    "System": 3,   # state layer (GrowthState)
+    "State": 3,     # canonical TrainState layer
+    "Contracts": 7,  # certificate contracts above Unified/State
+    "Challenge": 7,  # capstone consumers above Unified
     "Model": 4,
     "Numerics": 4,
     "Growth": 4,
@@ -63,22 +62,22 @@ LAYERS = {
     "Omni": 5,
     "Unified": 6,
     "Examples": 7,
-    # C380 (A16 TT-CAT): training layer — macro-loop certificates above
+    # training layer — macro-loop certificates above
     # Contracts (7: EProcMonitor reuse) and Unified (6: Ville engine).
     "Training": 8,
-    # C384 (A16): semantics layer — independent ModelSpec/ObjectiveSpec
+    # semantics layer — independent ModelSpec/ObjectiveSpec
     # records and their combinations; above Model (4), below Unified (6).
     "Semantics": 5,
-    # C387 (A17 stage 2): theory-chain facade layer — the unified CE
+    # theory-chain facade layer — the unified CE
     # chain reusing pieces from Model(4)/Unified(6); nothing imports it
     # from below, so it caps the import DAG like Contracts/Challenge.
     "Theory": 7,
 }
 
-# known violations, to be removed one by one (audit list):
+# known violations, to be removed one by one:
 LAYER_EXCEPTIONS = {
     # сокращающийся baseline межпапочных рёбер
-    # аудит 2026-10-24: External/MemT/GDN2 -> Optimization.InexactContraction
+    # External/MemT/GDN2 -> Optimization.InexactContraction
     # (внешний остров MemT; кандидат на вынос из дерева после миграции)
     ("External/MemT/GDN2.lean", "Optimization/InexactContraction.lean"),
     

@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
-"""Shared primitives for scripts/ linters and tools (v5 W5).
-
-Deliberately NOT a lint-lib: only stable, duplication-free
-constants/regex/filesystem/comment-stripping primitives live
-here. Linter logic stays in its own script (plan v5 W5).
+"""Shared primitives for scripts/ linters and tools (import `_shared`).
+Not a lint-lib: only stable, duplication-free constants, regexes, filesystem
+and comment-stripping helpers live here; linter logic stays in its script.
 """
 import re
 from pathlib import Path
@@ -25,7 +23,7 @@ DECL_RE = re.compile(
     re.M,
 )
 
-# C217/C239/C240 quarantine: dirs outside the namespace/reach rules.
+# Quarantine dirs: outside the namespace/reach rules.
 # Single source for NsLint and ReachLint (comment drift between the
 # two copies was measured before extraction).
 LEGACY_PREFIX = "Hagi/Legacy/"
@@ -49,9 +47,7 @@ def strip_comments(text):
 
     Adapted from https://github.com/jayeshmepani/comment-remover
     (C-style string preservation), with Lean's nested comment depth.
-    Canonical home moved here from Freeze.py (v5 W5); Freeze
-    re-exports it for existing `from Freeze import strip_comments`
-    consumers.
+    Freeze re-exports it for `from Freeze import strip_comments` consumers.
     """
     out = []
     i = 0

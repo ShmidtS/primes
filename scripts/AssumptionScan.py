@@ -1,14 +1,9 @@
 #!/usr/bin/env python3
-"""AssumptionScan (audit stage 1): assumption & duplication registry.
-
-Scans the Hagi sources and writes a reproducible registry:
-  * every `h_emp_*` identifier (the external empirical premises
-    each theorem consumes), grouped by file;
-  * every definition of an information primitive
-    (kl / tv / entropy / softmax / lse) — the canonical layer
-    must stay the only non-bridge definition.
-Fails if the registry drifts from scripts/assumptions.lock;
-update deliberately with `--update` (same workflow as Freeze).
+"""AssumptionScan: registry of the empirical premises and of the information
+primitives (kl / tv / entropy / softmax / lse: the canonical layer must stay
+the only non-bridge definition) declared in the Hagi sources.
+Run `python scripts/AssumptionScan.py`: ASSUMPTIONSCAN: PASS when the scan
+equals scripts/assumptions.lock, FAIL on drift; `--update` rewrites the lock.
 """
 import re
 import sys
@@ -20,7 +15,7 @@ ROOT = Path(__file__).resolve().parent.parent
 LOCK = Path(__file__).resolve().parent / "assumptions.lock"
 
 IDENT = re.compile(r"\bh_emp_[A-Za-z0-9_]+")
-# Audit #7 premise classes: Empirical = h_emp_* binders;
+# Premise classes: Empirical = h_emp_* binders;
 # Operational = execution-link binders (exec/descent/sample);
 # Structural/Math = all other parameter hypotheses.
 # Match a whole h-prefixed identifier, never an embedded fragment of an
@@ -28,14 +23,14 @@ IDENT = re.compile(r"\bh_emp_[A-Za-z0-9_]+")
 # `ceQuantWitness_shortcutScales_strict_descent` is not a premise
 # named `hortcutScales_strict_descent`.  Both guards exclude partial matches;
 # suffixes and primed identifiers are preserved instead of truncated.
-# C218 (audit P0b): unprefixed empirical premise registry.
+# Unprefixed empirical premise registry.
 # PER-FILE, SHRINK-ONLY: each entry names binder names that are
 # acknowledged empirical premises in that specific file (MasterHAGI's
 # h_emp inventory; ModeState). NOT a name-registry: names like hbeta
 # have ~60 structural binder sites elsewhere in the repo, so
 # cross-file matching would misregister structural hypotheses as
 # empirical (documented blindness). The list may only shrink in
-# future cycles; growth or drift in registered files FAILs.
+# later; growth or drift in registered files FAILs.
 UNPREFIXED_EMPIRICAL = {
     'Hagi/Research/Legacy/MasterHAGI.lean':
         {'h_step': 2, 'h_gain_prod': 2, 'h_dyn': 1, 'h_C_cap': 1,
@@ -64,7 +59,7 @@ def unprefixed_check():
     A binder site is `(NAME :` in comment-stripped source. The
     registered count is the acknowledged baseline; the registry
     may only shrink (count decrease = deliberate shrink, FAILs
-    until the registry is updated through plan review; count
+    until the registry is updated; count
     increase = growth, FAILs outright).
     """
     problems = []
@@ -101,7 +96,7 @@ def scan():
         # elimination, not a premise. Strip comments before scanning.
         code = strip_comments(text)
         names = sorted(set(IDENT.findall(code)))
-        # R265+: distinguish PROVEN h_emp-named theorems/defs
+        # distinguish PROVEN h_emp-named theorems/defs
         # (derived results with a historical empirical name, e.g.
         # PerronCone.h_emp_takeoff_exponential) from genuine premise
         # BINDERS. A proven theorem is not a premise.

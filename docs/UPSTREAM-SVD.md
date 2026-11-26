@@ -1,8 +1,8 @@
-# UPSTREAM-SVD — Flywheel SVD Mathlib-вклад подготовка (C503)
+# UPSTREAM-SVD — Flywheel SVD Mathlib-вклад подготовка
 
 Паспорт подготовки пакета `Hagi/External/Flywheel/` к предложению
 в Mathlib. Проверка отсутствия выполнена rg по локальному
-чекбауту Mathlib **rev fc4f59e577feb1a4956671bc04ac18aaaf8cd842**
+чекбауту Mathlib rev fc4f59e577feb1a4956671bc04ac18aaaf8cd842
 (= scripts/mathlib-rev.txt, 2026-11); перед подачей PR перепроверить
 на свежем master.
 
@@ -73,7 +73,7 @@ Authors: Aleksandar Markovski». Совместимо с Mathlib (Apache 2.0);
    :541)** — m×n вариант; та же совместимость-заметка.
 3. **eckart_young_lower_bound (EckartYoungLower :45)** —
    оптимальность rank-k усечения в Frobenius-норме; зависит от
-   FrobeniusNorm + SVDCore. Требует Полный Frobenius (не
+   FrobeniusNorm + SVDCore. Требует полный Frobenius (не
    спектральную норму) — комментарий в источнике (:1125).
 4. **courantFischer_maxMin/minMax_bounds (:950/:1090)** —
    вариационная характеризация эрмитовых собственных чисел.
@@ -86,7 +86,7 @@ Authors: Aleksandar Markovski». Совместимо с Mathlib (Apache 2.0);
 8. **FrobeniusNorm / MatrixNormRelations** — norm-слой; кандидат
    на слияние с Mathlib.Analysis.Matrix.Normed.
 
-## 4. Приоритет-ранж (топ-3 + обоснование отсутствия)
+## 4. Приоритет-ранг (топ-3 + обоснование отсутствия)
 
 Проверка на rev fc4f59e: в Mathlib ЕСТЬ только
 `Analysis/InnerProductSpace/SingularValues.lean` — def
@@ -108,12 +108,12 @@ Spectrum.lean — 0; "weyl"-хиты только RootSystem/Cartan (групп�
    отсутствует; самодостаточен после CourantFischer (кандидат 4,
    следующий эшелон).
 
-## 5. Дальнейшие шаги (вне скоупа C503)
+## 5. Чек-лист дальнейших шагов
 
 1. Перепроверить отсутствие на свежем Mathlib master
    (`rg -ni "singular value|Eckart|CourantFischer|Weyl"`).
 2. Переписать statements в LinearMap-API (или мост Matrix↔LinMap).
-3. Mathlib style-проход (naming, docstrings) по lean-naming-style.
+3. Mathlib style-проход (naming, docstrings).
 4. Разбить на PR-серию: NormSupport → SVDCore → rectangular →
    CourantFischer → Weyl → EckartYoung.
 5. Заменить внутренние Hagi-импорты Flywheel на Mathlib после

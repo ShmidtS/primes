@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""derive_config (C683, C684): выводимая конфигурация обучения HAGI.
-
-no reference: формулы — теоремы primes (FQN в таблице), числовые
-входы — константы кода HAGI_v2 @ca52eb4 (файл:строка у каждого).
-Stdlib only, детерминирован; печатает markdown-таблицу
-«параметр | код | выведено | код/выведено | источник».
-Запуск: python scripts/derive_config.py
+"""derive_config: выводимая конфигурация обучения HAGI (markdown-таблица
+«параметр | код | выведено | код/выведено | источник»; статус DERIVED / BOUNDED /
+HONEST-GAP). Формулы — теоремы репозитория (FQN в таблице), числовые входы —
+константы кода HAGI_v2 @SHA (файл:строка у каждого). Stdlib only, детерминирован.
+Запуск: python scripts/derive_config.py (принта нет PASS/FAIL — это отчёт).
 """
 import math
 import sys
@@ -36,11 +34,11 @@ CODE = {
     "ingest_epochs": 200, "ingest_repeat": 2,                  # unified.py:63
     "ternary_levels": 3,                                       # lm.py:262 (−1,0,+1)
 }
-# γ_auto = 1/(2·trace H̄), receipt C609 (docs/paper-draft.md, C609)
+# γ_auto = 1/(2·trace H̄) (docs/paper-draft.md)
 GAMMA_AUTO = [("ATA", Fraction(5000000, 10470759)),
               ("TGC", Fraction(13500000, 25944901)),
               ("TGC'", Fraction(156250, 234227))]
-# receipt C597: auto-k* bench (docs/paper-draft.md:1332); C623/C626: w bench
+# Bench inputs: auto-k* (docs/paper-draft.md:1332); w bench below
 BENCH = {"snap_k": (18, 19, 20), "snap_k_trunk": 11, "legacy_k": 40,
          "n_w": 100000, "w_bench": 256, "reads": (6250, 1563, 391)}
 
@@ -61,12 +59,12 @@ def ceil(x):
 
 
 # ---- γ* = 1/L -----------------------------------------------------------
-# C684: для relu-блока по W1 доказаны ДВЕ константы (FirstLayerLip.lean):
+# Для relu-блока по W1 доказаны ДВЕ константы (FirstLayerLip.lean):
 #   липшицевость ФУНКЦИИ  Lfun = 2·‖wo‖_F·‖x‖₂  (w1CE_lipschitz_param, глобально);
 #   гладкость ГРАДИЕНТА    S    = ‖wo‖_F²·‖x‖₂²  (w1CE_descent_lemma, внутри
 #   области активации) ⇒ γ* = 1/S, drop = ‖D‖²/(2S) (w1CE_optimal_step_drop).
 # ‖wo‖_F и ‖x‖₂ код не логирует ⇒ число только на WITNESS-входах (не код):
-# .tmp/C684/traj.lean — x=(1,2), wo=[[1,0],[0,2],[1,1]]: Σwo²=7, Σx²=5.
+# witness-входы (не код): x=(1,2), wo=[[1,0],[0,2],[1,1]]: Σwo²=7, Σx²=5.
 WIT_WO2, WIT_X2 = 7, 5
 add("γ (guarded Adam lr)", CODE["adam_lr_guarded"],
     "γ* = 1/S_batch (mean: B/S_batch), S_batch = ‖wo‖_F²·Σ_t‖x t‖₂² — FirstLayerLipBatch; DERIVED-формула; число — HONEST-GAP до телеметрии PROPOSAL #11",
@@ -76,9 +74,9 @@ add("S (W1 smoothness) witness", "—", f"{WIT_WO2}·{WIT_X2} = {WIT_WO2 * WIT_X
     "w1CE_descent_lemma FirstLayerLip.lean:258 (witness, не код)", "BOUNDED", "—")
 add("γ* = 1/S witness (W1, plain GD)", "—", f"1/{WIT_WO2 * WIT_X2} = {1 / (WIT_WO2 * WIT_X2):.4f}",
     "w1CE_optimal_step_drop :392 (witness, не код)", "BOUNDED", "—")
-# C685: батч-версия (FirstLayerLipBatch.lean): S_batch = ‖wo‖_F²·Σ_t‖x t‖₂²,
+# Батч-версия (FirstLayerLipBatch.lean): S_batch = ‖wo‖_F²·Σ_t‖x t‖₂²,
 #   γ*_batch = 1/S_batch; mean (lm.py:299): S_mean = S_batch/B, γ*_mean = B/S_batch.
-#   Число — HONEST-GAP до телеметрии PROPOSAL #11; входы ниже — witness (.tmp/C685/traj.lean).
+#   Число — HONEST-GAP до телеметрии PROPOSAL #11; входы ниже — witness.
 def gamma_star_batch(wo_frob_sq, x_l2_sq_max, B):
     """γ* = 1/S_batch, γ*_mean = B/S_batch (witness defaults, not code values)."""
     x_l2_sq_sum = sum(x_l2_sq_max)
@@ -103,7 +101,7 @@ add("L_dir certified step (denom)", "Q' + 4·curv_reg",
     "ce_range_code_drop AdaptiveMajorizer.lean:1497; useful_first_step :584", "DERIVED", "—")
 for nm, g in GAMMA_AUTO:
     add(f"γ_auto {nm} (ATA/TGC)", f"{float(g):.4f}", f"1/(2·trH̄)={g.numerator}/{g.denominator}",
-        "auto-LR 1/(2·trace H̄), receipt C609", "DERIVED")
+        "auto-LR 1/(2·trace H̄), docs/paper-draft.md", "DERIVED")
 add("L implied by γ_auto", "—",
     "/".join(f"{2 / float(g):.3f}" for _, g in GAMMA_AUTO),
     "L = 2·trH̄ = 1/γ_auto", "DERIVED", "—")
@@ -126,24 +124,24 @@ add("backtrack β / probes", f"{CODE['bt_beta']} / {CODE['bt_probes_cert']}",
 # ---- snap k* ------------------------------------------------------------
 add("snap k*", "нет snap-грида",
     "⌈log₂(L·d/ε)⌉−1", "snap_k_eq_ceil GrowSnap.lean:342", "DERIVED", "—")
-add("snap k* bench (C597): код legacy / auto", f"{BENCH['legacy_k']}",
-    "/".join(map(str, BENCH["snap_k"])), "receipt C597 (paper-draft.md:1332)", "DERIVED")
+add("snap k* bench: код legacy / auto", f"{BENCH['legacy_k']}",
+    "/".join(map(str, BENCH["snap_k"])), "bench auto-k* (docs/paper-draft.md:1332)", "DERIVED")
 for m in (4, 8, 16, 20):
     x = 2.0 ** (m + 1)
     add(f"  k* при L·d/ε = 2^{m+1}", "—", str(ceil(math.log2(x)) - 1),
         "snap_k_eq_ceil", "DERIVED", "—")
 add("bits saved vs legacy (33 snaps)", "—", "2788",
-    "receipt C597", "DERIVED", "—")
+    "bench auto-k* (docs/paper-draft.md:1332)", "DERIVED", "—")
 
 # ---- w* = √(a/c) --------------------------------------------------------
 add("coverage w", f"max {max(CODE['w_choices'])} (tol {CODE['w_tol']})",
     "√(a/c); a, c в коде не измеряются",
     "mixedCost_relax_min_eq CoverageReading.lean:648", "HONEST-GAP", "—")
 add("w bench (n=100000, fixed cost)", "16", f"{BENCH['w_bench']} → {BENCH['reads'][2]} reads",
-    "windowCost_fixed_mono CoverageReading.lean:575; receipt C623", "BOUNDED",
+    "windowCost_fixed_mono CoverageReading.lean:575; bench w", "BOUNDED",
     f"{16 / BENCH['w_bench']:.4g}")
 add("  reads(16)/reads(256)", f"{BENCH['reads'][0]}", f"{BENCH['reads'][2]}",
-    "receipt C623", "DERIVED")
+    "bench w (docs/paper-draft.md)", "DERIVED")
 
 # ---- growth gate --------------------------------------------------------
 p_all = 256 * CODE["dim"] + CODE["k_ctx"] * CODE["dim"] * CODE["hidden"] + CODE["hidden"] \
@@ -190,7 +188,7 @@ add("σ₃(1) bound", "—", f"{float(Fraction(39, 40)):.4f} ≤ {ns(1.0, 3):.4f
 add("Muon effective step (t=1)", f"{CODE['lr0_hybrid']}·sched·{CODE['muon_scale']}",
     f"{CODE['lr0_hybrid'] * 0.5 * (1 + math.cos(math.pi / CODE['steps_hybrid'])) * CODE['muon_scale']:.5f}",
     "step = cos_lr·0.7·X₃ (core.py:1755)", "DERIVED")
-# C686: m1 = 0.85*m1 + 0.15*gW1 (core.py:1754), NS применяется к m1 (core.py:1755).
+# m1 = 0.85*m1 + 0.15*gW1 (core.py:1754), NS применяется к m1 (core.py:1755).
 # Доказано (MomentumAlign.lean): выравнивание и граница drop; значение 0.85 не выводится.
 add("Muon momentum alignment", f"m1 = {CODE['muon_ema_old']}·m1 + {CODE['muon_ema_new']}·gW1",
     "⟨G,m1⟩ = 0.15·‖G‖² + 0.85·⟨G,m1_prev⟩ ≥ 0.15·‖G‖² (если ⟨G,m1_prev⟩ ≥ 0)",

@@ -1,25 +1,20 @@
-# Palomar-cards — C5XX–C6XX-теория как кандидаты для реестра Lean-результатов
+# Palomar-cards — кандидаты в реестр Lean-результатов
 
 [Palomar](https://palomar-registry.org/) — публичный реестр
-Lean-верифицированной математики (Lean FRO + ICARM). Запись
-реестра фиксирует: репозиторий + полный commit SHA, формальное
-statement (Challenge-модуль, ≤1000 строк, импорты только
-Lean core + Mathlib/Tau Ceti), proved Solution-модуль
-(аксиомы только `propext`, `Classical.choice`, `Quot.sound`),
-comparator.json, formalization.yaml (arXiv-категории, MSC2020,
-авторство, автоматизация, honest narrative), результат
-механической проверки (Lean kernel + независимый `nanoda`) и
-редакционный вердикт («no blocking problem»). Реестр не
-ранжирует и не одобряет результаты.
+Lean-верифицированной математики (Lean FRO + ICARM). Запись реестра
+фиксирует репозиторий + commit SHA, statement (Challenge-модуль, импорты
+только Lean core + Mathlib/Tau Ceti), proved Solution-модуль (аксиомы
+только `propext`, `Classical.choice`, `Quot.sound`), comparator.json,
+formalization.yaml, результат механической проверки (Lean kernel +
+независимый `nanoda`) и редакционный вердикт. Реестр не ранжирует и не
+одобряет результаты.
 
 этот файл — подготовительные карточки (draft entries) девятнадцати
-machine-checked результатов C5XX–C6XX-витков: самодостаточные
-математические формулировки без контекстной терминологии,
-точные FQN-якоря и честный статус. Все доказательства
-проверены Lean 4.36 (pinned Mathlib, см. lake-manifest.json);
-гейт `scripts/AllAxiomCheck.lean` (`ALLAXIOMS: PASS` в ci.sh)
-подтверждает: только стандартные три аксиомы
-Lean (`propext`, `Classical.choice`, `Quot.sound`), без
+machine-checked результатов: самодостаточные математические
+формулировки без контекстной терминологии, точные FQN-якоря и статус.
+Все доказательства проверены Lean 4.36 (pinned Mathlib, см.
+lake-manifest.json); гейт `scripts/AllAxiomCheck.lean` (`ALLAXIOMS: PASS`
+в ci.sh) подтверждает: только стандартные три аксиомы Lean, без
 `sorryAx` и `Lean.ofReduceBool`.
 
 Отправка в реестр — внешний user-шаг (см. README).
@@ -208,7 +203,7 @@ Lean (`propext`, `Classical.choice`, `Quot.sound`), без
   (:481); premise-форма `nl_drop_bound` (:443); определения
   `nlDrop` (:434), `nlStep` (:231).
 - **Dependencies.** Mathlib (NormedSpace, inner product);
-  внутренние определения модуля. Bench-числа (C609):
+  внутренние определения модуля. Bench-числа:
   auto-LR γ_auto = 1/(2·trace(H̄)) ∈ {5000000/10470759 ≈
   0.477, 13500000/25944901 ≈ 0.520, 156250/234227 ≈ 0.667} —
   измеренный диапазон 0.48–0.67 против прежней константы 1/10.
@@ -237,8 +232,8 @@ bounded peak
   `hier_peak_window_budget` (:315); определения `hierBlockLen`
   (:268), `hierStarts` (:273).
 - **Dependencies.** Та же Mathlib-база; сведение поблочно к
-  `covStartsStep_covers` (Card 11). Числа-инстансы (C613,
-  w = m = 64, B = 4032, s = 64): n = 100000 → 25 блоков
+  `covStartsStep_covers` (Card 11). Числа-инстансы
+  (w = m = 64, B = 4032, s = 64): n = 100000 → 25 блоков
   (per-block 24×63 + 51 окон), total 1563, peak 63 ≤ 64;
   Lean-свидетель n = 8128 → блоки [63, 63, 1], peak 63
   (machine-checked #eval).
@@ -274,7 +269,7 @@ and budget
   `covStartsStep_len_le` (:220);
   `covStartsStep_adaptive_covers` (:233).
 - **Dependencies.** Mathlib (List, Nat.div); без внешних
-  теорий. Bench-числа (C602/C611): n = 540 → s = 8, 61 окно,
+  теорий. Bench-числа: n = 540 → s = 8, 61 окно,
   covered; n = 4032 → s = 64 (граница), covered; n = 8128 →
   127 окон > 64 — INFEASIBLE.
 - **Status.** Machine-checked (Lean 4.36); аксиомы:
@@ -320,8 +315,8 @@ with width-w windows
   `covStartsStep_len_tiling` (:354); определения `hierBlockLen`
   (:268), `hierStarts` (:273).
 - **Dependencies.** Mathlib (Finset.card_le_card_of_injOn,
-  List, Nat.div); без внешних теорий. Числа-инстансы (receipt
-  C618): n = 100000, w = m = 64 → total 1563 = ⌈100000/64⌉ для
+  List, Nat.div); без внешних теорий. Числа-инстансы:
+  n = 100000, w = m = 64 → total 1563 = ⌈100000/64⌉ для
   всех B ∈ {64, 2048, 4032, 4096} (константен по B); s = 32 < w
   → 3033 > 1563 (строго хуже floor); n = 8128 → 127.
 - **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
@@ -349,7 +344,7 @@ width-independent
   (a) фиксированной стоимости `windowCost_fixed_mono` :577: при
   c(w) = c totalCost(w) = c·⌈n/w⌉ монотонно невозрастает по w
   (ядро `ceil_div_anti` :555) — оптимально w = w_max. Мост к
-  иерархии C618: `windowCost_hier` :613 (total = ⌈n/w⌉ при
+  иерархии Card 12: `windowCost_hier` :613 (total = ⌈n/w⌉ при
   w ∣ B).
 - **Наглядность.** При линейной стоимости окна ширина почти
   не влияет на общий бюджет — выбирай по точности, не по
@@ -366,7 +361,7 @@ width-independent
   `windowCost_fixed_mono` (:577); `ceil_div_anti` (:555);
   `windowCost_hier` (:613).
 - **Dependencies.** Без Mathlib-теорий (Nat.div_add_mod,
-  Nat.mod_lt, omega); числа-инстансы (receipt C623): n =
+  Nat.mod_lt, omega); числа-инстансы: n =
   100000, w ∈ {16, 64, 256} → чтения {6250, 1563, 391}, а
   линейный total-cost {100000, 100032, 100096} — все в
   коридоре [100000, 100000+w); мост hierStarts 100000 4032
@@ -401,18 +396,17 @@ width-independent
   с добавленной ёмкостью) уменьшает objective не более чем на
   `c_add` — рост НЕ может окупиться за n шагов. Ядро:
   `nl_drop_total` :620 — телескоп-индукция, drop за n шагов ≤
-  `n·G²/(2L)` (per-step `nl_drop_step_eq` :608 = C606
-  `nl_drop_optimal` при γ* = 1/L).
+  `n·G²/(2L)` (per-step `nl_drop_step_eq` :608 =`nl_drop_optimal` при γ* = 1/L).
 - **Наглядность.** Certified-совет «не расти»: потолок выигрыша
   ≤ стоимости ёмкости. Гейт сравнивает два числа — гарантированный
   потолок убывания objective против цены новой ёмкости — и если
   даже идеальное дообучение не отобьёт цену, рост запрещён
   математически, без единого измерения. Асимметрия честна:
   stay-ветка certified, grow-ветка — только разрешение (верхняя
-  граница возможного ≠ факт). Числа (receipt C635): 6 синтетик —
+  граница возможного ≠ факт). Числа: 6 синтетик —
   S1–S4 STAY (S4: pb = c_add, равенство → stay), G1/G2 GROW;
   λ-sweep при c_add = new_params·λ: PIN λ=1/10⁴ → 6 GROW/0 STAY
-  (golden-идентичность C633), first_stay_lam = 1/10³;
+  first_stay_lam = 1/10³;
   certified_stay_threshold λ* = min(pb/params) ≈ 10⁴¹ — PIN-λ
   на ~45 порядков ниже: stay-ветка реальна при λ ≥ λ*
   (GROW ⟺ λ < pb/params, монотонность по λ).
@@ -424,11 +418,11 @@ width-independent
   Потребитель: bench `--mode grow-snap` / `adapter-grow`.
 - **Dependencies.** Без Mathlib-теорий (field_simp, ring,
   nlinarith, induction-телескоп); NegativeTransfer-прологи
-  (`nlDrop`, `nlStep`, `nlRun`, C606 `nl_drop_optimal`).
+  (`nl_drop_optimal`).
 - **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
   три Lean. Honest pins: потенциал-модель — квадратичный класс
-  (`hmodel`, равенство в descent-лемме, прецедент C572); для
-  общего L-smooth certified-потолок шире — nlBudget C592
+  (`hmodel`, равенство в descent-лемме); для
+  общего L-smooth certified-потолок шире — `nlBudget`
   `γG² + Lγ²G²/2`, гейт пересчитывается. Граница G — градиентная
   граница ТЕКУЩЕЙ модели на residual; grow-ветка ничего не
   обещает (bound — верхняя граница возможного, не факт).
@@ -566,7 +560,7 @@ one iff there is residual signal
   identity, `CE = fOld`).
 - **Anchor.**
   `Hagi.Theory.FunctionPreservingGrowth.useful_eta_le`
-  (Hagi/Theory/FunctionPreservingGrowth.lean:597);
+  (Hagi/Theory/FunctionPreservingGrowth.lean:596);
   `exists_useful_eta` (:616); `first_step_strict_improves` (:672);
   `first_step_useful_certified` (:637); `useful_first_step_pos` (:586);
   `no_signal_no_drop` (:625); определения `linDrop` (:575), `stepEps` (:391).
@@ -574,7 +568,7 @@ one iff there is residual signal
   CE `Hagi.ceOneHot`); контракт `CertifiedFiniteStep` и
   `block_step_commit_of_range_bound` модуля.
 - **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
-  три Lean. Witness (receipt C657): `a = −1`, `R = 2` → `η* = 1`,
+  три Lean. Witness: `a = −1`, `R = 2` → `η* = 1`,
   `drop_max = 1/2`; `a = 0` → COMMIT нет. Honest pin: U2
   (глобальная достижимость в невыпуклом случае) — OPEN, не
   доказано; statement — локальный первый шаг.
@@ -609,7 +603,7 @@ one iff there is residual signal
   достигается на `U Vᵀ`; доказательство идёт через диагональ
   `Q = UᵀΔV` (изометрия ⇒ единичные столбцы ⇒ `Q i i ≤ 1`), без
   неравенства фон Неймана / спектрально-ядерной двойственности.
-  Прямоугольное дополнение (C680–C681), `G : Matrix m n ℝ`,
+  Прямоугольное дополнение, `G : Matrix m n ℝ`,
   `card m ≤ card n`, `wnormed G = (1/‖G‖_F)•G`, `wide_iter k` — `k`
   итераций того же `ns_step` на `m×n`:
 
@@ -623,11 +617,11 @@ one iff there is residual signal
 
   где `G = w1GradR x b wo W1 t = −(g ⊗ x)` — градиент слоя `W1 : ι → δ → ℝ`
   кодовой размерности (`dim × hidden`, lm.py:586), `hmn : card ι ≤ card δ`;
-  батч: `muon_step_useful_w1_rect_batch`. Высокий слой (C682):
+  батч: `muon_step_useful_w1_rect_batch`. Высокий слой:
   `fdot_transpose : fdot_wide Gᵀ Hᵀ = fdot_wide G H`,
   `wnormed_transpose : wnormed Gᵀ = (wnormed G)ᵀ`,
   `tall_alignment_ge_gradient : card n ≤ card m → G ≠ 0 → ‖G‖_F ≤ ⟨G, wide_iter k Ĝ⟩`
-  (через `wide_iter_transpose` C680) и prime-версии без `hmn`:
+  (через `wide_iter_transpose`) и prime-версии без `hmn`:
 
   `theorem muon_step_useful_w1_rect' (x b wo W1 t k) (hact) (hg : rowGrad … ≠ 0) (hx : x ≠ 0) :`
   `  ∃ η, 0 < η ∧ ceOneHot t (w1L (fun i j => W1 i j - η * wide_iter k (wnormed G) i j) b wo x)`
@@ -635,12 +629,12 @@ one iff there is residual signal
 
   батч: `muon_step_useful_w1_rect_batch'`; шаг теоремы = вывод кода
   (`w1StepR_eq_code_ns`, core.py:1358–1361).
-  Консолидация (C687): обе теоремы этой карточки — клозы (O3) и (O4)
+  Консолидация: обе теоремы этой карточки — клозы (O3) и (O4)
   единой теоремы `hagi_master_v35` (Hagi/Theory/MasterTheoremV3.lean:458)
   с контрактом посылок `OptimizerPremises`
   (Hagi/Theory/MasterTheoremV3.lean:428); там же — сертификат спуска
   (O5) и момент (O6). Без фон Неймана: максимум доказан только на
-  изометриях (honest (b)).
+  изометриях.
 - **Наглядность.** Идеальный шаг Muon (ортогонализованный градиент)
   — точный оптимум на группе изометрий; итерации Ньютона–Шульца
   сохраняют сингулярные векторы градиента, и три итерации дают не
@@ -669,18 +663,15 @@ one iff there is residual signal
   (`Hagi.External.Flywheel.Matrix.SVD.Real`).
 - **Status.** Machine-checked (Lean 4.36); аксиомы: стандартные
   три Lean. Honest: максимум по всему спектральному шару `‖Δ‖₂ ≤ 1`
-  не доказан (нужен фон Неймана); слой `W1` любой формы покрыт с C682
-  (версии C681 — при `card ι ≤ card δ`); `σ i < 1/2` после трёх итераций без
+  не доказан (нужен фон Неймана); слой `W1` любой формы покрыт prime-версиями
+(версии без штриха — при `card ι ≤ card δ`); `σ i < 1/2` после трёх итераций без
   нижней границы; `η` только существует; momentum (`m1`) и mean-лосс вне теории.
   Проверка ниши: в реестре нет backprop / trace-inequality /
-  Muon формализаций — «niche 0/N» по данным receipts C668–C675
-  (C668: 1351 entries, revision 1194, 0 cards по HasFDerivAt /
-  fderiv / chain rule / backprop; C674: 0 по «muon / newton»);
-  API в C677 не запрашивался.
+  Muon формализаций (см. «Niche check» ниже).
 - **Category.** Optimization / matrix analysis (arXiv math.OC,
   cs.LG); MSC2020 15A18 (singular values), 90C25, 68T05.
 
-## Card 19 — Newton–Schulz quadratic defect 39/40
+## Card 19## Card 19 — Newton–Schulz quadratic defect 39/40
 
 - **Statement.** Скалярная динамика итерации `X ↦ ½·X(3I − XᵀX)`:
   `ns_p t = t(3 − t²)/2`, `ns_seq 0 t = t`,
@@ -697,7 +688,7 @@ one iff there is residual signal
   `σ₃ ≥ 39/40`.
 - **Наглядность.** Явная константа близости трёх итераций
   Ньютона–Шульца к полярному фактору: `1/2 → 11/16 → 1 − 1075/8192
-  → ≈ 0.975300` (точная траектория от `1/2`, receipt C673).
+  → ≈ 0.975300` (точная траектория от `1/2`).
 - **Anchor.** `Hagi.Theory.NewtonSchulzSigma.ns_defect_bound`
   (Hagi/Theory/NewtonSchulzSigma.lean:83); `ns_sigma_min_three` (:126);
   `ns_quadratic_invariant` (:51); `ns_step_eigenvalue_sigma` (:200);
@@ -712,99 +703,64 @@ one iff there is residual signal
 
 ## Submission requirements (что нужно для реальной отправки)
 
-По /how-to-submit реестра, для каждой карточки требуется
-выделенный comparator-проект:
+По /how-to-submit реестра, для каждой карточки требуется выделенный
+comparator-проект:
 
-1. Публичный GitHub-репозиторий + полный commit SHA снапшота.
-2. `lakefile.toml` + `lean-toolchain` (pinned) +
-   `lake-manifest.json`.
-3. `Challenge.lean` — statement (≤300 строк желательно;
-   импорты: Lean core + Mathlib/Tau Ceti only; `sorry`
-   допустимы).
-4. `Solution.lean` — proved-версия (те же имена/типы; аксиомы
-   только `propext` / `Classical.choice` / `Quot.sound`).
-5. `comparator.json` — список compared declarations.
-6. `formalization.yaml` — авторы, лицензия, arXiv-категории,
-   MSC2020, automation methods, honest narrative + limitations.
-7. Форма на submit.palomar-registry.org (GitHub sign-in,
+1. Публичный GitHub-репозиторий + полный commit SHA снапшота;
+   `lakefile.toml` + `lean-toolchain` (pinned) + `lake-manifest.json`.
+2. `Challenge.lean` — statement (≤300 строк желательно; импорты: Lean
+   core + Mathlib/Tau Ceti only; `sorry` допустимы) и `Solution.lean` —
+   proved-версия (те же имена/типы; аксиомы только `propext` /
+   `Classical.choice` / `Quot.sound`).
+3. `comparator.json` (compared declarations) и `formalization.yaml`
+   (авторы, лицензия, arXiv-категории, MSC2020, automation methods,
+   honest narrative + limitations).
+4. Форма на submit.palomar-registry.org (GitHub sign-in,
    доказательство write-доступа).
 
 Honest limitations (для formalization.yaml):
 
-- statements живут внутри большого исследовательского
-  репозитория; для отправки нужен thin comparator-wrapper с
-  выделенным Challenge/Solution;
-- editorial floor реестра требует research-interest: лучшие
-  кандидаты — Card 1 (EB bound), Card 5 (merge bound), Card 2
-  (leak); Cards 4, 6, 8 элементарны — риск ниже floor;
-- Palomar не подтверждает новизну: EB-граница имеет
-  классические аналоги (Maurer–Pontil); наша версия —
-  two-sided inverted с runtime-σ̂².
----
+- statements живут внутри большого исследовательского репозитория; для
+  отправки нужен thin comparator-wrapper с выделенным Challenge/Solution;
+- editorial floor реестра требует research-interest: лучшие кандидаты —
+  Card 1 (EB bound), Card 5 (merge bound), Card 2 (leak); Cards 4, 6, 8
+  элементарны — риск ниже floor;
+- Palomar не подтверждает новизну: EB-граница имеет классические аналоги
+  (Maurer–Pontil); наша версия — two-sided inverted с runtime-σ̂².
 
-## Niche-recheck C630 (23.11.2026)
+## Niche check
 
-Повторение внешней проверки C616 против расширенного набора тем
-(теперь включая floor / иерархию / w-trade-off / near-const /
-mixed-w* / AM-GM — темы, которых в запросе C616 не было).
+Внешняя проверка ниши выполнялась трижды против API
+`data.palomar-registry.org/api/v1/results`; каждый раз — 0 тематических
+пересечений. Отправка остаётся user-шагом; реестр растёт, и утверждение
+относится только к проверенным ревизиям.
 
-Метод: прямой fetch `data.palomar-registry.org/api/v1/results`.
-API с C616 сменился на пагинацию (schema_version 1, revision
-1129): полный обход 52 страниц по opaque-курсорам `next` →
-1298 results / 987 projects (C616: 1293/983; +5 новых, ни одна
-не в наших темах). Запросы `q=` по 19 темам (старые C616:
-hier_covers, covStartsStep, nlDrop, adaptive span, optimal step
-size, window coverage hierarchy; новые C630: window covering
-floor, hierarchical attention coverage, context window cost
-tradeoff, AM-GM window sizing, information-theoretic reading
-bound, sliding window cost invariance, gamma star, negative
-transfer, snap quantization, reading cost hierarchy, mixed cost)
-плюс независимый локальный substring-скан полного дампа по 28
-фразам карточек (title+abstract+preview+path).
+**Проверка 1** (1293 results / 983 projects, revision 1122; запросы
+`hier_covers`, `covStartsStep`, `nlDrop`, `adaptive span`, `optimal step
+size`, `window coverage hierarchy`): 0 entries — Cards 9–11 не поглощены
+реестром.
 
-Результат: 0 тематических пересечений — ниша подтверждена.
-Размытые single-word срабатывания проверены чтением и
-нерелевантны: "gamma star" → Mahler minimizers (слово "star");
-"negative transfer" → Bugeaud 10.61 (u.d. mod 1);
-"mixed cost" → optimal control / packing relaxation;
-"am-gm" → некоммутативный AM-GM для PSD-матриц;
-"quantization" → Poisson scales / stochastic quantization SPDE;
-"floor" (62 вхождения) — floor-функция в чужих текстах, ни
-одного про окно чтения/бюджет.
+**Проверка 2** (23.11.2026, revision 1129; 1298 results / 987 projects;
+полный обход 52 страниц по opaque-курсорам `next`). Темы: прежние шесть
+плюс window covering floor, hierarchical attention coverage, context
+window cost tradeoff, AM-GM window sizing, information-theoretic reading
+bound, sliding window cost invariance, gamma star, negative transfer,
+snap quantization, reading cost hierarchy, mixed cost — все 13 карточек.
+Два независимых метода (API `q=` и локальный substring-скан полного
+дампа по 28 фразам карточек) сошлись: 0 тематических пересечений.
+Размытые single-word срабатывания нерелевантны: "gamma star" → Mahler
+minimizers; "negative transfer" → Bugeaud (u.d. mod 1); "mixed cost" →
+optimal control / packing relaxation; "am-gm" → некоммутативный AM-GM для
+PSD-матриц; "quantization" → Poisson scales / stochastic quantization
+SPDE; "floor" — floor-функция в чужих текстах.
 
-Отличие от C616: расширенный охват тем (все 13 карточек, включая
-Cards 9–13 чтение-эры), два независимых метода проверки (API q=
-и локальный скан полного дампа сошлись), учёт смены формата API
-(пагинация вместо единого дампа). Все 13 карточек внешне
-уникальны; отправка остаётся user-шагом. Артефакты:
-`.tmp/C630/api/` (results.json, all_entries.json — 1298 записей,
-query_summary.json, llms.txt), `.tmp/C630/research.md`.
-
-
----
-
-## Niche-recheck C658 (24.11.2026)
-
-Повторение внешней проверки C630 против тем Cards 15–17 (Adam
-first step / sign-flip momentum, Kraft codelength ↔ cross-entropy,
-useful first warm-up step function-preserving growth; Cards 18–19
-Muon / Newton–Schulz — по данным receipts C668–C675, без нового
-fetch) плюс прежние
-24 темы C630 (muon, newton schulz, orthogonalization, singular value,
- polar factor, nuclear norm, spectral norm, isometry: по данным
- receipts C668–C675 — 0 тематических; в C677 API не запрашивался).
-
-Метод: полный обход `data.palomar-registry.org/api/v1/results`
-(curl --http1.1; urllib на этой машине рвёт TLS — WinError 10054)
-по opaque-курсорам `next` → 54 страницы, 1331 results / 1011
-projects, revision 1167 (C630: 1298 / 987, revision 1129; +33
-новых). Три независимых прохода: (1) API `q=` по 24 фразам
-(многословные — AND-семантика, все 7 новых фраз → 0 hits);
-(2) API `q=` по 10 одиночным терминам (adam, momentum, kraft,
-entropy, codelength, decodable, descent, warm, preserving,
-optimizer); (3) локальный word-boundary substring-скан полного
-дампа (title + abstract + preview + path + theorem_names) по 24
-фразам карточек.
+**Проверка 3** (24.11.2026, revision 1167; 1331 results / 1011
+projects; 54 страницы). Темы Cards 15–17 плюс muon, newton schulz,
+orthogonalization, singular value, polar factor, nuclear norm, spectral
+norm, isometry; Muon-темы Cards 18–19 — по тем же данным, без нового
+fetch. Три прохода: API `q=` по 24 фразам (все 7 новых фраз → 0 hits),
+API `q=` по 10 одиночным терминам, локальный word-boundary скан полного
+дампа.
 
 | Тема | q= фраза | Локальный скан | Вердикт |
 | --- | --- | --- | --- |
@@ -815,27 +771,21 @@ optimizer); (3) локальный word-boundary substring-скан полног
 | warm start new block | 0 | warm start / warm-up / warmup 0 | нет |
 | function preserving growth | 0 | function preserving 0, net2net 0 | нет |
 | first step improvement | 0 | first step 3 | нет |
-| прежние 17 тем C630 | 3 размытых (gamma star, negative transfer, mixed cost) | — | нет (как в C630) |
+| Muon / Newton–Schulz / SVD | 0 | 0 тематических | нет |
+| прежние темы (13 карточек) | 3 размытых (gamma star, negative transfer, mixed cost) | — | нет (как в проверке 2) |
 
-Размытые срабатывания прочитаны (abstract) и нерелевантны:
-"adam" (API, 5) — substring в чужих текстах (Schur/Rademacher),
-word-boundary 0; "momentum" (3) — угловой момент в PONTRYAGIN /
-электродинамика / радиальные harmonic functions; "entropy" (16–17)
-— топологическая/Rényi/Latin squares/spin glass, ни одного про
-codelength; "descent" (18) — infinite descent в теории чисел,
-Collatz, Галуа; ближайшие к теме — PALOMAR-2026-10-12-000006
-(last-iterate bounds constant-step GD) и PALOMAR-2026-11-14-000001
-(SGD last-iterate WR/WOR): bounds на последний итерат для convex
-smooth, не про направление Adam и не про первый шаг блока —
-нерелевантны; "optimizer" (3–4) — optimizers в геометрии /
-экономике; "first step" (3) — первый шаг доказательства (Selmer,
-Bogolyubov–Ruzsa), MCS ordering; "warm" (1) — "warm pump-to-hard-OA
-composition" (MIP: warm start без reinitialization), не ML-block;
-"preserving" (25) — diameter/measure/value-preserving, не
-function-preserving рост сетей.
+Размытые срабатывания прочитаны (abstract) и нерелевантны: "adam" —
+substring в чужих текстах (Schur/Rademacher); "momentum" — угловой момент
+в PONTRYAGIN / электродинамике / радиальных harmonic functions;
+"entropy" — топологическая/Rényi/Latin squares/spin glass; "descent" —
+infinite descent в теории чисел, Collatz, Галуа; ближайшие к теме —
+PALOMAR-2026-10-12-000006 (last-iterate bounds constant-step GD) и
+PALOMAR-2026-11-14-000001 (SGD last-iterate WR/WOR): bounds на последний
+итерат для convex smooth, не про направление Adam и не про первый шаг
+блока; "optimizer" — optimizers в геометрии / экономике; "first step" —
+первый шаг доказательства (Selmer, Bogolyubov–Ruzsa), MCS ordering;
+"warm" — "warm pump-to-hard-OA composition", не ML-block; "preserving" —
+diameter/measure/value-preserving, не function-preserving рост сетей.
 
-Результат: 0 тематических пересечений — ниша всех 17 карточек
-подтверждена; отправка остаётся user-шагом. Артефакты:
-`.tmp/C658/api/` (all_entries.json — 1331 записей,
-query_summary.json, api_terms.json, local_phrase_scan.json,
-fetch.py).
+Артефакты (дампы реестра all_entries.json, query_summary.json,
+local_phrase_scan.json) лежат в `.tmp/` рабочего дерева.

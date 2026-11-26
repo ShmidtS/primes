@@ -179,7 +179,7 @@ class FreezeRegression(unittest.TestCase):
                       {row[0] for row in rows})
 
     def test_private_path_move_verifies_as_rename(self):
-        # C405: private decls get path-keyed names; moving the file
+        # private decls get path-keyed names; moving the file
         # (statement unchanged) must verify as a rename, not LOST.
         self.metadata["Hagi/Probe.lean", "hidden"] = [
             record("Hagi.Probe.hidden", private=True)]
@@ -202,7 +202,7 @@ class FreezeRegression(unittest.TestCase):
         self.assertEqual(added, [new_name])
 
     def test_private_statement_change_still_fails(self):
-        # C405 fail-closed guard: a changed statement hash on the
+        # fail-closed guard: a changed statement hash on the
         # moved private decl must remain LOST, never a rename.
         self.metadata["Hagi/Probe.lean", "hidden"] = [
             record("Hagi.Probe.hidden", private=True)]
@@ -220,7 +220,7 @@ class FreezeRegression(unittest.TestCase):
         self.assertEqual(renamed, [])
 
     def test_alpha_equivalent_statements_hash_identically(self):
-        # C415: the statement-hash column is built from the elaborated
+        # the statement-hash column is built from the elaborated
         # type hash only — binder-renamed source duplicates (λx vs λy)
         # must collide ( Freeze rename-detection + STMDUP catch them ),
         # while real statement change still diverges.
@@ -294,7 +294,7 @@ class FreezeRegression(unittest.TestCase):
 
 
 class AliasLockTest(unittest.TestCase):
-    """C244 Freeze v2: aliases.lock shim + statement-hash verification."""
+    """aliases.lock shim + statement-hash verification."""
 
     def rows(self, alias_hash, canonical_hash, has_alias=True,
              has_canonical=True, alias_kind="alias"):
@@ -332,10 +332,10 @@ class AliasLockTest(unittest.TestCase):
 
 
 class LayerLintProbeTest(unittest.TestCase):
-    """C244: A7 5-layer target is inert now, but enforced once dirs exist."""
+    """The 5-layer target is inert now, but enforced once dirs exist."""
 
     def test_hagimath_importing_upward_fails(self):
-        # C348: HagiMath entry activated as Math (layer 0); the guard
+        # Math is layer 0; the guard
         # must fire on the active path.
         text = "import Hagi.HagiCert.Core\ntheorem t : True := trivial\n"
         violations = LayerLint.check_source("Math/Prob/Basic.lean", text)
@@ -348,11 +348,11 @@ class LayerLintProbeTest(unittest.TestCase):
             LayerLint.check_source("Math/Prob/Basic.lean", text), [])
 
     def test_new_layer_dirs_absent(self):
-        # C348 (A14 QW8): Math activated at Hagi/Math (layer 0); the
-        # remaining A7 target dirs stay inert until their phases.
+        # Math is active at Hagi/Math (layer 0); the
+        # other target dirs stay inert until they exist.
         self.assertIn("Math", LayerLint.LAYERS)
         self.assertTrue((LayerLint.ROOT / "Math").exists(),
-                        "Math layer activated (C348)")
+                        "Math layer is active")
         for folder in ("HagiCert", "HagiModel", "HagiLoop",
                        "HagiRecipes"):
             self.assertIn(folder, LayerLint.LAYERS)

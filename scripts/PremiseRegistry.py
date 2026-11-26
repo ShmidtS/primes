@@ -1,18 +1,8 @@
 #!/usr/bin/env python3
-"""PremiseRegistry (C361, audit step 2.2): typed premise registry.
-
-Validates scripts/premise_registry.toml against a FRESH
-AssumptionScan scan (not the lock file), fail-closed both ways:
-
-  * coverage: every scanned premise name (h_emp binders minus
-    proven theorems, operational names, unprefixed per-file
-    empirical premises) MUST be classified — unknown name FAILs;
-  * staleness: every registry premise entry MUST still be found
-    by the scan — stale entry FAILs;
-  * enum: every `type` must be one of TYPES;
-  * metadata: empirical entries require non-empty `measured`.
-
-Marker: PREMISEREGISTRY: PASS (...) / FAIL, exit code 0/1.
+"""PremiseRegistry: validates scripts/premise_registry.toml against a FRESH
+AssumptionScan scan, fail-closed both ways (every scanned premise classified, no
+stale entry, known `type`, non-empty `measured` on empirical entries).
+Run `python scripts/PremiseRegistry.py`: PREMISEREGISTRY: PASS / FAIL (exit 0/1).
 """
 import sys
 import tomllib
