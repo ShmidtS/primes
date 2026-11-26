@@ -59,7 +59,10 @@ gradients, so **the SNR warmup must be rerun per domain** (the adapter /
 growth gate is a natural trigger); between warmups the clipped rate is only
 valid while the gradient scale is stationary. Adam-Rel's alternative — reset
 the Adam timestep per epoch — keeps the second moment and is the safer
-choice when warmup cannot be afforded.
+choice when warmup cannot be afforded. Formalised in
+`Hagi/Step/AdamRel.lean`: after the reset the bias-corrected second moment
+is exactly `s²` on the first step of the new scale (`rel_reset_exact`), and
+at least the stale global one whenever the scale grew (`rel_vhat_ge_global`).
 
 ## Minimal diff (sketch)
 
