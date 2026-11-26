@@ -503,6 +503,7 @@ import Hagi.Theory.RepairForgetting
 import Hagi.Theory.ArchiverCodeLength
 import Hagi.Theory.NadyaOptimal
 import Hagi.Theory.WidthGrowth
+import Hagi.Theory.ThermoFieldEcology
 set_option linter.style.header false
 
 /-!
