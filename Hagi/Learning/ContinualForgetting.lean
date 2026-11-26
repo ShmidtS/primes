@@ -283,4 +283,31 @@ theorem forgetting_anchor_total :
 
 end Anchor
 
+-- Гейты забывания unified.py: FORGET_TOL = 0 (любой прирост CE старого домена
+-- блокирует приём) и WORST_TOL = 0.25 (ремонт до наихудшего).
+/-- Забывание домена `i`: прирост CE старого домена после приёма (пост − пре). -/
+def forget (pre post : Fin n → ℝ) (i : Fin n) : ℝ := post i - pre i
+/-- Гейт забывания с допуском `tol`: на всех старых доменах прирост ≤ tol. -/
+def forgetGate (pre post : Fin n → ℝ) (tol : ℝ) : Prop := ∀ i, forget pre post i ≤ tol
+/-- `FORGET_TOL = 0` строг: гейт ⇔ ни один домен не подорожал. -/
+theorem forgetGate_zero_iff (pre post : Fin n → ℝ) :
+    forgetGate pre post 0 ↔ ∀ i, post i ≤ pre i := by
+  unfold forgetGate forget
+  constructor
+  · intro h i; linarith [h i]
+  · intro h i; linarith [h i]
+/-- `FORGET_TOL = 0` влечёт любой неотрицательный допуск (в частности `WORST_TOL`). -/
+theorem forgetGate_zero_imp (pre post : Fin n → ℝ) (tol : ℝ) (htol : 0 ≤ tol) :
+    forgetGate pre post 0 → forgetGate pre post tol := by
+  intro h i
+  exact (h i).trans (by linarith)
+/-- Допуск на наихудшем домене ограничивает среднее забывание тем же `tol`. -/
+theorem forgetGate_imp_mean_le (pre post : Fin n → ℝ) (tol : ℝ) (hn : 0 < n)
+    (h : forgetGate pre post tol) :
+    (∑ i, forget pre post i) / n ≤ tol := by
+  rw [div_le_iff₀ (by exact_mod_cast hn : (0:ℝ) < n)]
+  calc ∑ i, forget pre post i ≤ ∑ _i : Fin n, tol := Finset.sum_le_sum fun i _ => h i
+    _ = tol * n := by
+      rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, mul_comm, Fintype.card_fin]
+
 end Hagi.Learning.ContinualForgetting
