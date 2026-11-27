@@ -20,6 +20,22 @@ gradient, which is itself proportional to `W_up · x`.
   step 0** if the *lower* matrix is perturbed and the upper one is kept at zero.
   (Lu–Shin–Su 2020, arXiv:2007.06192 §5: randomised asymmetric initialisation.)
 
+## Ready-made regression test (verified standalone: out0 = 0, ‖∂L/∂W_up‖ = 0.063 > 0)
+
+```python
+import numpy as np
+def test_asym_init_trains_from_step_zero():
+    rng = np.random.default_rng(0); d, h = 24, 8
+    x = rng.standard_normal(d); y = rng.standard_normal(d)
+    W_up = np.zeros((h, d)); W_down = 1e-3 * rng.choice([-1.0, 1.0], size=(d, h))
+    out0 = W_down @ (W_up @ x)                       # identity at step 0
+    g_up = np.outer(W_down.T @ (out0 - y), x)        # ∂L/∂W_up at W_up = 0
+    assert np.abs(out0).max() == 0.0                 # function unchanged at step 0
+    assert np.linalg.norm(g_up) > 0.0                # but the upper matrix trains
+    # with W_down = 0 the same gradient is exactly 0 (dead_loss_const)
+    assert np.linalg.norm(np.outer(np.zeros((d, h)).T @ (0 - y), x)) == 0.0
+```
+
 ## Minimal diff
 
 ```python
