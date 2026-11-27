@@ -1,7 +1,7 @@
 # PROPOSAL 29: mixed-precision rows by 4× water-filling
 
 **Status: theory in primes (`ResidualVQ.fisher_optimal_scale`, `bit_swap_improves_iff`);
-code-side pending in HAGI_v2 (`quant_per_row(W, bits=2)` — uniform `bits` for every row).**
+code-side pending in HAGI_v2 (`quant_per_row(stages)` — one global stage count).**
 
 ## Context
 
@@ -28,6 +28,47 @@ Lognormal contributions (σ = 1.5), 512 rows, budget fixed at 2 bits/row
 error 0.189× uniform-2** at the same model size, bits 1–4. An earlier figure of
 0.757 came from a loop that stopped at the first non-improving (argmax, argmin)
 pair — it was a lower bound on the gain, not the stationary allocation.
+
+## Ready-made regression test (numbers verified, run standalone first)
+
+```python
+import numpy as np
+def alloc_bits(contrib, budget):
+    b = np.full(len(contrib), budget // len(contrib)); rem = budget - b.sum()
+    for _ in range(rem): b[np.argmax(contrib * 4.0 ** -b)] += 1
+    while True:
+        c = contrib * 4.0 ** -b; i, j = int(np.argmax(c)), int(np.argmin(c))
+        if b[j] <= 1 or not (4 * c[j] < c[i]): return b
+        b[i] += 1; b[j] -= 1
+def test_alloc_bits_equal_budget_lower_error():
+    rng = np.random.default_rng(1); E = rng.lognormal(0.0, 1.5, 512)
+    b = alloc_bits(E, 1024)
+    assert b.sum() == 1024 and b.min() >= 1 and b.max() <= 6
+    assert (E * 4.0 ** -b).sum() < 0.80 * (E * 0.25).sum()   # 0.189 measured (stationary loop)
+```
+
+## Minimal diff (fits the existing `quant_per_row(stages=…)` — a per-row stage count)
+
+`quant_per_row` already implements residual stages; mixed precision is a
+**per-row** stage count instead of a global one: rows whose contribution
+(Fisher-weighted residual at the stage-1 scale) exceeds 4× the smallest get a
+second trit stage, the rest stay at one stage. Volume = `(r + k)·c` trits,
+`k` = number of two-stage rows.
+
+```python
+def quant_per_row_mixed(W, contrib, use_had=True, rotate_rows=True):
+    par1, Q1 = quant_per_row(W, bits=2, use_had=use_had, rotate_rows=rotate_rows)  # stage 1 for all
+    two = contrib > 4 * contrib.min()                 # 4× rule (bit_swap_improves_iff)
+    idx = np.flatnonzero(two)
+    if len(idx) == 0: return par1, Q1
+    R = W.astype(np.float64) - dequant_per_row(par1, Q1)       # stage-1 residual
+    par2, Q2 = quant_per_row(R[idx], bits=2, use_had=False, rotate_rows=False)
+    par1["rows2"] = idx.tolist(); par1["par2"] = par2          # dequant adds Q2 rows back
+    return par1, np.concatenate([Q1, Q2])
+```
+
+`dequant_per_row`: add `R[idx] += Q2 * par2["scales"][:, None]` before the
+inverse Hadamard. Export-only: training is untouched (trajectory-neutral).
 
 ## Ready-made regression test (numbers verified, run standalone first)
 
