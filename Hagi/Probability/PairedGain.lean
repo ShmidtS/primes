@@ -31,7 +31,10 @@ import Hagi.Probability.EmpiricalBernstein
   клиппинг разностей до `c` сужает диапазон `b` (радиус меньше), а смещение
   среднего не превышает среднего хвоста `(|d| − c)₊`;
 * `n_suffices` — достаточное число окон: `2σ̂²L/n ≤ (g − g₀ − 2bL/n)²` и
-  `2bL/n ≤ g − g₀` дают `radius ≤ g − g₀` — выигрыш `g` проходит гейт.
+  `2bL/n ≤ g − g₀` дают `radius ≤ g − g₀` — выигрыш `g` проходит гейт;
+* `max_gain_le` — winner's curse ограничен: если каждый кандидат в своём
+  радиусе (`gain k ≤ μ k + r k`), то `max gain ≤ max μ + max r` — выбор
+  максимума не добавляет фактора (совместно с union bound по `K`).
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -232,5 +235,22 @@ theorem n_suffices (sig b α g g₀ : ℝ) (hα : 0 < α) (hα2 : α < 1) (hsig 
     exact Real.sqrt_le_iff.2
       ⟨by linarith [hadd], hsq⟩
   linarith
+
+/-- Winner's curse, bounded: if every candidate's gain is within its own
+radius of its true gain (`gain k ≤ μ k + r k`), the selected maximum is within
+the worst radius of the best true gain: `max gain ≤ max μ + max r`. Selection
+adds no extra factor. -/
+theorem max_gain_le (S : Finset ℕ) (hS : S.Nonempty) (gain μ r : ℕ → ℝ)
+    (hE : ∀ k ∈ S, gain k ≤ μ k + r k) :
+    (S.image gain).max' (image_nonempty.2 hS) ≤
+      (S.image μ).max' (image_nonempty.2 hS) + (S.image r).max' (image_nonempty.2 hS) := by
+  apply Finset.max'_le
+  intro x hx
+  obtain ⟨k, hk, rfl⟩ := Finset.mem_image.1 hx
+  have h1 : μ k ≤ (S.image μ).max' (image_nonempty.2 hS) :=
+    le_max' _ _ (Finset.mem_image.2 ⟨k, hk, rfl⟩)
+  have h2 : r k ≤ (S.image r).max' (image_nonempty.2 hS) :=
+    le_max' _ _ (Finset.mem_image.2 ⟨k, hk, rfl⟩)
+  linarith [hE k hk]
 
 end Hagi.Probability.PairedGain
