@@ -38,7 +38,12 @@ import Hagi.Probability.EmpiricalBernstein
 * `short_domain_radius_ge` — цена независимости: при `k ≤ n < 256·k` окно
   `n/k < 256` и радиус не меньше, чем у полной сетки (`radius_anti`);
 * `radius_eventually_le` — радиус → 0: при `n ≥ N(ε)` радиус ≤ ε, любой
-  фиксированный выигрыш сертификатуем на длинном домене.
+  фиксированный выигрыш сертификатуем на длинном домене;
+* `radiusT sig b α t = √(2σL)·t + 2bL·t²` — радиус в `t = 1/√n`, строго
+  возрастает (`radiusT_strict_mono`); `radius_eq_radiusT` — связь;
+* `radius_le_iff_root` — точный порог: если `radiusT t* = ε`, то
+  `radius(n) ≤ ε ↔ 1/√n ≤ t*` (корень квадратного уравнения, заменяет
+  достаточную оценку `N(ε)` из proposal 20 необходимой и достаточной).
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -310,5 +315,48 @@ theorem radius_eventually_le (sig b α ε : ℝ) (hα : 0 < α) (hα2 : α < 1) 
     rw [Real.sqrt_sq (by linarith)] at h
     exact h
   linarith
+
+/-- Радиус в переменной `t = 1/√n`: `A·t + B·t²`, строго возрастает по `t ≥ 0`. -/
+noncomputable def radiusT (sig b α t : ℝ) : ℝ :=
+  Real.sqrt (2 * sig * Real.log (2 / α)) * t + 2 * b * Real.log (2 / α) * t ^ 2
+theorem radiusT_strict_mono (sig b α : ℝ) (hα : 0 < α) (hα2 : α < 1) (hsig : 0 < sig) (hb : 0 ≤ b)
+    (t₁ t₂ : ℝ) (h₁ : 0 ≤ t₁) (h : t₁ < t₂) : radiusT sig b α t₁ < radiusT sig b α t₂ := by
+  have hL : 0 < Real.log (2 / α) := Real.log_pos (by rw [lt_div_iff₀ hα]; linarith [hα2])
+  unfold radiusT
+  have hA : 0 < Real.sqrt (2 * sig * Real.log (2 / α)) := Real.sqrt_pos.2 (by positivity)
+  have hB : 0 ≤ 2 * b * Real.log (2 / α) := by positivity
+  have h1 : Real.sqrt (2 * sig * Real.log (2 / α)) * t₁ < Real.sqrt (2 * sig * Real.log (2 / α)) * t₂ := mul_lt_mul_of_pos_left h hA
+  have h2 : 2 * b * Real.log (2 / α) * t₁ ^ 2 ≤ 2 * b * Real.log (2 / α) * t₂ ^ 2 := by
+    apply mul_le_mul_of_nonneg_left _ hB
+    nlinarith
+  linarith
+/-- Радиус как функция `n` — это `radiusT` в `t = 1/√n`. -/
+theorem radius_eq_radiusT (sig b α : ℝ) (hα : 0 < α) (hα2 : α < 1) (hsig : 0 ≤ sig)
+    (n : ℕ) (hn : 0 < n) :
+    radius sig b n α = radiusT sig b α (1 / Real.sqrt n) := by
+  have hnR : (0:ℝ) < n := by exact_mod_cast hn
+  have hL : 0 < Real.log (2 / α) := Real.log_pos (by rw [lt_div_iff₀ hα]; linarith)
+  have hA : (0:ℝ) ≤ 2 * sig * Real.log (2 / α) := mul_nonneg (by linarith) hL.le
+  unfold radius radiusT
+  rw [Real.sqrt_div hA ↑n]
+  rw [div_pow, one_pow, Real.sq_sqrt hnR.le]
+  ring
+/-- Точный порог: если `t*` — корень `radiusT t* = ε`, то `radius(n) ≤ ε ⇔ 1/√n ≤ t*`. -/
+theorem radius_le_iff_root (sig b α ε : ℝ) (hα : 0 < α) (hα2 : α < 1) (hsig : 0 < sig) (hb : 0 ≤ b)
+    (tstar : ℝ) (ht0 : 0 ≤ tstar) (hroot : radiusT sig b α tstar = ε) (n : ℕ) (hn : 0 < n) :
+    radius sig b n α ≤ ε ↔ 1 / Real.sqrt n ≤ tstar := by
+  rw [radius_eq_radiusT sig b α hα hα2 hsig.le n hn]
+  constructor
+  · intro h
+    by_contra hcon
+    have hlt : tstar < 1 / Real.sqrt n := lt_of_not_ge hcon
+    have := radiusT_strict_mono sig b α hα hα2 hsig hb tstar (1 / Real.sqrt n) ht0 hlt
+    linarith
+  · intro h
+    rcases lt_or_eq_of_le h with hlt | heq
+    · have h0 : (0:ℝ) ≤ 1 / Real.sqrt n := by positivity
+      have := radiusT_strict_mono sig b α hα hα2 hsig hb (1 / Real.sqrt n) tstar h0 hlt
+      linarith
+    · rw [heq, hroot]
 
 end Hagi.Probability.PairedGain
