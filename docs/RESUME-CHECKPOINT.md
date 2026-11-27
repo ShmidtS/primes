@@ -12,7 +12,7 @@ map, not a source of truth.
   Every commit in this session passed the full battery (Freeze, DocLint R4/R5,
   DocAnchorCheck, TrivialLint, LayerLint, ReachLint, NsLint, DupLint).
 - Reference implementation `C:\HAGI_v2` is READ-ONLY (another agent).
-  HEAD `4fbd922` (PROPOSAL 13, 17, 25, 26 accepted; `4fbd922` live backup = infra, no theorem — two-generation copy, loss ≤ one save interval by construction; PROPOSAL 28 in progress code-side (`tests/test_importance_token_loss.py`); `a2ac3e4`/`5a773e6` worst-domain gate → TailGate, `2a34515` rare-decay guard → RareDecay; 26dcd09 LZP → LzpExpert, 2aa1242 → ResidualVQ, 9de7b61 → GDNBridge). Working tree carries three
+  HEAD `856b993` (PROPOSAL 13, 17, 25, 26 accepted; `856b993` worst-domain diagnostic → ledger = observability for TailGate.mean_le_not_imp_max_le; `4fbd922` live backup = infra, no theorem — two-generation copy, loss ≤ one save interval by construction; PROPOSAL 28 v1 dropped code-side (biased cap 4), v2 (cap 1, `d03e9b47`) pending; `a2ac3e4`/`5a773e6` worst-domain gate → TailGate, `2a34515` rare-decay guard → RareDecay; 26dcd09 LZP → LzpExpert, 2aa1242 → ResidualVQ, 9de7b61 → GDNBridge). Working tree carries three
   uncommitted changes in `hagi/models/optimal_lm.py`: `state_carry`,
   `HARD_START`, `bypass_mask` — all three are certified in primes
   (`GDNBridge.gdnScan_append`, `HardStart.*`, `ResidualMasking.*`).
