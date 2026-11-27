@@ -36,7 +36,9 @@ import Hagi.Probability.EmpiricalBernstein
   радиусе (`gain k ≤ μ k + r k`), то `max gain ≤ max μ + max r` — выбор
   максимума не добавляет фактора (совместно с union bound по `K`);
 * `short_domain_radius_ge` — цена независимости: при `k ≤ n < 256·k` окно
-  `n/k < 256` и радиус не меньше, чем у полной сетки (`radius_anti`).
+  `n/k < 256` и радиус не меньше, чем у полной сетки (`radius_anti`);
+* `radius_eventually_le` — радиус → 0: при `n ≥ N(ε)` радиус ≤ ε, любой
+  фиксированный выигрыш сертификатуем на длинном домене.
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -264,5 +266,49 @@ theorem short_domain_radius_ge (sig b α : ℝ) (hα : 0 < α) (hα2 : α < 1)
   have hlt : n / k < 256 := (Nat.div_lt_iff_lt_mul (by omega)).2 h
   have hpos : 0 < n / k := Nat.div_pos hkn hk
   exact radius_anti sig b α hα hα2 (n / k) 256 hpos (by omega) hsig hb
+
+/-- Радиус EB сколь угодно мал на длинном домене: при `n ≥ N(ε)` радиус ≤ ε
+(`N = max(⌈8σL/ε²⌉+1, ⌈4bL/ε⌉+1)`, `L = log(2/α)`) — любой фиксированный
+выигрыш `g − g₀ > ε` сертификатуем на достаточно длинном домене (`n_suffices`). -/
+theorem radius_eventually_le (sig b α ε : ℝ) (hα : 0 < α) (hα2 : α < 1) (hsig : 0 ≤ sig)
+    (hb : 0 ≤ b) (he : 0 < ε) :
+    ∃ N : ℕ, ∀ n : ℕ, N ≤ n → 0 < n → radius sig b n α ≤ ε := by
+  have hL : 0 < Real.log (2 / α) := Real.log_pos (by rw [lt_div_iff₀ hα]; linarith [hα2])
+  set L := Real.log (2 / α) with hLdef
+  have hε2 : 0 < ε ^ 2 / 4 := by positivity
+  have hεh : 0 < ε / 2 := by linarith
+  obtain ⟨N₁, hN₁⟩ : ∃ N₁ : ℕ, (0:ℝ) < N₁ ∧ 2 * sig * L ≤ ε ^ 2 / 4 * N₁ := by
+    refine ⟨Nat.ceil (2 * sig * L / (ε ^ 2 / 4)) + 1, by positivity, ?_⟩
+    have hc := Nat.le_ceil (2 * sig * L / (ε ^ 2 / 4))
+    have hcR : (2 * sig * L / (ε ^ 2 / 4) : ℝ) ≤ Nat.ceil (2 * sig * L / (ε ^ 2 / 4)) := by exact_mod_cast hc
+    rw [div_le_iff₀ hε2] at hcR
+    push_cast
+    nlinarith
+  obtain ⟨N₂, hN₂⟩ : ∃ N₂ : ℕ, (0:ℝ) < N₂ ∧ 2 * b * L ≤ ε / 2 * N₂ := by
+    refine ⟨Nat.ceil (2 * b * L / (ε / 2)) + 1, by positivity, ?_⟩
+    have hc := Nat.le_ceil (2 * b * L / (ε / 2))
+    have hcR : (2 * b * L / (ε / 2) : ℝ) ≤ Nat.ceil (2 * b * L / (ε / 2)) := by exact_mod_cast hc
+    rw [div_le_iff₀ hεh] at hcR
+    push_cast
+    nlinarith
+  refine ⟨max N₁ N₂, fun n hn _ => ?_⟩
+  have hnR : (0:ℝ) < n := by positivity
+  have hmax1 : (N₁ : ℝ) ≤ n := by exact_mod_cast (Nat.le_trans (Nat.le_max_left _ _) hn)
+  have hmax2 : (N₂ : ℝ) ≤ n := by exact_mod_cast (Nat.le_trans (Nat.le_max_right _ _) hn)
+  have h1 : 2 * sig * L / n ≤ ε ^ 2 / 4 := by
+    rw [div_le_iff₀ hnR]
+    calc 2 * sig * L ≤ ε ^ 2 / 4 * N₁ := hN₁.2
+      _ ≤ ε ^ 2 / 4 * n := by nlinarith [hε2]
+  have h2 : 2 * b * L / n ≤ ε / 2 := by
+    rw [div_le_iff₀ hnR]
+    calc 2 * b * L ≤ ε / 2 * N₂ := hN₂.2
+      _ ≤ ε / 2 * n := by nlinarith [hεh]
+  show Real.sqrt (2 * sig * L / (n:ℝ)) + 2 * b * L / (n:ℝ) ≤ ε
+  have hsq : (ε / 2) ^ 2 = ε ^ 2 / 4 := by ring
+  have hsqrt : Real.sqrt (2 * sig * L / (n:ℝ)) ≤ ε / 2 := by
+    have h := Real.sqrt_le_sqrt (show 2 * sig * L / (n:ℝ) ≤ (ε / 2) ^ 2 by rw [hsq]; exact h1)
+    rw [Real.sqrt_sq (by linarith)] at h
+    exact h
+  linarith
 
 end Hagi.Probability.PairedGain
