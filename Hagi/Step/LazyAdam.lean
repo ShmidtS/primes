@@ -274,4 +274,43 @@ theorem touchStep_dense_excess_pos (lr eps g v0 b2 : ℝ) (h : 0 < lr * g) (hε 
   rw [div_eq_mul_inv, div_eq_mul_inv]
   exact mul_lt_mul_of_pos_left hinv h
 
+namespace LazyAdam
+/-- Возврат строки после `d` неактивных шагов с *затухшими* моментами
+(`m_d = β₁^d m`, `v_d = β₂^d v`): шаг `m_d/√v_d = (β₁/√β₂)^d·(m/√v)`. При
+`β₁² ≤ β₂` по модулю шаг `≤` исходного: вернувшаяся строка систематически
+недошагивает (строго — при `β₁² < β₂`, `m ≠ 0`). Заморозка моментов
+(`rowStep_inert`) сохраняет шаг равным шагу при уходе. -/
+theorem return_step_ratio (b1 b2 m v : ℝ) (hb2 : 0 < b2) (hv : 0 < v) (d : ℕ) :
+    (b1 ^ d * m) / Real.sqrt (b2 ^ d * v) = (b1 / Real.sqrt b2) ^ d * (m / Real.sqrt v) := by
+  have hsd : Real.sqrt (b2 ^ d) = (Real.sqrt b2) ^ d := by
+    have hA : (Real.sqrt (b2 ^ d)) ^ 2 = b2 ^ d := Real.sq_sqrt (pow_nonneg hb2.le d)
+    have hB : ((Real.sqrt b2) ^ d) ^ 2 = b2 ^ d := by
+      rw [← pow_mul, mul_comm, pow_mul, Real.sq_sqrt hb2.le]
+    have hnA : 0 ≤ Real.sqrt (b2 ^ d) := Real.sqrt_nonneg _
+    have hnB : 0 ≤ (Real.sqrt b2) ^ d := pow_nonneg (Real.sqrt_nonneg _) d
+    nlinarith [sq_nonneg (Real.sqrt (b2 ^ d) - (Real.sqrt b2) ^ d), sq_nonneg (Real.sqrt (b2 ^ d) + (Real.sqrt b2) ^ d)]
+  have hsqrt : Real.sqrt (b2 ^ d * v) = (Real.sqrt b2) ^ d * Real.sqrt v := by
+    rw [Real.sqrt_mul (pow_nonneg hb2.le d), hsd]
+  have hsq : (Real.sqrt b2) ^ d ≠ 0 := pow_ne_zero d (Real.sqrt_ne_zero'.2 hb2)
+  have hvs : Real.sqrt v ≠ 0 := Real.sqrt_ne_zero'.2 hv
+  rw [hsqrt, mul_div_assoc]
+  field_simp [hsq, hvs]
+  rw [div_pow]
+  field_simp [hsq]
+theorem return_step_underestimates (b1 b2 m v : ℝ) (hb1 : 0 ≤ b1) (hb2 : 0 < b2)
+    (hv : 0 < v) (d : ℕ) (h : b1 ^ 2 ≤ b2) :
+    |(b1 ^ d * m) / Real.sqrt (b2 ^ d * v)| ≤ |m| / Real.sqrt v := by
+  rw [return_step_ratio b1 b2 m v hb2 hv d, abs_mul, abs_div, abs_of_pos (Real.sqrt_pos.2 hv)]
+  have hr : b1 / Real.sqrt b2 ≤ 1 := by
+    apply (div_le_one (Real.sqrt_pos.2 hb2)).2
+    calc b1 = Real.sqrt (b1 ^ 2) := by rw [Real.sqrt_sq hb1]
+      _ ≤ Real.sqrt b2 := Real.sqrt_le_sqrt h
+  have hr0 : 0 ≤ b1 / Real.sqrt b2 := by positivity
+  rw [abs_of_nonneg (pow_nonneg hr0 d)]
+  calc (b1 / Real.sqrt b2) ^ d * (|m| / Real.sqrt v)
+      ≤ 1 * (|m| / Real.sqrt v) := mul_le_mul_of_nonneg_right (pow_le_one₀ hr0 hr)
+        (div_nonneg (abs_nonneg m) (Real.sqrt_nonneg v))
+    _ = |m| / Real.sqrt v := one_mul _
+end LazyAdam
+
 end Hagi.Step

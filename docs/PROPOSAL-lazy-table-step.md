@@ -15,6 +15,16 @@ bounds the accumulated drift over `d` untouched steps by `c·β₁/(1−β₁)` 
 steps) sits inside that bound. The Muon branch already gates decay by `act`;
 the Adam branch for tables does not.
 
+## Why the *moments* must be frozen too (not only the step)
+
+`return_step_ratio` / `return_step_underestimates` (primes): with decaying moments the
+first step of a returning row is `(β₁/√β₂)^d`-times its healthy step in absolute
+value — systematically too small (β₁² = 0.81 < β₂ = 0.999). Gating only the step
+while the moments decay trades drift for under-stepping; freezing the moments
+(`rowStep_inert`) removes both. The code agent's working tree is trying the
+"step only" variant — the regression test should compare the *first-step ratio*
+of a returning row, not only bitwise identity.
+
 ## Minimal diff
 
 ```python
