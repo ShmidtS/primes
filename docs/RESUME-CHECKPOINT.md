@@ -18,7 +18,7 @@ map, not a source of truth.
   (`GDNBridge.gdnScan_append`, `HardStart.*`, `ResidualMasking.*`).
 - 24 proposals in `docs/PROPOSAL-index.md`; accepted by the code agent:
   13 (EB adapters), 17 (non-overlapping windows, `fd040a7`), 25 (gauge balance,
-  `0affafb`); `2aa1242` adds 2-stage residual quant (`ResidualVQ.residualTwoStage_error_le`). In the working
+  `0affafb` — DEFINED BUT NEVER CALLED; wiring proposal 25b pending), `2aa1242` adds 2-stage residual quant (`ResidualVQ.residualTwoStage_error_le`). In the working
   tree, uncommitted: 22 (residual masking), 24 (state carry).
   Pending: 18 (repair-share minimax), 19 (adaptive epochs), 20 (gate
   pre-check with `rootT`), 21 (delta budget), 23 (archiver mixture).
