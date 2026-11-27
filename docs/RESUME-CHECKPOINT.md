@@ -12,7 +12,7 @@ map, not a source of truth.
   Every commit in this session passed the full battery (Freeze, DocLint R4/R5,
   DocAnchorCheck, TrivialLint, LayerLint, ReachLint, NsLint, DupLint).
 - Reference implementation `C:\HAGI_v2` is READ-ONLY (another agent).
-  HEAD `a2ac3e4` (PROPOSAL 13, 25 accepted, 26 partial; `a2ac3e4` worst-domain gate → TailGate; 26dcd09 LZP → LzpExpert, 2aa1242 → ResidualVQ, 9de7b61 → GDNBridge). Working tree carries three
+  HEAD `2a34515` (PROPOSAL 13, 17, 25, 26 accepted; `a2ac3e4`/`5a773e6` worst-domain gate → TailGate, `2a34515` rare-decay guard → RareDecay; 26dcd09 LZP → LzpExpert, 2aa1242 → ResidualVQ, 9de7b61 → GDNBridge). Working tree carries three
   uncommitted changes in `hagi/models/optimal_lm.py`: `state_carry`,
   `HARD_START`, `bypass_mask` — all three are certified in primes
   (`GDNBridge.gdnScan_append`, `HardStart.*`, `ResidualMasking.*`).
