@@ -89,6 +89,7 @@ import Hagi.Probability.FannesPinsker
 import Hagi.Learning.SoftRouterMix
 import Hagi.Learning.ContinualForgetting
 import Hagi.Learning.EpochTradeoff
+import Hagi.Learning.AdapterBank
 import Hagi.Learning.TrainingTransition
 import Hagi.Unified.CandidateConfig
 import Hagi.Learning.SpectralBudget
