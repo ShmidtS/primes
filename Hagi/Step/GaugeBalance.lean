@@ -35,7 +35,10 @@ LowRankAdapter B·A, BigramSkip B_u·B_v, MLA, и понейронно в SwiGLU
 * `pairLoss`, `pairGrad_u_zero_at_d0`, `pairGrad_u_at_eps` — скалярная пара
   `(d, u)` с выходом `d·u·x`: при `d = 0` градиент по `u` нулевой; при
   `d = ε ≠ 0` он равен `−ε·x·y` в нуле — асимметричная инициализация
-  (Lu–Shin–Su 2020) выводит блок из мёртвого множества ценой `O(ε)` в функции.
+  (Lu–Shin–Su 2020) выводит блок из мёртвого множества ценой `O(ε)` в функции;
+* `asym_step_output_quad`, `asym_step_nonzero` — после одного шага выход блока
+  равен `η·ε²·x²·y`: вред квадратичен по `ε`, градиент линеен — малое `ε`
+  почти бесплатно делает блок обучаемым (PROPOSAL 27).
 -/
 
 namespace Hagi.Step.GaugeBalance
@@ -145,5 +148,18 @@ theorem pairGrad_u_at_eps (d u x y : ℝ) :
     exact h3.sub_const y
   have h4 := (HasDerivAt.pow hd 2).div_const 2
   convert h4 using 1 <;> simp only [pow_succ, Nat.cast_ofNat] <;> ring
+
+/-- Один градиентный шаг по `u` с `u₀ = 0`, `d = ε`: `u₁ = η·ε·x·y`; выход блока
+`d·u₁·x = η·ε²·x²·y` — вред квадратичен по `ε`, тогда как градиент (польза)
+линеен. Малое `ε` почти бесплатно делает блок обучаемым. -/
+theorem asym_step_output_quad (η ε x y : ℝ) :
+    ε * (0 - η * (ε * x * (ε * 0 * x - y))) * x = η * ε ^ 2 * x ^ 2 * y := by
+  ring
+theorem asym_step_nonzero (η ε x y : ℝ) (h : η * ε * (x * y) ≠ 0) :
+    0 - η * (ε * x * (ε * 0 * x - y)) ≠ 0 := by
+  have h' : η * ε * (x * y) ≠ 0 := h
+  intro heq
+  have : η * ε * (x * y) = 0 := by nlinarith [heq]
+  exact h' this
 
 end Hagi.Step.GaugeBalance
