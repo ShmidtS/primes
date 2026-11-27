@@ -28,6 +28,12 @@ max_k`) и тому, что QR матрицы с ортонормированн�
 
 Цена защиты (983576b: базисы на 90% энергии блокировали обучение, CE
 0.754 → 0.598, GPM выключен по умолчанию): `pythagoras_one`,
+`projOut_sub`, `projOut_smul`, `projOut_idem`, `projOut_of_orth` — линейность,
+идемпотентность и инвариантность `⊥ U`;
+`decayed`, `decay_keeps_protected`, `decay_unprotected` — защищённый весовой
+спад (projected_weight_decay, trunk_ops.py): `W' = W − dC − c·projOut W`;
+при `dC ⊥ U` старые выходы сохраняются точно, спад действует только на
+незащищённую компоненту (`projOut W' = (1 − c)·projOut W − dC`);
 `projOut_norm_le`, `projOut_norm_lt` — проекция градиента не увеличивает
 норму и строго укорачивает шаг, если градиент нового домена имеет компоненту
 в памяти. Нулевое забывание на памяти покупается скоростью обучения нового.
@@ -214,5 +220,77 @@ theorem pythagoras_k (U : Fin k → (Fin n → ℝ)) (hU : Orthonormal U) (g : F
     ring
   rw [hexpand, hnorm] at hadd
   linarith
+
+/-- `projOut` линеен. -/
+theorem projOut_sub (U : Fin k → (Fin n → ℝ)) (g h : Fin n → ℝ) :
+    projOut U (g - h) = projOut U g - projOut U h := by
+  unfold projOut
+  simp only [dot_sub_right, sub_mul, Pi.sub_apply, Finset.sum_sub_distrib, Pi.sub_apply,
+    Pi.sub_apply]
+  ext a
+  simp only [Pi.sub_apply]
+  ring
+theorem projOut_dot_smul (U : Fin k → (Fin n → ℝ)) (c : ℝ) (g : Fin n → ℝ) (i : Fin k) :
+    dot (U i) (c • g) = c * dot (U i) g := by
+  unfold dot
+  rw [Finset.mul_sum]
+  apply Finset.sum_congr rfl
+  intro a _
+  simp [Pi.smul_apply]
+  ring
+theorem projOut_smul (U : Fin k → (Fin n → ℝ)) (c : ℝ) (g : Fin n → ℝ) :
+    projOut U (c • g) = c • projOut U g := by
+  unfold projOut
+  simp only [projOut_dot_smul, Pi.smul_apply, smul_eq_mul]
+  ext a
+  simp only [Pi.smul_apply, smul_eq_mul, mul_sub, Finset.mul_sum]
+  apply congrArg (fun s => c * g a - s)
+  apply Finset.sum_congr rfl
+  intro x _
+  ring
+/-- Идемпотентность: `projOut U (projOut U g) = projOut U g`. -/
+theorem projOut_idem (U : Fin k → (Fin n → ℝ)) (hU : Orthonormal U) (g : Fin n → ℝ) :
+    projOut U (projOut U g) = projOut U g := by
+  show (fun a => projOut U g a - ∑ i, dot (U i) (projOut U g) * U i a) = projOut U g
+  have h : ∀ i, dot (U i) (projOut U g) = 0 := fun i =>
+    dot_comm (projOut U g) (U i) ▸ projOut_orth U hU i g
+  funext a
+  simp only [h, zero_mul, Finset.sum_const_zero, sub_zero]
+/-- Вектор `⊥ U` — `projOut` его не меняет. -/
+theorem projOut_of_orth (U : Fin k → (Fin n → ℝ)) (g : Fin n → ℝ)
+    (hg : ∀ i, dot (U i) g = 0) : projOut U g = g := by
+  unfold projOut
+  simp only [hg, zero_mul, Finset.sum_const_zero, sub_zero]
+/-- Защищённый весовой спад (`projected_weight_decay`): `W' = W − dC − c·projOut W`,
+`projOut W = W − W·P` — незащищённая часть, `c` — скорость спада. -/
+noncomputable def decayed (U : Fin k → (Fin n → ℝ)) (W dC : Fin n → ℝ) (c : ℝ) : Fin n → ℝ :=
+  W - dC - c • projOut U W
+/-- Защищённая компонента сохраняется точно: если `dC ⊥ U j`, то `⟨W', U j⟩ = ⟨W, U j⟩`. -/
+theorem decay_keeps_protected (U : Fin k → (Fin n → ℝ)) (hU : Orthonormal U)
+    (W dC : Fin n → ℝ) (c : ℝ) (j : Fin k) (hdC : dot dC (U j) = 0) :
+    dot (decayed U W dC c) (U j) = dot W (U j) := by
+  unfold decayed
+  have hsm : dot (c • projOut U W) (U j) = c * dot (projOut U W) (U j) := by
+    unfold dot
+    rw [Finset.mul_sum]
+    apply Finset.sum_congr rfl
+    intro a _
+    simp [Pi.smul_apply, mul_assoc]
+  rw [dot_sub_left, dot_sub_left, hsm]
+  have h := projOut_orth U hU j W
+  rw [h, hdC]
+  ring
+/-- Незащищённая компонента: при `dC ⊥ U` — `projOut W' = (1 − c)·projOut W − dC`:
+спад действует только на неё, а весь градиент `dC` (ортогональный старым
+выходам) попадает в незащищённую часть. -/
+theorem decay_unprotected (U : Fin k → (Fin n → ℝ)) (hU : Orthonormal U)
+    (W dC : Fin n → ℝ) (c : ℝ) (hdC : ∀ j, dot dC (U j) = 0) :
+    projOut U (decayed U W dC c) = (1 - c) • projOut U W - dC := by
+  have hdC' : ∀ i, dot (U i) dC = 0 := fun i => dot_comm dC (U i) ▸ hdC i
+  unfold decayed
+  simp only [projOut_sub, projOut_of_orth U dC hdC', projOut_smul, projOut_idem U hU W]
+  ext a
+  simp only [Pi.sub_apply, Pi.smul_apply, smul_eq_mul]
+  ring
 
 end Hagi.Step.GPM
