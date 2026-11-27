@@ -478,4 +478,48 @@ theorem radius_delta_cost_le (sig b α : ℝ) (hα : 0 < α) (hαM : α < 1) (hs
   rw [h2]
   linarith
 
+/-- Разбиение бюджета окон `W` поровну на `m` старых доменов (OLD_GATE_WINDOWS
+в HAGI_v2): радиус каждого домена radius(σ, b, W/m, α) лежит между √m-кратным
+и m-кратным радиусом одного домена с полным бюджетом: шумовое слагаемое растёт
+как `√m`, смещение — как `m`. Худший домен при ограниченном бюджете стоит
+дороже именно по смещению. -/
+theorem budget_split_radius_bounds (sig b W α m : ℝ) (hsig : 0 < sig) (hb : 0 ≤ b)
+    (hW : 0 < W) (hα : 0 < α) (hα2 : α ≤ 1 / 2) (hm : 1 ≤ m) :
+    Real.sqrt m * Real.sqrt (2 * sig * Real.log (2 / α) / W)
+        ≤ radius sig b (W / m) α
+      ∧ radius sig b (W / m) α ≤ m * radius sig b W α := by
+  have hL : 0 < Real.log (2 / α) := by
+    apply Real.log_pos
+    have : 1 < 2 / α := (lt_div_iff₀ hα).2 (by linarith)
+    linarith
+  have hm0 : 0 < m := by linarith
+  have hWm : 0 < W / m := div_pos hW hm0
+  constructor
+  · unfold radius
+    have hdiv : 2 * sig * Real.log (2 / α) / (W / m)
+        = m * (2 * sig * Real.log (2 / α) / W) := by
+      field_simp [ne_of_gt hWm, ne_of_gt hW]
+    have h1 : Real.sqrt (2 * sig * Real.log (2 / α) / (W / m))
+        = Real.sqrt m * Real.sqrt (2 * sig * Real.log (2 / α) / W) := by
+      rw [hdiv, Real.sqrt_mul (by positivity : (0:ℝ) ≤ m), mul_comm]
+    rw [h1]
+    have h2 : 0 ≤ 2 * b * Real.log (2 / α) / (W / m) := by positivity
+    linarith
+  · unfold radius
+    have hdiv : 2 * sig * Real.log (2 / α) / (W / m)
+        = m * (2 * sig * Real.log (2 / α) / W) := by
+      field_simp [ne_of_gt hWm, ne_of_gt hW]
+    have h1 : Real.sqrt (2 * sig * Real.log (2 / α) / (W / m))
+        ≤ m * Real.sqrt (2 * sig * Real.log (2 / α) / W) := by
+      rw [hdiv, Real.sqrt_mul (by positivity : (0:ℝ) ≤ m), mul_comm]
+      have hs : Real.sqrt m ≤ m := by
+        have := Real.sq_sqrt (show 0 ≤ m by linarith)
+        nlinarith [Real.sqrt_nonneg m]
+      have hA : 0 ≤ Real.sqrt (2 * sig * Real.log (2 / α) / W) := Real.sqrt_nonneg _
+      nlinarith
+    have h3 : 2 * b * Real.log (2 / α) / (W / m) = m * (2 * b * Real.log (2 / α) / W) := by
+      field_simp [ne_of_gt hWm, ne_of_gt hW]
+    rw [h3]
+    linarith
+
 end Hagi.Probability.PairedGain
