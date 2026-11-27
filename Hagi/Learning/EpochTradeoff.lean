@@ -22,7 +22,12 @@ import Mathlib.Tactic
 * `cost c₀ c₁ E = c₀ + E·c₁` — фиксированные расходы плюс шаги;
 * `cost_ratio_le` — стоимость сублинейна: `cost(E₂)/cost(E₁) ≤ E₂/E₁`;
 * `overhead_from_measurement` — 403 с / 677 с ⇒ `c₁ = 137`, `c₀ = 129`:
-  накладные расходы приёма ≈ 0.94 эпохи (поэтому ×2 эпох даёт +68%, не +100%).
+  накладные расходы приёма ≈ 0.94 эпохи (поэтому ×2 эпох даёт +68%, не +100%);
+* `objective c₀ c₁ lam R₀ ρ E = cost E + lam·oldReg E` — стоимость плюс штраф;
+* `objective_delta` — приращение за эпоху `= c₁ − lam·R₀·ρ·(1−ρ)^E`;
+* `objective_delta_mono` — приращение не убывает (цель выпукла по эпохам);
+* `stop_condition` — первое `E` с `lam·R₀·ρ·(1−ρ)^E ≤ c₁` оптимально:
+  все дальнейшие эпохи не уменьшают цель.
 -/
 
 namespace Hagi.Learning.EpochTradeoff
@@ -77,5 +82,50 @@ theorem cost_ratio_le (c₀ c₁ : ℝ) (h0 : 0 ≤ c₀) (h1 : 0 < c₁) (E₁ 
 theorem overhead_from_measurement (c₀ c₁ : ℝ) (h2 : c₀ + 2 * c₁ = 403)
     (h4 : c₀ + 4 * c₁ = 677) : c₁ = 137 ∧ c₀ = 129 := by
   constructor <;> linarith
+
+/-- Целевая: стоимость приёма плюс штраф за забывание. -/
+noncomputable def objective (c₀ c₁ lam R₀ ρ : ℝ) (E : ℕ) : ℝ :=
+  cost c₀ c₁ E + lam * oldReg R₀ ρ E
+/-- Приращение цели от одной эпохи: `c₁ − lamR₀ρ(1−ρ)^E`. -/
+theorem objective_delta (c₀ c₁ lam R₀ ρ : ℝ) (E : ℕ) :
+    objective c₀ c₁ lam R₀ ρ (E + 1) - objective c₀ c₁ lam R₀ ρ E
+      = c₁ - lam * R₀ * ρ * (1 - ρ) ^ E := by
+  unfold objective cost oldReg
+  rw [pow_add, pow_one]
+  push_cast
+  ring
+/-- Приращение не убывает по `E` (цель выпукла) при `lam R₀ ρ ≥ 0`, `0 ≤ ρ ≤ 1`. -/
+theorem objective_delta_mono (c₀ c₁ lam R₀ ρ : ℝ) (hlam : 0 ≤ lam) (hR : 0 ≤ R₀)
+    (hρ : 0 ≤ ρ) (hρ2 : ρ ≤ 1) (E₁ E₂ : ℕ) (h : E₁ ≤ E₂) :
+    objective c₀ c₁ lam R₀ ρ (E₁ + 1) - objective c₀ c₁ lam R₀ ρ E₁
+      ≤ objective c₀ c₁ lam R₀ ρ (E₂ + 1) - objective c₀ c₁ lam R₀ ρ E₂ := by
+  simp only [objective_delta]
+  have hp : (1 - ρ) ^ E₂ ≤ (1 - ρ) ^ E₁ := pow_le_pow_of_le_one (by linarith) (by linarith) h
+  have hn : 0 ≤ lam * R₀ * ρ := by positivity
+  have hm := mul_le_mul_of_nonneg_left hp hn
+  linarith
+/-- Условие остановки: эпоха `E + 1` не окупается, если `lam R₀ ρ (1−ρ)^E ≤ c₁`;
+после этого цель не убывает. -/
+theorem stop_condition (c₀ c₁ lam R₀ ρ : ℝ) (hlam : 0 ≤ lam) (hR : 0 ≤ R₀)
+    (hρ : 0 ≤ ρ) (hρ2 : ρ ≤ 1) (E : ℕ)
+    (h : lam * R₀ * ρ * (1 - ρ) ^ E ≤ c₁) :
+    ∀ E', E ≤ E' → objective c₀ c₁ lam R₀ ρ E ≤ objective c₀ c₁ lam R₀ ρ E' := by
+  intro E' hE'
+  induction E' with
+  | zero =>
+    have : E = 0 := Nat.eq_zero_of_le_zero hE'
+    subst this; exact le_rfl
+  | succ E' ih =>
+    rcases Nat.eq_or_lt_of_le hE' with heq | hlt
+    · rw [heq]
+    · have hle : E ≤ E' := Nat.le_of_lt_succ hlt
+      have h1 := ih hle
+      have hd := objective_delta c₀ c₁ lam R₀ ρ E'
+      have hmono := objective_delta_mono c₀ c₁ lam R₀ ρ hlam hR hρ hρ2 E E' hle
+      simp only [objective_delta] at hmono
+      have hpos : 0 ≤ objective c₀ c₁ lam R₀ ρ (E' + 1) - objective c₀ c₁ lam R₀ ρ E' := by
+        rw [objective_delta]
+        linarith
+      linarith
 
 end Hagi.Learning.EpochTradeoff
