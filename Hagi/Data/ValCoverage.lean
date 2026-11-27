@@ -19,6 +19,8 @@ train_optimal (optimal_lm.py, bfc2a19): контроль обучения — д
 * `windows_exist` — для любых `n`, `k ≥ 1` есть `m ≤ 256` с шагом `≥ k` и
   `m·step ≤ n`: короткий домен (`n < 256k`) берёт `m = n/k < 256`, длинный —
   `m = 256`, `step = n/256 ≥ k` (условие proposal 17 выполняется всегда).
+  Код (unified.py, HAGI_v2 fd040a7): `step = max(k, n // 256)` — ровно эти
+  две ветки; при `n < k` окон нет и гейт не строится.
 -/
 
 namespace Hagi.Data.ValCoverage
