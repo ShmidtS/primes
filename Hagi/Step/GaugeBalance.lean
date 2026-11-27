@@ -162,4 +162,15 @@ theorem asym_step_nonzero (η ε x y : ℝ) (h : η * ε * (x * y) ≠ 0) :
   have : η * ε * (x * y) = 0 := by nlinarith [heq]
   exact h' this
 
+/-- Ранг-1 NTK-слагаемое линейного фактора `x ↦ (b·a)·x` (скалярная пара): матрица
+Грама `K = (b·a)²·(x xᵀ)` на входе `x`; `trace K = (b·a)²·‖x‖²` и `det₊ K` —
+инварианты калибровки `(c·b, a/c)` (rank1_gauge), тогда как сумма квадратов
+норм факторов — нет и минимизируется балансом (`stock_balance_attained`).
+Баланс норм меняет только шум квантования (`clip_sat_tail`), не ядро. -/
+theorem rank1_ntk_gauge_invariant (a b c x : ℝ) (hc : c ≠ 0) :
+    ((c * b) * (a / c)) ^ 2 * x ^ 2 = (b * a) ^ 2 * x ^ 2 := by
+  have h : (c * b) * (a / c) = b * a := by
+    field_simp [hc]
+  rw [h]
+
 end Hagi.Step.GaugeBalance
