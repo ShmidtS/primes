@@ -12,7 +12,7 @@ map, not a source of truth.
   Every commit in this session passed the full battery (Freeze, DocLint R4/R5,
   DocAnchorCheck, TrivialLint, LayerLint, ReachLint, NsLint, DupLint).
 - Reference implementation `C:\HAGI_v2` is READ-ONLY (another agent).
-  HEAD `0affafb` (PROPOSAL 13, 25 accepted). Working tree carries three
+  HEAD `9de7b61` (PROPOSAL 13, 25 accepted; 26dcd09 LZP → LzpExpert, 2aa1242 → ResidualVQ, 9de7b61 → GDNBridge). Working tree carries three
   uncommitted changes in `hagi/models/optimal_lm.py`: `state_carry`,
   `HARD_START`, `bypass_mask` — all three are certified in primes
   (`GDNBridge.gdnScan_append`, `HardStart.*`, `ResidualMasking.*`).
@@ -40,6 +40,7 @@ map, not a source of truth.
 | Adapters | `Hagi/Learning/AdapterBank.lean` | `adapter_init_identity`, `rank_one_cheap_iff`, `rank_two_cheap`, `warm_start_not_certified` |
 | Mixture coding (archiver) | `Hagi/Information/MixtureCoding.lean` | `mixCE_le_best_regret`, `hedge_negLogW_le` |
 | Gauge balance (arXiv:2611.27889v1) | `Hagi/Step/GaugeBalance.lean` | `rank1_gauge`, `stock_balance_min`, `stock_balance_attained`, `dead_loss_const` |
+| LZP-эксперт archiver | `Hagi/Information/LzpExpert.lean` | `lzp_false_ce` (проигрыш ≤ −log(1−λ·cf) ≤ 0.35 nat), `lzp_true_ce_lower` |
 | End-to-end composed step | `Hagi/Unified/CertifiedStepCompose.lean` | `gate`, `composedStep`, `composed_never_increases`, `composed_gate_false_le` |
 | Growth, H-Net, MLA, depth exit, quant | existing modules | `WidthGrowth`, `hnet_opt_ratio_unique`, `mla_cache_saving`, `kv_work_ratio`, `exitLeak`, `HadamardTernaryBridge`, `ResidualVQ`, `stable_factor_two`, `trit5_roundtrip`, `exists_best_mse_scale`, `BitAlloc` |
 
