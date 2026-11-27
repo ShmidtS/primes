@@ -242,6 +242,7 @@ import Hagi.Step.PreconditionerDescent
 import Hagi.Step.ArmijoAcceptance
 import Hagi.Step.AdamDirection
 import Hagi.Step.GPMProjection
+import Hagi.Step.GaugeBalance
 import Hagi.Step.AdamSNR
 import Hagi.Step.AdamRel
 import Hagi.Step.LrRestart
