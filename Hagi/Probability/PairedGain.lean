@@ -47,7 +47,11 @@ import Hagi.Probability.EmpiricalBernstein
 * `rootT sig b α ε = (−√(2σL) + √(2σL + 8bLε))/(4bL)` — замкнутая форма
   корня (`rootT_is_root`, `rootT_nonneg`);
 * `radius_le_iff_ge_root` — `radius(n) ≤ ε ↔ 1/√n ≤ rootT`: точный порог
-  числа окон `n* = ⌈1/rootT²⌉`.
+  числа окон `n* = ⌈1/rootT²⌉`;
+* `prodPq_union_le_sum` — union bound с индивидуальными бюджетами `∑ α r`;
+* `delta_budget_scaled` — `δ₀/M` на каждую из `M` проверок на одном holdout
+  даёт совокупно `≤ δ₀` (PROPOSAL 21: масштабировать `delta` по числу
+  проверок на текущем holdout).
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -405,5 +409,36 @@ theorem radius_le_iff_ge_root (sig b α ε : ℝ) (hα : 0 < α) (hα2 : α < 1)
   radius_le_iff_root sig b α ε hα hα2 hsig hb.le (rootT sig b α ε)
     (rootT_nonneg sig b α ε hα hα2 hsig.le hb he)
     (rootT_is_root sig b α ε hα hα2 hsig.le hb he) n hn
+
+open scoped Classical in
+/-- Union bound с индивидуальными бюджетами: `P(∃ r, A r) ≤ ∑ α r`. -/
+theorem prodPq_union_le_sum {n : ℕ} (q : V → ℝ) (hq0 : ∀ v, 0 ≤ q v) (hq1 : ∑ v, q v = 1)
+    (m : ℕ) (A : Fin m → (Fin n → V) → Prop) (α : Fin m → ℝ)
+    (hA : ∀ r, prodPq (fun _ : Fin n => q) (A r) ≤ α r) :
+    prodPq (fun _ : Fin n => q) (fun ω => ∃ r, A r ω) ≤ ∑ r, α r := by
+  classical
+  have hu := prodPq_union_finset (fun _ : Fin n => q) (fun i => ⟨fun v => hq0 v, hq1⟩) univ A
+  have heq : prodPq (fun _ : Fin n => q) (fun ω => ∃ r, A r ω)
+      = prodPq (fun _ : Fin n => q) (fun ω => ∃ i ∈ univ, A i ω) :=
+    prodPq_iff _ _ _ (fun ω => ⟨fun ⟨r, hr⟩ => ⟨r, Finset.mem_univ r, hr⟩,
+      fun ⟨r, _, hr⟩ => ⟨r, hr⟩⟩)
+  rw [heq]
+  calc prodPq (fun _ : Fin n => q) (fun ω => ∃ i ∈ univ, A i ω)
+      ≤ ∑ r : Fin m, prodPq (fun _ : Fin n => q) (A r) := by
+        convert hu using 1 <;> congr 1 <;> exact Subsingleton.elim _ _
+    _ ≤ ∑ r, α r := Finset.sum_le_sum fun r _ => hA r
+
+open scoped Classical in
+/-- Бюджет `δ₀`, разделённый на `M` проверок на одном holdout: совокупная
+вероятность ложного приёма `≤ δ₀` независимо от `M`. -/
+theorem delta_budget_scaled {n : ℕ} (q : V → ℝ) (hq0 : ∀ v, 0 ≤ q v) (hq1 : ∑ v, q v = 1)
+    (δ₀ : ℝ) (M : ℕ) (hM : 0 < M) (A : Fin M → (Fin n → V) → Prop)
+    (hA : ∀ r, prodPq (fun _ : Fin n => q) (A r) ≤ δ₀ / M) :
+    prodPq (fun _ : Fin n => q) (fun ω => ∃ r, A r ω) ≤ δ₀ := by
+  calc prodPq (fun _ : Fin n => q) (fun ω => ∃ r, A r ω) ≤ ∑ _r : Fin M, δ₀ / M :=
+      prodPq_union_le_sum q hq0 hq1 M A (fun _ => δ₀ / M) hA
+    _ = δ₀ := by
+        have h : (∑ x : Fin M, δ₀) / (M:ℝ) = δ₀ := by simp [ne_of_gt hM]
+        exact (Finset.sum_div _ _ _).symm.trans h
 
 end Hagi.Probability.PairedGain

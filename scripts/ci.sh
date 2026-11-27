@@ -9,12 +9,12 @@ fail=0
 step() { echo; echo "=== $1 ==="; }
 
 step "lake build (default targets: Hagi, Hagi.Benchmarks)"
-LAKE_JOBS=32 lake build 2>&1 | tail -2 | grep -q "Build completed successfully" \
-  || { echo "BUILD: FAIL"; fail=1; }
+LAKE_JOBS=32 lake build > .tmp/ci_build.txt 2>&1 && grep -q "Build completed successfully" .tmp/ci_build.txt \
+  || { echo "BUILD: FAIL"; tail -5 .tmp/ci_build.txt; fail=1; }
 
 step "lake build Hagi.Research (quarantine: outside default targets, Freeze inventory imports it)"
-LAKE_JOBS=32 lake build Hagi.Research 2>&1 | tail -2 | grep -q "Build completed successfully" \
-  || { echo "BUILD RESEARCH: FAIL"; fail=1; }
+LAKE_JOBS=32 lake build Hagi.Research > .tmp/ci_build_research.txt 2>&1 && grep -q "Build completed successfully" .tmp/ci_build_research.txt \
+  || { echo "BUILD RESEARCH: FAIL"; tail -5 .tmp/ci_build_research.txt; fail=1; }
 
 step "ReachLint (every module reachable from Hagi.lean root)"
 out=$(python scripts/ReachLint.py 2>&1 | tail -1)
