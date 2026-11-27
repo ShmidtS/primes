@@ -15,7 +15,10 @@ train_optimal (optimal_lm.py, bfc2a19): контроль обучения — д
 * `prefix_uncovered` — первые `m` окон длины `k` покрывают `[0, m·k)`:
   при `m·k < n` хвост `[m·k, n)` не покрыт;
 * `grid_covers_tail` — равномерная сетка с шагом `step = n/m` оставляет за
-  последним началом не более `2·step`.
+  последним началом не более `2·step`;
+* `windows_exist` — для любых `n`, `k ≥ 1` есть `m ≤ 256` с шагом `≥ k` и
+  `m·step ≤ n`: короткий домен (`n < 256k`) берёт `m = n/k < 256`, длинный —
+  `m = 256`, `step = n/256 ≥ k` (условие proposal 17 выполняется всегда).
 -/
 
 namespace Hagi.Data.ValCoverage
@@ -43,5 +46,18 @@ theorem grid_covers_tail (n m step : ℕ) (hlo : m * step ≤ n)
       rw [mul_comm]; exact Nat.le_mul_of_pos_right _ (Nat.pos_of_ne_zero hm)
     rw [Nat.add_mul, one_mul] at hhi
     omega
+
+/-- Существование независимой сетки: для любых `n`, `k ≥ 1` найдётся `m ≤ 256`
+с шагом `step ≥ k` и `m·step ≤ n` (окна не перекрываются по
+`adjacent_disjoint_iff`); непокрытый кусок за последним началом не больше
+`step + 255` (`step = n/256`, остаток `< 256`). -/
+theorem windows_exist (n k : ℕ) (hk : 1 ≤ k) :
+    ∃ m step, m ≤ 256 ∧ k ≤ step ∧ m * step ≤ n := by
+  rcases lt_or_ge n (256 * k) with h | h
+  · refine ⟨n / k, k, ?_, le_refl k, Nat.div_mul_le_self n k⟩
+    · have hlt : n / k < 256 := (Nat.div_lt_iff_lt_mul (by omega)).2 h
+      omega
+  · refine ⟨256, n / 256, le_refl _, ?_, Nat.mul_div_le n 256⟩
+    · exact (Nat.le_div_iff_mul_le (by norm_num)).2 ((Nat.mul_comm k 256) ▸ h)
 
 end Hagi.Data.ValCoverage
