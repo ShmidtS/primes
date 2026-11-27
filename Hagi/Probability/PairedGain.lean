@@ -34,7 +34,9 @@ import Hagi.Probability.EmpiricalBernstein
   `2bL/n ≤ g − g₀` дают `radius ≤ g − g₀` — выигрыш `g` проходит гейт;
 * `max_gain_le` — winner's curse ограничен: если каждый кандидат в своём
   радиусе (`gain k ≤ μ k + r k`), то `max gain ≤ max μ + max r` — выбор
-  максимума не добавляет фактора (совместно с union bound по `K`).
+  максимума не добавляет фактора (совместно с union bound по `K`);
+* `short_domain_radius_ge` — цена независимости: при `k ≤ n < 256·k` окно
+  `n/k < 256` и радиус не меньше, чем у полной сетки (`radius_anti`).
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -252,5 +254,15 @@ theorem max_gain_le (S : Finset ℕ) (hS : S.Nonempty) (gain μ r : ℕ → ℝ)
   have h2 : r k ≤ (S.image r).max' (image_nonempty.2 hS) :=
     le_max' _ _ (Finset.mem_image.2 ⟨k, hk, rfl⟩)
   linarith [hE k hk]
+
+/-- Цена независимости на коротком домене: при `n < 256·k` сетка из
+`windows_exist` берёт `m = n/k < 256` окон, и EB-радиус не меньше, чем у
+полной сетки из 256 окон. -/
+theorem short_domain_radius_ge (sig b α : ℝ) (hα : 0 < α) (hα2 : α < 1)
+    (hsig : 0 ≤ sig) (hb : 0 ≤ b) (n k : ℕ) (hk : 1 ≤ k) (hkn : k ≤ n) (h : n < 256 * k) :
+    radius sig b 256 α ≤ radius sig b ((n / k : ℕ) : ℝ) α := by
+  have hlt : n / k < 256 := (Nat.div_lt_iff_lt_mul (by omega)).2 h
+  have hpos : 0 < n / k := Nat.div_pos hkn hk
+  exact radius_anti sig b α hα hα2 (n / k) 256 hpos (by omega) hsig hb
 
 end Hagi.Probability.PairedGain
