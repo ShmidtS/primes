@@ -35,6 +35,7 @@ import Hagi.Data.DField
 import Hagi.Data.DataMixing
 import Hagi.Data.ReplaySchedule
 import Hagi.Data.ValWindows
+import Hagi.Data.HoldoutPurity
 import Hagi.Step.NCEExact
 import Hagi.Step.LazyAdam
 import Hagi.Budget.BatchCap
