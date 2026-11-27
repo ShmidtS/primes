@@ -24,7 +24,11 @@ LowRankAdapter B·A, BigramSkip B_u·B_v, MLA, и понейронно в SwiGLU
   баланса Sec. 5);
 * `dead_block_out_zero`, `dead_loss_const` — при W_down = 0 выход блока ноль
   и функция потерь по W_up постоянна: верхняя матрица заморожена, пока блок
-  не выйдет из D (обоснование детерминированного шага при прогреве).
+  не выйдет из D (обоснование детерминированного шага при прогреве);
+* `clip_sat_tail` — ошибка клипа тритов на `-7, 8` равна `|x| − 7s` при
+  `|x| > 7s` (насыщение хвостов);
+* `gauge_kills_sat_tail` — после калибровки `x/c`, `c ≥ |x|/(7s)`: клип не
+  активен — баланс норм убирает satTail, не меняя функцию.
 -/
 
 namespace Hagi.Step.GaugeBalance
@@ -93,5 +97,22 @@ theorem dead_loss_const (obj : (Fin d → ℝ) → ℝ) (W₁ W₂ : Matrix (Fin
       = obj ((0 : Matrix (Fin d) (Fin h) ℝ) *ᵥ (Matrix.mulVec W₂ x)) := by
   congr 1
   simp
+
+/-- Насыщение хвостов (satTail): клип тритов на `-7, 8` при шкале `s` даёт
+ошибку `|x| - 7s` при `|x| > 7s`. После калибровки `x/c` с `c ≥ |x|/(7s)` —
+ошибка клипа ноль. Баланс норм убирает переполнение, не меняя функцию. -/
+theorem clip_sat_tail (x s : ℝ) (hs : 0 < s) (hx : 7 * s < |x|) :
+    |x - if x < 0 then -7 * s else 7 * s| = |x| - 7 * s := by
+  rcases lt_or_ge x 0 with hneg | hpos
+  · rw [if_pos hneg, abs_of_neg (by rw [abs_of_neg hneg] at hx; linarith), abs_of_neg hneg]
+    linarith
+  · rw [if_neg (show ¬ x < 0 by linarith), abs_of_pos (by rw [abs_of_nonneg hpos] at hx; linarith),
+      abs_of_nonneg hpos]
+/-- После калибровки `x/c`, `c ≥ |x|/(7s)`: `|x/c| ≤ 7s` — клип не активен. -/
+theorem gauge_kills_sat_tail (x s c : ℝ) (hs : 0 < s) (hc : 0 < c)
+    (h : |x| / (7 * s) ≤ c) : |x / c| ≤ 7 * s := by
+  rw [abs_div, abs_of_pos hc, div_le_iff₀ hc]
+  calc |x| ≤ c * (7 * s) := (div_le_iff₀ (by positivity : (0:ℝ) < 7 * s)).1 h
+    _ = 7 * s * c := mul_comm _ _
 
 end Hagi.Step.GaugeBalance
