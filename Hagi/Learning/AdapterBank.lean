@@ -16,6 +16,15 @@ open Matrix
   меняет выход ствола (влияние растёт только обучением `B`);
 * `rank_one_cheap_iff` — ранг 1 не дороже полной `m×n` (`m, n ≥ 1`) ⇔ `m, n ≥ 2`;
 * `rank_two_cheap` — ранг 2 (default банка) при `d ≥ 4`: `2·2d ≤ d²`.
+
+`AdapterBank.transfer(src, dst)` = `adapter_warm_start(src, get(dst))`: тёплый
+старт — инициализация `dst` копией `src`; «о близости решает вызывающий код».
+
+* `warmStart src = src`, `warmStart_eq`;
+* `warm_start_not_certified` — выигрыш источника ничего не сертификатует на
+  приёмнике: `A = B = [1]` даёт `2f` (выигрыш или проигрыш по знаку `f`);
+  перенос законен только через EB-гейт после обучения `dst`;
+* `warm_start_zero_harmless` — перенос с `B = 0` — тождество.
 -/
 
 namespace Hagi.Learning.AdapterBank
@@ -57,5 +66,33 @@ theorem rank_two_cheap (d : ℕ) (hd : 4 ≤ d) : 2 * (d + d) ≤ d * d := by
   have e : (2:ℤ) < d := by exact_mod_cast (show 2 < d by omega)
   have : ((2:ℤ)) * ((d:ℤ) + d) ≤ (d:ℤ) * d := by nlinarith
   exact_mod_cast this
+
+/-- Тёплый старт: копия адаптера источника (`adapter_warm_start`); инициализация
+`dst` — адаптер `src`. -/
+noncomputable def warmStart {d r : ℕ} (src : Matrix (Fin d) (Fin r) ℝ × Matrix (Fin r) (Fin d) ℝ) :
+    Matrix (Fin d) (Fin r) ℝ × Matrix (Fin r) (Fin d) ℝ := src
+theorem warmStart_eq {d r : ℕ} (src : Matrix (Fin d) (Fin r) ℝ × Matrix (Fin r) (Fin d) ℝ) :
+    warmStart src = src := rfl
+/-- Перенос не сертифицирован выигрышем источника: адаптер с `B ≠ 0` на
+входе `f` сдвигает выход на `B·(A·f)` — знак сдвига зависит от `f`, а не от
+истории `src`. Контрпример: `d = r = 1`, `A = [1]`, `B = [1]`: выход `2f`
+(выигрыш при `f < 0`-CE, проигрыш при `f > 0`-CE — направление решает гейт). -/
+theorem warm_start_not_certified :
+    let A : Matrix (Fin 1) (Fin 1) ℝ := !![1]
+    let B : Matrix (Fin 1) (Fin 1) ℝ := !![1]
+    adapterOut A B (fun _ => (1:ℝ)) 0 = 2 ∧ adapterOut A B (fun _ => (-1:ℝ)) 0 = -2 := by
+  intro A B
+  unfold adapterOut
+  simp [Matrix.mulVec, dotProduct, Matrix.mul_apply, Fin.sum_univ_one, Matrix.cons_val_one,
+    Matrix.cons_val_zero, Matrix.head_cons]
+  have hA : A 0 0 = 1 := rfl
+  have hB : B 0 0 = 1 := rfl
+  rw [hA, hB]
+  norm_num
+/-- Тёплый старт с нетронутым `B = 0` — тождество (`adapter_init_identity`):
+перенос ещё не обученного адаптера безвреден. -/
+theorem warm_start_zero_harmless {d r : ℕ} (A : Matrix (Fin r) (Fin d) ℝ) (f : Fin d → ℝ) :
+    adapterOut (warmStart (A, 0)).1 (warmStart (A, 0)).2 f = f :=
+  adapter_init_identity A f
 
 end Hagi.Learning.AdapterBank
