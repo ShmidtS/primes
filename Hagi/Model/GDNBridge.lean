@@ -23,6 +23,9 @@ the state carried across the chunk boundary equals the one-pass scan, so
 chunking changes nothing; `carry_without_wrap_leaks` — a step with `g = 1`,
 `β = 0` passes the state through untouched, hence a stream boundary MUST reset
 the state (`wrap`), otherwise the next stream reads the previous one.
+Honest boundary: the carried state is `detach()`ed, so the forward pass is
+exact across chunks while the backward pass is truncated (TBPTT): no gradient
+flows from chunk 2 into the parameters of chunk 1 through `S`.
 -/
 
 namespace Hagi.Model.GDNBridge
