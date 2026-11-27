@@ -40,3 +40,14 @@ and `m = min Δ`, if `F(m) ≤ 1 ≤ F(0) = n/c²` then some `r ∈ [0, m]` has
 `F(r) = 1`. `F` is continuous, non-increasing (`share_sum_mono`), strictly
 above `F(0)` for `r < 0` (`share_strict_of_neg`), so bisection on `[0, m]`
 converges. Feasibility condition on `c`: `∑ᵢ (1 − m/Δᵢ)² ≤ c² ≤ n`.
+
+## After the revert (HAGI_v2 cc1bdd1)
+
+The default went back to `sqrt`. The theory (`water_filling_exists`,
+`sqrt_share_not_minimax`) is unchanged: water-filling is the minimax share only
+when the per-domain gains `Δ_i` are known; `sqrt` is the robust choice when they
+are not, which is the common case before calibration. Re-approval condition, so
+the next attempt is not a coin flip: log per-domain repair gain under both
+shares for one run and switch the default to `wf` only if the *worst-domain*
+CE is not worse than under `sqrt` (`TailGate.max_le_imp_mean_le` — the mean is
+not the right score here).
