@@ -65,7 +65,7 @@ Hagi/Probability/FiniteLogScore.lean:168	ceDef_self_le_of_support|decl
 Hagi/Probability/FiniteLogScore.lean:97	klDef_eq_ceDef_sub_of_support|decl
 Hagi/Probability/PairedGain.lean:35	§/-!|inner
 Hagi/Probability/PairedGain.lean:43	§/-!|inner
-Hagi/Probability/PairedGain.lean:53	§open Classical in|end
+Hagi/Probability/PairedGain.lean:53	§namespace Hagi.Probability.PairedGain|end
 Hagi/Probability/PairedGain.lean:83	admit_false_le|inner
 Hagi/Probability/PairedGain.lean:94	admit_false_le|inner
 Hagi/Research/Legacy/Nonvacuity.lean:267	merge_energy_bridgeW|decl

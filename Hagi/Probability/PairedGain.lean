@@ -43,7 +43,11 @@ import Hagi.Probability.EmpiricalBernstein
   возрастает (`radiusT_strict_mono`); `radius_eq_radiusT` — связь;
 * `radius_le_iff_root` — точный порог: если `radiusT t* = ε`, то
   `radius(n) ≤ ε ↔ 1/√n ≤ t*` (корень квадратного уравнения, заменяет
-  достаточную оценку `N(ε)` из proposal 20 необходимой и достаточной).
+  достаточную оценку `N(ε)` из proposal 20 необходимой и достаточной);
+* `rootT sig b α ε = (−√(2σL) + √(2σL + 8bLε))/(4bL)` — замкнутая форма
+  корня (`rootT_is_root`, `rootT_nonneg`);
+* `radius_le_iff_ge_root` — `radius(n) ≤ ε ↔ 1/√n ≤ rootT`: точный порог
+  числа окон `n* = ⌈1/rootT²⌉`.
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -358,5 +362,48 @@ theorem radius_le_iff_root (sig b α ε : ℝ) (hα : 0 < α) (hα2 : α < 1) (h
       have := radiusT_strict_mono sig b α hα hα2 hsig hb (1 / Real.sqrt n) tstar h0 hlt
       linarith
     · rw [heq, hroot]
+
+/-- Замкнутая форма корня: `t* = (−A + √(A² + 4Bε)) / (2B)`,
+`A = √(2σL)`, `B = 2bL`. -/
+noncomputable def rootT (sig b α ε : ℝ) : ℝ :=
+  let A := Real.sqrt (2 * sig * Real.log (2 / α))
+  let B := 2 * b * Real.log (2 / α)
+  (-A + Real.sqrt (A ^ 2 + 4 * B * ε)) / (2 * B)
+theorem rootT_nonneg (sig b α ε : ℝ) (hα : 0 < α) (hα2 : α < 1) (hsig : 0 ≤ sig)
+    (hb : 0 < b) (he : 0 < ε) : 0 ≤ rootT sig b α ε := by
+  have hL : 0 < Real.log (2 / α) := Real.log_pos (by rw [lt_div_iff₀ hα]; linarith)
+  have hA : 0 ≤ Real.sqrt (2 * sig * Real.log (2 / α)) := Real.sqrt_nonneg _
+  have hB : 0 < 2 * b * Real.log (2 / α) := by positivity
+  unfold rootT
+  have hs : Real.sqrt (2 * sig * Real.log (2 / α)) ≤
+      Real.sqrt (Real.sqrt (2 * sig * Real.log (2 / α)) ^ 2 + 4 * (2 * b * Real.log (2 / α)) * ε) := by
+    apply (Real.le_sqrt hA (show (0:ℝ) ≤ Real.sqrt (2 * sig * Real.log (2 / α)) ^ 2
+        + 4 * (2 * b * Real.log (2 / α)) * ε by positivity)).2
+    nlinarith
+  apply div_nonneg _ (by positivity)
+  linarith
+theorem rootT_is_root (sig b α ε : ℝ) (hα : 0 < α) (hα2 : α < 1) (hsig : 0 ≤ sig)
+    (hb : 0 < b) (he : 0 < ε) : radiusT sig b α (rootT sig b α ε) = ε := by
+  have hL : 0 < Real.log (2 / α) := Real.log_pos (by rw [lt_div_iff₀ hα]; linarith)
+  unfold rootT radiusT
+  have hA : 0 ≤ Real.sqrt (2 * sig * Real.log (2 / α)) := Real.sqrt_nonneg _
+  have hB : 0 < 2 * b * Real.log (2 / α) := by positivity
+  set A := Real.sqrt (2 * sig * Real.log (2 / α)) with hAdef
+  set B := 2 * b * Real.log (2 / α) with hBdef
+  set D := A ^ 2 + 4 * B * ε with hD
+  have hDpos : 0 < D := by nlinarith
+  have hDsqrt : Real.sqrt D ^ 2 = D := Real.sq_sqrt (by linarith)
+  have hAsq : A ^ 2 = 2 * sig * Real.log (2 / α) := Real.sq_sqrt (by positivity)
+  -- раскрываем
+  show A * ((-A + Real.sqrt D) / (2 * B)) + B * ((-A + Real.sqrt D) / (2 * B)) ^ 2 = ε
+  field_simp [hB.ne']
+  nlinarith [hDsqrt, hAsq, mul_pos hB he]
+/-- Точный порог числа окон: `n ≥ n* = ⌈1/t*²⌉` ⇔ радиус ≤ ε. -/
+theorem radius_le_iff_ge_root (sig b α ε : ℝ) (hα : 0 < α) (hα2 : α < 1) (hsig : 0 < sig)
+    (hb : 0 < b) (he : 0 < ε) (n : ℕ) (hn : 0 < n) :
+    radius sig b n α ≤ ε ↔ 1 / Real.sqrt n ≤ rootT sig b α ε :=
+  radius_le_iff_root sig b α ε hα hα2 hsig hb.le (rootT sig b α ε)
+    (rootT_nonneg sig b α ε hα hα2 hsig.le hb he)
+    (rootT_is_root sig b α ε hα hα2 hsig.le hb he) n hn
 
 end Hagi.Probability.PairedGain

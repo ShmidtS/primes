@@ -40,5 +40,22 @@ costs time even when the outcome is already determined by the radius.
 ```
 
 This only removes work that cannot change the decision; the acceptance rule
-(`mean(d) > eps`) is untouched. Honest boundary: `N(ε)` is sufficient, not
-necessary — a small `n` may still pass with a large measured gain.
+(`mean(d) > eps`) is untouched.
+
+## Exact threshold (replaces the sufficient bound)
+
+`radius_le_iff_ge_root` (PairedGain.lean): with
+`L = ln(2/alpha)`, `A = sqrt(2*sig*L)`, `B = 2*b*L`,
+
+    t*    = (-A + sqrt(A^2 + 4*B*eps)) / (2*B)
+    radius(n) <= eps   <=>   1/sqrt(n) <= t*   <=>   n >= ceil(1/t*^2)
+
+`rootT_is_root` proves `radiusT t* = eps`; the equivalence is necessary and
+sufficient, so `ceil(1/t*^2)` is the smallest window count that can ever pass
+at this `eps`. Use it instead of `N(eps)` in the pre-gate.
+
+```python
+A = (2*sig2*L) ** 0.5; B = 2*b*L
+tstar = (-A + (A*A + 4*B*eps)**0.5) / (2*B) if B > 0 else eps / A
+n_min = math.ceil(1 / tstar**2) if tstar > 0 else float("inf")
+```
