@@ -139,6 +139,7 @@ import Hagi.Probability.Azuma
 import Hagi.Probability.Freedman
 import Hagi.Probability.EmpiricalBernstein
 import Hagi.Probability.PairedGain
+import Hagi.Probability.ValCost
 import Hagi.Probability.NoiseTemperature
 import Hagi.Growth.PlasticityLedger
 import Hagi.Model.SoftmaxStep
