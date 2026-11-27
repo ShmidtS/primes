@@ -82,3 +82,16 @@ return ad if (base - after).mean() > paired_margin_eb(base - after, n_states=1, 
 > with the certified path training `epochs // 10` (see
 > `Hagi/Unified/TrainBudget.lean`); the bounds above do not depend on the
 > training budget, the empirical margins may change at full length.
+
+## Follow-up (after acceptance): the delta budget over a trajectory
+
+`admit_false_union_le` bounds `P(∃ false accept among m checks on ONE holdout)
+≤ m·alpha`. With `delta = 0.01` per call and the same holdout tail reused
+across ingests, the budget over `M` adapter checks on that holdout is
+`M·0.01`: it exceeds 1 after 100 checks, i.e. the certificate is void for
+long runs unless either (a) `delta` is divided by the number of checks
+planned on the current holdout, or (b) the holdout is refreshed (new tail ⇒
+independent sample ⇒ per-call bound again). Suggested: pass
+`delta = 0.01 / max(1, planned_checks)` at unified.py:548 / :916, or reset
+`n_states`-style accounting whenever the holdout changes. Not yet in code;
+tracked as the next certificate (`admit_false_trajectory`).
