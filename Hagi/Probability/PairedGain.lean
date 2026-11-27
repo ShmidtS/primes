@@ -26,7 +26,10 @@ import Hagi.Probability.EmpiricalBernstein
   по `n`: при `n → 4n` аддитивный член меньше в 4, корневой — в 2 раза;
 * `admit_false_union_le` — union bound по раундам ремонта: за `m` раундов
   вероятность хоть одного ложного приёма ≤ `m·α` (код: `paired_margin_eb`
-  с `n_states` в `_repair_forgetting`).
+  с `n_states` в `_repair_forgetting`);
+* `clip`, `clip_abs_le`, `clip_sub_abs_le_tail`, `mean_clip_bias_le` —
+  клиппинг разностей до `c` сужает диапазон `b` (радиус меньше), а смещение
+  среднего не превышает среднего хвоста `(|d| − c)₊`.
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -174,5 +177,44 @@ theorem admit_false_union_le {n : ℕ} (q : V → ℝ) (hq0 : ∀ v, 0 ≤ q v) 
         convert hu using 1 <;> congr 1 <;> exact Subsingleton.elim _ _
     _ ≤ ∑ _r : Fin m, α := Finset.sum_le_sum fun r _ => hA r
     _ = m * α := by rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, Fintype.card_fin]
+
+/-- Клиппинг разности в `[-c, c]`. -/
+noncomputable def clip (c x : ℝ) : ℝ := max (-c) (min c x)
+theorem clip_abs_le (c x : ℝ) (hc : 0 ≤ c) : |clip c x| ≤ c := by
+  unfold clip
+  rw [abs_le]
+  exact ⟨by linarith [le_max_left (-c) (min c x)], max_le (by linarith) (min_le_left _ _)⟩
+/-- Клиппинг меняет `x` только за пределами `[-c, c]`, на расстояние ≤ хвост. -/
+theorem clip_sub_abs_le_tail (c x : ℝ) (hc : 0 ≤ c) : |clip c x - x| ≤ max 0 (|x| - c) := by
+  unfold clip
+  rcases lt_or_ge x (-c) with hx | hx
+  · have hxc : x ≤ c := by linarith
+    rw [min_eq_right hxc, max_eq_left hx.le]
+    rw [abs_of_pos (by linarith [hx]), abs_of_neg (by linarith [hx])]
+    have hpos : 0 < -x - c := by linarith [hx]
+    rw [max_eq_right hpos.le]
+    linarith
+  · rcases le_or_gt x c with hxc | hxc
+    · rw [min_eq_right hxc, max_eq_right hx]
+      simp
+    · rw [min_eq_left hxc.le, show max (-c) c = c from max_eq_right (by linarith [hc])]
+      rw [abs_of_neg (sub_neg.2 hxc), abs_of_pos (by linarith [hxc, hc])]
+      rw [max_eq_right (sub_nonneg.2 hxc.le)]
+      linarith
+/-- Смещение среднего от клиппинга ≤ средний хвост `(|d_i| − c)₊`. -/
+theorem mean_clip_bias_le (c : ℝ) (hc : 0 ≤ c) (n : ℕ) (d : Fin n → ℝ) :
+    |(∑ i, d i) / n - (∑ i, clip c (d i)) / n| ≤ (∑ i, max 0 (|d i| - c)) / n := by
+  have h : ∀ i, |clip c (d i) - d i| ≤ max 0 (|d i| - c) := fun i => clip_sub_abs_le_tail c (d i) hc
+  have hs : |(∑ i, d i) - (∑ i, clip c (d i))| ≤ ∑ i, max 0 (|d i| - c) := by
+    rw [← Finset.sum_sub_distrib]
+    calc |∑ i, (d i - clip c (d i))| ≤ ∑ i, |d i - clip c (d i)| := Finset.abs_sum_le_sum_abs _ _
+      _ = ∑ i, |clip c (d i) - d i| := Finset.sum_congr rfl fun i _ => abs_sub_comm _ _
+      _ ≤ ∑ i, max 0 (|d i| - c) := Finset.sum_le_sum fun i _ => h i
+  by_cases hn : n = 0
+  · simp [hn]
+  · have hnpos : (0:ℝ) < n := by exact_mod_cast Nat.pos_of_ne_zero hn
+    rw [show (∑ i, d i) / (n:ℝ) - (∑ i, clip c (d i)) / (n:ℝ)
+        = ((∑ i, d i) - (∑ i, clip c (d i))) / (n:ℝ) by ring, abs_div, abs_of_pos hnpos]
+    exact div_le_div_of_nonneg_right hs hnpos.le
 
 end Hagi.Probability.PairedGain
