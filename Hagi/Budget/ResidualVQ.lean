@@ -293,4 +293,14 @@ theorem fisher_optimal_scale (I w q : Fin n → ℝ) (hD : 0 < ∑ i, I i * q i 
     rw [expand s, expand (N / D)]; field_simp [hDne]; ring
   linarith
 
+/-- Обмен одним битом при фиксированном бюджете `b₁ + b₂` (ошибка ∝ `4^{-b}`):
+перенос бита от строки 2 к строке 1 (`b₁ + 1`, `b₂ − 1`) снижает суммарную
+ошибку тогда и только тогда, когда `4·y < x` — вклад строки 1 больше вклада
+строки 2 более чем в 4 раза. Обмен прекращается, когда вклады отличаются
+менее чем в 4 раза: дискретное обратное water-filling (HAWQ-V2: вклад —
+след Гессе). -/
+theorem bit_swap_improves_iff (x y : ℝ) :
+    x / 4 + y * 4 < x + y ↔ 4 * y < x := by
+  constructor <;> intro h <;> linarith
+
 end Hagi.Budget
