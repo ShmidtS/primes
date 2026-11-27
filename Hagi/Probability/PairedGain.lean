@@ -23,7 +23,10 @@ import Hagi.Probability.EmpiricalBernstein
 * `admit_false_le_shifted` — общий случай: истинный выигрыш `μ ≤ g₀` ⇒ приём
   с вероятностью ≤ `α` (гейт `FIBER_MIN_GAIN = 0.01` и адаптерный `0.005`);
 * `radius_anti`, `radius_quarter_add`, `radius_quarter_sqrt` — радиус убывает
-  по `n`: при `n → 4n` аддитивный член меньше в 4, корневой — в 2 раза.
+  по `n`: при `n → 4n` аддитивный член меньше в 4, корневой — в 2 раза;
+* `admit_false_union_le` — union bound по раундам ремонта: за `m` раундов
+  вероятность хоть одного ложного приёма ≤ `m·α` (код: `paired_margin_eb`
+  с `n_states` в `_repair_forgetting`).
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -147,5 +150,29 @@ theorem radius_quarter_sqrt (sig α : ℝ) (hsig : 0 ≤ sig) (hα : 0 < α) (h�
   have hnn : 0 ≤ 2 * sig * Real.log (2 / α) := by positivity
   push_cast
   rw [Real.sqrt_div hnn, Real.sqrt_div hnn, hsqrt, div_div, mul_comm (Real.sqrt (n : ℝ)) ((2:ℝ))]
+
+variable {n : ℕ}
+open Finset
+open Classical in
+/-- Union bound over repair rounds: each round `r < m` tests its own paired
+sample `ω` with EB radius at level `α`; the probability that SOME round falsely
+admits is at most `m·α`. (The code's paired_margin_eb passes n_states to do
+the same via α/n_states.) -/
+theorem admit_false_union_le {n : ℕ} (q : V → ℝ) (hq0 : ∀ v, 0 ≤ q v) (hq1 : ∑ v, q v = 1)
+    (α : ℝ) (m : ℕ) (A : Fin m → (Fin n → V) → Prop)
+    (hA : ∀ r : Fin m, prodPq (fun _ : Fin n => q) (A r) ≤ α) :
+    prodPq (fun _ : Fin n => q) (fun ω => ∃ r, A r ω) ≤ m * α := by
+  classical
+  have hu := prodPq_union_finset (fun _ : Fin n => q) (fun i => ⟨fun v => hq0 v, hq1⟩) univ A
+  have heq : prodPq (fun _ : Fin n => q) (fun ω => ∃ r, A r ω)
+      = prodPq (fun _ : Fin n => q) (fun ω => ∃ i ∈ univ, A i ω) :=
+    prodPq_iff _ _ _ (fun ω => ⟨fun ⟨r, hr⟩ => ⟨r, Finset.mem_univ r, hr⟩,
+      fun ⟨r, _, hr⟩ => ⟨r, hr⟩⟩)
+  rw [heq]
+  calc prodPq (fun _ : Fin n => q) (fun ω => ∃ i ∈ univ, A i ω)
+      ≤ ∑ r : Fin m, prodPq (fun _ : Fin n => q) (A r) := by
+        convert hu using 1 <;> congr 1 <;> exact Subsingleton.elim _ _
+    _ ≤ ∑ _r : Fin m, α := Finset.sum_le_sum fun r _ => hA r
+    _ = m * α := by rw [Finset.sum_const, Finset.card_univ, nsmul_eq_mul, Fintype.card_fin]
 
 end Hagi.Probability.PairedGain
