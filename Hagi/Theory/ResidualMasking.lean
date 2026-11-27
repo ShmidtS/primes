@@ -21,7 +21,10 @@ import Hagi.Probability.MirrorHedgeMWU
 * `masked_compute_split`, `masked_saving_frac` — экономия `(N − cov)/N`;
 * `covered_window_propensity_zero`, `covered_fraction_zero_propensity` — мост к
   importance sampling (`selectedLoss_optimalPropensity`): окно с `ℓ = 0`
-  получает нулевую propensity, вся масса сэмплирования — на непокрытых окнах.
+  получает нулевую propensity, вся масса сэмплирования — на непокрытых окнах;
+* `combinedCost ρ v = (1 − ρ)·v` — доля вычисляемых градиентов на относительную
+  дисперсию; `combinedCost_le_one`, `combinedCost_lt_one`,
+  `combinedCost_lt_one_of_is` (`MSE* < MSE_u` ⇒ стоимость строго ниже базовой).
 -/
 
 namespace Hagi.Theory.ResidualMasking
@@ -62,5 +65,33 @@ theorem covered_fraction_zero_propensity {V : Type*} [Fintype V] (ℓ : V → �
     (hL : 0 < ∑ i, |ℓ i|) (Z : Finset V) (hZ : ∀ b ∈ Z, ℓ b = 0) :
     ∑ b ∈ Z, (selectedLoss_optimalPropensity ℓ hL b).toReal = 0 :=
   Finset.sum_eq_zero fun b hb => covered_window_propensity_zero ℓ hL b (hZ b hb)
+
+/-- Комбинированная стоимость шага: доля вычисляемых градиентов `(1 − ρ)`
+на относительную дисперсию оценки `v = MSE*/MSE_uniform` (за шаг нужно
+`1/v`-кратно меньше выборок для той же точности). -/
+noncomputable def combinedCost (ρ v : ℝ) : ℝ := (1 - ρ) * v
+/-- При `0 ≤ ρ < 1`, `v ≤ 1` — стоимость не выше базовой; при `ρ > 0` или
+`v < 1` — строго ниже. -/
+theorem combinedCost_le_one (ρ v : ℝ) (hρ : 0 ≤ ρ) (hρ2 : ρ ≤ 1) (hv : 0 ≤ v) (hv2 : v ≤ 1) :
+    combinedCost ρ v ≤ 1 := by
+  unfold combinedCost
+  nlinarith [mul_nonneg (sub_nonneg.2 hρ2) hv]
+theorem combinedCost_lt_one (ρ v : ℝ) (hρ : 0 ≤ ρ) (hρ2 : ρ ≤ 1) (hv : 0 ≤ v) (hv2 : v ≤ 1)
+    (h : 0 < ρ ∨ v < 1) : combinedCost ρ v < 1 := by
+  unfold combinedCost
+  rcases eq_or_lt_of_le hρ2 with h1 | h1
+  · subst h1; simp
+  · rcases h with h | h
+    · nlinarith [mul_pos (sub_pos.mpr h1) (sub_pos.mpr h)]
+    · have := mul_lt_mul_of_pos_left h (sub_pos.mpr h1)
+      nlinarith
+/-- Importance sampling: `v = MSE*/MSE_u < 1` при неоднородных градиентах
+(`selectedMeanGradientMSE_optimalPropensity_lt_uniform_iff`); вместе с маскировкой
+`ρ > 0` — комбинированная стоимость шага строго ниже базовой. -/
+theorem combinedCost_lt_one_of_is (ρ Ms Mu : ℝ) (hρ : 0 ≤ ρ) (hρ2 : ρ ≤ 1)
+    (hMu : 0 < Mu) (hMs : 0 ≤ Ms) (hlt : Ms < Mu) :
+    combinedCost ρ (Ms / Mu) < 1 := by
+  apply combinedCost_lt_one ρ (Ms / Mu) hρ hρ2 (div_nonneg hMs hMu.le) (div_le_one hMu |>.2 hlt.le)
+  exact Or.inr ((div_lt_one hMu).2 hlt)
 
 end Hagi.Theory.ResidualMasking
