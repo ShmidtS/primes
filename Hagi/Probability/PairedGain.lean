@@ -29,7 +29,9 @@ import Hagi.Probability.EmpiricalBernstein
   с `n_states` в `_repair_forgetting`);
 * `clip`, `clip_abs_le`, `clip_sub_abs_le_tail`, `mean_clip_bias_le` —
   клиппинг разностей до `c` сужает диапазон `b` (радиус меньше), а смещение
-  среднего не превышает среднего хвоста `(|d| − c)₊`.
+  среднего не превышает среднего хвоста `(|d| − c)₊`;
+* `n_suffices` — достаточное число окон: `2σ̂²L/n ≤ (g − g₀ − 2bL/n)²` и
+  `2bL/n ≤ g − g₀` дают `radius ≤ g − g₀` — выигрыш `g` проходит гейт.
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -216,5 +218,19 @@ theorem mean_clip_bias_le (c : ℝ) (hc : 0 ≤ c) (n : ℕ) (d : Fin n → ℝ)
     rw [show (∑ i, d i) / (n:ℝ) - (∑ i, clip c (d i)) / (n:ℝ)
         = ((∑ i, d i) - (∑ i, clip c (d i))) / (n:ℝ) by ring, abs_div, abs_of_pos hnpos]
     exact div_le_div_of_nonneg_right hs hnpos.le
+
+/-- Достаточное число окон: если наблюдаемый выигрыш `g` и `n` таковы, что
+радиус ≤ `g − g₀`, гейт (`mean − r > g₀`) срабатывает. -/
+theorem n_suffices (sig b α g g₀ : ℝ) (hα : 0 < α) (hα2 : α < 1) (hsig : 0 ≤ sig)
+    (hb : 0 ≤ b) (hg : 0 < g - g₀) (n : ℕ) (hn : 0 < n)
+    (hsq : 2 * sig * Real.log (2 / α) / n ≤ (g - g₀ - 2 * b * Real.log (2 / α) / n) ^ 2)
+    (hadd : 2 * b * Real.log (2 / α) / n ≤ g - g₀) :
+    radius sig b n α ≤ g - g₀ := by
+  have hL : 0 ≤ Real.log (2 / α) := Real.log_nonneg (by rw [le_div_iff₀ hα]; linarith [hα2])
+  unfold radius
+  have hsqrt : Real.sqrt (2 * sig * Real.log (2 / α) / n) ≤ g - g₀ - 2 * b * Real.log (2 / α) / n := by
+    exact Real.sqrt_le_iff.2
+      ⟨by linarith [hadd], hsq⟩
+  linarith
 
 end Hagi.Probability.PairedGain

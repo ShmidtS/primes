@@ -63,9 +63,9 @@ Hagi/Probability/EmpiricalBernstein.lean:208	empirical_bernstein_bound|decl
 Hagi/Probability/EmpiricalBernstein.lean:286	empirical_bernstein_mean_bound|decl
 Hagi/Probability/FiniteLogScore.lean:168	ceDef_self_le_of_support|decl
 Hagi/Probability/FiniteLogScore.lean:97	klDef_eq_ceDef_sub_of_support|decl
-Hagi/Probability/PairedGain.lean:35	§namespace Hagi.Probability.PairedGain|end
-Hagi/Probability/PairedGain.lean:43	radius|decl
-Hagi/Probability/PairedGain.lean:53	diffX_sum|inner
+Hagi/Probability/PairedGain.lean:35	§/-!|inner
+Hagi/Probability/PairedGain.lean:43	admit|decl
+Hagi/Probability/PairedGain.lean:53	diffX_sum|decl
 Hagi/Probability/PairedGain.lean:83	admit_false_le|inner
 Hagi/Probability/PairedGain.lean:94	centX_sum|inner
 Hagi/Research/Legacy/Nonvacuity.lean:267	merge_energy_bridgeW|decl

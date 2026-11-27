@@ -54,6 +54,17 @@ validation phase 4× (57 s → 3 s at 4096 → 1024). Clipping the differences t
 differs by more) costs almost nothing; a heavy-tailed sample makes the
 heuristic under-estimate while EB uses the measured variance.
 
+## Clipping the range (optional, certified)
+
+`paired_margin_eb` uses `b = max|d|` — the full sample range, so one large
+CE difference inflates the additive term `2bL/n`. Clipping `d` to `[-c, c]`
+is safe: `clip_abs_le` (`|clip| ≤ c`), `clip_sub_abs_le_tail`
+(`|clip c x − x| ≤ (|x| − c)₊`), `mean_clip_bias_le`
+(`|mean d − mean clip c d| ≤ mean (|d| − c)₊`, Hagi/Probability/PairedGain.lean).
+At `n = 4096`, `α = 0.01`, `σ̂ = 1`: `b = 4 → r = 0.061`, `c = 2 → r = 0.056`
+(−8%), with a bias equal to the mean exceedance of `|d|` over 2 nat — zero
+unless the paired CE differences have a tail beyond 2 nat.
+
 ## Minimal diff
 
 ```python
