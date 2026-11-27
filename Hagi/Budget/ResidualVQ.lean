@@ -303,4 +303,13 @@ theorem bit_swap_improves_iff (x y : ℝ) :
     x / 4 + y * 4 < x + y ↔ 4 * y < x := by
   constructor <;> intro h <;> linarith
 
+/-- Стационарность распределения стадий: если вклад каждой строки со второй
+стадией (`i ∈ S`) превышает вклад любой строки без неё (`j ∉ S`) не более чем
+в 4 раза, то ни один обмен (снять стадию с `i`, дать `j`) не снижает суммарную
+ошибку — локальный оптимум относительно обменов (правило остановки в
+PROPOSAL 29). -/
+theorem stage2_swap_stationary (x y : ℝ) (h : x ≤ 4 * y) :
+    ¬ (x / 4 + y * 4 < x + y) := by
+  rw [bit_swap_improves_iff]; linarith
+
 end Hagi.Budget
