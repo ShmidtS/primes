@@ -15,7 +15,9 @@ import Mathlib.Tactic
 * `loop` — структурная рекурсия по топливу `T` ⇒ завершение за ≤ `T` раундов;
 * `loop_blocks_bounds` — `k ≤ blocks ≤ max`;
 * `loop_f_le` — наихудшая CE не возрастает: каждый принятый раунд её снижает,
-  каждый отклонённый — возвращает прежнюю.
+  каждый отклонённый — возвращает прежнюю;
+* `no_tol_guarantee` — честная граница: допуск не гарантирован — при стагнации
+  выше `tol` цикл завершается с `f > tol`; код фиксирует остаток откатом.
 -/
 
 namespace Hagi.Unified.RepairLoop
@@ -61,5 +63,27 @@ theorem loop_f_le (T max k : ℕ) (f : ℝ) (f' : ℕ → ℝ) : (loop T max k f
     split
     · exact hf
     · exact (ih _ _).trans hf
+
+/-- Цикл ремонта НЕ гарантирует достижения допуска: если наихудшая CE
+стагнирует выше `tol` (кандидат не лучше текущего), цикл завершается с
+`f > tol` — остаток забывания, который код фиксирует откатом. -/
+theorem no_tol_guarantee (max : ℕ) (f : ℝ) (hf : 0 < f) (tol : ℝ) (htol : tol < f)
+    (T : ℕ) (hT : 0 < T) :
+    let f' : ℕ → ℝ := fun _ => f
+    (loop T max 0 f f').2 = f ∧ tol < (loop T max 0 f f').2 := by
+  intro f'
+  have hstep : step max 0 f (f' 0) = (0, f) := by
+    unfold step
+    have : ¬ (f' 0 < f ∧ 0 < max) := by
+      intro h
+      linarith [show f' 0 = f from rfl]
+    simp [this]
+  induction T with
+  | zero => simp [loop, htol]
+  | succ T ih =>
+    rw [loop]
+    have hr : (step max 0 f (f' 0)).1 = 0 := by rw [hstep]
+    rw [if_pos hr, hstep]
+    exact ⟨rfl, htol⟩
 
 end Hagi.Unified.RepairLoop
