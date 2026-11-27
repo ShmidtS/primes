@@ -169,4 +169,19 @@ theorem importance_cap_variance_bound (ℓ q qmin : ℝ) (hq : qmin ≤ q) (hq0 
   have h2 : ℓ ^ 2 * (1 / q - 1) ≤ ℓ ^ 2 * (1 / qmin - 1) := by nlinarith [h1]
   exact h2
 
+/-- Бернуллиева маска не может иметь вероятность `q > 1`: фактическая
+вероятность — `min q 1`, поэтому оценка `ℓ·m/q` имеет ожидание
+`ℓ·min q 1 / q = ℓ / q` при `q > 1` — смещена в `q` раз. Кап предложения должен
+быть на `1`, а не на `4`. -/
+theorem bernoulli_prop_le_one (ℓ q : ℝ) (hq : 1 < q) :
+    (ℓ * (min q 1)) / q = ℓ / q := by rw [min_eq_right hq.le]; ring
+/-- С весом `1/min q 1` оценка несмещённа при любом `q > 0`. -/
+theorem clipped_weight_unbiased (ℓ q : ℝ) (hq : 0 < q) :
+    (ℓ * min q 1) / min q 1 = ℓ := by
+  have hm : 0 < min q 1 := by
+    rcases lt_or_ge q 1 with h | h
+    · simpa [min_eq_left h.le] using hq
+    · rw [min_eq_right h]; exact one_pos
+  field_simp [hm.ne']
+
 end Hagi.Theory.ResidualMasking
