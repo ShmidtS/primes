@@ -72,3 +72,20 @@ map, not a source of truth.
    Docstring text must not contain `-/` or `5-/3` sequences (closes the block).
 
 Total commits in primes at checkpoint: 2435.
+
+## Retrospective at cycle 100 (what the theory bought)
+
+* Accepted by code and matched 1:1 by a theorem: PROPOSAL 13 (EB adapters),
+  17 (non-overlapping windows), 25 (gauge balance → `GaugeBalance.rank1_gauge`,
+  `stock_balance_attained`, `gauge_kills_sat_tail`), 26 (worst-domain gate →
+  `TailGate.max_le_imp_mean_le`); guard tests `2a34515` (→ `RareDecay`).
+* Theory that *prevented* a wrong change: PROPOSAL 28 v1 (cap 4 → biased by
+  1/q, `bernoulli_prop_le_one`); the `x < y` mis-statement of the bit swap
+  (true threshold 4×, `bit_swap_improves_iff`).
+* Theory ahead of code (pending): 18–21, 23, 24, 25-addendum (MLA factor),
+  27 (asymmetric grow init), 28 v2 (cap 1), 29 (mixed-precision rows).
+* In progress code-side (working tree, `optimal_lm.py`): table-LazyAdam —
+  inactive rows keep their moments and do not step; covered by
+  `LazyAdam.lazy_moment_drift`, `touchStep_dense_excess_pos`.
+* Not formalised, honestly: NTK spectral entropy (`log det₊ K̄`), quantitative
+  TBPTT bias (needs measured GDN `g`), volume of the dead set `α^{-N/2}`.
