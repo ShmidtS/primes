@@ -154,4 +154,19 @@ theorem covered_propensity_le {V : Type*} [Fintype V] (ℓ : V → ℝ)
   rw [selectedLoss_optimalPropensity_apply]
   exact div_le_div_of_nonneg_right hb (le_of_lt hL)
 
+/-- Ограничение дисперсии importance-оценки при капе `q_b ≥ q_min`: для
+Бернулли `m_b ~ q_b` второй момент оценки `ℓ_b·m_b/q_b` равен `ℓ_b²/q_b`,
+дисперсия `ℓ_b²·(1/q_b − 1) ≤ ℓ_b²·(1/q_min − 1)`. Кап `q ≥ 0.25`
+(`q ∝ |ℓ_b|`, нормировка `E[q] = 1`, cap 4) удерживает вес `1/q ≤ 4`. -/
+theorem importance_cap_second_moment (ℓ q : ℝ) (hq : 0 < q) :
+    q * (ℓ / q) ^ 2 + (1 - q) * 0 ^ 2 = ℓ ^ 2 / q := by
+  field_simp [ne_of_gt hq]; ring
+theorem importance_cap_variance_bound (ℓ q qmin : ℝ) (hq : qmin ≤ q) (hq0 : 0 < qmin)
+    :
+    ℓ ^ 2 * (1 / q - 1) ≤ ℓ ^ 2 * (1 / qmin - 1) := by
+  have h1 : 1 / q ≤ 1 / qmin := by
+    apply one_div_le_one_div_of_le (by linarith) hq
+  have h2 : ℓ ^ 2 * (1 / q - 1) ≤ ℓ ^ 2 * (1 / qmin - 1) := by nlinarith [h1]
+  exact h2
+
 end Hagi.Theory.ResidualMasking
