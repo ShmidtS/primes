@@ -332,6 +332,7 @@ import Hagi.Unified.Rollback
 import Hagi.Unified.TailGate
 import Hagi.Unified.RepairLoop
 import Hagi.Unified.CertifiedAdmission
+import Hagi.Unified.RepairCost
 import Hagi.Semantics.FunctionalState
 import Hagi.Model.Grokfast
 import Hagi.Unified.HonestTransition
