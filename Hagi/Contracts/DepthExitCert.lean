@@ -238,4 +238,14 @@ theorem anchor_work :
 
 end Anchor
 
+/-- Если оценка блока недоступна, при сколь угодно малом `m` и любом `b > 0`
+граница `2·L_h·b` неограничена относительно `m` — эвристика не сертификат. -/
+theorem margin_exit_unbounded_without_bound (τ : ℝ) :
+    ∀ M : ℝ, 0 < M → ∃ m b : ℝ, 0 < m ∧ m > τ ∧ 2 * 1 * b > M := by
+  intro M hM
+  have hM1 : 0 < M + 1 := by linarith
+  have hτ : τ < |τ| + 1 := by have := le_abs_self τ; linarith
+  refine ⟨|τ| + 1, M + 1, by positivity, hτ, ?_⟩
+  nlinarith [mul_pos (show (0:ℝ) < 2 by norm_num) hM1]
+
 end Hagi.Contracts.DepthExitCert
