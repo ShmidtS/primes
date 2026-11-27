@@ -157,4 +157,62 @@ theorem projOut_norm_lt (u g : Fin n → ℝ) (hu : dot u u = 1) (h : dot u g �
   have := pythagoras_one u g hu
   nlinarith [sq_pos_of_ne_zero h]
 
+/-- Общая цена GPM-защиты: `‖g‖² = ‖Pg‖² + ∑_j ⟨u_j,g⟩²` — длина шага
+теряет ровно энергию градиента в памяти. -/
+theorem dot_sub_right (x y z : Fin n → ℝ) : dot x (y - z) = dot x y - dot x z := by
+  rw [dot_comm, dot_sub_left, dot_comm z x, dot_comm y x]
+theorem dot_add_left (x y z : Fin n → ℝ) : dot (x + y) z = dot x z + dot y z := by
+  simp [dot, add_mul, Finset.sum_add_distrib]
+theorem dot_add_right (x y z : Fin n → ℝ) : dot x (y + z) = dot x y + dot x z := by
+  rw [dot_comm, dot_add_left, dot_comm y x, dot_comm z x]
+theorem dot_sum_left (f : Fin k → ℝ) (u : Fin k → (Fin n → ℝ)) (x : Fin n → ℝ) :
+    dot (∑ i, f i • u i) x = ∑ i, f i * dot (u i) x := by
+  rw [dot_comm, dot_sum_right]
+  exact Finset.sum_congr rfl fun i _ => by rw [dot_comm (u i) x]
+/-- Разложение: `g = Pg + ∑ c_j u_j`, `c_j = ⟨u_j, g⟩`. -/
+theorem proj_decomp (U : Fin k → (Fin n → ℝ)) (g : Fin n → ℝ) :
+    g = projOut U g + ∑ j, dot (U j) g • U j := by
+  unfold projOut; funext a; simp [Finset.sum_apply]
+/-- Пифагор для ортонормированной памяти: `‖g‖² = ‖Pg‖² + ∑ ⟨u_j,g⟩²`. -/
+theorem pythagoras_k (U : Fin k → (Fin n → ℝ)) (hU : Orthonormal U) (g : Fin n → ℝ) :
+    dot g g = dot (projOut U g) (projOut U g) + ∑ j, dot (U j) g ^ 2 := by
+  have hdecomp := proj_decomp U g
+  have horth : dot (projOut U g) (∑ j, dot (U j) g • U j) = 0 := by
+    rw [dot_comm, dot_sum_left]
+    exact Finset.sum_eq_zero fun j _ => by
+      rw [dot_comm (U j) (projOut U g), projOut_orth U hU j g]; ring
+  have hnorm : dot (∑ j, dot (U j) g • U j) (∑ j, dot (U j) g • U j)
+      = ∑ j, dot (U j) g ^ 2 := by
+    rw [dot_sum_left]
+    have : ∀ j, dot (U j) g * dot (U j) (∑ l, dot (U l) g • U l) = dot (U j) g ^ 2 := by
+      intro j
+      rw [dot_sum_right]
+      have hsum : ∑ l, dot (U j) g * (dot (U l) g * dot (U j) (U l)) = dot (U j) g ^ 2 := by
+        have hterm : ∀ l, dot (U j) g * (dot (U l) g * dot (U j) (U l))
+            = if j = l then dot (U j) g ^ 2 else 0 := by
+          intro l
+          by_cases h : j = l
+          · subst h; rw [hU.1, if_pos rfl]; ring
+          · rw [hU.2 j l h, if_neg h]; ring
+        rw [Finset.sum_congr rfl (fun l _ => hterm l)]
+        rw [Finset.sum_ite_eq univ j (fun _ => dot (U j) g ^ 2)]
+        simp
+      calc dot (U j) g * ∑ l, dot (U l) g * dot (U j) (U l)
+          = ∑ l, dot (U j) g * (dot (U l) g * dot (U j) (U l)) := by rw [Finset.mul_sum]
+        _ = dot (U j) g ^ 2 := hsum
+    rw [Finset.sum_congr rfl (fun j _ => this j)]
+  have hcross : dot (projOut U g) (∑ j, dot (U j) g • U j)
+      + dot (∑ j, dot (U j) g • U j) (projOut U g) = 0 := by
+    rw [horth, dot_comm, horth]; ring
+  have hadd : dot g g = dot (projOut U g + ∑ j, dot (U j) g • U j)
+      (projOut U g + ∑ j, dot (U j) g • U j) := by rw [← hdecomp]
+  have hexpand : dot (projOut U g + ∑ j, dot (U j) g • U j) (projOut U g + ∑ j, dot (U j) g • U j)
+      = dot (projOut U g) (projOut U g) + dot (projOut U g) (∑ j, dot (U j) g • U j)
+        + dot (∑ j, dot (U j) g • U j) (projOut U g)
+        + dot (∑ j, dot (U j) g • U j) (∑ j, dot (U j) g • U j) := by
+    simp only [dot_add_left, dot_add_right]
+    ring
+  rw [hexpand, hnorm] at hadd
+  linarith
+
 end Hagi.Step.GPM
