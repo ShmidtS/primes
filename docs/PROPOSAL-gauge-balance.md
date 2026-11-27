@@ -44,3 +44,30 @@ must be < 1e-12 (regression test).
 Reported (prototype, not reproducible here): weight quantization error −8.8%,
 quantization CE penalty halved with the NTK term; dead-network fraction 0.70
 at λ = 0 vs 0.33 at λ = 0.08.
+
+## 25b. Wire `gauge_balance` into the export (it is defined but never called)
+
+HAGI_v2 `0affafb` defines `gauge_balance(model)` in `optimal_lm.py`, but nothing
+calls it (`rg "gauge_balance\(" hagi` → only the def). The same fate as the
+first `ef21_qat`. Minimal, trajectory-neutral diff — the balance runs on a
+**copy** at export time, the training weights are untouched:
+
+```python
+def quantize_model(model, bits=4, use_had=True, balance=True):
+    if balance:                                   # export-time gauge on a deep copy
+        import copy; model = copy.deepcopy(model); model.gauge_balance()
+    ...                                           # existing loop unchanged
+```
+
+Regression test (numbers verified from the identity `rank1_gauge`):
+
+```python
+def test_gauge_balance_is_function_preserving():
+    m = HagiOptimalLM(d=24, hid=36)                    # any small config
+    x = torch.randint(0, 256, (2, 64)); m.eval()
+    with torch.no_grad():
+        before = m.logits(x); info = m.gauge_balance(); after = m.logits(x)
+    assert (after - before).abs().max() < 1e-4         # exact up to fp32 round-off
+    assert info["max_log_shift_swiglu"] > 0.1          # it actually rebalanced
+    # and the export is tighter: per-row |W| max after balance ≤ before, row-wise
+```
