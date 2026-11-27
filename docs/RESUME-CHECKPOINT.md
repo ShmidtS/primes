@@ -1,4 +1,4 @@
-# Resume checkpoint — cycle 82 (HEAD of primes at the time of writing)
+# Resume checkpoint — cycle 84 (HEAD of primes at the time of writing)
 
 Purpose: continue the HAGI research cycle after a context/environment reset
 without re-deriving the state. Authoritative facts live in git; this file is a
@@ -38,6 +38,7 @@ map, not a source of truth.
 | Rollback | `Hagi/Unified/Rollback.lean` | `paramsOnly_ne_full`, `honestCE`, `rolled_back_forget_zero`, `positional_misaligns`, `named_keeps_new` |
 | Adapters | `Hagi/Learning/AdapterBank.lean` | `adapter_init_identity`, `rank_one_cheap_iff`, `rank_two_cheap`, `warm_start_not_certified` |
 | Mixture coding (archiver) | `Hagi/Information/MixtureCoding.lean` | `mixCE_le_best_regret`, `hedge_negLogW_le` |
+| End-to-end composed step | `Hagi/Unified/CertifiedStepCompose.lean` | `gate`, `composedStep`, `composed_never_increases`, `composed_gate_false_le` |
 | Growth, H-Net, MLA, depth exit, quant | existing modules | `WidthGrowth`, `hnet_opt_ratio_unique`, `mla_cache_saving`, `kv_work_ratio`, `exitLeak`, `HadamardTernaryBridge`, `ResidualVQ`, `stable_factor_two`, `trit5_roundtrip`, `exists_best_mse_scale`, `BitAlloc` |
 
 ## Verification notes
@@ -58,8 +59,8 @@ map, not a source of truth.
    (YAGNI). Remaining research directions with real content:
    - a quantitative TBPTT bias bound tied to the measured `g` values of the
      GDN layers (needs the code's `a1, b1` statistics);
-   - composition theorem: residual masking + importance draw + certified step
-     (`gate_never_increases`) preserve the descent guarantee end-to-end;
+   - (done, cycle 83) composition theorem: `CertifiedStepCompose` — gate ⇒
+     obj non-increasing for every ω; false gate pass ≤ α;
    - `n_eff` model for dependent windows is obsolete since `fd040a7` (step ≥ k).
 3. CI hygiene: `scripts/ci.sh` now greps the whole build log (`.tmp/ci_build.txt`);
    DocLint R4 rejects backticked Python names in docstrings — write them bare.
