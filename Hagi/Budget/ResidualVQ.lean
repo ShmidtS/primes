@@ -269,4 +269,28 @@ theorem residualHeadBudget (W R1 R2 : Matrix m n ℝ) (e1 : ℝ)
     rw [residualTwoStage_exact W R1 R2]; exact hkey
   nlinarith [he1, hpos]
 
+variable {n : ℕ}
+
+/-- Взвешенная ошибка строки при фиксированных уровнях `q` и весах важности `I`
+(HAGI_v2 fisher_opt, candidates `s_j = Σ I w q / Σ I q²`). -/
+noncomputable def fisherErr (I w q : Fin n → ℝ) (s : ℝ) : ℝ := ∑ i, I i * (w i - s * q i) ^ 2
+/-- Оптимальный масштаб для фиксированных уровней — взвешенный МНК:
+`s* = Σ I w q / Σ I q²`; при `Σ I q² > 0` ошибка в оптимуме минимальна,
+`E(s) − E(s*) = D·(s − s*)²`. -/
+theorem fisher_optimal_scale (I w q : Fin n → ℝ) (hD : 0 < ∑ i, I i * q i ^ 2) :
+    ∀ s, fisherErr I w q ((∑ i, I i * w i * q i) / ∑ i, I i * q i ^ 2) ≤ fisherErr I w q s := by
+  set D := ∑ i, I i * q i ^ 2 with hDdef
+  set N := ∑ i, I i * w i * q i with hNdef
+  intro s
+  have expand (s : ℝ) : fisherErr I w q s = (∑ i, I i * w i ^ 2) - 2 * s * N + s ^ 2 * D := by
+    unfold fisherErr N D
+    symm
+    rw [Finset.mul_sum, Finset.mul_sum, ← Finset.sum_sub_distrib, ← Finset.sum_add_distrib]
+    apply Finset.sum_congr rfl; intro i _; ring
+  have hsq : 0 ≤ D * (s - N / D) ^ 2 := mul_nonneg (by unfold D; positivity) (sq_nonneg _)
+  have hDne : D ≠ 0 := ne_of_gt hD
+  have hkey : fisherErr I w q s - fisherErr I w q (N / D) = D * (s - N / D) ^ 2 := by
+    rw [expand s, expand (N / D)]; field_simp [hDne]; ring
+  linarith
+
 end Hagi.Budget
