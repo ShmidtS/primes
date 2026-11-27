@@ -95,6 +95,7 @@ import Hagi.Unified.CandidateConfig
 import Hagi.Learning.SpectralBudget
 import Hagi.Information.Capacity
 import Hagi.Information.MixtureCoding
+import Hagi.Information.LzpExpert
 import Hagi.Probability.KLSBridge
 import Hagi.Probability.ThermoBridge
 import Hagi.Architecture.CortexFiber
