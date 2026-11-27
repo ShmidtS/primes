@@ -25,6 +25,12 @@ max_k`) и тому, что QR матрицы с ортонормированн�
 на месте (гипотеза о QR), поэтому `take max_k` старые столбцы сохраняет
 (`take_keeps_prefix`). Сохранение прошлых выходов гарантировано для строк
 итоговой памяти.
+
+Цена защиты (983576b: базисы на 90% энергии блокировали обучение, CE
+0.754 → 0.598, GPM выключен по умолчанию): `pythagoras_one`,
+`projOut_norm_le`, `projOut_norm_lt` — проекция градиента не увеличивает
+норму и строго укорачивает шаг, если градиент нового домена имеет компоненту
+в памяти. Нулевое забывание на памяти покупается скоростью обучения нового.
 -/
 
 namespace Hagi.Step.GPM
@@ -102,4 +108,53 @@ theorem take_keeps_prefix (l : List ℝ) (cur_r max_k : ℕ) (hcur : cur_r ≤ m
     (l.take max_k)[i]? = l[i]? := by
   rw [List.getElem?_eq_getElem (by rw [List.length_take]; exact lt_min_iff.2 ⟨by omega, by omega⟩),
     List.getElem?_eq_getElem (by omega), List.getElem_take]
+variable {n : ℕ}
+/-- Один защищённый вектор `u` (ортонормированный): `projOut u g = g − ⟨u,g⟩u`. -/
+theorem projOut_one (u g : Fin n → ℝ) :
+    projOut (fun _ : Fin 1 => u) g = fun a => g a - dot u g * u a := by
+  unfold projOut
+  funext a
+  simp [Fin.sum_univ_one]
+/-- Пифагор: `‖g‖² = ‖P g‖² + ⟨u,g⟩²`. -/
+theorem pythagoras_one (u g : Fin n → ℝ) (hu : dot u u = 1) :
+    dot g g = dot (projOut (fun _ : Fin 1 => u) g) (projOut (fun _ : Fin 1 => u) g) + dot u g ^ 2 := by
+  have hP : projOut (fun _ : Fin 1 => u) g = fun a => g a - dot u g * u a := projOut_one u g
+  simp only [hP]
+  unfold dot
+  have hu' : ∑ i, u i * u i = 1 := hu
+  have hsplit : ∀ i, g i * g i = (g i - (∑ x, u x * g x) * u i) * (g i - (∑ x, u x * g x) * u i)
+      + (2 * (∑ x, u x * g x) * g i * u i - (∑ x, u x * g x) ^ 2 * (u i * u i)) := by
+    intro i
+    set s := ∑ x, u x * g x with hs
+    ring
+  have hsplit' : ∑ i, g i * g i = ∑ i, ((g i - (∑ x, u x * g x) * u i) * (g i - (∑ x, u x * g x) * u i)
+      + (2 * (∑ x, u x * g x) * g i * u i - (∑ x, u x * g x) ^ 2 * (u i * u i))) :=
+    Finset.sum_congr rfl (fun i _ => hsplit i)
+  rw [Finset.sum_add_distrib] at hsplit'
+  have hs : ∑ i, g i * u i = ∑ x, u x * g x := Finset.sum_congr rfl fun i _ => mul_comm _ _
+  have h1 : ∑ i, 2 * (∑ x, u x * g x) * g i * u i = 2 * (∑ x, u x * g x) ^ 2 := by
+    have : ∀ i, 2 * (∑ x, u x * g x) * g i * u i = (2 * (∑ x, u x * g x)) * (g i * u i) := fun i => by ring
+    rw [Finset.sum_congr rfl (fun i _ => this i), ← Finset.mul_sum, hs]
+    ring
+  have h2 : ∑ i, (∑ x, u x * g x) ^ 2 * (u i * u i) = (∑ x, u x * g x) ^ 2 := by
+    have : ∀ i, (∑ x, u x * g x) ^ 2 * (u i * u i) = ((∑ x, u x * g x) ^ 2) * (u i * u i) := fun i => rfl
+    rw [Finset.sum_congr rfl (fun i _ => this i), ← Finset.mul_sum, hu']
+    ring
+  have hsum : ∑ i, (2 * (∑ x, u x * g x) * g i * u i - (∑ x, u x * g x) ^ 2 * (u i * u i))
+      = (∑ x, u x * g x) ^ 2 := by
+    rw [Finset.sum_sub_distrib, h1, h2]; ring
+  rw [hsum] at hsplit'
+  exact hsplit'
+/-- Проекция не увеличивает длину. -/
+theorem projOut_norm_le (u g : Fin n → ℝ) (hu : dot u u = 1) :
+    dot (projOut (fun _ : Fin 1 => u) g) (projOut (fun _ : Fin 1 => u) g) ≤ dot g g := by
+  have := pythagoras_one u g hu
+  nlinarith [sq_nonneg (dot u g)]
+/-- Компонента градиента в памяти строго укорачивает шаг: GPM платит скоростью
+обучения нового домена (983576b выключил защиту: CE 0.754 → 0.598). -/
+theorem projOut_norm_lt (u g : Fin n → ℝ) (hu : dot u u = 1) (h : dot u g ≠ 0) :
+    dot (projOut (fun _ : Fin 1 => u) g) (projOut (fun _ : Fin 1 => u) g) < dot g g := by
+  have := pythagoras_one u g hu
+  nlinarith [sq_pos_of_ne_zero h]
+
 end Hagi.Step.GPM
