@@ -51,7 +51,10 @@ import Hagi.Probability.EmpiricalBernstein
 * `prodPq_union_le_sum` — union bound с индивидуальными бюджетами `∑ α r`;
 * `delta_budget_scaled` — `δ₀/M` на каждую из `M` проверок на одном holdout
   даёт совокупно `≤ δ₀` (PROPOSAL 21: масштабировать `delta` по числу
-  проверок на текущем holdout).
+  проверок на текущем holdout);
+* `radius_delta_cost_le` — цена масштабирования: уровень `α/M` вместо `α`
+  увеличивает радиус не более чем на `√(2σ·log M/n) + 2b·log M/n`
+  (логарифмическая цена union bound по траектории).
 -/
 
 namespace Hagi.Probability.PairedGain
@@ -440,5 +443,39 @@ theorem delta_budget_scaled {n : ℕ} (q : V → ℝ) (hq0 : ∀ v, 0 ≤ q v) (
     _ = δ₀ := by
         have h : (∑ x : Fin M, δ₀) / (M:ℝ) = δ₀ := by simp [ne_of_gt hM]
         exact (Finset.sum_div _ _ _).symm.trans h
+
+/-- Цена union bound по `M` проверкам: уровень `α` становится `α/M`, радиус
+растёт не более чем на `√(2σ·log M/n) + 2b·log M/n`. -/
+theorem radius_delta_cost_le (sig b α : ℝ) (hα : 0 < α) (hαM : α < 1) (hsig : 0 ≤ sig)
+    (hb : 0 ≤ b) (n : ℕ) (hn : 0 < n) (M : ℝ) (hM : 1 ≤ M) :
+    radius sig b n (α / M) ≤ radius sig b n α
+      + Real.sqrt (2 * sig * Real.log M / n) + 2 * b * Real.log M / n := by
+  have hMpos : 0 < M := lt_of_lt_of_le (by norm_num) hM
+  have hαM' : 0 < α / M := div_pos hα hMpos
+  have hαM2 : α / M < 1 := by rw [div_lt_iff₀ hMpos]; linarith
+  have hL : 0 < Real.log (2 / α) := Real.log_pos (by rw [lt_div_iff₀ hα]; linarith)
+  have hLM : 0 ≤ Real.log M := Real.log_nonneg hM
+  have hnR : (0:ℝ) < n := by exact_mod_cast hn
+  have hsplit : Real.log (2 / (α / M)) = Real.log (2 / α) + Real.log M := by
+    rw [show 2 / (α / M) = (2 / α) * M by field_simp]
+    rw [Real.log_mul (by positivity) (by positivity)]
+  unfold radius
+  rw [hsplit]
+  have h1 : Real.sqrt (2 * sig * (Real.log (2 / α) + Real.log M) / n)
+      ≤ Real.sqrt (2 * sig * Real.log (2 / α) / n) + Real.sqrt (2 * sig * Real.log M / n) := by
+    rw [show 2 * sig * (Real.log (2 / α) + Real.log M) / n
+        = (2 * sig * Real.log (2 / α) / n) + (2 * sig * Real.log M / n) by ring]
+    rw [Real.sqrt_le_iff]
+    constructor
+    · positivity
+    have hA := Real.sq_sqrt (show 0 ≤ 2 * sig * Real.log (2 / α) / n by positivity)
+    have hB := Real.sq_sqrt (show 0 ≤ 2 * sig * Real.log M / n by positivity)
+    have hnn : 0 ≤ Real.sqrt (2 * sig * Real.log (2 / α) / n) * Real.sqrt (2 * sig * Real.log M / n) :=
+      mul_nonneg (Real.sqrt_nonneg _) (Real.sqrt_nonneg _)
+    nlinarith
+  have h2 : 2 * b * (Real.log (2 / α) + Real.log M) / n
+      = 2 * b * Real.log (2 / α) / n + 2 * b * Real.log M / n := by ring
+  rw [h2]
+  linarith
 
 end Hagi.Probability.PairedGain
