@@ -22,6 +22,11 @@ import Mathlib.Tactic
 (arXiv 2610.31551) — перезапуск затухания lr на границах задач усиливает
 распространение старых возмущений: свежий оптимизатор на домен
 (optimal_lm.py) относится к тому же классу расписаний.
+Replay × repair (`_repair_forgetting`, `REPLAY_FRAC`): `ForgetModel` — the
+forgetting `f` grows by at most `δ` per step and every replay hit (`t % p = 0`)
+brings it back to `f₀`; `replay_repair_bounded`: `f t ≤ f₀ + p·δ` for all `t`.
+This is the bridge ReplaySchedule × RepairLoop × ContinualForgetting: bounded
+forgetting is a theorem as soon as the repair gate holds at the hits.
 -/
 
 namespace Hagi.Data.ReplaySchedule
@@ -52,5 +57,51 @@ theorem schedule_hits_window (p D : ℕ) (hp : 0 < p) (hD : 0 < D) (d : ℕ) (hd
     rw [this]
     omega
   exact ⟨(t / (p * D) + 1) * (p * D) + d * p, hlo, hhi, schedule_at p D _ d hp hd⟩
+
+/-- Забывание `f : ℕ → ℝ` (CE старого домена): за шаг без ремонта растёт не
+более чем на `δ`; в моменты попадания replay (`t % p = 0`, `t > 0`) ремонт
+возвращает `f t ≤ f₀`. -/
+structure ForgetModel (p : ℕ) (f : ℕ → ℝ) (f₀ δ : ℝ) : Prop where
+  step : ∀ t, f (t + 1) ≤ f t + δ
+  repair : ∀ t, 0 < t → t % p = 0 → f t ≤ f₀
+/-- Replay + repair ограничивают забывание: `f t ≤ f₀ + p·δ` для всех `t`. -/
+theorem replay_repair_bounded (p : ℕ) (hp : 0 < p) (f : ℕ → ℝ) (f₀ δ : ℝ)
+    (h : ForgetModel p f f₀ δ) (ht0 : f 0 ≤ f₀) (hδ : 0 ≤ δ) (t : ℕ) :
+    f t ≤ f₀ + p * δ := by
+  -- индукция по блокам длины p
+  have key : ∀ n r : ℕ, r < p → f (n * p + r) ≤ f₀ + r * δ := by
+    -- общий факт: r шагов от точки s с f s ≤ B дают f (s + r) ≤ B + r·δ
+    have climb : ∀ (s r : ℕ) (B : ℝ), f s ≤ B → f (s + r) ≤ B + r * δ := by
+      intro s r B hB
+      induction r generalizing B with
+      | zero => simpa using hB
+      | succ r ihr =>
+        have h1 : f (s + r) ≤ B + r * δ := ihr B hB
+        have h2 : f (s + r + 1) ≤ f (s + r) + δ := h.step _
+        have hs : s + (r + 1) = s + r + 1 := by ring
+        rw [hs]
+        push_cast
+        linarith
+    intro n
+    induction n with
+    | zero =>
+      intro r hr
+      have : f (0 + r) ≤ f₀ + r * δ := climb 0 r f₀ (by simpa using ht0)
+      simpa [Nat.zero_mul, Nat.zero_add] using this
+    | succ n ih =>
+      intro r hr
+      have hrep : f ((n + 1) * p) ≤ f₀ := by
+        apply h.repair
+        · exact Nat.mul_pos (Nat.succ_pos n) hp
+        · simp
+      have hs : (n + 1) * p + r = ((n + 1) * p) + r := by ring
+      rw [hs]
+      exact (climb ((n + 1) * p) r f₀ hrep).trans (by nlinarith [hr, hδ])
+  obtain ⟨n, r, ht, hr⟩ : ∃ n r, t = n * p + r ∧ r < p := ⟨t / p, t % p, by rw [Nat.mul_comm (t / p) p]; exact (Nat.div_add_mod t p).symm, Nat.mod_lt _ hp⟩
+  rw [ht]
+  calc f (n * p + r) ≤ f₀ + r * δ := key n r hr
+    _ ≤ f₀ + p * δ := by
+      have hrR : (r : ℝ) ≤ p := by exact_mod_cast hr.le
+      nlinarith [hrR, hδ]
 
 end Hagi.Data.ReplaySchedule
