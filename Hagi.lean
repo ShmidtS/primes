@@ -238,6 +238,7 @@ import Hagi.Step.GPMProjection
 import Hagi.Step.AdamSNR
 import Hagi.Step.AdamRel
 import Hagi.Step.LrRestart
+import Hagi.Step.GPMRank
 import Hagi.Budget.AnytimeCondensation
 import Hagi.Budget.ThermoCondensation
 import Hagi.External.Flywheel.CourantFischer
