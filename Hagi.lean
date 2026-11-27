@@ -334,6 +334,7 @@ import Hagi.Unified.RepairLoop
 import Hagi.Unified.CertifiedAdmission
 import Hagi.Unified.RepairCost
 import Hagi.Unified.ReplayCompute
+import Hagi.Unified.RepairShare
 import Hagi.Semantics.FunctionalState
 import Hagi.Model.Grokfast
 import Hagi.Unified.HonestTransition
