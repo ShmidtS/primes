@@ -32,3 +32,11 @@ proportional and minimax; it is not the minimax optimum.
 
 `c` is a calibration constant (the CE drop per unit `√share` measured on the
 last repair round); the water-filling is a one-dimensional bisection.
+
+## Existence certificate (proved)
+
+`water_filling_exists` (Hagi/Unified/RepairShare.lean): with `F(r) = ∑ share c Δᵢ r`
+and `m = min Δ`, if `F(m) ≤ 1 ≤ F(0) = n/c²` then some `r ∈ [0, m]` has
+`F(r) = 1`. `F` is continuous, non-increasing (`share_sum_mono`), strictly
+above `F(0)` for `r < 0` (`share_strict_of_neg`), so bisection on `[0, m]`
+converges. Feasibility condition on `c`: `∑ᵢ (1 − m/Δᵢ)² ≤ c² ≤ n`.
