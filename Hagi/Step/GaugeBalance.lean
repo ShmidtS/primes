@@ -2,6 +2,9 @@
 Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
+import Mathlib.Analysis.Calculus.Deriv.Mul
+import Mathlib.Analysis.Calculus.Deriv.Pow
+import Mathlib.Analysis.Calculus.Deriv.Add
 
 /-!
 # GaugeBalance — некомпактные симметрии масштабирования и баланс норм
@@ -28,7 +31,11 @@ LowRankAdapter B·A, BigramSkip B_u·B_v, MLA, и понейронно в SwiGLU
 * `clip_sat_tail` — ошибка клипа тритов на `-7, 8` равна `|x| − 7s` при
   `|x| > 7s` (насыщение хвостов);
 * `gauge_kills_sat_tail` — после калибровки `x/c`, `c ≥ |x|/(7s)`: клип не
-  активен — баланс норм убирает satTail, не меняя функцию.
+  активен — баланс норм убирает satTail, не меняя функцию;
+* `pairLoss`, `pairGrad_u_zero_at_d0`, `pairGrad_u_at_eps` — скалярная пара
+  `(d, u)` с выходом `d·u·x`: при `d = 0` градиент по `u` нулевой; при
+  `d = ε ≠ 0` он равен `−ε·x·y` в нуле — асимметричная инициализация
+  (Lu–Shin–Su 2020) выводит блок из мёртвого множества ценой `O(ε)` в функции.
 -/
 
 namespace Hagi.Step.GaugeBalance
@@ -114,5 +121,29 @@ theorem gauge_kills_sat_tail (x s c : ℝ) (hs : 0 < s) (hc : 0 < c)
   rw [abs_div, abs_of_pos hc, div_le_iff₀ hc]
   calc |x| ≤ c * (7 * s) := (div_le_iff₀ (by positivity : (0:ℝ) < 7 * s)).1 h
     _ = 7 * s * c := mul_comm _ _
+
+/-- Скалярная пара `(d, u)`, выход `d·u·x`, потеря `½(d·u·x − y)²`. -/
+noncomputable def pairLoss (d u x y : ℝ) : ℝ := ((d * u * x - y) ^ 2) / 2
+/-- Симметричная (нулевая) инициализация `d = 0`: градиент по `u` нулевой —
+блок заморожен (`dead_loss_const`). -/
+theorem pairGrad_u_zero_at_d0 (u x y : ℝ) :
+    HasDerivAt (fun u => pairLoss 0 u x y) 0 u := by
+  have : (fun u => pairLoss 0 u x y) = fun _ => y ^ 2 / 2 := by
+    funext u; unfold pairLoss; ring
+  rw [this]; exact hasDerivAt_const _ _
+/-- Асимметричная инициализация `d = ε ≠ 0` (Lu–Shin–Su 2020): градиент по `u`
+равен `ε·x·(ε·u·x − y)`; при `u = 0` — `−ε·x·y`, ненулевой, если
+`ε·x·y ≠ 0`: верхняя матрица обучается с первого шага. -/
+theorem pairGrad_u_at_eps (d u x y : ℝ) :
+    HasDerivAt (fun u => pairLoss d u x y) (d * x * (d * u * x - y)) u := by
+  unfold pairLoss
+  have hd : HasDerivAt (fun u : ℝ => d * u * x - y) (d * x) u := by
+    have h0 : HasDerivAt id 1 u := hasDerivAt_id u
+    have h1 : HasDerivAt (fun u => d * id u) d u := by simpa using HasDerivAt.const_mul d h0
+    have h2 : HasDerivAt (fun u => d * id u * x) (d * x) u := HasDerivAt.mul_const h1 x
+    have h3 : HasDerivAt (fun u => d * u * x) (d * x) u := by simpa using h2
+    exact h3.sub_const y
+  have h4 := (HasDerivAt.pow hd 2).div_const 2
+  convert h4 using 1 <;> simp only [pow_succ, Nat.cast_ofNat] <;> ring
 
 end Hagi.Step.GaugeBalance
