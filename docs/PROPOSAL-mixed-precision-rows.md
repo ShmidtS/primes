@@ -23,9 +23,29 @@ equalisation is the common core of CET 2026, CLADO 2025 and Houache 2026.
 
 ## Synthetic check (rule of LESSONS: simulate before submitting)
 
-Lognormal contributions (σ = 1.5), 512 rows, budget fixed at 2 bits/row:
-greedy 4× water-filling gives **total error 0.757× uniform** at the same model
-size (bits 1–4). (Uniform 3 bits would cost 1.5× the volume for 0.25×.)
+Lognormal contributions (σ = 1.5), 512 rows, budget fixed at 2 bits/row
+(seed 1): the full 4× water-filling loop (run to stationarity) gives **total
+error 0.189× uniform-2** at the same model size, bits 1–4. An earlier figure of
+0.757 came from a loop that stopped at the first non-improving (argmax, argmin)
+pair — it was a lower bound on the gain, not the stationary allocation.
+
+## Ready-made regression test (numbers verified, run standalone first)
+
+```python
+import numpy as np
+def alloc_bits(contrib, budget):
+    b = np.full(len(contrib), budget // len(contrib)); rem = budget - b.sum()
+    for _ in range(rem): b[np.argmax(contrib * 4.0 ** -b)] += 1
+    while True:
+        c = contrib * 4.0 ** -b; i, j = int(np.argmax(c)), int(np.argmin(c))
+        if b[j] <= 1 or not (4 * c[j] < c[i]): return b
+        b[i] += 1; b[j] -= 1
+def test_alloc_bits_equal_budget_lower_error():
+    rng = np.random.default_rng(1); E = rng.lognormal(0.0, 1.5, 512)
+    b = alloc_bits(E, 1024)
+    assert b.sum() == 1024 and b.min() >= 1 and b.max() <= 6
+    assert (E * 4.0 ** -b).sum() < 0.80 * (E * 0.25).sum()   # 0.189 measured (stationary loop)
+```
 
 ## Minimal diff
 
