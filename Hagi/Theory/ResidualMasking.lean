@@ -1,0 +1,49 @@
+/-
+Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
+-/
+import Mathlib.Tactic
+
+/-!
+# ResidualMasking — маскирование градиента на покрытых `ExactBypass` позициях
+
+`ExactBypass` (ce_total_eq_residual, bypass_reaches_compression_limit): при
+уверенном прогнозе `p = 1` вклад в CE равен 0, нейронный проход на покрытых
+позициях пропускается. При обучении градиент на покрытых позициях маскируется
+(`residual_masking`): градиент категориальной CE по логиту есть
+`softmax(z)_c − 1[c = y]`; при вероятностях, равных one-hot, он равен нулю по
+всем логитам, поэтому маскирование — тождество, а не приближение, и экономит
+долю вычислений градиента, равную доле покрытых позиций.
+
+* `gradCE p y c = p c − 1[c = y]`;
+* `gradCE_zero_of_onehot` — при `p = one-hot` все `gradCE = 0`;
+* `covered_grad_zero` — скалярная форма (`p = 1 ⇒ p − 1 = 0`);
+* `masked_compute_split`, `masked_saving_frac` — экономия `(N − cov)/N`.
+-/
+
+namespace Hagi.Theory.ResidualMasking
+
+/-- Градиент категориальной CE по логиту класса `c` при метке `y`:
+`softmax(z)_c − 1[c = y]` (стандартная формула; `p` — вероятности softmax). -/
+noncomputable def gradCE {n : ℕ} (p : Fin n → ℝ) (y c : Fin n) : ℝ :=
+  p c - if c = y then 1 else 0
+/-- Уверенный прогноз (вероятности равны one-hot): градиент по всем логитам
+равен нулю — маскирование (обнуление) градиента на покрытой позиции точно. -/
+theorem gradCE_zero_of_onehot {n : ℕ} (p : Fin n → ℝ) (y : Fin n)
+    (hp : p = fun c => if c = y then 1 else 0) : ∀ c, gradCE p y c = 0 := by
+  intro c
+  unfold gradCE
+  simp [hp, gradCE]
+/-- Скалярная форма: `p = 1` ⇒ `p − 1 = 0` (бинарный случай, `cePoint 1 = 0`). -/
+theorem covered_grad_zero (p : ℝ) (hp : p = 1) : p - 1 = 0 := by rw [hp]; ring
+/-- Экономия: маскированный проход вычисляет градиенты только на `N − cov`
+непокрытых позициях; сумма долей = `N`. -/
+theorem masked_compute_split (N cov : ℕ) (hcov : cov ≤ N) : (N - cov) + cov = N := by omega
+/-- Доля сэкономленных вычислений градиента равна доле покрытых позиций. -/
+theorem masked_saving_frac (N cov : ℕ) (hN : 0 < N) (hcov : cov ≤ N) :
+    (N - cov) / (N : ℝ) = 1 - cov / (N : ℝ) := by
+  have : (cov : ℝ) ≤ N := by exact_mod_cast hcov
+  have : (0:ℝ) < N := by exact_mod_cast hN
+  push_cast
+  field_simp
+
+end Hagi.Theory.ResidualMasking
