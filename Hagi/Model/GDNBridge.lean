@@ -16,6 +16,13 @@ Delta rule обновления состояния (каноническая gat
 Qwenputer) исполняет абстрактную RAM-семантику.
 Общая лемма gdn_onehot_interp: при произвольных g, β —
 интерполяция столбца: (1−β)·g·S + β·v (мера перезаписи β).
+
+State-carry BPTT (`optimal_lm.py`, `state_carry = True`): `GdnStep`, `gdnScan`
+(fold of `gdnUpdate` over a chunk); `gdnScan_append` — scanning `l₁ ++ l₂` with
+the state carried across the chunk boundary equals the one-pass scan, so
+chunking changes nothing; `carry_without_wrap_leaks` — a step with `g = 1`,
+`β = 0` passes the state through untouched, hence a stream boundary MUST reset
+the state (`wrap`), otherwise the next stream reads the previous one.
 -/
 
 namespace Hagi.Model.GDNBridge
@@ -187,5 +194,32 @@ theorem gdn_lag1_alignment {m n : ℕ}
     exact gdn_ram_roundtrip S i v
   · rw [if_neg h]
     exact gdn_lag1_read_miss S i j v h
+
+/-- Шаг GDN с параметрами, упакованными в запись. -/
+structure GdnStep (m n : ℕ) where
+  k : Fin n → ℝ
+  v : Fin m → ℝ
+  g : ℝ
+  β : ℝ
+/-- Скан GDN по списку шагов: `S_T = foldl gdnUpdate`. -/
+noncomputable def gdnScan (S : Matrix (Fin m) (Fin n) ℝ) :
+    List (GdnStep m n) → Matrix (Fin m) (Fin n) ℝ
+  | [] => S
+  | st :: l => gdnScan (gdnUpdate S st.k st.v st.g st.β) l
+/-- State-carry BPTT: скан по `l₁ ++ l₂` с переносом состояния между чанками
+равен скану по конкатенации — разбиение на чанки ничего не меняет. -/
+theorem gdnScan_append (S : Matrix (Fin m) (Fin n) ℝ) (l₁ l₂ : List (GdnStep m n)) :
+    gdnScan S (l₁ ++ l₂) = gdnScan (gdnScan S l₁) l₂ := by
+  induction l₁ generalizing S with
+  | nil => rfl
+  | cons st l ih => rw [List.cons_append, gdnScan, gdnScan, ih]
+/-- Перенос без обнуления на границе потоков — утечка: шаг с `g = 1`,
+`β = 0` пропускает состояние насквозь, и чтение `y = S·k` второго потока
+зависит от предыстории первого. Поэтому `wrap` обязан обнулять `S`. -/
+theorem carry_without_wrap_leaks (S : Matrix (Fin m) (Fin n) ℝ) (k : Fin n → ℝ)
+    (v : Fin m → ℝ) :
+    gdnScan S [{ k, v, g := 1, β := 0 }] = S := by
+  unfold gdnScan gdnUpdate
+  simp [gdnScan]
 
 end Hagi.Model.GDNBridge

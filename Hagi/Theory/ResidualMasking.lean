@@ -24,7 +24,9 @@ import Hagi.Probability.MirrorHedgeMWU
   получает нулевую propensity, вся масса сэмплирования — на непокрытых окнах;
 * `combinedCost ρ v = (1 − ρ)·v` — доля вычисляемых градиентов на относительную
   дисперсию; `combinedCost_le_one`, `combinedCost_lt_one`,
-  `combinedCost_lt_one_of_is` (`MSE* < MSE_u` ⇒ стоимость строго ниже базовой).
+  `combinedCost_lt_one_of_is` (`MSE* < MSE_u` ⇒ стоимость строго ниже базовой);
+* `masked_importance_unbiased` — оценка `ℓ_b/q_b` с оптимальной propensity
+  несмещена на всех окнах, включая покрытые (`selectedLoss_sum_real_support`).
 -/
 
 namespace Hagi.Theory.ResidualMasking
@@ -93,5 +95,29 @@ theorem combinedCost_lt_one_of_is (ρ Ms Mu : ℝ) (hρ : 0 ≤ ρ) (hρ2 : ρ �
     combinedCost ρ (Ms / Mu) < 1 := by
   apply combinedCost_lt_one ρ (Ms / Mu) hρ hρ2 (div_nonneg hMs hMu.le) (div_le_one hMu |>.2 hlt.le)
   exact Or.inr ((div_lt_one hMu).2 hlt)
+
+open scoped Classical in
+/-- Несмещённость importance-оценки с маскировкой: propensity `q` оптимальна
+(`selectedLoss_optimalPropensity`), поэтому на покрытых окнах нуль, а
+`selectedLoss_sum_real_support` даёт `Σ q_a·(ℓ_b/q_b·1[a=b]) = ℓ_b` для
+всех `b` — покрытые (ℓ_b = 0) вносят ровно 0. -/
+theorem masked_importance_unbiased {V : Type*} [Fintype V] (ℓ : V → ℝ)
+    (hL : 0 < ∑ i, |ℓ i|) (b : V) :
+    ∑ a, (selectedLoss_optimalPropensity ℓ hL a).toReal *
+        (if a = b then ℓ a / (selectedLoss_optimalPropensity ℓ hL a).toReal else 0) = ℓ b := by
+  classical
+  have hsupp : (selectedLoss_optimalPropensity ℓ hL b).toReal ≠ 0 ∨ ℓ b = 0 := by
+    by_cases h : ℓ b = 0
+    · exact Or.inr h
+    · left
+      intro h0
+      rw [selectedLoss_optimalPropensity_apply] at h0
+      have habsp : (0:ℝ) < |ℓ b| := abs_pos.2 h
+      have hS : (0:ℝ) < ∑ i, |ℓ i| := hL
+      have : (0:ℝ) < |ℓ b| / ∑ i, |ℓ i| := div_pos habsp hS
+      linarith
+  have h := Hagi.Probability.selectedLoss_sum_real_support
+    (fun a => (selectedLoss_optimalPropensity ℓ hL a).toReal) ℓ b hsupp
+  exact h
 
 end Hagi.Theory.ResidualMasking
