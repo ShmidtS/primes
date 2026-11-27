@@ -18,7 +18,11 @@ import Mathlib.Tactic
 * `newLoss`, `oldReg` — модели;
 * `newLoss_anti`, `oldReg_anti` — монотонность по эпохам;
 * `saturation_tradeoff` — `L(E₁) ≤ L∞ + ε ⇒ L(E₂) ≤ L∞ + ε` и `R(E₂) ≤ R(E₁)`;
-* `oldReg_ratio` — `R(E₂) = R(E₁)·(1 − ρ)^{E₂ − E₁}`.
+* `oldReg_ratio` — `R(E₂) = R(E₁)·(1 − ρ)^{E₂ − E₁}`;
+* `cost c₀ c₁ E = c₀ + E·c₁` — фиксированные расходы плюс шаги;
+* `cost_ratio_le` — стоимость сублинейна: `cost(E₂)/cost(E₁) ≤ E₂/E₁`;
+* `overhead_from_measurement` — 403 с / 677 с ⇒ `c₁ = 137`, `c₀ = 129`:
+  накладные расходы приёма ≈ 0.94 эпохи (поэтому ×2 эпох даёт +68%, не +100%).
 -/
 
 namespace Hagi.Learning.EpochTradeoff
@@ -54,5 +58,24 @@ theorem oldReg_ratio (R0 ρ : ℝ) (E₁ E₂ : ℕ) (h : E₁ ≤ E₂) :
     oldReg R0 ρ E₂ = oldReg R0 ρ E₁ * (1 - ρ) ^ (E₂ - E₁) := by
   unfold oldReg
   rw [mul_assoc R0, ← pow_add, Nat.add_sub_cancel' h]
+
+/-- Стоимость приёма `E` эпох: фиксированные расходы `c₀` (валидация, откат,
+рост) плюс `E·c₁` (шаги обучения). -/
+noncomputable def cost (c₀ c₁ : ℝ) (E : ℕ) : ℝ := c₀ + E * c₁
+/-- Стоимость сублинейна по эпохам: `cost(E₂)/cost(E₁) ≤ E₂/E₁` при `c₀ ≥ 0`. -/
+theorem cost_ratio_le (c₀ c₁ : ℝ) (h0 : 0 ≤ c₀) (h1 : 0 < c₁) (E₁ E₂ : ℕ) (hE₁ : 0 < E₁)
+    (h : E₁ ≤ E₂) : cost c₀ c₁ E₂ / cost c₀ c₁ E₁ ≤ (E₂ : ℝ) / E₁ := by
+  unfold cost
+  have hE2 : (0 : ℝ) < E₂ := by exact_mod_cast lt_of_lt_of_le hE₁ h
+  have hE1' : (0 : ℝ) < E₁ := by exact_mod_cast hE₁
+  have hpos : 0 < c₀ + E₁ * c₁ := by positivity
+  rw [div_le_div_iff₀ hpos (by positivity)]
+  · have : ((E₁ : ℝ)) * c₀ ≤ (E₂ : ℝ) * c₀ := mul_le_mul_of_nonneg_right (by exact_mod_cast h) h0
+    nlinarith
+/-- Замер ec80163 (403 с при 2 эпохах, 677 с при 4): `c₁ = 137`, `c₀ = 129` —
+накладные расходы ≈ 0.94 эпохи. -/
+theorem overhead_from_measurement (c₀ c₁ : ℝ) (h2 : c₀ + 2 * c₁ = 403)
+    (h4 : c₀ + 4 * c₁ = 677) : c₁ = 137 ∧ c₀ = 129 := by
+  constructor <;> linarith
 
 end Hagi.Learning.EpochTradeoff
