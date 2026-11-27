@@ -41,3 +41,12 @@ variance-minimising propensity is `q_b ∝ |ℓ_b|` (`selectedLoss_optimalPropen
 Honest boundary: the propensity is optimal for the loss magnitudes of the
 *previous* pass (stale by one step); the variance bound holds for the current
 `ℓ_b` only through the MWU guarantee (`MirrorHedgeMWU`), not pointwise.
+
+## Update (after the code landed in the working tree)
+
+`bypass_mask` is implemented in `optimal_lm.py` (positions with a live,
+never-failed bypass entry and count ≥ `BYPASS_T5_MIN`). Honest boundary: the
+bypass adds a finite `boost` (default 8) to the logit, so `p < 1` and the
+masked gradient is not exactly zero — `masking_residual_boost8`: the residual
+is `σ(−(z+8)) ≤ e⁻⁸ ≈ 3.4e−4` whenever the model's own logit `z ≥ 0`. The
+identity of `gradCE_zero_of_onehot` is the `boost → ∞` limit.

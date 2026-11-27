@@ -26,7 +26,10 @@ import Hagi.Probability.MirrorHedgeMWU
   дисперсию; `combinedCost_le_one`, `combinedCost_lt_one`,
   `combinedCost_lt_one_of_is` (`MSE* < MSE_u` ⇒ стоимость строго ниже базовой);
 * `masked_importance_unbiased` — оценка `ℓ_b/q_b` с оптимальной propensity
-  несмещена на всех окнах, включая покрытые (`selectedLoss_sum_real_support`).
+  несмещена на всех окнах, включая покрытые (`selectedLoss_sum_real_support`);
+* `masking_residual_le`, `masking_residual_boost8` — честная граница для кода
+  (bypass_mask, boost = 8): обход — конечная прибавка к логиту, остаточный
+  градиент `σ(−(z+boost)) ≤ e^{−boost} ≈ 3.4e−4` при `z ≥ 0`.
 -/
 
 namespace Hagi.Theory.ResidualMasking
@@ -119,5 +122,25 @@ theorem masked_importance_unbiased {V : Type*} [Fintype V] (ℓ : V → ℝ)
   have h := Hagi.Probability.selectedLoss_sum_real_support
     (fun a => (selectedLoss_optimalPropensity ℓ hL a).toReal) ℓ b hsupp
   exact h
+
+/-- Код (bypass_mask, optimal_lm.py): обход — прибавка `boost` к логиту
+правильного байта, `boost = 8` по умолчанию. При конечном `boost` вероятность
+`p = 1/(1 + e^{-(z+boost)}) < 1`, остаточный градиент `1 − p = σ(−(z+boost))`:
+маскирование — приближение с ошибкой `σ(−(z+boost)) ≤ e^{-boost}` при `z ≥ 0`
+(модель не противоречит обходу). -/
+theorem masking_residual_le (z boost : ℝ) (hz : 0 ≤ z) (hb : 0 ≤ boost) :
+    |1 - 1 / (1 + Real.exp (-(z + boost)))| ≤ Real.exp (-boost) := by
+  have h1 : 0 < 1 + Real.exp (-(z + boost)) := by positivity
+  rw [abs_of_nonneg (by rw [sub_nonneg]; apply (div_le_one h1).2; linarith [Real.exp_pos (-(z+boost))])]
+  rw [show 1 - 1 / (1 + Real.exp (-(z + boost))) = Real.exp (-(z + boost)) / (1 + Real.exp (-(z + boost))) by
+    field_simp; ring]
+  rw [div_le_iff₀ h1]
+  have he : Real.exp (-(z + boost)) ≤ Real.exp (-boost) :=
+    Real.exp_le_exp.mpr (by linarith)
+  nlinarith [Real.exp_pos (-(z + boost))]
+/-- При `boost = 8`: остаточный градиент ≤ e^{-8} ≈ 3.35e-4. -/
+theorem masking_residual_boost8 (z : ℝ) (hz : 0 ≤ z) :
+    |1 - 1 / (1 + Real.exp (-(z + 8)))| ≤ Real.exp (-8) :=
+  masking_residual_le z 8 hz (by norm_num)
 
 end Hagi.Theory.ResidualMasking
