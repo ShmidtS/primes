@@ -1210,4 +1210,43 @@ theorem routerMix_switch (doms : Finset (Fin k → ZMod 2))
       = routerMix doms p ks ws vs q := by
   ring
 
+/-- Классический выбор `η = √(2·ln K / T)` (T ≥ 1, K ≥ 2) обращает границу
+`ln K/η + η·T/2` в `√(2·T·ln K)` — регрет MirrorHedge против любого эксперта
+на его активных раундах (граница, на которую ссылается HagiOptimalV3). -/
+theorem hedge_eta_sqrt (K T : ℕ) (hT : 1 ≤ T) (hK : 2 ≤ K) :
+    let eta := Real.sqrt (2 * Real.log K / T)
+    Real.log K / eta + eta * T / 2 = Real.sqrt (2 * T * Real.log K) := by
+  intro eta
+  have hK1 : (1 : ℝ) < K := by exact_mod_cast (lt_of_lt_of_le one_lt_two hK)
+  have hln0 : 0 < Real.log K := by
+    have := Real.log_lt_log one_pos hK1; rw [Real.log_one] at this; exact this
+  have hT0 : (0 : ℝ) < T := by exact_mod_cast (lt_of_lt_of_le zero_lt_one hT)
+  have heta0 : 0 < eta := Real.sqrt_pos.2 (div_pos (mul_pos (by norm_num) hln0) hT0)
+  have hsq : eta ^ 2 = 2 * Real.log K / T := Real.sq_sqrt (div_nonneg (by positivity) hT0.le)
+  have hsqrt : (Real.sqrt (2 * T * Real.log K)) ^ 2 = 2 * T * Real.log K :=
+    Real.sq_sqrt (mul_nonneg (mul_nonneg (by norm_num) hT0.le) hln0.le)
+  have hsq' : eta ^ 2 * T = 2 * Real.log K := by
+    rw [hsq]; exact div_mul_cancel₀ _ (ne_of_gt hT0)
+  have heta1 : 0 < eta * T := mul_pos heta0 hT0
+  have ha : Real.log K / eta = eta * T / 2 := by
+    apply (div_eq_iff (ne_of_gt heta0)).2
+    nlinarith [hsq']
+  have hetaT : 0 ≤ eta * T / 2 := by positivity
+  have hsq_a : (eta * T / 2) ^ 2 = Real.log K * T / 2 := by
+    have h4 : (4 : ℝ) ≠ 0 := by norm_num
+    have he : eta * T / 2 = eta * T * (1 / 4) * 2 := by ring
+    rw [he]
+    have hprod : eta * T * (1 / 4) * 2 * (eta * T * (1 / 4) * 2) = (eta * T) * (eta * T) / 4 := by
+      field_simp [h4]; ring
+    nlinarith [hsq', hprod]
+  have h2a : (2 * (eta * T / 2)) ^ 2 = (Real.sqrt (2 * T * Real.log K)) ^ 2 := by
+    rw [hsqrt]
+    have : (2 * (eta * T / 2)) ^ 2 = 4 * ((eta * T / 2) ^ 2) := by ring
+    rw [this, hsq_a]; ring
+  have hnonneg : 0 ≤ 2 * (eta * T / 2) := by positivity
+  have hnonneg' : 0 ≤ Real.sqrt (2 * T * Real.log K) := Real.sqrt_nonneg _
+  rw [← ha]
+  have := (sq_eq_sq₀ hnonneg hnonneg').1 h2a
+  linarith
+
 end Hagi.Learning.RouterMix
