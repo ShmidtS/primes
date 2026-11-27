@@ -12,12 +12,13 @@ map, not a source of truth.
   Every commit in this session passed the full battery (Freeze, DocLint R4/R5,
   DocAnchorCheck, TrivialLint, LayerLint, ReachLint, NsLint, DupLint).
 - Reference implementation `C:\HAGI_v2` is READ-ONLY (another agent).
-  HEAD `414ede5` (PROPOSAL 13 accepted). Working tree carries three
+  HEAD `0affafb` (PROPOSAL 13, 25 accepted). Working tree carries three
   uncommitted changes in `hagi/models/optimal_lm.py`: `state_carry`,
   `HARD_START`, `bypass_mask` — all three are certified in primes
   (`GDNBridge.gdnScan_append`, `HardStart.*`, `ResidualMasking.*`).
 - 24 proposals in `docs/PROPOSAL-index.md`; accepted by the code agent:
-  13 (EB adapters), 17 (non-overlapping windows, `fd040a7`). In the working
+  13 (EB adapters), 17 (non-overlapping windows, `fd040a7`), 25 (gauge balance,
+  `0affafb`); `2aa1242` adds 2-stage residual quant (`ResidualVQ.residualTwoStage_error_le`). In the working
   tree, uncommitted: 22 (residual masking), 24 (state carry).
   Pending: 18 (repair-share minimax), 19 (adaptive epochs), 20 (gate
   pre-check with `rootT`), 21 (delta budget), 23 (archiver mixture).
@@ -38,6 +39,7 @@ map, not a source of truth.
 | Rollback | `Hagi/Unified/Rollback.lean` | `paramsOnly_ne_full`, `honestCE`, `rolled_back_forget_zero`, `positional_misaligns`, `named_keeps_new` |
 | Adapters | `Hagi/Learning/AdapterBank.lean` | `adapter_init_identity`, `rank_one_cheap_iff`, `rank_two_cheap`, `warm_start_not_certified` |
 | Mixture coding (archiver) | `Hagi/Information/MixtureCoding.lean` | `mixCE_le_best_regret`, `hedge_negLogW_le` |
+| Gauge balance (arXiv:2611.27889v1) | `Hagi/Step/GaugeBalance.lean` | `rank1_gauge`, `stock_balance_min`, `stock_balance_attained`, `dead_loss_const` |
 | End-to-end composed step | `Hagi/Unified/CertifiedStepCompose.lean` | `gate`, `composedStep`, `composed_never_increases`, `composed_gate_false_le` |
 | Growth, H-Net, MLA, depth exit, quant | existing modules | `WidthGrowth`, `hnet_opt_ratio_unique`, `mla_cache_saving`, `kv_work_ratio`, `exitLeak`, `HadamardTernaryBridge`, `ResidualVQ`, `stable_factor_two`, `trit5_roundtrip`, `exists_best_mse_scale`, `BitAlloc` |
 
