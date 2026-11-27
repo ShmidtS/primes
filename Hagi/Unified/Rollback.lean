@@ -25,6 +25,17 @@ import Hagi.Learning.ContinualForgetting
 * `honestCE` — CE книги: откатан ⇒ установленная модель, принят ⇒ кандидат;
 * `honestCE_rolled_back`, `honestCE_accepted`;
 * `rolled_back_forget_zero` — откатанный домен не забывается (прирост CE 0).
+
+Тот же коммит: снимок весов стал словарём по именам (`_param_name`). До фикса
+позиционный `zip(params, incumbent_state)` после вставки блока посередине
+присваивал параметрам чужие снимки.
+
+* `positionalRestore` — параметр `i` ← снимок `i` (zip);
+* `namedRestore` — параметр по имени ← снимок по имени; новые имена не трогаются;
+* `positional_misaligns` — блок, вставленный посередине, смещает позиционный
+  откат (`y` получает `a` вместо `b`), именованный — точен;
+* `positional_length` — позиционный обрезает новые параметры до длины снимка;
+* `named_length`, `named_keeps_new` — именованный сохраняет длину и новые.
 -/
 
 namespace Hagi.Unified.Rollback
@@ -74,5 +85,53 @@ theorem rolled_back_forget_zero (pre installed : ℝ) (h : installed = pre)
     Hagi.Learning.ContinualForgetting.forget (fun _ => pre) post 0 = 0 := by
   unfold Hagi.Learning.ContinualForgetting.forget
   rw [hpost, h]; ring
+
+/-- Позиционный откат: параметр с индексом `i` получает снимок с индексом `i`
+(`zip(model.params(), incumbent_state)` до 52be847). -/
+def positionalRestore (snap : List ℝ) (cur : List ℝ) : List ℝ :=
+  (cur.zip snap).map (fun (_, s) => s)
+/-- Именованный откат: параметр с именем `n` получает снимок `snap[n]`, если он
+был до приёма; новые параметры не трогаются. -/
+def namedRestore (snap : List (String × ℝ)) (cur : List (String × ℝ)) :
+    List (String × ℝ) :=
+  cur.map (fun (n, v) => (n, match snap.lookup n with | some s => s | none => v))
+/-- Позиционный откат со вставленным блоком: параметры после вставки получают
+чужие снимки. Снимок `[a, b]` (имена `x`, `y`), кандидат `[(x,a), (w,0), (y,b)]`
+(блок `w` вставлен посередине): позиционно `y` получает `a` вместо `b`. -/
+theorem positional_misaligns :
+    positionalRestore [1, 2] [0, 0, 0] = [1, 2] ∧
+      namedRestore [("x", 1), ("y", 2)] [("x", 0), ("w", 0), ("y", 0)]
+        = [("x", 1), ("w", 0), ("y", 2)] := by
+  unfold positionalRestore namedRestore
+  simp only [List.zip_cons_cons, List.zip_nil_right, List.zip_nil_left, List.map_cons,
+    List.map_nil]
+  have e1 : ("w" == "x") = false := by decide
+  have e2 : ("w" == "y") = false := by decide
+  have e3 : ("x" == "x") = true := by decide
+  have e4 : ("y" == "y") = true := by decide
+  simp only [List.lookup, e1, e2, e3, e4, if_false, if_true, Option.getD_some, reduceIte,
+    and_true]
+  exact ⟨trivial, rfl⟩
+/-- Позиционный откат молча обрезает новые параметры (zip по более короткому
+списку) — длина результата = длина снимка, а не модели. -/
+theorem positional_length (snap cur : List ℝ) :
+    (positionalRestore snap cur).length = min snap.length cur.length := by
+  simp [positionalRestore, min_comm]
+/-- Именованный откат никогда не меняет длину и не трогает новые имена. -/
+theorem named_length (snap cur : List (String × ℝ)) :
+    (namedRestore snap cur).length = cur.length := by
+  simp [namedRestore]
+theorem named_keeps_new (snap : List (String × ℝ)) (n : String) (v : ℝ)
+    (h : n ∉ snap.map Prod.fst) :
+    namedRestore snap [(n, v)] = [(n, v)] := by
+  unfold namedRestore
+  simp only [List.map_cons, List.map_nil]
+  have hl : List.lookup n snap = none := by
+    apply (List.lookup_eq_none_iff).2
+    intro p hp
+    have hmem : p.1 ∈ snap.map Prod.fst := List.mem_map_of_mem hp
+    have hne : n ≠ p.1 := fun he => h (he ▸ hmem)
+    simp [hne]
+  simp only [List.map_cons, List.map_nil, hl, ite_true]
 
 end Hagi.Unified.Rollback
