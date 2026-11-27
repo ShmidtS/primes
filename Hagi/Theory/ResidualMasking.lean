@@ -29,7 +29,9 @@ import Hagi.Probability.MirrorHedgeMWU
   несмещена на всех окнах, включая покрытые (`selectedLoss_sum_real_support`);
 * `masking_residual_le`, `masking_residual_boost8` — честная граница для кода
   (bypass_mask, boost = 8): обход — конечная прибавка к логиту, остаточный
-  градиент `σ(−(z+boost)) ≤ e^{−boost} ≈ 3.4e−4` при `z ≥ 0`.
+  градиент `σ(−(z+boost)) ≤ e^{−boost} ≈ 3.4e−4` при `z ≥ 0`;
+* `covered_propensity_le` — при importance sampling propensity покрытого окна
+  ≤ ε/Σ|ℓ| (ε = e^{−boost}): маскирование при нём избыточно.
 -/
 
 namespace Hagi.Theory.ResidualMasking
@@ -142,5 +144,14 @@ theorem masking_residual_le (z boost : ℝ) (hz : 0 ≤ z) (hb : 0 ≤ boost) :
 theorem masking_residual_boost8 (z : ℝ) (hz : 0 ≤ z) :
     |1 - 1 / (1 + Real.exp (-(z + 8)))| ≤ Real.exp (-8) :=
   masking_residual_le z 8 hz (by norm_num)
+
+/-- При конечном boost покрытое окно имеет `|ℓ| ≤ ε` (ε = e^{−boost}), и его
+оптимальная propensity ≤ ε/Σ|ℓ|: importance sampling сам почти не берёт
+покрытые окна — маскирование при нём избыточно (экономит лишь ε-долю). -/
+theorem covered_propensity_le {V : Type*} [Fintype V] (ℓ : V → ℝ)
+    (hL : 0 < ∑ i, |ℓ i|) (b : V) (ε : ℝ) (hε : 0 ≤ ε) (hb : |ℓ b| ≤ ε) :
+    (selectedLoss_optimalPropensity ℓ hL b).toReal ≤ ε / ∑ i, |ℓ i| := by
+  rw [selectedLoss_optimalPropensity_apply]
+  exact div_le_div_of_nonneg_right hb (le_of_lt hL)
 
 end Hagi.Theory.ResidualMasking
