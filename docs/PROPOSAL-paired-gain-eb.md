@@ -1,6 +1,6 @@
 # PROPOSAL: empirical-Bernstein radius for the paired-gain gate
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: theory implemented in primes; the EB gate itself (`paired_margin_eb`, trunk_ops.py:220) is already in HAGI_v2 and certified exactly by `radius` / `admit_false_le` / `admit_false_union_le`; two `paired_gain` call sites remain (unified.py:548, :916).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Probability/PairedGain.lean`. Self-contained. All Lean anchors are
@@ -12,12 +12,19 @@ clipped range `b`.
 
 ## Context
 
-`hagi/base/trunk_ops.py::paired_gain` (trunk_ops.py:209–217) is documented as
-"an empirical filter, not a formal certificate": `z·SE` with a fixed
-`z = 2.4` is the normal approximation; it has no finite-sample guarantee and
-`SE = 0` for `n = 1`. It gates the adapter (`ADAPTER_MIN_GAIN = 0.005`,
-`ADAPTER_VAL_WINDOWS = 4096`), the fibre (`FIBER_MIN_GAIN = 0.01`) and the
-growth blocks of `selfdev/unified.py`.
+`paired_gain` (trunk_ops.py:209–217) is documented as "an empirical filter,
+not a formal certificate": `z·SE` with a fixed `z = 2.4` is the normal
+approximation; no finite-sample guarantee, `SE = 0` for `n = 1`.
+`paired_margin_eb` (trunk_ops.py:220–) is the certified replacement already
+used by the repair loop (unified.py:663, 847, 868) — its formula is exactly
+`radius` and its `n_states` is exactly the union bound of
+`admit_false_union_le`. Remaining `paired_gain` call sites:
+
+- unified.py:548 — adapter admission (`ADAPTER_MIN_GAIN = 0.005`,
+  `ADAPTER_VAL_WINDOWS = 4096`); candidates `cands` are scored on the same
+  windows, so `n_states = len(cands)`;
+- unified.py:916 — adapter check (`paired_gain(base, after)[1] > 0.005`),
+  single candidate, `n_states = 1`.
 
 ## What is proved
 
@@ -50,17 +57,15 @@ heuristic under-estimate while EB uses the measured variance.
 ## Minimal diff
 
 ```python
-def paired_gain(before, after, alpha: float = 0.01, b: float = 2.0):
-    d = np.clip(np.asarray(before) - np.asarray(after), -b, b)
-    n = len(d)
-    if n == 0 or not np.isfinite(d).all():
-        raise ValueError("paired losses must be finite and non-empty")
-    L = np.log(2 / alpha)
-    r = np.sqrt(2 * d.var() * L / n) + 2 * b * L / n
-    return float(d.mean()), float(d.mean() - r)
+# unified.py:548 (adapter admission, K = len(cands) candidates)
+gain = before.mean() - after.mean()
+if gain > paired_margin_eb(before - after, n_states=len(cands), delta=0.01): ...
+# unified.py:916 (single candidate)
+return ad if (base - after).mean() > paired_margin_eb(base - after, n_states=1, delta=0.01) else None
 ```
 
-`z` is dropped; `alpha` replaces it. The gate thresholds stay unchanged.
+`paired_gain` stays for logging only. Thresholds `0.005` are kept as the
+`gain > eps` comparison, so the change is one call per site.
 
 > CE numbers quoted from HAGI_v2 commits before `d90720a` were measured
 > with the certified path training `epochs // 10` (see
