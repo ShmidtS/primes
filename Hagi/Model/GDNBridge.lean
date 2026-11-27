@@ -26,6 +26,9 @@ the state (`wrap`), otherwise the next stream reads the previous one.
 Honest boundary: the carried state is `detach()`ed, so the forward pass is
 exact across chunks while the backward pass is truncated (TBPTT): no gradient
 flows from chunk 2 into the parameters of chunk 1 through `S`.
+`carry_influence_decays`: after `T` decay-only steps the carried state is
+`g^T • S₀`; `carry_influence_abs_le`: `|g| ≤ γ ⇒ |g^T| ≤ γ^T` — the truncated
+part is exponentially small for `γ < 1`.
 -/
 
 namespace Hagi.Model.GDNBridge
@@ -224,5 +227,26 @@ theorem carry_without_wrap_leaks (S : Matrix (Fin m) (Fin n) ℝ) (k : Fin n →
     gdnScan S [{ k, v, g := 1, β := 0 }] = S := by
   unfold gdnScan gdnUpdate
   simp [gdnScan]
+
+/-- Вклад перенесённого состояния затухает: `T` шагов с затуханием `g` и
+`β = 0` дают `g^T • S₀` — усечённый градиент по первому чанку теряет
+множитель `g^T` (цена TBPTT экспоненциально мала при `g < 1`). -/
+theorem carry_influence_decays (S : Matrix (Fin m) (Fin n) ℝ) (k : Fin n → ℝ)
+    (v : Fin m → ℝ) (g : ℝ) (T : ℕ) :
+    gdnScan S (List.replicate T { k, v, g, β := 0 } : List (GdnStep m n))
+      = (g ^ T) • S := by
+  induction T generalizing S with
+  | zero => simp [gdnScan]
+  | succ T ih =>
+    rw [List.replicate_succ, gdnScan, gdnUpdate, ih]
+    simp only [zero_smul, add_zero, smul_smul, pow_succ']
+    rw [mul_comm]
+/-- Цена TBPTT (скалярная форма): доля влияния `S₀` после `T` шагов равна
+`g^T`; при `|g| ≤ γ < 1` — `|g^T| ≤ γ^T → 0`: усечённый градиент теряет
+экспоненциально малую часть. -/
+theorem carry_influence_abs_le (g γ : ℝ) (T : ℕ) (hg : |g| ≤ γ) :
+    |g ^ T| ≤ γ ^ T := by
+  rw [abs_pow g T]
+  exact pow_le_pow_left₀ (abs_nonneg g) hg T
 
 end Hagi.Model.GDNBridge
