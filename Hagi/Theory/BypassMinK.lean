@@ -28,7 +28,7 @@ def coincidence (V k : ℕ) : ℚ := ((V : ℚ) ^ (k - 1))⁻¹
 /-- Порог 3: случайное совпадение имеет вероятность `2^{-16} ≈ 1.5e-5`. -/
 theorem min3_coincidence : coincidence 256 3 = 1 / 65536 := by
   unfold coincidence; norm_num
-/-- Порог 6: `256^{-5} = 2^{-40} ≈ 9.1e-13`. -/
+/-- Порог 6: `256^{-5} = 2^{-40}` (меньше триллионной). -/
 theorem min6_coincidence : coincidence 256 6 = 1 / 1099511627776 := by
   unfold coincidence; norm_num
 /-- Монотонность по порогу: больше одинаковых наблюдений — реже случайность. -/
