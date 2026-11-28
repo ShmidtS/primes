@@ -3,6 +3,7 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Mathlib.Tactic
 import Mathlib.Data.Nat.Factorial.Basic
+import Mathlib.LinearAlgebra.Matrix.Permutation
 
 /-!
 # BitsBackPerm — bits-back на порядке взаимозаменяемых нейронов
@@ -49,4 +50,20 @@ theorem bits_back (n : ℕ) (hn : 2 ≤ n) :
   have hlog : 0 < Real.log 2 := Real.log_pos (by norm_num)
   rw [ge_iff_le, mul_div_assoc', div_le_div_iff₀ hlog hlog]
   exact mul_le_mul_of_nonneg_right h hlog.le
+/-- Скрытые нейроны взаимозаменяемы: одновременная перестановка столбцов `W_down`
+и строк `W_up` матрицей перестановки `P` не меняет произведение `W_down·W_up`
+(`Pᵀ·P = 1`). Поэтому порядок `n` нейронов скрытого слоя не несёт информации —
+его можно кодировать bits-back (выше): `log₂(n!)` бит на блок роста. -/
+theorem hidden_neurons_permutable {m n k : ℕ} (Wd : Matrix (Fin m) (Fin n) ℝ)
+    (Wu : Matrix (Fin n) (Fin k) ℝ) (σ : Equiv.Perm (Fin n)) :
+    (Wd * σ.permMatrix ℝ) * ((σ.permMatrix ℝ).transpose * Wu) = Wd * Wu := by
+  have h1 : (σ.permMatrix ℝ).transpose * σ.permMatrix ℝ = 1 := by
+    rw [Matrix.transpose_permMatrix, ← Matrix.permMatrix_mul, mul_inv_cancel,
+      Matrix.permMatrix_one]
+  have h2 : σ.permMatrix ℝ * (σ.permMatrix ℝ).transpose = 1 := by
+    rw [Matrix.transpose_permMatrix, ← Matrix.permMatrix_mul, inv_mul_cancel, Matrix.permMatrix_one]
+  calc (Wd * σ.permMatrix ℝ) * ((σ.permMatrix ℝ).transpose * Wu)
+      = Wd * (σ.permMatrix ℝ * ((σ.permMatrix ℝ).transpose * Wu)) := by rw [Matrix.mul_assoc]
+    _ = Wd * ((σ.permMatrix ℝ * (σ.permMatrix ℝ).transpose) * Wu) := by rw [Matrix.mul_assoc]
+    _ = Wd * Wu := by rw [h2, Matrix.one_mul]
 end Hagi.Information.BitsBackPerm
