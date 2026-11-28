@@ -70,3 +70,25 @@ W_down[:d0, h0:] = HAGI_GROW_EPS * t.sign(t.randn(d0, h1 - h0))     # old-to-new
 
 Test: as for depth — after one step, `‖ΔW_up[new rows]‖ > 0` and the logits on
 an old byte are unchanged at step 0 (`< 1e-5`).
+
+## Measured on HAGI_v2 (scripts/ab_grow_init.py, 150 + 150 steps, two seeds)
+
+| eps | seed | CE before grow | CE after 150 steps | first-step ‖∂L/∂W_up‖ |
+|---|---|---|---|---|
+| 0 | 0 | 1.7097 | 1.9466 | **0.0000** |
+| 0 | 1 | 1.5076 | 1.5026 | **0.0000** |
+| 1e-3 | 0 | 1.7097 | 1.9467 | 0.0003 |
+| 1e-3 | 1 | 1.5076 | 1.5025 | 0.0003 |
+
+The theory is confirmed exactly (zero gradient at `W_down = 0`, non-zero at
+`eps`), **but the CE outcome is indistinguishable**: `W_down` leaves zero through
+its own gradient (it multiplies `W_up·x ≠ 0`), so `W_up` unfreezes after a few
+steps anyway, and 150 steps are enough to wash out the head start. At this scale
+PROPOSAL 27 is a no-op; it would matter only when the growth step is followed by
+very few training steps (quick adaptation) or when `W_down`'s own gradient is
+gated (e.g. protected by GPM).
+
+Separate finding (same in both variants): seed 0 degrades after growth
+(1.71 → 1.95) — the new block hurts for 150 steps. That is not an init problem
+(candidates: the new matrices enter the Muon group with a fresh Polar state;
+`opt.names` order after `grow_depth`). Worth a code-side look before any init change.
