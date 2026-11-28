@@ -46,3 +46,27 @@ t.nn.Parameter(HAGI_GROW_EPS * t.randn(model.hidden, model.dim).sign())   # ε =
 Output at step 0 is still zero (`W_up = 0`), so the identity is preserved; the
 gradient w.r.t. `W_up` is now `−ε·x·y` instead of `0`. Regression test: after
 one optimizer step on a fresh block, `‖ΔW_up‖ > 0`.
+
+## Also applies to `grow_width` (HAGI_v2 optimal_lm.py:703)
+
+`grow_width` pads every matrix with zeros (`out = zeros(...); out[:r0, :c0] = p`),
+so a new `emb` row (new byte id) and the new rows/columns of `W_down`/`W_up`
+start in the dead set: the new embedding row receives gradient only through the
+*old* columns it multiplies, and the new `W_down` columns are multiplied by zero
+`W_up` rows — the same `pairGrad_u_zero_at_d0` situation. The prototype's
+`grow_width_exact` (`emb_new = 0`, `W_down_new_to_old = eps·sign`,
+`W_bi_old_to_new = eps·sign`) is the fix: keep the new embedding row at zero
+(it must not fire for unseen bytes), but initialise the *new-to-old* and
+*old-to-new* cross blocks of `W_down` with `eps·sign` so the new coordinates are
+trainable from the first step while the function is unchanged (`rank1_gauge`;
+output change `O(eps²·η)` after one step, `asym_step_output_quad`).
+
+```python
+# in grow_width, after the zero padding of W_down (shape d1 × h1):
+W_down = pad(W_down, d1, h1)
+W_down[d0:, :h0] = HAGI_GROW_EPS * t.sign(t.randn(d1 - d0, h0))     # new-to-old
+W_down[:d0, h0:] = HAGI_GROW_EPS * t.sign(t.randn(d0, h1 - h0))     # old-to-new
+```
+
+Test: as for depth — after one step, `‖ΔW_up[new rows]‖ > 0` and the logits on
+an old byte are unchanged at step 0 (`< 1e-5`).
