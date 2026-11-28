@@ -135,6 +135,7 @@ import Hagi.Autonomy.Insight
 import Hagi.Unified.LinkedProjects
 import Hagi.Unified.Liveness
 import Hagi.Probability.ConditionalSuccess
+import Hagi.Probability.FisherRowScore
 import Hagi.Probability.CertifiedEstimator
 import Hagi.Probability.Concentration
 import Hagi.Growth.SelfDevelopment
