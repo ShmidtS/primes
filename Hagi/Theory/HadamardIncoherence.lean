@@ -335,4 +335,16 @@ theorem satTail_le_of_forall_le {n : ℕ} (s M : ℝ) (w : Fin n → ℝ)
         apply mul_le_mul_of_nonneg_right _ (by nlinarith)
         exact Nat.cast_le.mpr hcard
 
+/-- Гейт по некогерентности (HAGI-Prime v4): преобразование `H` применяется к блоку
+тогда и только тогда, когда `coh²(Hw) < coh²(w)`. Итоговая когерентность равна
+минимуму из двух — гейт не может ухудшить; цена — один бит флага на блок, который
+окупается, пока снижение `‖·‖∞²` (числителя) на блоке стоит больше бита.
+Энергия при этом растёт в `2^k` (`rotate_energy_eq`, без нормировки) — в коде
+преобразование нормировано на `1/√(2^k)`, иначе масштаб строки меняется. -/
+theorem cohSq_gate_never_worsens (w w' : (Fin k → ZMod 2) → ℚ) :
+    (if cohSq w' < cohSq w then cohSq w' else cohSq w) = min (cohSq w') (cohSq w) := by
+  by_cases h : cohSq w' < cohSq w
+  · rw [if_pos h]; exact (min_eq_left (le_of_lt h)).symm
+  · rw [if_neg h]; exact (min_eq_right (le_of_not_gt h)).symm
+
 end Hagi.Theory.HadamardIncoherence
