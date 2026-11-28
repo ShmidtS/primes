@@ -23,7 +23,7 @@ def restore(model, snap):
         for n, v in snap.items(): getattr(model, n).copy_(v)
 
 def export_ce(model, x, y, bits=2, mixed=False, use_had=True, rows2=None):
-    snap = snapshot(model); nbytes, n2 = 0, 0; clip = 0; tot = 0
+    snap = snapshot(model); nbytes, n2 = 0, 0; clip = 0
     for name, p in model.__dict__.items():
         if not isinstance(p, t.nn.Parameter) or p.ndim != 2: continue
         W = p.detach().cpu().numpy()
@@ -42,7 +42,7 @@ def export_ce(model, x, y, bits=2, mixed=False, use_had=True, rows2=None):
                 continue
         with t.no_grad(): getattr(model, name).copy_(t.as_tensor(dequant_per_row(par, Q), dtype=p.dtype).to(p.device))
         nbytes += Q.size // 4 + par["scales"].nbytes
-        clip += int((Q >= 7).sum()) if bits != 2 else 0; tot += Q.size
+        clip += int((Q >= 7).sum()) if bits != 2 else 0
     out = ce(model, x, y), nbytes, n2, clip
     restore(model, snap)
     return out
