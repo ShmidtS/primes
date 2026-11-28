@@ -3,6 +3,8 @@ Copyright (c) 2026 HAGI_v2 authors. All rights reserved.
 -/
 import Hagi.Core.FrobOuter
 import Mathlib.Tactic
+import Mathlib.Analysis.SpecialFunctions.ExpDeriv
+import Mathlib.Analysis.SpecialFunctions.Log.Deriv
 
 set_option linter.style.header false
 
@@ -447,5 +449,51 @@ theorem kstar_minimal (c : ℕ → ℝ) (lam b rho : ℝ) (hρ : 1 ≤ rho) (hmo
     rw [e]
     exact J_mono_desc c lam b rho k (kstar - k) (fun m _ hm => le_of_lt (hbefore m (by omega)))
   · rw [show k = kstar + (k - kstar) by omega]; exact hinc (k - kstar)
+
+/-! ### CE weight of an embedding row: why the residual norm is not the right score -/
+
+/-- Измерено на HAGI_v2 (scripts/ab_rows2_kstar.py, словарь из 256 строк):
+корреляция прироста CE от второй стадии блока строк с суммой `‖res‖²` по блоку
+равна 0.008 — выбор строк по норме остатка оптимален для MSE весов
+(`topk_residual_is_optimal`), но не для CE. Причина — в производной: сдвиг
+одного логита даёт в среднем по данным второй порядок `½·p·(1 − p)·d²`, где
+`p` — вероятность класса; строка словаря, которую модель почти не предсказывает,
+не даёт CE-выигрыша при любой норме остатка. Правильный балл строки для CE —
+`p_i·‖ε_i‖²` (Fisher-вес), а не `‖ε_i‖²`.
+
+`ceShift p q d = log(p·e^d + 1 − p) − q·d` — точный сдвиг CE при возмущении
+одного логита на `d` (`p` — исходная вероятность класса, `q` — индикатор метки). -/
+
+noncomputable def ceShift (p q : ℝ) (d : ℝ) : ℝ :=
+  Real.log (p * Real.exp d + (1 - p)) - q * d
+
+theorem ceShift_zero (p q : ℝ) : ceShift p q 0 = 0 := by
+  have e : p * Real.exp 0 + (1 - p) = 1 := by rw [Real.exp_zero]; ring
+  unfold ceShift; rw [e, Real.log_one]; ring
+
+set_option maxHeartbeats 1000000 in
+/-- Первая производная — смещение `p − q`: в среднем по данным (когда
+метка — сдвинутый класс с вероятностью `p`) первый член обнуляется, остаётся
+второй порядок. -/
+theorem hasDerivAt_ceShift_zero (p q : ℝ) (_hp : 0 < p) (_hp1 : p < 1) :
+    HasDerivAt (ceShift p q) (p - q) 0 := by
+  have e1 : p * Real.exp 0 + (1 - p) = 1 := by rw [Real.exp_zero]; ring
+  have hpos : p * Real.exp 0 + (1 - p) ≠ 0 := by rw [e1]; exact one_ne_zero
+  have h0 : HasDerivAt (fun d => p * Real.exp d + (1 - p)) p 0 := by
+    have h := (Real.hasDerivAt_exp (0:ℝ)).const_mul p
+    rw [Real.exp_zero, mul_one] at h
+    have e2 : (fun d : ℝ => p * Real.exp d) + (fun _ : ℝ => 1 - p) =
+        fun d => p * Real.exp d + (1 - p) := by funext d; rfl
+    rw [← e2]
+    simpa using h.add (hasDerivAt_const (0:ℝ) (1 - p))
+  have h2 := (Real.hasDerivAt_log hpos).comp 0 h0
+  rw [e1, inv_one, one_mul] at h2
+  have h3 : HasDerivAt (fun d : ℝ => q * d) q 0 := by simpa using (hasDerivAt_id (0:ℝ)).const_mul q
+  have h4 := h2.sub h3
+  show HasDerivAt (fun d => Real.log (p * Real.exp d + (1 - p)) - q * d) (p - q) 0
+  have e3 : (Real.log ∘ fun d : ℝ => p * Real.exp d + (1 - p)) - (fun d : ℝ => q * d) =
+      (fun d => Real.log (p * Real.exp d + (1 - p)) - q * d) := by
+    funext d; simp [Function.comp_def]
+  rw [e3] at h4; exact h4
 
 end Hagi.Budget
