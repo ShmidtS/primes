@@ -64,3 +64,19 @@ mf = np.array([(f[order[ks[i]:ks[i + 1]]] * c[order[ks[i]:ks[i + 1]]]).sum() for
 def corr(a, b): return float(np.corrcoef(a, b)[0, 1])
 print(f"corr(dCE, sum c) = {corr(dCE, mc):.3f} | corr(dCE, sum f*c) = {corr(dCE, mf):.3f}")
 print("per-block dCE   ", np.round(dCE, 4)); print("per-block sum c ", np.round(mc / mc[0], 3)); print("per-block f*c   ", np.round(mf / mf[0], 3))
+
+# --- A/B at equal k: rows by ‖res‖² (code) vs by token-frequency-weighted ‖res‖² (Fisher score) ---
+import hagi.models.optimal_lm as OM
+OM.EMB_ROWS2 = 0; q0, nb0 = OM.quantize_model(m, bits=2, use_had=True)
+p = m.emb.detach().cpu().numpy().astype(np.float64)
+parE = q0["emb"]; Rall = p - dequant_per_row(parE, parE["Q"])
+def stage2(score, k):
+    idx = np.argsort(-score)[:k]; par2, Q2 = quant_per_row(Rall[idx], bits=2, use_had=True, rotate_rows=False)
+    deq = dequant_per_row(parE, parE["Q"]); deq[idx] += dequant_per_row(par2, Q2)
+    OM.dequantize_into(m, q0); m.emb.data.copy_(t.as_tensor(deq, dtype=m.emb.dtype).to(m.emb.device))
+    c = ce(m, x, y); m.emb.data.copy_(emb0); return c, idx
+cnt2 = Counter(data.tolist()); fr = np.array([cnt2.get(i, 0) for i in range(len(Rall))], float); fr /= fr.sum()
+cn = (Rall ** 2).sum(1)
+for k in (32, 64, 128):
+    c_norm, i1 = stage2(cn, k); c_fish, i2 = stage2(fr * cn, k)
+    print(f"k {k:3d}: CE by |res|^2 {c_norm:.4f} | by p*|res|^2 {c_fish:.4f} | gain {c_norm - c_fish:+.4f} | overlap {len(set(i1) & set(i2))}/{k}")
