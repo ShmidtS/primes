@@ -38,6 +38,36 @@ claim is already covered: `GaugeBalance.balance_key` + `ResidualVQ.frobSq_mul_le
 the rank-1 term is gauge invariant (`rank1_ntk_gauge_invariant`). The spectral
 statement (`log det₊ K̄`) is not formalised.
 
+## HAGI-Prime v4 (OptHagiV4 + CertOpt + HadamardFisherVQ + MirrorHedge), NumPy
+
+Arithmetic reproduces: skip 256·(2+4+2)·2 = 4096 params; head share 46.8 % ≈ 47 %;
+nats → bpb (2.2767 → 3.285, 1.8726 → 2.702); Polar-Express 9 vs 15 matmul
+= −40 %; archive N = bytes·8/bpb = 13 697 for all rows; 2653/3478 = 23.7 %,
+1129/1974 = 42.8 %; trits5 = 5·log₂3/5 = 1.585 bit/weight bound; κ(1.5) = 0.8808.
+
+Theory each claim rests on (all in primes): HNet `hnet_opt_ratio_unique`
+(r* = (2bT/a)^{1/3}; the report's 3.2…6.4 for T = 64…512 implies b/a = 0.256 —
+not stated there); `mhc_stack_no_growth` (Birkhoff trunk, ρ ≤ 1);
+`polar_express_cycle_cert` (covers σ₀ = 0.05, below the NS theorem's 0.5);
+`cosine_sched_bounds` 3/20 floor; `clipped_weight_unbiased`,
+`gradCE_zero_of_onehot`; `ce_adaptive_curv_le_range_tight`;
+`sqrt_share_not_minimax` (water-filling replay, −45 % worst — PROPOSAL 18,
+reverted by the code agent without cause: new evidence to re-approve on
+worst-domain CE); `wd_compl_annihilates`, `decay_keeps_protected`;
+`fisher_optimal_scale`, `bit_swap_improves_iff`, `topk_residual_is_optimal`;
+`mixCE_le_best_regret`; `gdn_onehot_is_colUpdate` and the new `gdn_beta_readout`
+(β ∈ (0,2) is a sign-flipping generalised Householder write — now proved).
+
+Cross-checks with our own measurements: SemCache self-calibrated λ = 0.35 →
+−0.163 nat on structured data, λ = 0 on noise (our PROPOSAL 36: −0.76 / 0.0000);
+asymmetric init W_down = 0 keeps the function exactly (`dead_loss_const`: W_up
+is frozen until the first step — correct for depth growth); gauge balance as a
+*preprocessing for quantisation* — consistent with 25b (no CE gain on its own).
+
+Not reproducible here: the 2×2 matrix and the quantisation table need the
+NumPy implementation (not on this machine); the 3.5×–21× Bennett speed-up is
+the certified-drop ratio, not wall-clock.
+
 ## Measured on HAGI_v2 (the two `ab_*.py` scripts)
 
 | Claim | Recomputed | Verdict |
