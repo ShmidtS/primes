@@ -27,9 +27,9 @@ def export_ce(model, x, y, bits=2, mixed=False, use_had=True, rows2=None):
     for name, p in model.__dict__.items():
         if not isinstance(p, t.nn.Parameter) or p.ndim != 2: continue
         W = p.detach().cpu().numpy()
-        rotate_rows = (name != "emb")
+        rotate_rows = (name != "emb") and not (mixed and COLS_ONLY)
         par, Q = quant_per_row(W, bits=bits, use_had=use_had, rotate_rows=rotate_rows)
-        if mixed and not rotate_rows:   # row-block Hadamard mixes rows: per-row stages only where rotate_rows=False
+        if mixed and not rotate_rows:   # per-row stages need no row rotation
             R = W - dequant_per_row(par, Q)
             contrib = (R ** 2).sum(1)
             idx = np.flatnonzero(contrib > 4 * contrib.min()) if rows2 is None else np.argsort(-contrib)[:min(rows2, len(contrib))]
@@ -47,9 +47,10 @@ def export_ce(model, x, y, bits=2, mixed=False, use_had=True, rows2=None):
     restore(model, snap)
     return out
 
+COLS_ONLY = False
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--steps", type=int, default=60); ap.add_argument("--wd", type=float, default=1e-4); ap.add_argument("--bits", type=int, default=2); ap.add_argument("--sweep", action="store_true", help="CE vs number of emb rows given a 2nd stage")
-    a = ap.parse_args()
+    ap = argparse.ArgumentParser(); ap.add_argument("--steps", type=int, default=60); ap.add_argument("--wd", type=float, default=1e-4); ap.add_argument("--bits", type=int, default=2); ap.add_argument("--sweep", action="store_true", help="CE vs number of emb rows given a 2nd stage"); ap.add_argument("--cols-only", action="store_true", help="mixed: drop the row rotation so per-row stages stay valid on 2-D matrices")
+    a = ap.parse_args(); COLS_ONLY = a.cols_only
     t.manual_seed(0); rng = np.random.default_rng(0)
     m = HagiOptimalLM()
     # structured byte stream: a 32-byte template repeated with occasional mutations (learnable)
