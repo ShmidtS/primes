@@ -12,19 +12,20 @@ map, not a source of truth.
   Every commit of the session passed the full battery (Freeze 9659 declarations,
   DocLint R4/R5, DocAnchorCheck, TrivialLint, LayerLint, ReachLint, NsLint, DupLint).
 - Reference implementation `C:\HAGI_v2` is READ-ONLY (another agent).
-  HEAD `3c19a8c` (GPM protection default on + bases persist across save/load → `GPMProjection.projOut_idem`, `pythagoras_k`, `Rollback.named_keeps_new`; gate and repair measure *all* old domains; window budget
+  HEAD `4f5dc81` (PROPOSAL 35 ACCEPTED: certified worst gate `grow − radius(α/min(n,16)) > tol`, default on; GPM protection default on + bases persist across save/load → `GPMProjection.projOut_idem`, `pythagoras_k`, `Rollback.named_keeps_new`; gate and repair measure *all* old domains; window budget
   32768 because the 2048 budget gave *false rollbacks* at 16 windows/domain, n = 138:
   per-domain radius 0.16 nat × union over 138 domains, `worst_gate_false_rollback_le`;
   measured 0.044 at 237 windows, predicted 0.042 by `budget_split_radius_bounds`).
 - 34 proposals in `docs/PROPOSAL-index.md`:
-  - accepted and live: 13, 17, 26 (`5a773e6`), 34 in substance (`d602812`);
+  - accepted and live: 13, 17, 26 (`5a773e6`), 34 in substance (`d602812`),
+    35 (`4f5dc81`, theory→measurement→code with default on);
   - accepted but UNWIRED: 25 (`gauge_balance` defined, never called) → 25b;
   - reverted by the code agent without a stated cause: 18 (`cc1bdd1`), 30 (×2);
   - measured on HAGI_v2 with `scripts/ab_export_quant.py` / `scripts/ab_grow_init.py`:
     29 (emb-only 2nd stage: −1.0 of 2.3 nat for +13 % bytes, curve in the proposal),
     25b (no CE gain, no clip reduction — insurance only), 27 (theory exact, CE no-op),
     35 (point gate 5.8 % false trips at w = 16; certified 0; usable from w ≥ 128 with
-    Bonferroni cap 16 — code-side WORST_GATE_MARGIN in the working tree);
+    Bonferroni cap 16 — accepted as `4f5dc81`);
   - pending with ready-made tests: 29 (P1, export-time), 31, 25b;
   - pending without a test: 19–21, 23, 24, 25-addendum (MLA factor).
 - Code-agent accept/revert pattern (notes): changes that move the training CE curve
