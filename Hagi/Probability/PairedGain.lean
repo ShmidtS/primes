@@ -546,4 +546,30 @@ theorem worst_gate_false_rollback_le {V : Type} [Fintype V] [Nonempty V] {n : �
   classical
   exact admit_false_union_le q hq0 hq1 α m A hA
 
+open scoped Classical in
+/-- Сертифицированный worst-гейт (HAGI_v2 _worst_exceeds с WORST_GATE_MARGIN):
+по каждому домену `r` решение «откат» = `mean_r − radius_r > tol`. При нулевом
+истинном росте во всех доменах вероятность ложного отката хотя бы по одному
+домену ≤ m·α (admit_false_le по домену + union). Это точная форма кода:
+`grow − paired_margin_eb(…) > WORST_TOL_ROLLBACK`. -/
+theorem worst_gate_certified_false_rollback {V : Type} [Fintype V] [Nonempty V]
+    {n m : ℕ} (q : V → ℝ) (hq0 : ∀ v, 0 ≤ q v) (hq1 : ∑ v, q v = 1)
+    (D : Fin m → V → ℝ) (b sig α tol : ℝ) (hb : 0 ≤ b) (hbnd : ∀ r v, |D r v| ≤ b)
+    (hsig : 0 < sig) (hmean : ∀ r, ∑ v, q v * D r v = 0) (hvar : ∀ r, ∑ v, q v * D r v ^ 2 ≤ sig)
+    (hn : 0 < n) (hα : 0 < α) (hα2 : α < 1) (htol : 0 ≤ tol) :
+    prodPq (fun _ : Fin n => q)
+      (fun ω => ∃ r : Fin m, (∑ i, D r (ω i)) / n - radius sig b n α > tol)
+      ≤ (m : ℝ) * α := by
+  have hA : ∀ r : Fin m, prodPq (fun _ : Fin n => q)
+      (fun ω => (∑ i, D r (ω i)) / n - radius sig b n α > tol) ≤ α := by
+    intro r
+    have := admit_false_le q hq0 hq1 (D r) b hb (hbnd r) sig hsig (hmean r) (hvar r) n hn α hα hα2 tol htol
+    have hcomp := prodPq_compl (fun _ : Fin n => q) (fun i => ⟨hq0, hq1⟩)
+      (fun ω => (∑ i, D r (ω i)) / n - radius sig b n α > tol)
+    have hle1 := prodPq_le_one (fun _ : Fin n => q) (fun i => ⟨hq0, hq1⟩)
+      (fun ω => (∑ i, D r (ω i)) / n - radius sig b n α > tol)
+    rw [hcomp] at this
+    linarith
+  exact worst_gate_false_rollback_le q hq0 hq1 α m (fun r ω => (∑ i, D r (ω i)) / n - radius sig b n α > tol) hA
+
 end Hagi.Probability.PairedGain
