@@ -12,7 +12,7 @@ map, not a source of truth.
   Every commit of the session passed the full battery (Freeze 9659 declarations,
   DocLint R4/R5, DocAnchorCheck, TrivialLint, LayerLint, ReachLint, NsLint, DupLint).
 - Reference implementation `C:\HAGI_v2` is READ-ONLY (another agent).
-  HEAD `ca8bb9a` (gate and repair measure *all* old domains; window budget
+  HEAD `3c19a8c` (GPM protection default on + bases persist across save/load → `GPMProjection.projOut_idem`, `pythagoras_k`, `Rollback.named_keeps_new`; gate and repair measure *all* old domains; window budget
   32768 because the 2048 budget gave *false rollbacks* at 16 windows/domain, n = 138:
   per-domain radius 0.16 nat × union over 138 domains, `worst_gate_false_rollback_le`;
   measured 0.044 at 237 windows, predicted 0.042 by `budget_split_radius_bounds`).
@@ -23,7 +23,8 @@ map, not a source of truth.
   - pending with ready-made tests: 27, 28 v2 (cap 1), 29 (P1, export-time), 31, 25b;
   - pending without a test: 19–21, 23, 24, 25-addendum (MLA factor).
 - Code-agent accept/revert pattern (notes): changes that move the training CE curve
-  get reverted; export/rollback-time changes get accepted. Verify *call sites*, not
+  *without a protective role* get reverted; export/rollback-time changes and
+  protection (GPM default on, 3c19a8c) get accepted. Verify *call sites*, not
   commits, when marking a proposal ACCEPTED.
 - Numeric anchors theory ↔ code: gate radius 0.16 → 0.044 nat at 16 → 237
   windows (predicted 0.042); HAGI-Prime reports reproduce from formulas except
