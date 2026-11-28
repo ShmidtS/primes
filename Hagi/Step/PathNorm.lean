@@ -12,13 +12,6 @@ Liu, Zhang, Shenouda et al., «PathProx», arXiv:2210.03069: для ReLU-сет�
 который обнуляет нейрон целиком (neural heat death, arXiv:2611.27889). В
 HAGI-Prime пары `(W_up,:,j, W_down,j,:)`, `(B_u, B_v)`, `(W_kv_down, [W_uk, W_uv])`
 подпадают под это напрямую.
-
-* `penalty_eq_path_norm` — в сбалансированной точке (`a² = b²`) penalty равен
-  `2|ab|`: gauge balance делает decay «чистым» path-lasso;
-* `path_norm_shrinks` — decay `(1 − lam)` на обоих факторах сжимает path norm
-  как `(1 − lam)^(2t)`;
-* `prox_kills_small`, `prox_threshold` — prox-шаг по path norm: `s ≤ lam`
-  обнуляет нейрон за один шаг, иначе `s ← s − lam`.
 -/
 
 namespace Hagi.Step.PathNorm

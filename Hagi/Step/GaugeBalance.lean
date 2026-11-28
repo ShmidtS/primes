@@ -9,37 +9,18 @@ import Mathlib.Analysis.Calculus.Deriv.Add
 /-!
 # GaugeBalance — некомпактные симметрии масштабирования и баланс норм
 
-Portilheiro, Liebana, Orbanz, Saxe, «Renormalized Entropy from Symmetries:
-Simplicity Bias and Neural Heat Death», arXiv:2611.27889v1. В сетях с
-некомпактными симметриями масштабирования равновесие Ланжевена при малой
-регуляризации уходит вдоль gauge-орбиты на бесконечность (гиперболы
-|a| ~ ½ log(1/α)), раздувая динамический диапазон весов и ухудшая квантование;
-баланс норм (Sec. 5) — точный выбор представителя орбиты с минимальной суммой
-квадратов норм. В HAGI-Prime такие симметрии живут в каждом ранг-1 факторе:
-LowRankAdapter B·A, BigramSkip B_u·B_v, MLA, и понейронно в SwiGLU
-(W_up,:,j, W_down,j,:). Блоки роста стартуют в мёртвом множестве W_down = 0
-(Theorem 2, neural heat death).
+arXiv:2611.27889v1 (Portilheiro, Liebana, Orbanz, Saxe): при малой регуляризации
+равновесие уходит вдоль gauge-орбиты на бесконечность, раздувая диапазон весов;
+баланс норм (Sec. 5) выбирает представителя орбиты с минимальной суммой
+квадратов норм. В HAGI это каждый ранг-1 фактор (LowRankAdapter, BigramSkip,
+MLA, SwiGLU-пары); блоки роста стартуют в мёртвом множестве `W_down = 0`.
 
-* `rank1_gauge` — `(c•B)·(c⁻¹•A) = B·A`: калибровка не меняет функцию;
-* `balance_key` — `(cA)² + (B/c)² ≥ 2AB`, равенство при `cA = B/c`;
-* `stock_balance_min` — минимум по калибровке равен `2|ab|`;
-* `stock_balance_attained` — достигается при `c = sqrt(|b|/|a|)` (формула
-  баланса Sec. 5);
-* `dead_block_out_zero`, `dead_loss_const` — при W_down = 0 выход блока ноль
-  и функция потерь по W_up постоянна: верхняя матрица заморожена, пока блок
-  не выйдет из D (обоснование детерминированного шага при прогреве);
-* `clip_sat_tail` — ошибка клипа тритов на `-7, 8` равна `|x| − 7s` при
-  `|x| > 7s` (насыщение хвостов);
-* `gauge_kills_sat_tail` — после калибровки `x/c`, `c ≥ |x|/(7s)`: клип не
-  активен при **фиксированной** шкале `s` (в HAGI_v2 шкала адаптивна по строке,
-  поэтому измеренного выигрыша в CE нет — PROPOSAL 25b);
-* `pairLoss`, `pairGrad_u_zero_at_d0`, `pairGrad_u_at_eps` — скалярная пара
-  `(d, u)` с выходом `d·u·x`: при `d = 0` градиент по `u` нулевой; при
-  `d = ε ≠ 0` он равен `−ε·x·y` в нуле — асимметричная инициализация
-  (Lu–Shin–Su 2020) выводит блок из мёртвого множества ценой `O(ε)` в функции;
-* `asym_step_output_quad`, `asym_step_nonzero` — после одного шага выход блока
-  равен `η·ε²·x²·y`: вред квадратичен по `ε`, градиент линеен — малое `ε`
-  почти бесплатно делает блок обучаемым (PROPOSAL 27).
+Три группы утверждений: инвариантность и баланс (`rank1_gauge`, `balance_key`,
+`stock_balance_min/_attained`, `rank1_ntk_gauge_invariant`); мёртвое множество
+(`dead_block_out_zero`, `dead_loss_const`, `pairGrad_u_*`, `asym_step_*`,
+`dead_one_input_fraction`, `sign_assignments_card`); насыщение клипа при
+фиксированной шкале (`clip_sat_tail`, `gauge_kills_sat_tail`). Границы
+применимости — в докстрингах теорем; измерения на HAGI_v2 — PROPOSAL 25/27.
 -/
 
 namespace Hagi.Step.GaugeBalance

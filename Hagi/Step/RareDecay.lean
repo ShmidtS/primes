@@ -10,12 +10,6 @@ Pinto, Galanti, Balestriro, «The Fair Language Model Paradox», arXiv:2410.1198
 weight decay непропорционально подавляет низкочастотные токены. Причина в
 масштабе равновесия: при плотном затухании (decay на каждом шаге) и градиенте,
 приходящем с частотой `f`, неподвижная точка `w* = f·η·g/λ` пропорциональна `f`.
-
-* `dense_decay_fixed_point` — плотный режим: редкий признак теряет масштаб;
-* `coupled_decay_fixed_point` — затухание только на шагах обновления
-  (HAGI_v2 `optimal_lm.py` HybridMuonAdamW: `p.mul_(where(act, 1 − lr·wd, 1))`):
-  `w* = η·g/λ` — равновесный масштаб не зависит от частоты;
-* `dense_over_coupled` — отношение равновесий равно `f`.
 -/
 
 namespace Hagi.Step.RareDecay
