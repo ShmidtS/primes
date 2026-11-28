@@ -249,4 +249,34 @@ theorem carry_influence_abs_le (g γ : ℝ) (T : ℕ) (hg : |g| ≤ γ) :
   rw [abs_pow g T]
   exact pow_le_pow_left₀ (abs_nonneg g) hg T
 
+theorem gdn_beta_readout {m n : ℕ} (S : Matrix (Fin m) (Fin n) ℝ) (k : Fin n → ℝ) (v : Fin m → ℝ) (g β : ℝ)
+    (hk : ∑ j, k j * k j = 1) :
+    (gdnUpdate S k v g β).mulVec k = β • v + (1 - β) • g • (S.mulVec k) := by
+  ext a
+  have hSk : (S.mulVec k) a = ∑ j, S a j * k j := rfl
+  show (∑ j, (g • S + β • outerUK (v - g • S.mulVec k) k) a j * k j) = _
+  simp only [Matrix.add_apply, Matrix.smul_apply, smul_eq_mul, outerUK, Matrix.of_apply, Pi.sub_apply,
+    Pi.smul_apply, smul_eq_mul]
+  rw [hSk]
+  have e1 : ∀ j, (g * S a j + β * ((v a - g * (∑ j', S a j' * k j')) * k j)) * k j
+      = g * (S a j * k j) + (β * (v a - g * (∑ j', S a j' * k j'))) * (k j * k j) := fun j => by ring
+  rw [Finset.sum_congr rfl (fun j _ => e1 j), Finset.sum_add_distrib, ← Finset.mul_sum, ← Finset.mul_sum, hk]
+  simp only [smul_eq_mul, mul_one, Pi.add_apply, Pi.smul_apply, hSk]; ring
+/-- Итерированная запись по одному ключу при `g = 1`: отклонение прочитанного
+значения от `v` умножается на `(1 − β)` за шаг. `β = 1` — за один шаг; `|1 − β| < 1` —
+геометрическая сходимость; `β ∈ (1, 2)` — осциллирующая (со сменой знака) сходимость:
+старая ассоциация инвертируется, что при `β ≤ 1` невозможно. -/
+theorem gdn_beta_iter (S : Matrix (Fin m) (Fin n) ℝ) (k : Fin n → ℝ) (v : Fin m → ℝ) (β : ℝ)
+    (hk : ∑ j, k j * k j = 1) (t : ℕ) :
+    ((fun S => gdnUpdate S k v 1 β)^[t] S).mulVec k - v = (1 - β) ^ t • ((S.mulVec k) - v) := by
+  induction t with
+  | zero => simp
+  | succ t ih =>
+    rw [Function.iterate_succ_apply']
+    rw [gdn_beta_readout _ k v 1 β hk]
+    have h2 : ((fun S => gdnUpdate S k v 1 β)^[t] S).mulVec k = (1 - β) ^ t • (S.mulVec k - v) + v := sub_eq_iff_eq_add.mp ih
+    rw [h2]
+    simp only [smul_eq_mul, smul_add, smul_sub, pow_succ]
+    module
+
 end Hagi.Model.GDNBridge
