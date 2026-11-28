@@ -47,6 +47,21 @@ def test_alloc_bits_equal_budget_lower_error():
     assert (E * 4.0 ** -b).sum() < 0.80 * (E * 0.25).sum()   # 0.189 measured (stationary loop)
 ```
 
+## Measured on HAGI_v2 (scripts/ab_export_quant.py, 60 steps, structured stream, holdout CE)
+
+| variant | CE | bytes | Δ |
+|---|---|---|---|
+| fp32 | 2.2485 | — | — |
+| trits, uniform (today) | 3.0326 | 10174 | +0.78 nat |
+| + gauge balance (25b) | 3.0337 | 10174 | no effect (weights already balanced at this scale) |
+| + per-row 2nd stage on `emb` | **2.6769** | 11964 (+18 %) | **−0.36 nat of the 0.78** |
+
+**Scope correction (found by the measurement):** the row-block Hadamard in
+`quant_per_row` mixes rows, so a per-row stage count is only consistent where
+`rotate_rows=False` — the `emb` table (and any other lookup table). For the
+2-D matrices with row rotation, use the global `stages` on the *whole* matrix
+or rotate by columns only. The 4× rule on `contrib` is unchanged.
+
 ## Minimal diff (fits the existing `quant_per_row(stages=…)` — a per-row stage count)
 
 `quant_per_row` already implements residual stages; mixed precision is a
