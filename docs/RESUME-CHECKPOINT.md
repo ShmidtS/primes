@@ -89,3 +89,5 @@ Total commits in primes at checkpoint: 2435.
   `LazyAdam.lazy_moment_drift`, `touchStep_dense_excess_pos`.
 * Not formalised, honestly: NTK spectral entropy (`log det₊ K̄`), quantitative
   TBPTT bias (needs measured GDN `g`), volume of the dead set `α^{-N/2}` (sign model: `dead_one_input_fraction` = 1/2 per input, `2^{-L}` per path — the K/perture-volume form is not formalised).
+
+* Freeze at cycle 118: 9659 declarations (9540 at session start).
