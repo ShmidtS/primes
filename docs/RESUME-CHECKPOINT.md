@@ -20,7 +20,12 @@ map, not a source of truth.
   - accepted and live: 13, 17, 26 (`5a773e6`), 34 in substance (`d602812`);
   - accepted but UNWIRED: 25 (`gauge_balance` defined, never called) → 25b;
   - reverted by the code agent without a stated cause: 18 (`cc1bdd1`), 30 (×2);
-  - pending with ready-made tests: 27, 28 v2 (cap 1), 29 (P1, export-time), 31, 25b;
+  - measured on HAGI_v2 with `scripts/ab_export_quant.py` / `scripts/ab_grow_init.py`:
+    29 (emb-only 2nd stage: −1.0 of 2.3 nat for +13 % bytes, curve in the proposal),
+    25b (no CE gain, no clip reduction — insurance only), 27 (theory exact, CE no-op),
+    35 (point gate 5.8 % false trips at w = 16; certified 0; usable from w ≥ 128 with
+    Bonferroni cap 16 — code-side WORST_GATE_MARGIN in the working tree);
+  - pending with ready-made tests: 29 (P1, export-time), 31, 25b;
   - pending without a test: 19–21, 23, 24, 25-addendum (MLA factor).
 - Code-agent accept/revert pattern (notes): changes that move the training CE curve
   *without a protective role* get reverted; export/rollback-time changes and

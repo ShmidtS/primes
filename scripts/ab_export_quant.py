@@ -5,7 +5,7 @@ Run from HAGI_v2's root (read-only use of its code):
 Prints one row per variant: CE (fp32 model vs dequantised), export bytes,
 per-row max |W|. Numbers are the acceptance evidence, not the assertion.
 """
-import argparse, copy, sys
+import argparse, sys
 import numpy as np, torch as t
 sys.path.insert(0, ".")
 from hagi.models.optimal_lm import HagiOptimalLM, HybridMuonAdamW, quant_per_row, dequant_per_row, gauge_balance
