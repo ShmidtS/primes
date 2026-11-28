@@ -94,6 +94,7 @@ import Hagi.Learning.TrainingTransition
 import Hagi.Unified.CandidateConfig
 import Hagi.Learning.SpectralBudget
 import Hagi.Information.BitsBackPerm
+import Hagi.Information.CodedSizeQAT
 import Hagi.Information.Capacity
 import Hagi.Information.MixtureCoding
 import Hagi.Information.SemCache
