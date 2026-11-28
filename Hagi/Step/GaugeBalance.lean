@@ -173,4 +173,21 @@ theorem rank1_ntk_gauge_invariant (a b c x : ℝ) (hc : c ≠ 0) :
     field_simp [hc]
   rw [h]
 
+/-- Мёртвое множество в знаковой модели (Lu–Shin–Su 2020, Rister–Rubin 2020):
+нейрон с одним входом `x > 0` и случайным знаковым весом мёртв ровно при
+отрицательном знаке — доля `1/2`. Независимые знаки на `L` слоях дают `2^L`
+равновероятных назначений и лишь одно «все положительные»: доля выживших по
+каждому пути `2^{-L}` — вероятность не-мёртвой инициализации падает
+экспоненциально с глубиной (нижняя граница Rister–Rubin). -/
+theorem dead_one_input_fraction (x : ℝ) (hx : 0 < x) :
+    (Finset.univ.filter fun s : Bool => (if s then (1:ℝ) else -1) * x ≤ 0).card = 1 := by
+  classical
+  refine Finset.card_eq_one.2 ⟨false, Finset.ext ?_⟩
+  intro s
+  simp only [Finset.mem_univ, true_and, Finset.mem_filter, Finset.mem_singleton]
+  cases s <;> simp [hx, hx.le]
+theorem sign_assignments_card (L : ℕ) :
+    (Finset.univ : Finset (Fin L → Bool)).card = 2 ^ L := by
+  simp
+
 end Hagi.Step.GaugeBalance
