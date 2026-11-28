@@ -57,6 +57,17 @@ data → windows ──► paired EB gate ──► certified step ──► com
    coded-size QAT shrinks *how many* are needed; `BitsBackPerm` recovers
    log₂(n!) of them for free on every growth block.
 
+6. **Every threshold is one rule.** `DecisionRule.certified_decision`: act iff
+   `ĝ − radius(n, α) > λ·ΔB`; the probability of certifying an action whose true
+   gain is below its byte price is ≤ α. Gates (ΔB = 0), worst-domain rollback
+   (α/16), stage-two rows (ΔB = row bytes), MDL (λ = 8 ln 2 / N) are instances.
+   Consequence for the code (DERIVED-CONFIG §3): `ADAPTER_MIN_GAIN = 0.005` and
+   `FIBER_MIN_GAIN = 0.01` sit *below* the radius at 4096 windows (0.073), and
+   `ANCHOR_MIN_WINDOWS = 32` gives a radius of 1.5–3.0 nat against a tolerance of
+   0.25 — they pass empirically, not with a finite-sample guarantee; the
+   certified window counts are n*(0.005) = 764 311, n*(0.01) = 193 272,
+   n*(0.25) = 463–978.
+
 ## What is not proved (and cannot be, from here)
 
 * That the class has no better program — only that the shipped one attains the

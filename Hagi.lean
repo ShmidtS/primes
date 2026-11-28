@@ -340,6 +340,7 @@ import Hagi.Step.GradCentralization
 import Hagi.Unified.MachineProto
 import Hagi.Unified.TrainBudget
 import Hagi.Unified.Rollback
+import Hagi.Unified.DecisionRule
 import Hagi.Unified.AnchorGate
 import Hagi.Unified.TailGate
 import Hagi.Unified.RepairLoop
