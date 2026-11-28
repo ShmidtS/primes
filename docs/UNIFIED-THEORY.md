@@ -49,6 +49,13 @@ data → windows ──► paired EB gate ──► certified step ──► com
    (25b) and asymmetric grow init (27) are exact identities with no CE effect
    under adaptive per-row scales / 150-step horizons. Keeping them as insurance
    is honest; claiming gains is not.
+5. **The bytes axis is learnable.** `CodedSizeQAT.prefixCode_ge_entropy`:
+   bytes ≥ H(level histogram) (Kraft + Jensen), so a coded-size loss term
+   moves the one improvable axis *during training* — measured 218 → 202 B
+   (−7.3 %) with fp32 CE unchanged and quantised CE −0.01 nat (PROPOSAL 37).
+   Fisher scores (29c/d, `FisherRowScore`) choose *where* to spend the bytes;
+   coded-size QAT shrinks *how many* are needed; `BitsBackPerm` recovers
+   log₂(n!) of them for free on every growth block.
 
 ## What is not proved (and cannot be, from here)
 
