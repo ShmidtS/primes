@@ -38,4 +38,16 @@ theorem true_ce_lower (py qy lam s : ℝ) (hpy : 0 ≤ py) (hqy : 0 ≤ qy)
   unfold mix; have : 0 ≤ (1 - lam * s) * py := mul_nonneg (sub_nonneg.mpr (by linarith)) hpy
   linarith
 
+/-- Хуже эксперта — не помогает: если сосед даёт верному символу не больше модели
+(`q y ≤ p y`), смесь не может превзойти модель по этому символу. Поэтому на
+домене без повторяющихся состояний (измерено: случайные байты, Zipf-байты)
+любое `λ > 0` вредит: CE +0.13 nat при `λ = 0.3`; порог по косинусу не спасает —
+максимальный косинус на случайных данных 0.93 (99 % квантиль) против 0.996 на
+периодичных, диапазоны перекрываются. Вес надо калибровать по проверяемой
+точности соседей на уже декодированных позициях (scripts/ab_semcache_probe.py):
+периодичный домен — −1.18 nat при том же правиле. -/
+theorem worse_never_helps (py qy lam s : ℝ) (hp : 0 < py) (hq : qy ≤ py) (hl : 0 ≤ lam * s)
+    (hs : lam * s ≤ 1) : mix py qy lam s ≤ py := by
+  unfold mix; nlinarith
+
 end Hagi.Information.SemCache
