@@ -371,4 +371,81 @@ theorem topk_residual_is_optimal {ι : Type} [Fintype ι] [DecidableEq ι]
     linarith
   simpa [mul_comm] using mul_le_mul_of_nonneg_left h hn
 
+/-! ## Optimal number of stage-two rows: marginal rule -/
+/-- Кумулятивный вклад top-k: `C k = ∑ i < k, c i` для невозрастающей `c`. -/
+noncomputable def C (c : ℕ → ℝ) (k : ℕ) : ℝ := ∑ i ∈ Finset.range k, c i
+theorem C_succ (c : ℕ → ℝ) (k : ℕ) : C c (k+1) = C c k + c k := by
+  unfold C; rw [Finset.sum_range_succ]
+/-- Целевая функция: ошибка после второй стадии на k строках плюс стоимость байтов. -/
+noncomputable def J (c : ℕ → ℝ) (lam b rho : ℝ) (k : ℕ) : ℝ :=
+  -(1 - 1/rho) * C c k + lam * b * k
+theorem J_step (c : ℕ → ℝ) (lam b rho : ℝ) (k : ℕ) :
+    J c lam b rho (k+1) = J c lam b rho k + (lam * b - (1 - 1/rho) * c k) := by
+  unfold J; rw [C_succ]; push_cast; ring
+theorem J_decr_iff (c : ℕ → ℝ) (lam b rho : ℝ) (k : ℕ) :
+    J c lam b rho (k+1) < J c lam b rho k ↔ (1 - 1/rho) * c k > lam * b := by
+  rw [J_step]; constructor <;> intro h <;> linarith
+theorem J_desc_iff (c : ℕ → ℝ) (lam b rho : ℝ) (k : ℕ) :
+    J c lam b rho (k+1) ≤ J c lam b rho k ↔ (1 - 1/rho) * c k ≥ lam * b := by
+  rw [J_step]; constructor <;> intro h <;> linarith
+theorem J_nincr_iff (c : ℕ → ℝ) (lam b rho : ℝ) (k : ℕ) :
+    J c lam b rho k ≤ J c lam b rho (k+1) ↔ (1 - 1/rho) * c k ≤ lam * b := by
+  rw [J_step]; constructor <;> intro h <;> linarith
+/-- J не возрастает на `[a, a+n]`, если каждая строка `k ∈ [a, a+n)` не убывает по шагу. -/
+theorem J_mono_desc (c : ℕ → ℝ) (lam b rho : ℝ) (a n : ℕ)
+    (h : ∀ k, a ≤ k → k < a + n → (1 - 1/rho) * c k ≥ lam * b) :
+    J c lam b rho (a + n) ≤ J c lam b rho a := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have h1 : J c lam b rho (a + n) ≤ J c lam b rho a :=
+      ih (fun k hk1 hk2 => h k hk1 (by omega))
+    have h2 : J c lam b rho (a + n + 1) ≤ J c lam b rho (a + n) :=
+      (J_desc_iff c lam b rho (a + n)).mpr (h (a + n) (by omega) (by omega))
+    rw [show a + (n + 1) = a + n + 1 by omega]
+    exact le_trans h2 h1
+theorem J_mono_nincr (c : ℕ → ℝ) (lam b rho : ℝ) (a n : ℕ)
+    (h : ∀ k, a ≤ k → k < a + n → (1 - 1/rho) * c k ≤ lam * b) :
+    J c lam b rho a ≤ J c lam b rho (a + n) := by
+  induction n with
+  | zero => simp
+  | succ n ih =>
+    have h1 : J c lam b rho a ≤ J c lam b rho (a + n) := ih (fun k hk1 hk2 => h k hk1 (by omega))
+    have h2 : J c lam b rho (a + n) ≤ J c lam b rho (a + n + 1) := by
+      rw [J_nincr_iff]; exact h (a + n) (by omega) (by omega)
+    rw [show a + (n + 1) = a + n + 1 by omega]
+    exact le_trans h1 h2
+theorem mono_at (c : ℕ → ℝ) (hmono : ∀ k, c (k+1) ≤ c k) : ∀ k m, k ≤ m → c m ≤ c k := by
+  intro k m hkm
+  induction m with
+  | zero => simp at hkm; subst hkm; exact le_rfl
+  | succ m ih =>
+    by_cases h : k ≤ m
+    · exact le_trans (hmono m) (ih h)
+    · have : k = m + 1 := by omega
+      subst this; exact le_rfl
+/-- Оптимальное число строк второй стадии: первый индекс, где предельное снижение
+`(1 − 1/ρ)·c k` не превышает цены строки `lam·b`. Для невозрастающей `c` это
+глобальный минимум `J` (ошибка + стоимость байтов): до `kstar` J строго убывает,
+после — не убывает, поэтому минимум в `kstar`. Для остатка, отсортированного по
+вкладу, `kstar` — первое `k` с `(1 − 1/ρ)·c k ≤ λ·b`: байты второй стадии окупаются,
+пока вклад строки превышает цену её хранения (измерено: knee при 128 строках,
+PROPOSAL 29). -/
+theorem kstar_minimal (c : ℕ → ℝ) (lam b rho : ℝ) (hρ : 1 ≤ rho) (hmono : ∀ k, c (k+1) ≤ c k)
+    (kstar : ℕ) (hstop : (1 - 1/rho) * c kstar ≤ lam * b)
+    (hbefore : ∀ k < kstar, (1 - 1/rho) * c k > lam * b) :
+    ∀ k, J c lam b rho kstar ≤ J c lam b rho k := by
+  have h1 : 1 / rho ≤ 1 := (div_le_one (by linarith : (0:ℝ) < rho)).mpr hρ
+  have hn : 0 ≤ 1 - 1 / rho := sub_nonneg.mpr h1
+  have hmon' := mono_at c hmono
+  have hinc : ∀ n, J c lam b rho kstar ≤ J c lam b rho (kstar + n) := fun n =>
+    J_mono_nincr c lam b rho kstar n (fun k hk1 _ =>
+      le_trans (mul_le_mul_of_nonneg_left (hmon' kstar k hk1) hn) hstop)
+  intro k
+  by_cases h : k ≤ kstar
+  · have e : kstar = k + (kstar - k) := by omega
+    rw [e]
+    exact J_mono_desc c lam b rho k (kstar - k) (fun m _ hm => le_of_lt (hbefore m (by omega)))
+  · rw [show k = kstar + (k - kstar) by omega]; exact hinc (k - kstar)
+
 end Hagi.Budget
