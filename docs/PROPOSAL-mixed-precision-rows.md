@@ -149,3 +149,23 @@ too and recovers a further −0.15 nat, but at ~2.6× worse CE-per-byte than the
 `emb`-only step. Order of adoption: (1) `emb`-only, +13 % bytes; (2) if bytes
 allow, `--cols-only` on the remaining tables; keep the row rotation for
 everything that stays at one stage.
+
+## Exact patch against the current `quantize_model` / `dequant_per_row` (emb-only step 1)
+
+```python
+# quantize_model — after `par, Q = quant_per_row(W, ...)`, before `par["Q"] = Q`:
+if name == "emb" and HAGI_EMB_ROWS2 > 0:                       # per-row 2nd stage, emb only
+    R = W - dequant_per_row(par, Q)                            # stage-1 residual, original space
+    contrib = (R ** 2).sum(1); idx = np.argsort(-contrib)[:HAGI_EMB_ROWS2]
+    par2, Q2 = quant_per_row(R[idx], bits=bits, use_had=use_had, rotate_rows=False)
+    par["rows2"] = idx.tolist(); par["par2"] = par2            # dequant adds these rows back
+    Q = np.concatenate([Q, Q2])                                # bytes: Q.size already counts both
+# dequant_per_row — right before `if par["use_had"]:` (stage-1 sum already in R):
+if "rows2" in par:
+    R[par["rows2"]] += dequant_per_row(par["par2"], Q[par["shape"][0] * par["stages"]:])
+```
+
+`HAGI_EMB_ROWS2 = 128` (half of the 256 rows: the knee of the measured curve,
+−1.0 of 2.3 nat for +13 % bytes). `HAGI_EMB_ROWS2 = 0` disables; export-only,
+training untouched. Regression test = `scripts/ab_export_quant.py --steps 60`
+row "mixed-precision rows" ≤ "trits no-gauge" − 0.3 nat.
