@@ -23,7 +23,7 @@ def restore(model, snap):
         for n, v in snap.items(): getattr(model, n).copy_(v)
 
 def export_ce(model, x, y, bits=2, mixed=False, use_had=True):
-    snap = snapshot(model); nbytes, rows2 = 0, 0
+    snap = snapshot(model); nbytes, rows2 = 0, 0; clip = 0; tot = 0
     for name, p in model.__dict__.items():
         if not isinstance(p, t.nn.Parameter) or p.ndim != 2: continue
         W = p.detach().cpu().numpy()
@@ -42,19 +42,20 @@ def export_ce(model, x, y, bits=2, mixed=False, use_had=True):
                 continue
         with t.no_grad(): getattr(model, name).copy_(t.as_tensor(dequant_per_row(par, Q), dtype=p.dtype).to(p.device))
         nbytes += Q.size // 4 + par["scales"].nbytes
-    out = ce(model, x, y), nbytes, rows2
+        clip += int((Q >= 7).sum()) if bits != 2 else 0; tot += Q.size
+    out = ce(model, x, y), nbytes, rows2, clip
     restore(model, snap)
     return out
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--steps", type=int, default=60)
+    ap = argparse.ArgumentParser(); ap.add_argument("--steps", type=int, default=60); ap.add_argument("--wd", type=float, default=1e-4); ap.add_argument("--bits", type=int, default=2)
     a = ap.parse_args()
     t.manual_seed(0); rng = np.random.default_rng(0)
     m = HagiOptimalLM()
     # structured byte stream: a 32-byte template repeated with occasional mutations (learnable)
     tmpl = rng.integers(0, 256, 32); data = np.tile(tmpl, 128)
     for _ in range(200): data[rng.integers(0, len(data))] = rng.integers(0, 256)
-    opt = HybridMuonAdamW(*m.matrix_and_vec_params(), lr_muon=0.0, lr_adam=3e-3, momentum=0.0, wd=0.0); opt.names = m.param_names()
+    opt = HybridMuonAdamW(*m.matrix_and_vec_params(), lr_muon=0.0, lr_adam=3e-3, momentum=0.0, wd=a.wd); opt.names = m.param_names()
     for s in range(a.steps):
         x = t.as_tensor(np.stack([data[i:i + 32] for i in range(0, 2048, 32)])).long()
         y = t.as_tensor(np.stack([data[i + 1:i + 33] for i in range(0, 2048, 32)])).long().to(m.device)
@@ -62,8 +63,10 @@ if __name__ == "__main__":
     x = t.as_tensor(np.stack([data[i:i + 32] for i in range(3000, 4000, 32)])).long().to(m.device)
     y = t.as_tensor(np.stack([data[i + 1:i + 33] for i in range(3000, 4000, 32)])).long().to(m.device)
     base = ce(m, x, y)
-    q0, b0, _ = export_ce(m, x, y, mixed=False)
-    snap0 = snapshot(m); gauge_balance(m); qg, bg, _ = export_ce(m, x, y, mixed=False); restore(m, snap0)
-    qm, bm, r2 = export_ce(m, x, y, mixed=True)
+    q0, b0, _, c0 = export_ce(m, x, y, bits=a.bits, mixed=False)
+    snap0 = snapshot(m); ginfo = gauge_balance(m); qg, bg, _, cg = export_ce(m, x, y, bits=a.bits, mixed=False); restore(m, snap0)
+    qm, bm, r2, _ = export_ce(m, x, y, bits=a.bits, mixed=(a.bits == 2))
+    print(f"[wd={a.wd} steps={a.steps}] gauge max_log_shift swiglu={ginfo.get('max_log_shift_swiglu'):.3f} bigram={ginfo.get('max_log_shift_bigram'):.3f}")
     print(f"fp32 CE {base:.4f} | trits no-gauge {q0:.4f} ({b0} B) | gauge {qg:.4f} ({bg} B) | mixed-precision rows {qm:.4f} ({bm} B, +{r2} rows @2 stages)")
+    print(f"clip-saturated levels (bits=4 only): no-gauge {c0}, gauge {cg}")
     print("ACCEPT 25b if gauge <= no-gauge; ACCEPT 29 if mixed < no-gauge at comparable bytes")

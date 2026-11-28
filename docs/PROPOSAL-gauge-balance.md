@@ -71,3 +71,21 @@ def test_gauge_balance_is_function_preserving():
     assert info["max_log_shift_swiglu"] > 0.1          # it actually rebalanced
     # and the export is tighter: per-row |W| max after balance ≤ before, row-wise
 ```
+
+
+## Measured (scripts/ab_export_quant.py, HAGI_v2, structured stream)
+
+| run | fp32 | trits no-gauge | trits gauge | clip levels (bits=4) no-gauge / gauge | gauge max_log_shift |
+|---|---|---|---|---|---|
+| 60 steps, wd 0 | 2.2485 | 3.0326 | 3.0337 | — | — |
+| 60 steps, bits=4 | 2.2485 | 2.2840 | 2.2840 | 976 / 978 | — |
+| 300 steps, wd 1e-3 | 1.8097 | 4.1109 | 4.1236 | — | swiglu 0.637, bigram 0.046 |
+
+**No CE gain from the gauge in any run, and no reduction of clip-saturated levels.**
+The gauge does move weights (factor e^0.64 on SwiGLU), but `_best_mse_scale`
+(bits=2) and `m/7.5` (bits=4) are *adaptive per-row* scales, so the row range
+shrinks together with the weights and the clip fraction is invariant. The
+`gauge_kills_sat_tail` mechanism holds for a **fixed** scale only; with adaptive
+scales the benefit, if any, is in the dynamic range across rows (Hadamard
+mixing), not in saturation. Status: 25b stays a trajectory-neutral insurance
+(wiring + identity test), not a measured CE win; do not spend a long run on it.
