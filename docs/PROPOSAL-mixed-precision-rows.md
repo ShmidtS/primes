@@ -134,3 +134,18 @@ def alloc_bits(contrib: np.ndarray, budget: int) -> np.ndarray:   # contrib = fi
 Store `bits` per row in the quant params (`dequant_per_row` already reads
 `par`); regression test: CE of the exported model ≤ uniform-2-bit CE at equal
 `sum(bits)·rows`, and `bytes(export)` unchanged.
+
+
+## Extending beyond `emb`: drop the row rotation (`--cols-only`, 300 steps, wd 1e-3)
+
+| variant | CE | bytes | Δ bytes | Δ CE per +kB |
+|---|---|---|---|---|
+| uniform trits | 4.1109 | 10174 | — | — |
+| emb only, 128 rows @2 | 3.1006 | 11454 | +1280 | −0.79 /kB |
+| all tables, no row rotation, 579 rows @2 | **2.9475** | 14040 | +3866 | −0.30 /kB |
+
+Removing the row-block Hadamard makes per-row stages valid on the 2-D matrices
+too and recovers a further −0.15 nat, but at ~2.6× worse CE-per-byte than the
+`emb`-only step. Order of adoption: (1) `emb`-only, +13 % bytes; (2) if bytes
+allow, `--cols-only` on the remaining tables; keep the row rotation for
+everything that stays at one stage.
