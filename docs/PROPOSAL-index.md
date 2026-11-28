@@ -42,3 +42,4 @@ measurement, waiting for code · PENDING = theory only. Numbers live in the file
 | 33 | [PROPOSAL-hnet2-sparse-train.md](PROPOSAL-hnet2-sparse-train.md) | AdaptiveChunking | PENDING | gather W_l2 rows only on boundary positions during training (≈5× fewer level-2 FLOPs; |
 | 34 | [PROPOSAL-gate-domain-rotation.md](PROPOSAL-gate-domain-rotation.md) | PairedGain / TailGate | LIVE | rotate the capped measured set so every old domain is measured every ⌈n/m⌉ steps; |
 | 35 | [PROPOSAL-worst-gate-margin.md](PROPOSAL-worst-gate-margin.md) | PairedGain | LIVE | certified growth grow − radius(α/n) > tol; |
+| 36 | [PROPOSAL-semcache-calibrated.md](PROPOSAL-semcache-calibrated.md) | SemCache | READY | decoder-side kNN memory over hidden states with self-calibrated weight λ·max(acc_kNN − acc_model, 0)·s: −0.76 nat on template data, exactly 0.0000 on Zipf/random (measured); 0 params, 0 archive bytes |

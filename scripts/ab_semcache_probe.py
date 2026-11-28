@@ -50,3 +50,16 @@ for tau in (0.0, 0.3, 0.5, 0.7, 0.9, 0.95):
         q, sm = knn_q(i); lam = a.lam * max(sm, 0.0) if sm > tau else 0.0
         ce_mix[i] = -np.log((1 - lam) * P[i][y[i]] + lam * q[y[i]] + 1e-12)
     print(f"tau {tau:.2f}: CE model {ce_m.mean():.4f} -> mix {ce_mix.mean():.4f} ({ce_mix.mean() - ce_m.mean():+.4f}), gated positions {int((sims > tau).sum())}/{len(y)}")
+
+# --- self-calibrated weight: lambda_t from decoder-verifiable accuracy of the kNN on the last N positions ---
+def knn_pred(i, K=8):
+    q, sm = knn_q(i); return (int(np.argmax(q)) if q.max() > 0 else -1), sm
+for N in (16, 64):
+    ce_cal = ce_m.copy(); hist = []  # (knn correct?, model correct?)
+    for i in range(1, len(y)):
+        recent = hist[-N:]
+        acc_k = np.mean([h[0] for h in recent]) if recent else 0.0; acc_m = np.mean([h[1] for h in recent]) if recent else 0.0
+        q, sm = knn_q(i); lam = a.lam * max(float(acc_k - acc_m), 0.0) * max(sm, 0.0)
+        ce_cal[i] = -np.log((1 - lam) * P[i][y[i]] + lam * q[y[i]] + 1e-12)
+        pk, _ = knn_pred(i); hist.append((pk == y[i], int(np.argmax(P[i])) == y[i]))
+    print(f"calibrated N={N}: CE model {ce_m.mean():.4f} -> {ce_cal.mean():.4f} ({ce_cal.mean() - ce_m.mean():+.4f})")
