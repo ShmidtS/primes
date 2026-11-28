@@ -22,8 +22,8 @@ def restore(model, snap):
     with t.no_grad():
         for n, v in snap.items(): getattr(model, n).copy_(v)
 
-def export_ce(model, x, y, bits=2, mixed=False, use_had=True):
-    snap = snapshot(model); nbytes, rows2 = 0, 0; clip = 0; tot = 0
+def export_ce(model, x, y, bits=2, mixed=False, use_had=True, rows2=None):
+    snap = snapshot(model); nbytes, n2 = 0, 0; clip = 0; tot = 0
     for name, p in model.__dict__.items():
         if not isinstance(p, t.nn.Parameter) or p.ndim != 2: continue
         W = p.detach().cpu().numpy()
@@ -32,10 +32,10 @@ def export_ce(model, x, y, bits=2, mixed=False, use_had=True):
         if mixed and not rotate_rows:   # row-block Hadamard mixes rows: per-row stages only where rotate_rows=False
             R = W - dequant_per_row(par, Q)
             contrib = (R ** 2).sum(1)
-            idx = np.flatnonzero(contrib > 4 * contrib.min())
+            idx = np.flatnonzero(contrib > 4 * contrib.min()) if rows2 is None else np.argsort(-contrib)[:min(rows2, len(contrib))]
             if len(idx):
                 par2, Q2 = quant_per_row(R[idx], bits=bits, use_had=use_had, rotate_rows=rotate_rows)
-                rows2 += len(idx)
+                n2 += len(idx)
                 deq = dequant_per_row(par, Q); deq[idx] += dequant_per_row(par2, Q2)
                 with t.no_grad(): getattr(model, name).copy_(t.as_tensor(deq, dtype=p.dtype).to(p.device))
                 nbytes += Q.size // 4 + par["scales"].nbytes + Q2.size // 4 + par2["scales"].nbytes
@@ -43,12 +43,12 @@ def export_ce(model, x, y, bits=2, mixed=False, use_had=True):
         with t.no_grad(): getattr(model, name).copy_(t.as_tensor(dequant_per_row(par, Q), dtype=p.dtype).to(p.device))
         nbytes += Q.size // 4 + par["scales"].nbytes
         clip += int((Q >= 7).sum()) if bits != 2 else 0; tot += Q.size
-    out = ce(model, x, y), nbytes, rows2, clip
+    out = ce(model, x, y), nbytes, n2, clip
     restore(model, snap)
     return out
 
 if __name__ == "__main__":
-    ap = argparse.ArgumentParser(); ap.add_argument("--steps", type=int, default=60); ap.add_argument("--wd", type=float, default=1e-4); ap.add_argument("--bits", type=int, default=2)
+    ap = argparse.ArgumentParser(); ap.add_argument("--steps", type=int, default=60); ap.add_argument("--wd", type=float, default=1e-4); ap.add_argument("--bits", type=int, default=2); ap.add_argument("--sweep", action="store_true", help="CE vs number of emb rows given a 2nd stage")
     a = ap.parse_args()
     t.manual_seed(0); rng = np.random.default_rng(0)
     m = HagiOptimalLM()
@@ -69,4 +69,8 @@ if __name__ == "__main__":
     print(f"[wd={a.wd} steps={a.steps}] gauge max_log_shift swiglu={ginfo.get('max_log_shift_swiglu'):.3f} bigram={ginfo.get('max_log_shift_bigram'):.3f}")
     print(f"fp32 CE {base:.4f} | trits no-gauge {q0:.4f} ({b0} B) | gauge {qg:.4f} ({bg} B) | mixed-precision rows {qm:.4f} ({bm} B, +{r2} rows @2 stages)")
     print(f"clip-saturated levels (bits=4 only): no-gauge {c0}, gauge {cg}")
+    if a.sweep:
+        for k in (32, 64, 128, 256):
+            qk, bk, _, _ = export_ce(m, x, y, bits=2, mixed=True, rows2=k)
+            print(f"  emb rows @2 stages {k:4d}: CE {qk:.4f}, bytes {bk} (+{bk - b0})")
     print("ACCEPT 25b if gauge <= no-gauge; ACCEPT 29 if mixed < no-gauge at comparable bytes")

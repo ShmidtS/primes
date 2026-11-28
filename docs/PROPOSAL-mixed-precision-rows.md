@@ -62,6 +62,22 @@ def test_alloc_bits_equal_budget_lower_error():
 2-D matrices with row rotation, use the global `stages` on the *whole* matrix
 or rotate by columns only. The 4× rule on `contrib` is unchanged.
 
+## Budget curve (300 steps, wd 1e-3, `--sweep`): emb rows given a 2nd trit stage
+
+| rows @2 stages | CE | bytes | Δ bytes |
+|---|---|---|---|
+| 0 (today) | 4.1109 | 10174 | — |
+| 32 | 3.3955 | 10494 | +3 % |
+| 64 | 3.2758 | 10814 | +6 % |
+| **128** | **3.1006** | 11454 | **+13 %** |
+| 256 | 3.1149 | 12734 | +25 % (saturates: next gain needs a 3rd stage) |
+
+Half of the `emb` rows carry almost all of the recoverable loss (−1.0 of the
+2.3 nat quantisation cost for +13 % bytes). The 4× rule picks 81 rows
+(CE 3.153) — conservative; the budgeted form `rows2 = min(len, 256)` by
+descending contribution is the practical knob. Pick the point on the curve by
+the byte budget, not by the rule.
+
 ## Minimal diff (fits the existing `quant_per_row(stages=…)` — a per-row stage count)
 
 `quant_per_row` already implements residual stages; mixed precision is a
