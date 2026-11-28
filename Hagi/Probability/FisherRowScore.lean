@@ -64,4 +64,24 @@ theorem rowFisherScore_diag (X : Matrix (Fin B) (Fin n) ℝ) (e : Fin n → ℝ)
     have e2 : e i * e i * (∑ b, X b i * X b i) = (∑ b, X b i ^ 2) * e i ^ 2 := by
       rw [sq, mul_comm, Finset.sum_mul, Finset.sum_mul]; apply Finset.sum_congr rfl; intro b _; ring
     rw [e2]
+/-- Изотропный вход (`XᵀX = σ²·B·I`): Fisher-балл пропорционален норме ошибки,
+`rowFisherScore = σ²·‖e‖²` — ранжирование строк по Фишеру совпадает с ранжированием
+по норме, выигрыша нет. Измерено (scripts/ab_fisher_rows.py): внутренние матрицы
+HAGI_v2 с RMS-нормированным входом дают −0.035 nat при равных байтах, словарь emb
+с анизотропной ковариацией `p_i(1 − p_i)` — −0.55 nat (29c). Выигрыш живёт там,
+где ковариация входа анизотропна. -/
+theorem rowFisherScore_isotropic (X : Matrix (Fin B) (Fin n) ℝ) (e : Fin n → ℝ) (σ : ℝ) (hB : 0 < B)
+    (hiso : ∀ i j, (∑ b, X b i * X b j) = if i = j then σ ^ 2 * B else 0) :
+    rowFisherScore X e = σ ^ 2 * ∑ j, e j ^ 2 := by
+  have hunc : ∀ i j, i ≠ j → ∑ b, X b i * X b j = 0 := by intro i j h; rw [hiso i j, if_neg h]
+  have hB' : (B : ℝ) ≠ 0 := by exact_mod_cast (Nat.pos_iff_ne_zero.mp hB)
+  rw [rowFisherScore_diag X e hunc]
+  have hdiag : ∀ j, (∑ b, X b j ^ 2) = σ ^ 2 * B := by
+    intro j; have := hiso j j; rw [if_pos rfl] at this
+    calc (∑ b, X b j ^ 2) = ∑ b, X b j * X b j := by apply Finset.sum_congr rfl; intro b _; rw [sq]
+      _ = σ ^ 2 * B := this
+  rw [Finset.sum_congr rfl (fun j _ => by rw [hdiag j])]
+  have hn : ∀ j, (σ ^ 2 * (B : ℝ)) / (B : ℝ) * e j ^ 2 = σ ^ 2 * e j ^ 2 := by
+    intro j; field_simp
+  rw [Finset.sum_congr rfl (fun j _ => hn j), ← Finset.mul_sum]
 end Hagi.Probability.FisherRowScore
