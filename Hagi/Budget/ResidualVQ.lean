@@ -450,6 +450,27 @@ theorem kstar_minimal (c : ℕ → ℝ) (lam b rho : ℝ) (hρ : 1 ≤ rho) (hmo
     exact J_mono_desc c lam b rho k (kstar - k) (fun m _ hm => le_of_lt (hbefore m (by omega)))
   · rw [show k = kstar + (k - kstar) by omega]; exact hinc (k - kstar)
 
+/-- Правило auto (HAGI_v2 89d663a): брать строки, пока `c k ≥ θ·c 0`. Это в точности
+маржинальное правило `kstar_minimal` при цене строки `lam·b = θ·(1 − 1/ρ)·c 0`:
+порог задаёт цену байта, а не наоборот. Измерено (scripts/ab_rows2_kstar.py,
+θ = 0.10, словарь из 256 строк): auto берёт 255 строк — подразумеваемая цена
+байта 1.7e-3 nat/байт, тогда как перебор даёт оптимум при 64 строках и цене
+до 3e-4; вклады остатка убывают медленно (c 255 / c 0 = 0.09), поэтому
+относительный порог к первой строке почти не отсекает. Порог надо задавать
+через цену байта: θ = λ·b / ((1 − 1/ρ)·c 0). Нестрогое условие кода (вклад
+не меньше порога) даёт `kstar + 1` строку. -/
+theorem auto_rule_is_kstar (c : ℕ → ℝ) (lam b rho θ : ℝ) (hρ : 1 < rho) (hc0 : 0 ≤ c 0)
+    (hθ : 0 ≤ θ) (hmono : ∀ k, c (k+1) ≤ c k) (kstar : ℕ)
+    (hprice : lam * b = θ * (1 - 1 / rho) * c 0)
+    (hstop : c kstar < θ * c 0) (hbefore : ∀ k < kstar, θ * c 0 < c k) :
+    (1 - 1 / rho) * c kstar ≤ lam * b ∧ ∀ k < kstar, lam * b < (1 - 1 / rho) * c k := by
+  have hn : 0 < 1 - 1 / rho := by
+    have h1 : 1 / rho < 1 := (div_lt_one (by linarith : (0:ℝ) < rho)).mpr hρ
+    linarith
+  refine ⟨?_, fun k hk => ?_⟩
+  · rw [hprice]; have := mul_lt_mul_of_pos_left hstop hn; nlinarith
+  · rw [hprice]; have := mul_lt_mul_of_pos_left (hbefore k hk) hn; nlinarith
+
 /-! ### CE weight of an embedding row: why the residual norm is not the right score -/
 
 /-- Измерено на HAGI_v2 (scripts/ab_rows2_kstar.py, словарь из 256 строк):

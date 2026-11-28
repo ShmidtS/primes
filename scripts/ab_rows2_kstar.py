@@ -80,3 +80,10 @@ cn = (Rall ** 2).sum(1)
 for k in (32, 64, 128):
     c_norm, i1 = stage2(cn, k); c_fish, i2 = stage2(fr * cn, k)
     print(f"k {k:3d}: CE by |res|^2 {c_norm:.4f} | by p*|res|^2 {c_fish:.4f} | gain {c_norm - c_fish:+.4f} | overlap {len(set(i1) & set(i2))}/{k}")
+
+# --- HAGI_v2 89d663a: EMB_ROWS2=auto (stop when c_i < EMB_ROWS2_MIN_FRAC·c_0) vs the marginal rule ---
+OM.EMB_ROWS2 = "auto"; qa, nba = OM.quantize_model(m, bits=2, use_had=True); OM.dequantize_into(m, qa); ce_auto = ce(m, x, y); m.emb.data.copy_(emb0); OM.EMB_ROWS2 = 0
+k_auto = len(qa["emb"]["rows2"]); thr = OM.EMB_ROWS2_MIN_FRAC * c[0]
+print(f"auto: k = {k_auto}, bytes {nba} (+{nba - res[0][1]}), CE {ce_auto:.4f}; rule stop c_k < {thr:.4f} (c_0 {c[0]:.4f})")
+# implied byte price lam of the auto rule: lam·b_row = thr·(1−1/rho)
+print(f"implied lam = thr*(1-1/rho)/b_row = {thr * (1 - 1 / float(np.median(rho))) / b_row:.2e} nat/byte")
