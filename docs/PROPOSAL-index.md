@@ -43,3 +43,4 @@ measurement, waiting for code · PENDING = theory only. Numbers live in the file
 | 34 | [PROPOSAL-gate-domain-rotation.md](PROPOSAL-gate-domain-rotation.md) | PairedGain / TailGate | LIVE | rotate the capped measured set so every old domain is measured every ⌈n/m⌉ steps; |
 | 35 | [PROPOSAL-worst-gate-margin.md](PROPOSAL-worst-gate-margin.md) | PairedGain | LIVE | certified growth grow − radius(α/n) > tol; |
 | 36 | [PROPOSAL-semcache-calibrated.md](PROPOSAL-semcache-calibrated.md) | SemCache | READY | decoder-side kNN memory over hidden states with self-calibrated weight λ·max(acc_kNN − acc_model, 0)·s: −0.76 nat on template data, exactly 0.0000 on Zipf/random (measured); 0 params, 0 archive bytes |
+| 29d | [PROPOSAL-fisher-rows-all.md](PROPOSAL-fisher-rows-all.md) | FisherRowScore | READY | stage-two rows of every matrix ranked by empirical Fisher score mean (e·x)² using capture[id(W)]: −0.035 nat at k = 8 on internal 24×24 matrices, equal bytes (measured) |
