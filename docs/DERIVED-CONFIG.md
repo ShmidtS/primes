@@ -203,6 +203,37 @@ STATUS COUNTS: BOUNDED=18 DERIVED=22 HONEST-GAP=16
 | growth L (гейт) | измерение (в роли `L` гейта — `S`, не значение CE; `S` не логируется) + теорема-certified-stay при такой замене |
 | coverage w | измерение (`a`, `c` в коде не измеряются) |
 
+## 3. Текущий код (unified.py / optimal_lm.py): константа → формула
+
+σ² = 1.6 — дисперсия CE окна (код, замер ANCHOR_SE_MULT); `radius` —
+`Hagi.Probability.PairedGain.radius`, `rootT` — `radius_le_iff_ge_root`;
+`n*(ε) = ⌈1/rootT²⌉` — число окон, при котором радиус ≤ ε (вероятность ≥ 1 − α).
+
+| Константа кода | Значение | Вывод | Формула вместо константы | Статус |
+|---|---|---|---|---|
+| `choose_emb_rows2(lam)` | 5e-4 nat/байт | MDL: `N·CE + 8·ln2·B` — `AnchorGate.mdl_lambda` | `λ = 8·ln 2 / N` (N — байт данных): 6.8e-4 при 8 кБ, 1.4e-5 при 400 кБ | DERIVED (λ не свободна) |
+| `EMB_ROWS2_MIN_FRAC` (auto) | 0.10 | порог ⇒ цена: `ResidualVQ.auto_rule_is_kstar` | θ = λ·b/((1−1/ρ)·c₀); при Fisher-весах кривая немонотонна ⇒ перебор (`sweep_ge_argmin`) | DERIVED / заменён свипом |
+| `ADAPTER_MIN_GAIN` | 0.005 | порог должен быть ≥ радиуса шума | `ε = radius(n, α)`; при n = 4096 радиус 0.073 ≫ 0.005; для ε = 0.005 нужно n* = 764 311 окон | HONEST-GAP в коде: порог ниже шума |
+| `FIBER_MIN_GAIN` | 0.01 | то же | n* = 193 272 окон для ε = 0.01 | HONEST-GAP в коде |
+| `ADAPTER_VAL_WINDOWS` | 4096 | из требуемого порога | `n = n*(ε)` | DERIVED (обратно к MIN_GAIN) |
+| `ANCHOR_SE_MULT` | 4.0 | 4·SE — не EB-гарантия | `AnchorGate.anchor_windows_certified`: допуск ε сертифицирован при n ≥ n*(ε) | HONEST-GAP: замена на радиус |
+| `ANCHOR_MIN_WINDOWS` | 32 | радиус при 32 окнах 1.5–3.0 nat | для ε = 0.25: n* = 463 (Bonf 1) … 978 (Bonf 16) | HONEST-GAP в коде (32 ≪ n*) |
+| `WORST_TOL_ROLLBACK` | 0.25 nat | допуск = бюджет риска шага | из `IdealModel.riskLim` (не выведено) | HONEST-GAP |
+| `WORST_GATE_BONF` | 16 | Bonferroni по числу доменов | `worst_gate_false_rollback_le`: α/n_domains | DERIVED (равен числу доменов) |
+| `OLD_GATE_WINDOWS` | 32768 | бюджет окон ↔ радиус 0.025 | `n*(0.025) ≈ 32 000` при σ² = 1.6 | DERIVED (согласовано) |
+| `QAT_CODED_LAM` (37) | 1e-2 | MDL-цена байта на шаг | λ·(8·ln2/N)·ΔH; H ≤ 2 бит/вес | BOUNDED: потолок 2-бит мал |
+| `HAGI_SEM_K / LAM / N` (36) | 8 / 0.3 / 16 | λ калибруется по точности (SemCache) | λ_t = λ·max(Δacc, 0)·s; τ = 0.02 — свободна | BOUNDED (τ) |
+| `lr_adam`, `wd`, `momentum`, `beta2` | 5e-3, 1e-4, 0.9, 0.999 | `ce_adaptive_curv_le_range_tight`: η* = 1/C* | C* = min(κ(R)·Var, R²/8) измеряется кодом (ATA) | BOUNDED: wd, β не выводятся |
+| `rms_eps` | 1e-6 | масштабируется d₀/d при росте (`grow_width`) | `WidthGrowth` | DERIVED (относительная) |
+| `BYPASS_BOOST` | 8 | логит точного словаря | — | HONEST-GAP |
+| `SPIKE_K` / `SPIKE_START` | 3 / 0.8 | `SpikeThreshold` | — | HONEST-GAP (0.8) |
+
+Итого: из 17 констант 6 выводятся (λ, n, Bonf, θ, OLD_GATE, rms_eps), 3 —
+согласованы с формулой в пределах фактора, 8 — честные пробелы; три из них
+(MIN_GAIN 0.005/0.01 при 4096 окнах, ANCHOR_MIN_WINDOWS 32) **противоречат**
+радиусу: пороги ниже шума, допуски — на числе окон, где радиус в 6–12 раз больше
+допуска.
+
 ## 5. Ссылки
 
 - STATUS.md: NegativeTransfer, GrowSnap, CoverageReading, NadyaOptimal,
