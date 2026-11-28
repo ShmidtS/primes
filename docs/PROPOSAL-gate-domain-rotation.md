@@ -49,3 +49,17 @@ code-side port is pending.
 | 31 | [NOTES-hagi-optimal-v3-verification.md](NOTES-hagi-optimal-v3-verification.md) | DepthExitCert | Margin early exit is a heuristic until `L_h·bres₂` is logged (`margin_exit_unbounded_without_bound`) | Priority: 1 — replace fixed `margin > 2.0` by `2·L_h·bres₂` with logged per-block bound; reconcile AdamSNR memory 7680 vs 8192 |
 | 33 | [PROPOSAL-hnet2-sparse-train.md](PROPOSAL-hnet2-sparse-train.md) | AdaptiveChunking | Cost model in primes; code-side pending (dense u2_all on training path) | Priority: 3 (changes the trajectory: hard gate at train time) — gather W_l2 rows only on boundary positions during training (≈5× fewer level-2 FLOPs; gradient through p_t intact, verified 0.67) |
 | 34 | [PROPOSAL-gate-domain-rotation.md](PROPOSAL-gate-domain-rotation.md) | PairedGain / TailGate | Cost model in primes (`budget_split_radius_bounds`); code-side: `OLD_GATE_DOMAINS` working tree | Priority: 1 (trajectory-neutral) — rotate the capped measured set so every old domain is measured every ⌈n/m⌉ steps; stale growth = unknown, never 0 |
+
+## When the cap becomes necessary (numbers from `radius` with sig2 = 0.05, b = 0.5, α = 0.05, L = ln 40)
+
+| old domains n | windows/domain w = 2048/n | noise term | bias term | radius | × vs n = 4 |
+|---|---|---|---|---|---|
+| 4 | 512 | 0.027 | 0.007 | 0.034 | 1.00 |
+| 8 | 256 | 0.038 | 0.014 | 0.052 | 1.54 |
+| 16 | 128 | 0.054 | 0.029 | 0.083 | 2.42 |
+| 32 | 64 | 0.076 | 0.058 | 0.134 | 3.92 |
+
+(`budget_split_radius_bounds`: noise × √n, bias × n.) Against `WORST_TOL_ROLLBACK = 0.25`
+the radius is fine up to n ≈ 16 and eats half the tolerance at n = 32 — that is
+the point where `HAGI_OLD_GATE_DOMAINS` should be turned on *together with* the
+rotation above; before that, full coverage (d602812) is strictly better.
