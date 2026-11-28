@@ -69,3 +69,14 @@ Bonferroni count at 16 trades a provable ≤ 16·α for a usable radius
 (`worst_gate_false_rollback_le` with m = 16). The point threshold at w = 237 is
 already noise-free in this simulation; the certified comparison is what keeps it
 so when the domain count grows.
+
+## Code-side (working tree, cycle 132): `HAGI_WORST_GATE_MARGIN` with `WORST_GATE_BONF = 16`
+
+Radii with the real `paired_margin_eb`, σ = 0.64: w = 128 → 0.344 (Bonferroni 16)
+vs 0.425 (138); w = 237 → 0.287 vs 0.355. At the 32768 budget (w = 237 at n = 138)
+the certified gate rolls back on a *certified* growth > 0.25 + 0.29 = 0.54 with a
+false-rollback bound of 16·α (`worst_gate_false_rollback_le`, m = 16), while the
+point threshold trips on noise at 5.8 % per domain at w = 16. The switch is
+currently off by default (`HAGI_WORST_GATE_MARGIN=0`); turning it on is
+trajectory-neutral (rollback-time only) and should pass the same persistence-style
+test as 26/3c19a8c: zero true growth ⇒ zero rollbacks over 40 trials.
