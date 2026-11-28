@@ -88,7 +88,9 @@ PROPOSAL 27 is a no-op; it would matter only when the growth step is followed by
 very few training steps (quick adaptation) or when `W_down`'s own gradient is
 gated (e.g. protected by GPM).
 
-Separate finding (same in both variants): seed 0 degrades after growth
-(1.71 → 1.95) — the new block hurts for 150 steps. That is not an init problem
-(candidates: the new matrices enter the Muon group with a fresh Polar state;
-`opt.names` order after `grow_depth`). Worth a code-side look before any init change.
+Control run (`grow=False`, same 150 extra steps, no growth): seed 0 also goes
+1.7097 → 1.9466, seed 1 1.5076 → 1.5026 — **identical to the grown runs**. So
+(i) `grow_depth` is bit-for-bit CE-neutral (the zero-init block is an exact
+identity, `dead_block_out_zero`), and (ii) the seed-0 "degradation" is a
+property of the 300-step schedule on this stream (overfitting of the batch-16
+schedule), not of growth. No code-side issue here.
