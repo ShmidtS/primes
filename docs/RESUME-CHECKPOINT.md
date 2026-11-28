@@ -90,4 +90,5 @@ Total commits in primes at checkpoint: 2435.
 * Not formalised, honestly: NTK spectral entropy (`log det₊ K̄`), quantitative
   TBPTT bias (needs measured GDN `g`), volume of the dead set `α^{-N/2}` (sign model: `dead_one_input_fraction` = 1/2 per input, `2^{-L}` per path — the K/perture-volume form is not formalised).
 
+* Code-agent measurement (cycle 119, n = 138 old domains): 2048-window budget → 16 windows/domain → 0.16 nat error (all 0.25-exceedances = noise); 32768 → 237 windows → 0.044. Matches `budget_split_radius_bounds` (0.16·√(16/237) = 0.042).
 * Freeze at cycle 118: 9659 declarations (9540 at session start).

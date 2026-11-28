@@ -63,3 +63,14 @@ code-side port is pending.
 the radius is fine up to n ≈ 16 and eats half the tolerance at n = 32 — that is
 the point where `HAGI_OLD_GATE_DOMAINS` should be turned on *together with* the
 rotation above; before that, full coverage (d602812) is strictly better.
+
+## Measured (HAGI_v2 working tree, after d602812)
+
+With n = 138 old domains and the 2048 budget the per-domain share was 16 windows
+and the code agent measured a CE-difference error of **0.16 nat — every exceedance
+of the 0.25 tolerance was noise**; raising the budget to 32768 (237 windows/domain)
+gives **0.044 nat**. Check against `radius`: noise-dominated scaling
+`0.16·√(16/237) = 0.042` ≈ 0.044 — the measurement matches the √(W/m) law of
+`budget_split_radius_bounds`. Consequence: full coverage (d602812) is affordable
+only with the 16× budget; the cap + rotation is the alternative when 32768 windows
+per gate are too expensive.
