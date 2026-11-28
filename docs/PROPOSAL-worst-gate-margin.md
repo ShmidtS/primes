@@ -44,3 +44,28 @@ def test_worst_gate_certified_no_false_rollback():
             trips += (grow - r > 0.25)
     assert trips == 0          # point threshold: ~138 × 0.059 × 50 ≈ 400 false trips
 ```
+
+## Measured with the real `paired_margin_eb` (σ = 0.64, 138 domains, 40 trials)
+
+| w | radius (α/138) | point-threshold false trips / 5520 | certified trips |
+|---|---|---|---|
+| 16 | **2.088** | 319 (5.8 %) | 0 |
+| 64 | 0.779 | 7 | 0 |
+| 128 | 0.509 | 0 | 0 |
+| 237 | 0.322 | 0 | 0 |
+
+The point threshold fails exactly as predicted, and the certified gate never
+trips on noise. **But** with Bonferroni over 138 domains and only 16 windows the
+bias term `2·b·L/n` dominates (L = ln(2·138/0.05) ≈ 8.6, b = max|x|): the radius
+is 2.09 nat, so a *true* growth would have to exceed 2.34 to roll back — the
+gate becomes blind in the other direction. The certified form is therefore only
+usable from w ≈ 64 (radius 0.78 → true growth > 1.0) and comfortable from
+w ≈ 128 (0.51 → 0.76).
+
+**Revised recommendation:** keep `HAGI_OLD_GATE_WINDOWS` such that w ≥ 128
+(budget 32768 at n = 138 is right) *and* switch the comparison to
+`grow − paired_margin_eb(diff, n_states=min(n_dom, 16)) > tol`; capping the
+Bonferroni count at 16 trades a provable ≤ 16·α for a usable radius
+(`worst_gate_false_rollback_le` with m = 16). The point threshold at w = 237 is
+already noise-free in this simulation; the certified comparison is what keeps it
+so when the domain count grows.
