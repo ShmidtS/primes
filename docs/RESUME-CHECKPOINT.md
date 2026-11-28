@@ -1,4 +1,4 @@
-# Resume checkpoint — cycle 84 (HEAD of primes at the time of writing)
+# Resume checkpoint — cycle 120
 
 Purpose: continue the HAGI research cycle after a context/environment reset
 without re-deriving the state. Authoritative facts live in git; this file is a
@@ -9,19 +9,24 @@ map, not a source of truth.
 - Repo `C:\primes` (Lean 4.36.0 / Mathlib), CI = `bash scripts/ci.sh`
   (needs `export PATH="/c/Users/shmid/lean-toolchains/lean-4.36.0-windows/bin:$PATH"`
   — without it lake fails on Batteries and CI reports a false BUILD FAIL).
-  Every commit in this session passed the full battery (Freeze, DocLint R4/R5,
-  DocAnchorCheck, TrivialLint, LayerLint, ReachLint, NsLint, DupLint).
+  Every commit of the session passed the full battery (Freeze 9659 declarations,
+  DocLint R4/R5, DocAnchorCheck, TrivialLint, LayerLint, ReachLint, NsLint, DupLint).
 - Reference implementation `C:\HAGI_v2` is READ-ONLY (another agent).
-  HEAD `d602812` (PROPOSAL 13, 17, 25, 26 accepted, 34 in substance (all old domains measured → TailGate exact on the full set, PairedGain.budget_split_radius_bounds); 18/30/ef21_qat-fix reverted by cc1bdd1+3c9c9c6, tests removed; 18 and 30 were accepted (1e707ce, 9a381f3) and then REVERTED by cc1bdd1 «откат 1e707ce» — no cause in the message; the revert also removed the Adam-branch LazyAdam moments. Open question to the code agent: which measurement drove the revert (CE? stability?). Theory unchanged: `RepairShare.water_filling_exists`, `LazyAdam.lazy_moment_drift`; `3f76650` ef21_qat fix, `3f76650` ef21_qat fix (EF21Scale, ResidualVQ stages); Q/K/V already separate (W_gq/W_gk/W_gv) — no proposal 32; `9a381f3` table-LazyAdam → LazyAdam.lazy_moment_drift; `856b993` worst-domain diagnostic → ledger = observability for TailGate.mean_le_not_imp_max_le; `4fbd922` live backup = infra, no theorem — two-generation copy, loss ≤ one save interval by construction; PROPOSAL 28 v1 dropped code-side (biased cap 4), v2 (cap 1, `d03e9b47`) pending; `a2ac3e4`/`5a773e6` worst-domain gate → TailGate, `2a34515` rare-decay guard → RareDecay; 26dcd09 LZP → LzpExpert, 2aa1242 → ResidualVQ, 9de7b61 → GDNBridge). Working tree carries three
-  uncommitted changes in `hagi/models/optimal_lm.py`: `state_carry`,
-  `HARD_START`, `bypass_mask` — all three are certified in primes
-  (`GDNBridge.gdnScan_append`, `HardStart.*`, `ResidualMasking.*`).
-- 24 proposals in `docs/PROPOSAL-index.md`; accepted by the code agent:
-  13 (EB adapters), 17 (non-overlapping windows, `fd040a7`), 25 (gauge balance,
-  `0affafb` — DEFINED BUT NEVER CALLED; wiring proposal 25b pending), `2aa1242` adds 2-stage residual quant (`ResidualVQ.residualTwoStage_error_le`). In the working
-  tree, uncommitted: 22 (residual masking), 24 (state carry).
-  Pending: 18 (repair-share minimax), 19 (adaptive epochs), 20 (gate
-  pre-check with `rootT`), 21 (delta budget), 23 (archiver mixture).
+  HEAD `d602812` (gate and repair measure *all* old domains). Working tree:
+  `OLD_GATE_WINDOWS` 2048 → 32768 after the code agent measured 0.16 nat error
+  at 16 windows/domain (n = 138) — matches `PairedGain.budget_split_radius_bounds`.
+- 34 proposals in `docs/PROPOSAL-index.md`:
+  - accepted and live: 13, 17, 26 (`5a773e6`), 34 in substance (`d602812`);
+  - accepted but UNWIRED: 25 (`gauge_balance` defined, never called) → 25b;
+  - reverted by the code agent without a stated cause: 18 (`cc1bdd1`), 30 (×2);
+  - pending with ready-made tests: 27, 28 v2 (cap 1), 29 (P1, export-time), 31, 25b;
+  - pending without a test: 19–21, 23, 24, 25-addendum (MLA factor).
+- Code-agent accept/revert pattern (notes): changes that move the training CE curve
+  get reverted; export/rollback-time changes get accepted. Verify *call sites*, not
+  commits, when marking a proposal ACCEPTED.
+- Numeric anchors theory ↔ code: gate radius 0.16 → 0.044 nat at 16 → 237
+  windows (predicted 0.042); HAGI-Prime reports reproduce from formulas except
+  `curv_coarse = 1446.84` (formula not stated).
 
 ## Theory map (what is proved, where)
 
@@ -56,39 +61,34 @@ map, not a source of truth.
 
 ## How to continue the cycle
 
-1. `cd /c/HAGI_v2 && git log --oneline | head` — any commit past `414ede5`
-   (or a commit of `state_carry`/`HARD_START`/`bypass_mask`) is a new
-   certificate target: read the diff, find the exact Lean model, probe in
-   `.tmp/*.lean`, add to the sibling module, CI, commit.
+1. `cd /c/HAGI_v2 && git log --oneline | head` — a new commit is a certificate
+   target: read the diff, find the exact Lean model, probe in `.tmp/*.lean`, add to
+   the sibling module, CI, commit. Then check the call site (`rg "<name>\(" hagi
+   | grep -v def`) before writing ACCEPTED.
 2. If the code is unchanged, do not add micro-theorems for their own sake
-   (YAGNI). Remaining research directions with real content:
-   - a quantitative TBPTT bias bound tied to the measured `g` values of the
-     GDN layers (needs the code's `a1, b1` statistics);
-   - (done, cycle 83) composition theorem: `CertifiedStepCompose` — gate ⇒
-     obj non-increasing for every ω; false gate pass ≤ α;
-   - `n_eff` model for dependent windows is obsolete since `fd040a7` (step ≥ k).
-3. CI hygiene: `scripts/ci.sh` now greps the whole build log (`.tmp/ci_build.txt`);
-   DocLint R4 rejects backticked Python names in docstrings — write them bare.
-   Docstring text must not contain `-/` or `5-/3` sequences (closes the block).
+   (YAGNI). Proposals with numbers carry a numpy simulation and a regression test
+   before submission (LESSONS, cycle 97). On a revert, log a re-approval condition
+   instead of resubmitting.
+3. CI hygiene: `scripts/ci.sh` greps the whole build log; DocLint R4 rejects
+   backticked non-Lean names in docstrings (write them bare); R5 wants every number
+   either a literal of the file or marked «измерено»/«#eval»; docstrings must not
+   contain `-/`.
 
 Total commits in primes at checkpoint: 2435.
 
-## Retrospective at cycle 100 (what the theory bought)
+## Retrospective at cycle 120 (what the theory bought)
 
-* Accepted by code and matched 1:1 by a theorem: PROPOSAL 13 (EB adapters),
-  17 (non-overlapping windows), 25 (gauge balance → `GaugeBalance.rank1_gauge`,
-  `stock_balance_attained`, `gauge_kills_sat_tail`), 26 (worst-domain gate →
-  `TailGate.max_le_imp_mean_le`); guard tests `2a34515` (→ `RareDecay`).
-* Theory that *prevented* a wrong change: PROPOSAL 28 v1 (cap 4 → biased by
-  1/q, `bernoulli_prop_le_one`); the `x < y` mis-statement of the bit swap
-  (true threshold 4×, `bit_swap_improves_iff`).
-* Theory ahead of code (pending): 18–21, 23, 24, 25-addendum (MLA factor),
-  27 (asymmetric grow init), 28 v2 (cap 1), 29 (mixed-precision rows).
-* In progress code-side (working tree, `optimal_lm.py`): table-LazyAdam —
-  inactive rows keep their moments and do not step; covered by
-  `LazyAdam.lazy_moment_drift`, `touchStep_dense_excess_pos`.
-* Not formalised, honestly: NTK spectral entropy (`log det₊ K̄`), quantitative
-  TBPTT bias (needs measured GDN `g`), volume of the dead set `α^{-N/2}` (sign model: `dead_one_input_fraction` = 1/2 per input, `2^{-L}` per path — the K/perture-volume form is not formalised).
+* Accepted by code and matched 1:1 by a theorem: 13, 17, 26 (`TailGate`), 34
+  (`PairedGain.budget_split_radius_bounds`, confirmed by measurement), guard
+  test `2a34515` (→ `RareDecay`).
+* Theory that prevented a wrong change: 28 v1 (cap 4 → biased by 1/q,
+  `bernoulli_prop_le_one`); the `x < y` mis-statement of the bit swap (true
+  threshold 4×, `bit_swap_improves_iff`); the false "only all-negative is dead"
+  claim (unequal inputs), restricted to the per-input form.
+* Theory ahead of code: 18–21, 23, 24, 25b, 25-addendum, 27, 28 v2, 29, 31, 33.
+* TBPTT tail is formalised (`GDNBridge.carry_influence_abs_le`); only the numeric
+  plug-in with measured GDN `g` is missing.
+* Not formalised, honestly: NTK spectral entropy (`log det₊ K̄`; rank-1 term is
+  `rank1_ntk_gauge_invariant`), capillary form `α^{-N/2}` of the dead-set volume
+  (sign model: `dead_one_input_fraction`, `sign_assignments_card`).
 
-* Code-agent measurement (cycle 119, n = 138 old domains): 2048-window budget → 16 windows/domain → 0.16 nat error (all 0.25-exceedances = noise); 32768 → 237 windows → 0.044. Matches `budget_split_radius_bounds` (0.16·√(16/237) = 0.042).
-* Freeze at cycle 118: 9659 declarations (9540 at session start).
