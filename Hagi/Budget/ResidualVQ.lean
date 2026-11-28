@@ -432,7 +432,10 @@ theorem mono_at (c : ℕ → ℝ) (hmono : ∀ k, c (k+1) ≤ c k) : ∀ k m, k 
 после — не убывает, поэтому минимум в `kstar`. Для остатка, отсортированного по
 вкладу, `kstar` — первое `k` с `(1 − 1/ρ)·c k ≤ λ·b`: байты второй стадии окупаются,
 пока вклад строки превышает цену её хранения (измерено: knee при 128 строках,
-PROPOSAL 29). -/
+PROPOSAL 29). Граница: требует `ΔJ k = −(1 − 1/ρ)·c k` с монотонным `c`; на
+реальной кривой CE с Fisher-весами предельная цена немонотонна (HAGI_v2
+choose_emb_rows2), поэтому там нужен перебор — `sweep_ge_argmin`,
+`marginal_rule_boundary`. -/
 theorem kstar_minimal (c : ℕ → ℝ) (lam b rho : ℝ) (hρ : 1 ≤ rho) (hmono : ∀ k, c (k+1) ≤ c k)
     (kstar : ℕ) (hstop : (1 - 1/rho) * c kstar ≤ lam * b)
     (hbefore : ∀ k < kstar, (1 - 1/rho) * c k > lam * b) :
@@ -470,6 +473,24 @@ theorem auto_rule_is_kstar (c : ℕ → ℝ) (lam b rho θ : ℝ) (hρ : 1 < rho
   refine ⟨?_, fun k hk => ?_⟩
   · rw [hprice]; have := mul_lt_mul_of_pos_left hstop hn; nlinarith
   · rw [hprice]; have := mul_lt_mul_of_pos_left (hbefore k hk) hn; nlinarith
+
+/-- Для любой целевой функции `J` (без предположения о вогнутости) минимум по
+конечной сетке чисел строк не хуже маржинального правила: если `k*` — первое `k`
+с `(1 − 1/ρ)·c k ≤ λ·b` и `k* ∈ grid`, то `min_grid J ≤ J k*`. На реальной кривой
+CE (измерено в HAGI_v2 choose_emb_rows2: предельная цена 1.3e-3 nat на байт при
+32 строках, 3.5e-4 при 64, 4.9e-4 при 128 — немонотонна) перебор — корректная
+замена точечного правила; `kstar_minimal` даёт, где искать, только когда
+`ΔJ k = −(1 − 1/ρ)·c k` с монотонным `c`. -/
+theorem sweep_ge_argmin {J : ℕ → ℝ} (grid : List ℕ) (kstar : ℕ) (hk : kstar ∈ grid) :
+    ∃ k ∈ grid, J k ≤ J kstar := ⟨kstar, hk, le_refl _⟩
+/-- Граница маржинального правила: `J = [3, 1, 2, 2, …]`, `kstar = 2` — первое `k`,
+где шаг перестаёт убывать (`J 3 ≥ J 2`), но минимум в `k = 1`. Такая `J` не имеет
+вида `−(1 − 1/ρ)·C c k + λ·b·k` с монотонным `c`: для той формы шаги `λ·b − (1 −
+1/ρ)·c k` не убывают, а здесь шаг `J 2 − J 1 = +1` после шага `J 1 − J 0 = −2`. -/
+theorem marginal_rule_boundary :
+    let J : ℕ → ℝ := fun k => if k = 0 then 3 else if k = 1 then 1 else 2
+    (J 3 ≥ J 2) ∧ J 1 < J 2 := by
+  intro J; norm_num [J]
 
 /-! ### CE weight of an embedding row: why the residual norm is not the right score -/
 

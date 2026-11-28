@@ -34,8 +34,8 @@ measurement, waiting for code · PENDING = theory only. Numbers live in the file
 | 26 | [PROPOSAL-worst-domain-gate.md](PROPOSAL-worst-domain-gate.md) | TailGate | LIVE | worst-domain rollback gate on by default (max_le_imp_mean_le: strictly stronger than the mean gate; |
 | 27 | [PROPOSAL-asymmetric-grow-init.md](PROPOSAL-asymmetric-grow-init.md) | GaugeBalance | grown block init W_down = ε·sign, W_up = 0: identity at step 0, W_up trainable at once | W_down = ε·sign-noise, W_up = zeros: identity kept at step 0, ∂L/∂W_up = −ε·x·y ≠ 0 from the first step (pa… |
 | 28 | [PROPOSAL-importance-token-loss.md](PROPOSAL-importance-token-loss.md) | ResidualMasking | PENDING | token loss with q ∝ |
-| 29 | [PROPOSAL-mixed-precision-rows.md](PROPOSAL-mixed-precision-rows.md) | ResidualVQ | LIVE (HAGI_EMB_ROWS2=auto, 89d663a) | per-row bits by 4× water-filling on Fisher contributions (bit_swap_improves_iff; |
-| 29c | [PROPOSAL-emb-rows2-fisher.md](PROPOSAL-emb-rows2-fisher.md) | ResidualVQ | READY | emb stage-two rows ranked by p_i·‖res_i‖² (Fisher) instead of ‖res_i‖²: same bytes, −0.26 nat at k = 32 (measured) |
+| 29 | [PROPOSAL-mixed-precision-rows.md](PROPOSAL-mixed-precision-rows.md) | ResidualVQ | LIVE (choose_emb_rows2 sweep, ef61bbb) | per-row bits by 4× water-filling on Fisher contributions (bit_swap_improves_iff; |
+| 29c | [PROPOSAL-emb-rows2-fisher.md](PROPOSAL-emb-rows2-fisher.md) | ResidualVQ | LIVE (a1a3c53, 1984f43) | emb stage-two rows ranked by p_i·‖res_i‖² (Fisher) instead of ‖res_i‖²: same bytes, −0.26 nat at k = 32 (measured) |
 
 | 30 | [PROPOSAL-lazy-table-step.md](PROPOSAL-lazy-table-step.md) | LazyAdam | REVERTED | moments and step gated by act for 2-D tables (lazy_momentum_bound: drift ≤ c·β/(1−β) = 9c at β₁=0.9; |
 | 31 | [NOTES-verification.md](NOTES-verification.md) | DepthExitCert | PENDING | replace fixed margin > 2.0 by 2·L_h·bres₂ with logged per-block bound; |
