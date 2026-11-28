@@ -312,4 +312,63 @@ theorem stage2_swap_stationary (x y : ℝ) (h : x ≤ 4 * y) :
     ¬ (x / 4 + y * 4 < x + y) := by
   rw [bit_swap_improves_iff]; linarith
 
+/-! ## Stage-two row selection: top-k by residual is exactly optimal -/
+
+/-- Если мощности двух наборов строк упорядочены (`#S ≤ #T`), а вклад каждой
+строки из `T` не меньше вклада любой строки вне `T`, то суммарный вклад `T`
+не меньше суммарного вклада `S` — при неотрицательных вкладах `c`.
+Доказательство: `S \ T` инъективно вкладывается в `T \ S` по мощности, каждый
+элемент `S \ T` мажорируется своим образом. -/
+theorem sum_le_of_dominating {ι : Type} [Fintype ι] [DecidableEq ι] (S T : Finset ι)
+    (c : ι → ℝ) (hc : ∀ i, 0 ≤ c i) (hcard : S.card ≤ T.card)
+    (hdom : ∀ i ∈ T, ∀ j ∉ T, c j ≤ c i) :
+    ∑ i ∈ S, c i ≤ ∑ i ∈ T, c i := by
+  classical
+  have e1 := Finset.card_inter_add_card_sdiff (s := S) (t := T)
+  have e2 := Finset.card_inter_add_card_sdiff (s := T) (t := S)
+  rw [Finset.inter_comm T S] at e2
+  have hc' : Fintype.card ↥(S \ T) ≤ Fintype.card ↥(T \ S) := by
+    simp only [Fintype.card_coe]; omega
+  obtain ⟨g⟩ := Function.Embedding.nonempty_of_card_le hc'
+  have hinj : Set.InjOn (fun i : ↥(S \ T) => (g i : ι)) Set.univ := by
+    intro a _ b _ h; exact g.injective (Subtype.ext h)
+  have hsub : Finset.image (fun i : ↥(S \ T) => (g i : ι)) Finset.univ ⊆ T \ S := by
+    intro x hx; obtain ⟨i, _, rfl⟩ := Finset.mem_image.mp hx; exact (g i).2
+  have hle : ∀ x : ↥(S \ T), c x ≤ c (g x) :=
+    fun x => hdom (g x) (Finset.mem_sdiff.mp (g x).2).1 x (Finset.mem_sdiff.mp x.2).2
+  have hstep : ∑ i ∈ S \ T, c i ≤ ∑ j ∈ T \ S, c j := calc
+    _ = ∑ x : ↥(S \ T), c x := (Finset.sum_attach _ _).symm
+    _ ≤ ∑ x : ↥(S \ T), c (g x) := Finset.sum_le_sum (fun x _ => hle x)
+    _ = ∑ i ∈ Finset.image (fun i : ↥(S \ T) => (g i : ι)) Finset.univ, c i := by
+        rw [Finset.sum_image (by simpa using hinj)]
+    _ ≤ ∑ j ∈ T \ S, c j := sum_le_sum_of_subset_of_nonneg hsub (fun j _ _ => hc j)
+  have hsd (A B : Finset ι) : A \ (A ∩ B) = A \ B := by
+    ext x; simp only [Finset.mem_sdiff, Finset.mem_inter]; tauto
+  have hS : (∑ i ∈ S, c i) = (∑ i ∈ S \ T, c i) + ∑ i ∈ S ∩ T, c i := by
+    have h := Finset.sum_sdiff (s₁ := S ∩ T) (s₂ := S) Finset.inter_subset_left (f := c)
+    rw [hsd S T] at h; exact h.symm
+  have hT : (∑ i ∈ T, c i) = (∑ i ∈ T \ S, c i) + ∑ i ∈ S ∩ T, c i := by
+    have h := Finset.sum_sdiff (s₁ := T ∩ S) (s₂ := T) Finset.inter_subset_left (f := c)
+    rw [hsd T S, Finset.inter_comm T S] at h; exact h.symm
+  rw [hS, hT]; linarith
+
+/-- Выбор строк для второй стадии квантования (HAGI_v2 HAGI_EMB_ROWS2, commit
+1b55ac4): вклад строки после первой стадии `c i = ‖W_i − R1_i‖²`; вторая
+стадия сжимает вклад выбранной строки в `ρ ≥ 1` раз, поэтому снижение
+суммарной ошибки на наборе `S` равно `(1 − 1/ρ)·Σ_{i∈S} c i`. Среди всех
+наборов мощности не более `k` максимум достигается на наборе `T`, где каждый
+вклад внутри `T` не меньше любого вклада вне `T` (в коде: `argsort(-contrib)[:k]`).
+Следовательно жадный выбор по остатку — точный оптимум, а не эвристика; размер
+`k` остаётся единственным свободным параметром (измерено: knee при 128 строках,
+PROPOSAL 29). -/
+theorem topk_residual_is_optimal {ι : Type} [Fintype ι] [DecidableEq ι]
+    (c : ι → ℝ) (hc : ∀ i, 0 ≤ c i) (S T : Finset ι) (ρ : ℝ) (hρ : 1 ≤ ρ)
+    (hcard : S.card ≤ T.card) (hdom : ∀ i ∈ T, ∀ j ∉ T, c j ≤ c i) :
+    (∑ i ∈ S, c i) * (1 - 1 / ρ) ≤ (∑ i ∈ T, c i) * (1 - 1 / ρ) := by
+  have h := sum_le_of_dominating S T c hc hcard hdom
+  have hn : 0 ≤ 1 - 1 / ρ := by
+    have : 1 / ρ ≤ 1 := by rw [div_le_one (by linarith)]; linarith
+    linarith
+  simpa [mul_comm] using mul_le_mul_of_nonneg_left h hn
+
 end Hagi.Budget
