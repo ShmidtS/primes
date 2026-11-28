@@ -532,4 +532,18 @@ theorem clamped_budget_radius_le (sig b α : ℝ) (hα : 0 < α) (hα2 : α < 1)
     radius sig b w α ≤ radius sig b 16 α :=
   radius_anti sig b α hα hα2 16 w (by norm_num) hw hsig hb
 
+open scoped Classical in
+/-- Worst-гейт по `m` старым доменам (HAGI_v2 _worst_exceeds): если каждый
+домен на своей парной выборке ложно превышает допуск с вероятностью ≤ α
+(admit_false_le на уровне α), то вероятность ложного отката «хотя бы один
+домен» ≤ m·α. При m = 138 и индивидуальном α это объясняет ложные откаты
+при бюджете 2048 (радиус 0.16 нат на 16 окнах): без деления α на m гейт
+срабатывает по шуму; бюджет 32768 (ca8bb9a) уменьшает радиус до 0.044. -/
+theorem worst_gate_false_rollback_le {V : Type} [Fintype V] [Nonempty V] {n : ℕ} (q : V → ℝ) (hq0 : ∀ v, 0 ≤ q v)
+    (hq1 : ∑ v, q v = 1) (α : ℝ) (m : ℕ) (A : Fin m → (Fin n → V) → Prop)
+    (hA : ∀ r : Fin m, prodPq (fun _ : Fin n => q) (A r) ≤ α) :
+    prodPq (fun _ : Fin n => q) (fun ω => ∃ r, A r ω) ≤ (m : ℝ) * α := by
+  classical
+  exact admit_false_union_le q hq0 hq1 α m A hA
+
 end Hagi.Probability.PairedGain

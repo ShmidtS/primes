@@ -12,9 +12,10 @@ map, not a source of truth.
   Every commit of the session passed the full battery (Freeze 9659 declarations,
   DocLint R4/R5, DocAnchorCheck, TrivialLint, LayerLint, ReachLint, NsLint, DupLint).
 - Reference implementation `C:\HAGI_v2` is READ-ONLY (another agent).
-  HEAD `d602812` (gate and repair measure *all* old domains). Working tree:
-  `OLD_GATE_WINDOWS` 2048 → 32768 after the code agent measured 0.16 nat error
-  at 16 windows/domain (n = 138) — matches `PairedGain.budget_split_radius_bounds`.
+  HEAD `ca8bb9a` (gate and repair measure *all* old domains; window budget
+  32768 because the 2048 budget gave *false rollbacks* at 16 windows/domain, n = 138:
+  per-domain radius 0.16 nat × union over 138 domains, `worst_gate_false_rollback_le`;
+  measured 0.044 at 237 windows, predicted 0.042 by `budget_split_radius_bounds`).
 - 34 proposals in `docs/PROPOSAL-index.md`:
   - accepted and live: 13, 17, 26 (`5a773e6`), 34 in substance (`d602812`);
   - accepted but UNWIRED: 25 (`gauge_balance` defined, never called) → 25b;
