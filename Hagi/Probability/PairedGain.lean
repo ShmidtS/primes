@@ -522,4 +522,14 @@ theorem budget_split_radius_bounds (sig b W α m : ℝ) (hsig : 0 < sig) (hb : 0
     rw [h3]
     linarith
 
+/-- Clamp бюджета окон (HAGI_v2 `w = min 256, max 16, W/n`): при любом числе
+доменов `n` на домен приходится не меньше 16 окон, поэтому радиус шума не
+превосходит `radius(16)` — константа, не зависящая от `n` (измерено кодом:
+0.16 нат при 16 окнах). Цена: при `n > W/16` худший домен не отличает
+прирост, меньший `radius(16)`, от шума. -/
+theorem clamped_budget_radius_le (sig b α : ℝ) (hα : 0 < α) (hα2 : α < 1)
+    (hsig : 0 ≤ sig) (hb : 0 ≤ b) (w : ℕ) (hw : 16 ≤ w) :
+    radius sig b w α ≤ radius sig b 16 α :=
+  radius_anti sig b α hα hα2 16 w (by norm_num) hw hsig hb
+
 end Hagi.Probability.PairedGain
