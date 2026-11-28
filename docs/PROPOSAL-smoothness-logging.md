@@ -1,6 +1,6 @@
 # PROPOSAL: Smoothness telemetry for the first layer W1 (S_batch, gamma star)
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Modules
 `Hagi/Theory/FirstLayerLip.lean`, `Hagi/Theory/FirstLayerLipBatch.lean`.

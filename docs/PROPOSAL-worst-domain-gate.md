@@ -1,7 +1,6 @@
 # PROPOSAL 26: worst-domain rollback gate on by default
 
-**Status: theory already in primes (`Hagi/Unified/TailGate.lean`); code-side
-pending in HAGI_v2 (`hagi/selfdev/unified.py`, `HAGI_WORST_GATE`).**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 ## Context
 

@@ -1,6 +1,6 @@
 # PROPOSAL: adaptive ingest epochs — stop by the marginal-forgetting rule
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Learning/EpochTradeoff.lean`. Self-contained.

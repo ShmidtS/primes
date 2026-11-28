@@ -1,6 +1,6 @@
 # PROPOSAL: equalise residual forgetting, not sqrt-share, when splitting repair bytes
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Unified/RepairShare.lean`. Self-contained.

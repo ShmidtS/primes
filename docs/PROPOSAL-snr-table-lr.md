@@ -1,6 +1,6 @@
 # PROPOSAL: clipped g-SNR learning rate for byte tables (half the optimizer state)
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Step/AdamSNR.lean`. Self-contained. All Lean anchors are proved and

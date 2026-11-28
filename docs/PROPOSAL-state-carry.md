@@ -1,7 +1,6 @@
 # PROPOSAL: state-carry BPTT in train_optimal — forward exact, backward truncated
 
-**Status: certificate implemented in primes; the code change is present in the
-HAGI_v2 working tree (`optimal_lm.py`, `state_carry = True`), not yet committed.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module `Hagi/Model/GDNBridge.lean`.
 

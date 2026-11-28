@@ -1,6 +1,6 @@
 # PROPOSAL: exact gauge balance before PrimeQuant (arXiv:2611.27889v1)
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module `Hagi/Step/GaugeBalance.lean`.
 

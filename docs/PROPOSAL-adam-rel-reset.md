@@ -1,6 +1,6 @@
 # PROPOSAL: reset the Adam timestep and moments per domain (Adam-Rel)
 
-**Status: theory implemented in primes; ALREADY IMPLEMENTED in HAGI_v2 — `train_optimal` builds a fresh `HybridMuonAdamW` per call (optimal_lm.py:573, `opt_override` is never passed), so `step_count`, `v_m`, `v_v` and `ema` restart on every domain. This document is the certificate of that behaviour; no code change needed.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Step/AdamRel.lean`. Self-contained. All Lean anchors are proved and

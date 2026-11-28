@@ -1,6 +1,6 @@
 # PROPOSAL: empirical-Bernstein radius for the paired-gain gate
 
-**Status: ACCEPTED — HAGI_v2 414ede5. Both `paired_gain` call sites now use `paired_margin_eb(d, n_states, delta = 0.01)`; the certificate is `radius` / `admit_false_le` / `admit_false_union_le` (PairedGain.lean), with `n_states = len(cands)` giving the union bound over all adapter candidates.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Probability/PairedGain.lean`. Self-contained. All Lean anchors are

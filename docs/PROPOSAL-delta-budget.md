@@ -1,6 +1,6 @@
 # PROPOSAL: scale the EB delta by the number of checks on the current holdout
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Probability/PairedGain.lean` (`prodPq_union_le_sum`, `delta_budget_scaled`).

@@ -1,8 +1,6 @@
 # PROPOSAL 28: importance-weighted token loss (q ∝ |ℓ_b|)
 
-**Status: theory in primes (`ResidualMasking.masked_importance_unbiased`,
-`covered_propensity_le`, `covered_window_propensity_zero`); code-side pending
-in HAGI_v2 (`optimal_lm.py:637`, full-mean CE over all T positions).**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 ## Context
 

@@ -1,8 +1,6 @@
 # PROPOSAL 33: sparse level-2 matmul on the training path of Adaptive HNet-2
 
-**Status: cost model in primes (`AdaptiveChunking.adaptive_le_static`: adaptive ≤ static
-when the boundary gate actually skips work); code-side pending (training branch of
-`AdaptiveHNet2Layer` computes `u2_all = h1 @ W_l2` densely).**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 ## Context
 

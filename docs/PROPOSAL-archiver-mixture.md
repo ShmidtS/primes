@@ -1,6 +1,6 @@
 # PROPOSAL: archiver — arithmetic coder on a Hedge mixture (model + PPM-3 + zlib)
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Information/MixtureCoding.lean`.

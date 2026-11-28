@@ -1,10 +1,6 @@
 # PROPOSAL 35: certified worst-domain gate (radius with α/n) instead of a point threshold
 
-**Status: theory in primes (`PairedGain.worst_gate_false_rollback_le`: P(false rollback) ≤ n·α;
-`radius`, `radius_anti`, `clamped_budget_radius_le`; Hoeffding in `Hagi.Ensemble.Hoeffding`).
-Code-side: `_worst_exceeds` in `hagi/selfdev/unified.py` compares the point growth
-`grow > WORST_TOL_ROLLBACK` with no radius; `ca8bb9a` fixed the false rollbacks by
-raising the window budget 2048 → 32768 (16× gate cost).**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 ## Why the point threshold fails at scale
 

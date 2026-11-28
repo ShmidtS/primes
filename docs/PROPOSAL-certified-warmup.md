@@ -1,6 +1,6 @@
 # PROPOSAL: certified warm-up of a grown block via `_certified_finite_step` (HOLD semantics) instead of plain Adam
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Theory/FunctionPreservingGrowth.lean`, namespace

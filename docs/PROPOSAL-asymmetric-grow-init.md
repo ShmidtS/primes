@@ -1,7 +1,6 @@
 # PROPOSAL 27: asymmetric initialisation of grown blocks
 
-**Status: theory in primes (`GaugeBalance.pairGrad_u_zero_at_d0`, `pairGrad_u_at_eps`);
-code-side pending in HAGI_v2 (`grow_depth`, `optimal_lm.py:749`).**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 ## Context
 

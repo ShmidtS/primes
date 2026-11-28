@@ -1,6 +1,6 @@
 # PROPOSAL: lazy second moment `v_v` for inactive rows (LazyAdam completion)
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Step/LazyAdam.lean`. Self-contained. All Lean anchors are proved and

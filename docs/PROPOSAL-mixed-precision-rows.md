@@ -1,7 +1,6 @@
 # PROPOSAL 29: mixed-precision rows by 4× water-filling
 
-**Status: theory in primes (`ResidualVQ.fisher_optimal_scale`, `bit_swap_improves_iff`);
-code-side pending in HAGI_v2 (`quant_per_row(stages)` — one global stage count).**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 ## Context
 

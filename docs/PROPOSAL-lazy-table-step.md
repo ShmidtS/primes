@@ -1,8 +1,6 @@
 # PROPOSAL 30: table-LazyAdam — moments and step only on touched rows
 
-**Status: theory in primes (`LazyAdam.lazy_moment_drift`, `lazy_momentum_bound`,
-`touchStep_dense_excess_pos`, `RareDecay.coupled_decay_fixed_point`); code-side
-pending in HAGI_v2 (`HybridMuonAdamW`, Adam branch for 2-D tables).**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 ## Context
 

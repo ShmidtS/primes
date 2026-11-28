@@ -1,6 +1,6 @@
 # PROPOSAL: skip the certification gate when the window count is provably too small
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Probability/PairedGain.lean` (`radius_eventually_le`, `n_suffices`).

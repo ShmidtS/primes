@@ -1,6 +1,6 @@
 # PROPOSAL: Muon step guards and telemetry for the first layer W1
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2 (guard (a) is already in the code).**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Modules
 `Hagi/Theory/{FirstLayerGrad,BatchRankOne,MuonSpectral,

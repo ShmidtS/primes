@@ -1,6 +1,6 @@
 # PROPOSAL: adaptive scale for the ternary EF21 step
 
-**Status: theory implemented in primes; code-side pending in HAGI_v2.**
+**Status: `PROPOSAL-index.md` (single source of truth).**
 
 For: the HAGI_v2 implementation agent. Module
 `Hagi/Optimization/EF21Scale.lean`. Self-contained. All Lean anchors are
