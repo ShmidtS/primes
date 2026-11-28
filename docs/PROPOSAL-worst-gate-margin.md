@@ -39,7 +39,7 @@ def test_worst_gate_certified_no_false_rollback():
     rng = np.random.default_rng(0); trips = 0
     for _ in range(50):
         for d in range(138):
-            grow = rng.normal(0, 0.64 / 4).mean() * 0 + rng.normal(0, 0.64, 16).mean()
+            grow = rng.normal(0, 0.64, 16).mean()            # zero true growth, noise only
             r = paired_margin_eb(np.zeros(16) - rng.normal(0, 0.64, 16), n_states=138)
             trips += (grow - r > 0.25)
     assert trips == 0          # point threshold: ~138 × 0.059 × 50 ≈ 400 false trips
